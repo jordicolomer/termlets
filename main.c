@@ -55,6 +55,14 @@ void show_cursor() {
 }
 
 // window operations
+typedef struct Widget {
+  struct Widget* next;
+  struct Widget* prev;
+  int x;
+  int y;
+  char * c;
+} Widget;
+
 typedef struct Window {
   struct Window* next;
   struct Window* prev;
@@ -62,6 +70,8 @@ typedef struct Window {
   int y;
   int width;
   int height;
+  Widget* wg_head;
+  Widget* wg_tail;
   void (*draw)(struct Window*);
 } Window;
 
@@ -85,6 +95,8 @@ void Window_append(Window* w){
 
 Window* Window_new(int x, int y, int width, int height){
   Window* w = malloc(sizeof *w);
+  w->wg_head = NULL;
+  w->wg_tail = NULL;
   
   w->x = x;
   w->y = y;
@@ -96,6 +108,31 @@ Window* Window_new(int x, int y, int width, int height){
 
   return w;
 }
+
+void Widget_init(Widget* wg, int x, int y, char * c){
+  wg->x = x;
+  wg->y = y;
+  wg->c = c;  
+}
+
+void Window_add_widget(Window* w, int x, int y, char * c){
+  Widget* wg = malloc(sizeof *wg);
+  Widget_init(wg, x, y, c);
+
+  // add to list
+  wg->next = NULL;
+  wg->prev = w->wg_tail;
+
+  if (w->wg_tail != NULL) {
+	w->wg_tail->next = wg;
+  } else {
+	w->wg_head = wg;
+  }
+
+  w->wg_tail = wg;
+}
+
+// FILE MANAGER
 
 void FileExplorer_draw(struct Window* w){
   int x = w->x;
@@ -122,10 +159,16 @@ Window* FileExplorer_new(int x, int y, int width, int height){
   //Window* w = malloc(sizeof *w);
   Window* w = Window_new(x, y, width, height);
   w->draw = FileExplorer_draw;
+  Window_add_widget(w, 0, 0, " Favorites           ");
+  Window_add_widget(w, 0, 1, " 🏠 Home             ");
+  Window_add_widget(w, 0, 2, " 📥 Downloads        ");
+  Window_add_widget(w, 0, 3, " 📄 Documents        ");
+  Window_add_widget(w, 0, 4, " 📷 Pictures         ");
 
   return w;
 }
 
+// TERMINAL
 
 void init(){
   //Window* w1 = append_window(10, 20, 30, 40, draw_file_explorer);
