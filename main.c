@@ -3,6 +3,7 @@
 #include <termios.h>
 #include <stdlib.h>
 #include <string.h>
+#include <dirent.h>
 #include "ansi_term.c"
 
 
@@ -198,6 +199,34 @@ Window* FileExplorer_new(int x, int y, int width, int height){
   Window_add_widget(w, 0, j++, fav_width, 1, " Locations", WHITE, BRIGHT_BLACK_BG);
   Window_add_widget(w, 0, j++, fav_width, 1, " 💻 Root", BLACK, WHITE_BG);
   Window_add_widget(w, 0, j++, fav_width, 1, " 👥 Users", BLACK, WHITE_BG);
+
+  // list files
+  j = 1;
+  DIR *dir;
+  struct dirent *entry;
+
+  dir = opendir("/Users/jordicolomer");  // current directory
+
+  if (dir == NULL) {
+	perror("opendir");
+	return NULL;
+  }
+
+  //int x = 0;
+  while ((entry = readdir(dir)) != NULL) {
+	char * icon = "📄";
+	if (entry->d_type == DT_DIR) {
+	  icon = "📁";
+	}
+	char *str = NULL;
+	// memory leak here
+	int len = asprintf(&str, "%s %s", icon, entry->d_name);
+	Window_add_widget(w, fav_width, j++, 30, 1, str, BLACK, WHITE_BG);
+	//mvwprintw(win, x++, 1, "%s %s", icon, entry->d_name);
+  }
+
+  closedir(dir);
+
 
   return w;
 }
