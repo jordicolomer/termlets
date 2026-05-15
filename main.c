@@ -69,6 +69,13 @@ int Widget_get_x(Widget* wg){
   return wg->parent->width + wg->x;
 }
 
+int Widget_get_y(Widget* wg){
+  if (wg->y >= 0){
+	return wg->y;
+  }
+  return wg->parent->height + wg->y + 1;
+}
+
 void Window_draw(struct Window* w){
   int x = w->x;
   int y = w->y;
@@ -77,14 +84,17 @@ void Window_draw(struct Window* w){
   Widget* current = w->wg_head;
   while (current != NULL) {
 	int wg_x = Widget_get_x(current);
-	int wg_width = Widget_get_width(current);
-	set_terminal_color(current->fg, current->bg);
-	move_cursor(y+current->y, x+wg_x);
-	if (wg_width > 0){
-	  for (int i = 0; i< wg_width; i++) printf(" ");
+	int wg_y = Widget_get_y(current);
+	if (wg_y <= w->height) {
+	  int wg_width = Widget_get_width(current);
+	  set_terminal_color(current->fg, current->bg);
+	  move_cursor(y+wg_y, x+wg_x);
+	  if (wg_width > 0){
+		for (int i = 0; i< wg_width; i++) printf(" ");
+	  }
+	  move_cursor(y+wg_y, x+wg_x);
+	  printf(current->c);
 	}
-	move_cursor(y+current->y, x+wg_x);
-	printf(current->c);
 	current = current->next;
   }
   
@@ -112,7 +122,7 @@ Window* Window_new(int x, int y, int width, int height){
 
 int Widget_in_bounds(Widget* wg, int x, int y){
   int wg_x = wg->parent->x + Widget_get_x(wg);
-  int wg_y = wg->parent->y + wg->y;
+  int wg_y = wg->parent->y + Widget_get_y(wg);
   
   if (wg_x <= x && x < wg_x + Widget_get_width(wg) &&
 	  wg_y <= y && y < wg_y + wg->height) {
@@ -286,14 +296,14 @@ Window* FileExplorer_new(int x, int y, int width, int height){
 	// memory leak here
 	int len = asprintf(&str, "%s %s", icon, entry->d_name);
 	Window_add_widget(w, fav_width, j++, -1, 1, str, BLACK, WHITE_BG);
-	if (height < j) break;
+	//if (height < j) break;
 	//mvwprintw(win, x++, 1, "%s %s", icon, entry->d_name);
   }
 
   closedir(dir);
 
   // resize grip
-  Widget* resize_grip = Window_add_widget(w, -1, height, 1, 1, "⌟", BLACK, WHITE_BG);
+  Widget* resize_grip = Window_add_widget(w, -1, -1, 1, 1, "⌟", BLACK, WHITE_BG);
   resize_grip->on_mouse_down = Widget_on_resize;
 
   return w;
