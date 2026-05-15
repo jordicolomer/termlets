@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <termios.h>
 #include <stdlib.h>
+#include <string.h>
 #include "ansi_term.c"
 
 struct termios orig;
@@ -63,6 +64,7 @@ typedef struct Widget {
   int x;
   int y;
   int width;
+  int height;
   char * c;
   ForegroundColor fg;
   BackgroundColor bg;
@@ -99,6 +101,7 @@ void Window_append(Window* w){
   tail = w;  // new node becomes the last node
 }
 
+
 void Window_draw(struct Window* w){
   int x = w->x;
   int y = w->y;
@@ -108,10 +111,11 @@ void Window_draw(struct Window* w){
   while (current != NULL) {
 	set_terminal_color(current->fg, current->bg);
 	move_cursor(y+current->y, x+current->x);
-	printf(current->c);
 	if (current->width > 0){
 	  for (int i=0;i<current->width;i++) printf(" ");
 	}
+	move_cursor(y+current->y, x+current->x);
+	printf(current->c);
 	current = current->prev;
   }
   
@@ -146,12 +150,13 @@ Window* Window_new(int x, int y, int width, int height){
   wg->bg = bg;
   }*/
 
-Widget* Window_add_widget(Window* w, int x, int y, int width, char * c, ForegroundColor fg, BackgroundColor bg){
+Widget* Window_add_widget(Window* w, int x, int y, int width, int height, char * c, ForegroundColor fg, BackgroundColor bg){
   Widget* wg = malloc(sizeof *wg);
   wg->parent = w;
   wg->x = x;
   wg->y = y;
   wg->width = width;
+  wg->height = height;
   wg->c = c;
   wg->fg = fg;
   wg->bg = bg;
@@ -176,8 +181,30 @@ void on_mouse_down_window_bar(Widget* wg){
 }
 
 void Window_add_window_bar(struct Window* w){
-  Widget* wg = Window_add_widget(w, 0, 0, w->width, "", WHITE, BLUE_BG);
+  Widget* wg = Window_add_widget(w, 0, 0, w->width, 1, "", WHITE, BLUE_BG);
   wg->on_mouse_down = on_mouse_down_window_bar;
+}
+
+int in_bounds(int x, int y, int width, int height, int point_x, int point_y) {
+    if (x <= point_x && point_x < x + width &&
+        y <= point_y && point_y < y + height) {
+        return 1;
+    }
+    return 0;
+}
+
+Widget* find_widget(int x, int y){
+  Window* w = tail;
+  while (w != NULL) {
+	
+	Widget* wg = w->wg_tail;
+	while (wg != NULL) {
+	  if (in_bounds(wg->x, wg->y, wg->width, wg->height, x, y)) return wg;
+	  wg = wg->prev;
+	}
+	
+	w = w->prev;
+  }
 }
 
 // FILE MANAGER
@@ -190,17 +217,18 @@ Window* FileExplorer_new(int x, int y, int width, int height){
 
   Window_add_window_bar(w);
   int j = 1;
-  Window_add_widget(w, 0, j++, 0, " Favorites           ", WHITE, BRIGHT_BLACK_BG);
-  Window_add_widget(w, 0, j++, 0, " 🏠 Home             ", BLACK, WHITE_BG);
-  Window_add_widget(w, 0, j++, 0, " 📥 Downloads        ", BLACK, WHITE_BG);
-  Window_add_widget(w, 0, j++, 0, " 📄 Documents        ", BLACK, WHITE_BG);
-  Window_add_widget(w, 0, j++, 0, " 📷 Pictures         ", BLACK, WHITE_BG);
-  Window_add_widget(w, 0, j++, 0, " 🎵 Music            ", BLACK, WHITE_BG);
-  Window_add_widget(w, 0, j++, 0, " 🎬 Movies           ", BLACK, WHITE_BG);
-  Window_add_widget(w, 0, j++, 0, "                     ", BLACK, WHITE_BG);
-  Window_add_widget(w, 0, j++, 0, " Locations           ", WHITE, BRIGHT_BLACK_BG);
-  Window_add_widget(w, 0, j++, 0, " 💻 Root             ", BLACK, WHITE_BG);
-  Window_add_widget(w, 0, j++, 0, " 👥 Users            ", BLACK, WHITE_BG);
+  int fav_width = 22;
+  Window_add_widget(w, 0, j++, fav_width, 1, " Favorites", WHITE, BRIGHT_BLACK_BG);
+  Window_add_widget(w, 0, j++, fav_width, 1, " 🏠 Home", BLACK, WHITE_BG);
+  Window_add_widget(w, 0, j++, fav_width, 1, " 📥 Downloads", BLACK, WHITE_BG);
+  Window_add_widget(w, 0, j++, fav_width, 1, " 📄 Documents", BLACK, WHITE_BG);
+  Window_add_widget(w, 0, j++, fav_width, 1, " 📷 Pictures", BLACK, WHITE_BG);
+  Window_add_widget(w, 0, j++, fav_width, 1, " 🎵 Music", BLACK, WHITE_BG);
+  Window_add_widget(w, 0, j++, fav_width, 1, " 🎬 Movies", BLACK, WHITE_BG);
+  Window_add_widget(w, 0, j++, fav_width, 1, "", BLACK, WHITE_BG);
+  Window_add_widget(w, 0, j++, fav_width, 1, " Locations", WHITE, BRIGHT_BLACK_BG);
+  Window_add_widget(w, 0, j++, fav_width, 1, " 💻 Root", BLACK, WHITE_BG);
+  Window_add_widget(w, 0, j++, fav_width, 1, " 👥 Users", BLACK, WHITE_BG);
 
   return w;
 }
@@ -231,8 +259,9 @@ void on_click(int x, int y){
 	current = current->prev;
   }
 }
-
+#include <locale.h>
 int main() {
+  setlocale(LC_ALL, "");
   enable_raw_mode();
   enable_mouse();
   init();
