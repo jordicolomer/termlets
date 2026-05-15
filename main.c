@@ -176,6 +176,10 @@ void on_mouse_down_window_bar(Widget* wg, int x, int y){
 void Window_add_window_bar(struct Window* w){
   Widget* wg = Window_add_widget(w, 0, 0, -1, 1, "", WHITE, BLUE_BG);
   wg->on_mouse_down = on_mouse_down_window_bar;
+  
+  Widget* close = Window_add_widget(w, -1, 0, 1, 1, "X", WHITE, BLUE_BG);
+  Widget* maximize = Window_add_widget(w, -3, 0, 1, 1, "□", WHITE, BLUE_BG);
+  Widget* minimize = Window_add_widget(w, -5, 0, 1, 1, "-", WHITE, BLUE_BG);
 }
 
 /*
@@ -238,7 +242,7 @@ Window* FileExplorer_new(int x, int y, int width, int height){
   // toolbar
   x_offset = 0;
   widget_width = 12; Window_add_widget(w, x_offset, j, widget_width, 1, "📄 New File", BLACK, WHITE_BG); x_offset += widget_width;
-  widget_width = 12; Window_add_widget(w, x_offset, j, widget_width, 1, "📁 New Tab", BLACK, WHITE_BG); x_offset += widget_width;
+  widget_width = 12; Window_add_widget(w, x_offset, j, widget_width, 1, "📁 New Dir", BLACK, WHITE_BG); x_offset += widget_width;
   widget_width = 8;  Window_add_widget(w, x_offset, j, widget_width, 1, "📋 Copy", BLACK, WHITE_BG); x_offset += widget_width;
   widget_width = 8;  Window_add_widget(w, x_offset, j, widget_width, 1, "🔪 Cut", BLACK, WHITE_BG); x_offset += widget_width;
   widget_width = 10; Window_add_widget(w, x_offset, j, widget_width, 1, "📌 Paste", BLACK, WHITE_BG); x_offset += widget_width;
