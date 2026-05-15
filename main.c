@@ -188,8 +188,20 @@ Window* FileExplorer_new(int x, int y, int width, int height){
   Window_add_window_bar(w);
   
   int j = 1;
-  int x_offset = 0;
+
   int widget_width;
+  
+  // toolbar
+  int x_offset = 0;
+  widget_width = 6; Window_add_widget(w, x_offset, j, widget_width, 1, " File", BLACK, WHITE_BG); x_offset += widget_width;
+  widget_width = 6; Window_add_widget(w, x_offset, j, widget_width, 1, " Edit", BLACK, WHITE_BG); x_offset += widget_width;
+  widget_width = 6;  Window_add_widget(w, x_offset, j, widget_width, 1, " View", BLACK, WHITE_BG); x_offset += widget_width;
+  widget_width = 6;  Window_add_widget(w, x_offset, j, widget_width, 1, " Help", BLACK, WHITE_BG); x_offset += widget_width;
+  Window_add_widget(w, 0, j, width, 1, "", BLACK, WHITE_BG);
+  j++;
+
+  // toolbar
+  x_offset = 0;
   widget_width = 12; Window_add_widget(w, x_offset, j, widget_width, 1, "📄 New File", BLACK, WHITE_BG); x_offset += widget_width;
   widget_width = 12; Window_add_widget(w, x_offset, j, widget_width, 1, "📁 New Tab", BLACK, WHITE_BG); x_offset += widget_width;
   widget_width = 8;  Window_add_widget(w, x_offset, j, widget_width, 1, "📋 Copy", BLACK, WHITE_BG); x_offset += widget_width;
@@ -200,6 +212,14 @@ Window* FileExplorer_new(int x, int y, int width, int height){
   Window_add_widget(w, 0, j, width, 1, "", BLACK, WHITE_BG);
   j++;
 
+  // tabs
+  x_offset = 0;
+  widget_width = 14; Window_add_widget(w, x_offset, j, widget_width, 1, "jordicolomer x", BLACK, WHITE_BG); x_offset += widget_width;
+  widget_width = 1;  Window_add_widget(w, x_offset, j, widget_width, 1, " + ", BLACK, WHITE_BG); x_offset += widget_width;
+  Window_add_widget(w, 0, j, width, 1, "", BLACK, WHITE_BG);
+  j++;
+
+  // favorites
   int start_j = j;
   int fav_width = 22;
   Window_add_widget(w, 0, j++, fav_width, 1, " Favorites", WHITE, BRIGHT_BLACK_BG);
