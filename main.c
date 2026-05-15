@@ -221,7 +221,8 @@ Window* FileExplorer_new(int x, int y, int width, int height){
 	char *str = NULL;
 	// memory leak here
 	int len = asprintf(&str, "%s %s", icon, entry->d_name);
-	Window_add_widget(w, fav_width, j++, 30, 1, str, BLACK, WHITE_BG);
+	Window_add_widget(w, fav_width, j++, width - fav_width, 1, str, BLACK, WHITE_BG);
+	if (y < j) break;
 	//mvwprintw(win, x++, 1, "%s %s", icon, entry->d_name);
   }
 
@@ -236,8 +237,8 @@ Window* FileExplorer_new(int x, int y, int width, int height){
 void init(){
   //Window* w1 = append_window(10, 20, 30, 40, draw_file_explorer);
   //Window* w2 = append_window(100, 30, 30, 40, draw_file_explorer);
-  Window* w1 = FileExplorer_new(10, 20, 30, 40);
-  Window* w2 = FileExplorer_new(100, 30, 30, 40);
+  Window* w1 = FileExplorer_new(10, 20, 80, 40);
+  Window* w2 = FileExplorer_new(100, 30, 80, 40);
   dragging = w2;
 }
 
