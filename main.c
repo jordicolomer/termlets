@@ -272,7 +272,7 @@ Window* FileExplorer_new(int x, int y, int width, int height){
   Window_add_widget(w, 0, j++, fav_width, 1, " Locations", WHITE, BRIGHT_BLACK_BG);
   Window_add_widget(w, 0, j++, fav_width, 1, " 💻 Root", BLACK, WHITE_BG);
   Window_add_widget(w, 0, j++, fav_width, 1, " 👥 Users", BLACK, WHITE_BG);
-  while(j <= height) Window_add_widget(w, 0, j++, fav_width, 1, "", BLACK, WHITE_BG);
+  while(j <= 200) Window_add_widget(w, 0, j++, fav_width, 1, "", BLACK, WHITE_BG);
 
   // list files
   j = start_j;
