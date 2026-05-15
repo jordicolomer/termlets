@@ -36,6 +36,7 @@ typedef struct Window {
 Window* head = NULL;  // first node
 Window* tail = NULL;  // last node
 Window* dragging = NULL;
+int dragging_offset_x, dragging_offset_y;
 
 void Window_append(Window* w){
   w->next = NULL;
@@ -210,9 +211,28 @@ void init(){
 
 #include "logger.c"
 
-void on_mouse_down(int x, int y){
+void repaint(){
   clear_screen();
   hide_cursor();
+  
+  // redraw everything
+  Window* win = tail;
+  while (win != NULL) {
+	win->draw(win);
+	win = win->prev;
+  }
+}
+
+void on_drag(int x, int y){
+  if (dragging != NULL){
+	dragging->x = x - dragging_offset_x;
+	dragging->y = y - dragging_offset_y;
+  }
+
+  repaint();
+}
+
+void on_mouse_down(int x, int y){
   Widget* wg = find_widget(x, y);
 
 
@@ -226,19 +246,15 @@ void on_mouse_down(int x, int y){
 	}*/
   //LOG_INFO("Application started");
   if (wg != NULL){
+    LOG_INFO("Found widget %p | pos(%d,%d) size(%dx%d)", 
+             (void*)wg, 
+             wg->x, wg->y, 
+             wg->width, wg->height);
 	dragging = wg->parent;
+	dragging_offset_x = x - wg->parent->x;
+	dragging_offset_y = y - wg->parent->y;
   }
-  if (dragging != NULL){
-	dragging->x = x;
-	dragging->y = y;
-  }
-
-  // redraw everything
-  Window* win = tail;
-  while (win != NULL) {
-	win->draw(win);
-	win = win->prev;
-  }
+  on_drag(x, y);
 }
 
 //#include <locale.h>
@@ -282,6 +298,7 @@ int main() {
 	  if (sscanf(seq, "[<%d;%d;%d%c", &btn, &x, &y, &type) == 4) {
 		if (dragging == 0 && btn == 0 && type == 'M') { //click
 		  dragging = 1;
+		  on_mouse_down(x, y);
 		}
 
 		if (type == 'm') { //release
@@ -289,7 +306,8 @@ int main() {
 		}
 			  
 		if (dragging == 1){
-		  on_mouse_down(x, y);
+		  //repaint();
+		  on_drag(x, y);
 		}
 	  }
 	}
