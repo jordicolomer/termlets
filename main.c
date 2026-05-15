@@ -125,12 +125,12 @@ void draw(int x, int y){
 	head->x = x;
 	head->y = y;
   }
-  Window* current = head;
+  Window* current = tail;
 
   while (current != NULL) {
 	current->draw(current);  // or whatever you want to do
 	
-	current = current->next;
+	current = current->prev;
   }
 }
 
