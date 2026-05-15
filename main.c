@@ -57,6 +57,7 @@ void show_cursor() {
 
 // window operations
 typedef struct Widget {
+  struct Window* parent;
   struct Widget* next;
   struct Widget* prev;
   int x;
@@ -65,6 +66,7 @@ typedef struct Widget {
   char * c;
   ForegroundColor fg;
   BackgroundColor bg;
+  void (*on_mouse_down) (struct Widget* wg);  
 } Widget;
 
 typedef struct Window {
@@ -97,51 +99,7 @@ void Window_append(Window* w){
   tail = w;  // new node becomes the last node
 }
 
-Window* Window_new(int x, int y, int width, int height){
-  Window* w = malloc(sizeof *w);
-  w->wg_head = NULL;
-  w->wg_tail = NULL;
-  
-  w->x = x;
-  w->y = y;
-  w->width = width;
-  w->height = height;
-  //w->draw = draw;
-
-  Window_append(w);
-
-  return w;
-}
-
-void Widget_init(Widget* wg, int x, int y, int width, char * c, ForegroundColor fg, BackgroundColor bg){
-  wg->x = x;
-  wg->y = y;
-  wg->width = width;
-  wg->c = c;
-  wg->fg = fg;
-  wg->bg = bg;
-}
-
-void Window_add_widget(Window* w, int x, int y, int width, char * c, ForegroundColor fg, BackgroundColor bg){
-  Widget* wg = malloc(sizeof *wg);
-  Widget_init(wg, x, y, width, c, fg, bg);
-
-  // add to list
-  wg->next = NULL;
-  wg->prev = w->wg_tail;
-
-  if (w->wg_tail != NULL) {
-	w->wg_tail->next = wg;
-  } else {
-	w->wg_head = wg;
-  }
-
-  w->wg_tail = wg;
-}
-
-// FILE MANAGER
-
-void FileExplorer_draw(struct Window* w){
+void Window_draw(struct Window* w){
   int x = w->x;
   int y = w->y;
 
@@ -161,14 +119,74 @@ void FileExplorer_draw(struct Window* w){
   fflush(stdout);
 }
 
-void Window_add_window_bar(struct Window* w){
-  Window_add_widget(w, 0, 0, w->width, "", WHITE, BLUE_BG);  
+
+Window* Window_new(int x, int y, int width, int height){
+  Window* w = malloc(sizeof *w);
+  w->wg_head = NULL;
+  w->wg_tail = NULL;
+  
+  w->x = x;
+  w->y = y;
+  w->width = width;
+  w->height = height;
+  //w->draw = draw;
+  w->draw = Window_draw;
+
+  Window_append(w);
+
+  return w;
 }
+
+/*void Widget_init(Widget* wg, int x, int y, int width, char * c, ForegroundColor fg, BackgroundColor bg){
+  wg->x = x;
+  wg->y = y;
+  wg->width = width;
+  wg->c = c;
+  wg->fg = fg;
+  wg->bg = bg;
+  }*/
+
+Widget* Window_add_widget(Window* w, int x, int y, int width, char * c, ForegroundColor fg, BackgroundColor bg){
+  Widget* wg = malloc(sizeof *wg);
+  wg->parent = w;
+  wg->x = x;
+  wg->y = y;
+  wg->width = width;
+  wg->c = c;
+  wg->fg = fg;
+  wg->bg = bg;
+  //Widget_init(wg, x, y, width, c, fg, bg);
+
+  // add to list
+  wg->next = NULL;
+  wg->prev = w->wg_tail;
+
+  if (w->wg_tail != NULL) {
+	w->wg_tail->next = wg;
+  } else {
+	w->wg_head = wg;
+  }
+
+  w->wg_tail = wg;
+
+  return wg;
+}
+
+void on_mouse_down_window_bar(Widget* wg){
+}
+
+void Window_add_window_bar(struct Window* w){
+  Widget* wg = Window_add_widget(w, 0, 0, w->width, "", WHITE, BLUE_BG);
+  wg->on_mouse_down = on_mouse_down_window_bar;
+}
+
+// FILE MANAGER
+
 
 Window* FileExplorer_new(int x, int y, int width, int height){
   //Window* w = malloc(sizeof *w);
   Window* w = Window_new(x, y, width, height);
-  w->draw = FileExplorer_draw;
+  //w->draw = FileExplorer_draw;
 
   Window_add_window_bar(w);
   int j = 1;
@@ -177,6 +195,12 @@ Window* FileExplorer_new(int x, int y, int width, int height){
   Window_add_widget(w, 0, j++, 0, " 📥 Downloads        ", BLACK, WHITE_BG);
   Window_add_widget(w, 0, j++, 0, " 📄 Documents        ", BLACK, WHITE_BG);
   Window_add_widget(w, 0, j++, 0, " 📷 Pictures         ", BLACK, WHITE_BG);
+  Window_add_widget(w, 0, j++, 0, " 🎵 Music            ", BLACK, WHITE_BG);
+  Window_add_widget(w, 0, j++, 0, " 🎬 Movies           ", BLACK, WHITE_BG);
+  Window_add_widget(w, 0, j++, 0, "                     ", BLACK, WHITE_BG);
+  Window_add_widget(w, 0, j++, 0, " Locations           ", WHITE, BRIGHT_BLACK_BG);
+  Window_add_widget(w, 0, j++, 0, " 💻 Root             ", BLACK, WHITE_BG);
+  Window_add_widget(w, 0, j++, 0, " 👥 Users            ", BLACK, WHITE_BG);
 
   return w;
 }
