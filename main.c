@@ -67,17 +67,9 @@ typedef struct Window {
 
 Window* head = NULL;  // first node
 Window* tail = NULL;  // last node
+Window* dragging = NULL;
 
-void append_window(int x, int y, int width, int height, void (*draw)(struct Window*)){
-  //Window* w = malloc(sizeof(Window));
-  Window* w = malloc(sizeof *w);
-  
-  w->x = x;
-  w->y = y;
-  w->width = width;
-  w->height = height;
-  w->draw = draw;
-
+void Window_append(Window* w){
   w->next = NULL;
   w->prev = tail;   // link back to old last node
 
@@ -91,7 +83,21 @@ void append_window(int x, int y, int width, int height, void (*draw)(struct Wind
   tail = w;  // new node becomes the last node
 }
 
-void draw_file_explorer(struct Window* w){
+Window* Window_new(int x, int y, int width, int height){
+  Window* w = malloc(sizeof *w);
+  
+  w->x = x;
+  w->y = y;
+  w->width = width;
+  w->height = height;
+  //w->draw = draw;
+
+  Window_append(w);
+
+  return w;
+}
+
+void FileExplorer_draw(struct Window* w){
   int x = w->x;
   int y = w->y;
   printf("\033[37;44m"); // white on blue background
@@ -112,24 +118,36 @@ void draw_file_explorer(struct Window* w){
   fflush(stdout);
 }
 
-void init(){
-  append_window(10, 20, 30, 40, draw_file_explorer);
-  append_window(20, 30, 30, 40, draw_file_explorer);
+Window* FileExplorer_new(int x, int y, int width, int height){
+  //Window* w = malloc(sizeof *w);
+  Window* w = Window_new(x, y, width, height);
+  w->draw = FileExplorer_draw;
+
+  return w;
 }
 
 
-void draw(int x, int y){
+void init(){
+  //Window* w1 = append_window(10, 20, 30, 40, draw_file_explorer);
+  //Window* w2 = append_window(100, 30, 30, 40, draw_file_explorer);
+  Window* w1 = FileExplorer_new(10, 20, 30, 40);
+  Window* w2 = FileExplorer_new(100, 30, 30, 40);
+  dragging = w2;
+}
+
+
+void on_click(int x, int y){
   clear_screen();
   hide_cursor();
-  if (head != 0){
-	head->x = x;
-	head->y = y;
-  }
-  Window* current = tail;
 
+  if (dragging != NULL){
+	dragging->x = x;
+	dragging->y = y;
+  }
+
+  Window* current = tail;
   while (current != NULL) {
-	current->draw(current);  // or whatever you want to do
-	
+	current->draw(current);  // or whatever you want to do	
 	current = current->prev;
   }
 }
@@ -178,7 +196,7 @@ int main() {
 		}
 			  
 		if (dragging == 1){
-		  draw(x, y);
+		  on_click(x, y);
 		}
 	  }
 	}
