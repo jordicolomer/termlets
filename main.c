@@ -186,7 +186,21 @@ Window* FileExplorer_new(int x, int y, int width, int height){
   //w->draw = FileExplorer_draw;
 
   Window_add_window_bar(w);
+  
   int j = 1;
+  int x_offset = 0;
+  int widget_width;
+  widget_width = 12; Window_add_widget(w, x_offset, j, widget_width, 1, "📄 New File", BLACK, WHITE_BG); x_offset += widget_width;
+  widget_width = 12; Window_add_widget(w, x_offset, j, widget_width, 1, "📁 New Tab", BLACK, WHITE_BG); x_offset += widget_width;
+  widget_width = 8;  Window_add_widget(w, x_offset, j, widget_width, 1, "📋 Copy", BLACK, WHITE_BG); x_offset += widget_width;
+  widget_width = 8;  Window_add_widget(w, x_offset, j, widget_width, 1, "🔪 Cut", BLACK, WHITE_BG); x_offset += widget_width;
+  widget_width = 10; Window_add_widget(w, x_offset, j, widget_width, 1, "📌 Paste", BLACK, WHITE_BG); x_offset += widget_width;
+  widget_width = 10; Window_add_widget(w, x_offset, j, widget_width, 1, "🔤 Rename", BLACK, WHITE_BG); x_offset += widget_width;
+  widget_width = 10; Window_add_widget(w, x_offset, j, widget_width, 1, "❌ Delete", BLACK, WHITE_BG); x_offset += widget_width;
+  Window_add_widget(w, 0, j, width, 1, "", BLACK, WHITE_BG);
+  j++;
+
+  int start_j = j;
   int fav_width = 22;
   Window_add_widget(w, 0, j++, fav_width, 1, " Favorites", WHITE, BRIGHT_BLACK_BG);
   Window_add_widget(w, 0, j++, fav_width, 1, " 🏠 Home", BLACK, WHITE_BG);
@@ -199,9 +213,10 @@ Window* FileExplorer_new(int x, int y, int width, int height){
   Window_add_widget(w, 0, j++, fav_width, 1, " Locations", WHITE, BRIGHT_BLACK_BG);
   Window_add_widget(w, 0, j++, fav_width, 1, " 💻 Root", BLACK, WHITE_BG);
   Window_add_widget(w, 0, j++, fav_width, 1, " 👥 Users", BLACK, WHITE_BG);
+  while(j <= height) Window_add_widget(w, 0, j++, fav_width, 1, "", BLACK, WHITE_BG);
 
   // list files
-  j = 1;
+  j = start_j;
   DIR *dir;
   struct dirent *entry;
 
@@ -222,7 +237,7 @@ Window* FileExplorer_new(int x, int y, int width, int height){
 	// memory leak here
 	int len = asprintf(&str, "%s %s", icon, entry->d_name);
 	Window_add_widget(w, fav_width, j++, width - fav_width, 1, str, BLACK, WHITE_BG);
-	if (y < j) break;
+	if (height < j) break;
 	//mvwprintw(win, x++, 1, "%s %s", icon, entry->d_name);
   }
 
@@ -237,7 +252,7 @@ Window* FileExplorer_new(int x, int y, int width, int height){
 void init(){
   //Window* w1 = append_window(10, 20, 30, 40, draw_file_explorer);
   //Window* w2 = append_window(100, 30, 30, 40, draw_file_explorer);
-  Window* w1 = FileExplorer_new(10, 20, 80, 40);
+  Window* w1 = FileExplorer_new(10, 20, 80, 20);
   Window* w2 = FileExplorer_new(100, 30, 80, 40);
   dragging = w2;
 }
