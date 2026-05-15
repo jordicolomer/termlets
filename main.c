@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <termios.h>
 #include <stdlib.h>
+#include "ansi_term.c"
 
 struct termios orig;
 
@@ -61,6 +62,8 @@ typedef struct Widget {
   int x;
   int y;
   char * c;
+  ForegroundColor fg;
+  BackgroundColor bg;
 } Widget;
 
 typedef struct Window {
@@ -109,15 +112,17 @@ Window* Window_new(int x, int y, int width, int height){
   return w;
 }
 
-void Widget_init(Widget* wg, int x, int y, char * c){
+void Widget_init(Widget* wg, int x, int y, char * c, ForegroundColor fg, BackgroundColor bg){
   wg->x = x;
   wg->y = y;
   wg->c = c;  
+  wg->fg = fg;
+  wg->bg = bg;
 }
 
-void Window_add_widget(Window* w, int x, int y, char * c){
+void Window_add_widget(Window* w, int x, int y, char * c, ForegroundColor fg, BackgroundColor bg){
   Widget* wg = malloc(sizeof *wg);
-  Widget_init(wg, x, y, c);
+  Widget_init(wg, x, y, c, fg, bg);
 
   // add to list
   wg->next = NULL;
@@ -137,20 +142,17 @@ void Window_add_widget(Window* w, int x, int y, char * c){
 void FileExplorer_draw(struct Window* w){
   int x = w->x;
   int y = w->y;
-  printf("\033[37;44m"); // white on blue background
-  move_cursor(y, x);
-  printf("                     ");
-  printf("\033[30;47m"); // black text on white background
-  move_cursor(y+1, x);
-  printf(" Favorites           ");
-  move_cursor(y+2, x);
-  printf(" 🏠 Home             ");
-  move_cursor(y+3, x);
-  printf(" 📥 Downloads        ");
-  move_cursor(y+4, x);
-  printf(" 📄 Documents        ");
-  move_cursor(y+5, x);
-  printf(" 📷 Pictures         ");
+
+
+  // draw widgets
+  Widget* current = w->wg_tail;
+  while (current != NULL) {
+	set_terminal_color(current->fg, current->bg);
+	move_cursor(y+current->y, x+current->x);
+	printf(current->c);	
+	current = current->prev;
+  }
+  
   printf("\033[0m");
   fflush(stdout);
 }
@@ -159,11 +161,12 @@ Window* FileExplorer_new(int x, int y, int width, int height){
   //Window* w = malloc(sizeof *w);
   Window* w = Window_new(x, y, width, height);
   w->draw = FileExplorer_draw;
-  Window_add_widget(w, 0, 0, " Favorites           ");
-  Window_add_widget(w, 0, 1, " 🏠 Home             ");
-  Window_add_widget(w, 0, 2, " 📥 Downloads        ");
-  Window_add_widget(w, 0, 3, " 📄 Documents        ");
-  Window_add_widget(w, 0, 4, " 📷 Pictures         ");
+  
+  Window_add_widget(w, 0, 0, " Favorites           ", WHITE, BLUE_BG);
+  Window_add_widget(w, 0, 1, " 🏠 Home             ", BLACK, WHITE_BG);
+  Window_add_widget(w, 0, 2, " 📥 Downloads        ", BLACK, WHITE_BG);
+  Window_add_widget(w, 0, 3, " 📄 Documents        ", BLACK, WHITE_BG);
+  Window_add_widget(w, 0, 4, " 📷 Pictures         ", BLACK, WHITE_BG);
 
   return w;
 }
