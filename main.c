@@ -18,7 +18,7 @@ typedef struct Widget {
   char * c;
   ForegroundColor fg;
   BackgroundColor bg;
-  void (*on_mouse_down) (struct Widget* wg);  
+  void (*on_mouse_down) (struct Widget* wg, int x, int y);  
 } Widget;
 
 typedef struct Window {
@@ -139,7 +139,10 @@ Widget* Window_add_widget(Window* w, int x, int y, int width, int height, char *
   return wg;
 }
 
-void on_mouse_down_window_bar(Widget* wg){
+void on_mouse_down_window_bar(Widget* wg, int x, int y){
+  dragging = wg->parent;
+  dragging_offset_x = x - wg->parent->x;
+  dragging_offset_y = y - wg->parent->y;
 }
 
 void Window_add_window_bar(struct Window* w){
@@ -236,25 +239,18 @@ void on_mouse_down(int x, int y){
   Widget* wg = find_widget(x, y);
 
 
-  /*if (wg) {
-    LOG_INFO("Found widget %p | pos(%d,%d) size(%dx%d)", 
-             (void*)wg, 
-             wg->x, wg->y, 
-             wg->width, wg->height);
-  } else {
-    LOG_INFO("No widget found at (%d, %d)", x, y);
-	}*/
-  //LOG_INFO("Application started");
   if (wg != NULL){
-    LOG_INFO("Found widget %p | pos(%d,%d) size(%dx%d)", 
+	if (wg->on_mouse_down != NULL) wg->on_mouse_down(wg, x, y);
+    /*LOG_INFO("Found widget %p | pos(%d,%d) size(%dx%d)", 
              (void*)wg, 
              wg->x, wg->y, 
-             wg->width, wg->height);
-	dragging = wg->parent;
-	dragging_offset_x = x - wg->parent->x;
-	dragging_offset_y = y - wg->parent->y;
+             wg->width, wg->height);*/
   }
   on_drag(x, y);
+}
+
+void on_mouse_up(){
+  dragging = NULL;
 }
 
 //#include <locale.h>
@@ -303,6 +299,7 @@ int main() {
 
 		if (type == 'm') { //release
 		  dragging = 0;
+		  on_mouse_up();
 		}
 			  
 		if (dragging == 1){
