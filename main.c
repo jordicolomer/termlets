@@ -5,56 +5,6 @@
 #include <string.h>
 #include "ansi_term.c"
 
-struct termios orig;
-
-void enable_raw_mode() {
-  tcgetattr(STDIN_FILENO, &orig);
-  struct termios raw = orig;
-
-  raw.c_lflag &= ~(ICANON | ECHO);
-  raw.c_cc[VMIN] = 1;
-  raw.c_cc[VTIME] = 0;
-
-  tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
-}
-
-void disable_raw_mode() {
-  tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig);
-}
-
-void enable_mouse() {
-  // enable SGR mouse tracking + movement
-  printf("\033[?1000h"); // clicks
-  printf("\033[?1003h"); // movement tracking
-  printf("\033[?1006h"); // SGR extended mode
-  fflush(stdout);
-}
-
-void disable_mouse() {
-  printf("\033[?1003l");
-  printf("\033[?1000l");
-  fflush(stdout);
-}
-
-void move_cursor(int row, int col) {
-  printf("\033[%d;%dH", row, col);
-  fflush(stdout);
-}
-
-
-void clear_screen() {
-  printf("\033[2J");
-}
-
-void hide_cursor() {
-  printf("\033[?25l");
-  fflush(stdout);
-}
-
-void show_cursor() {
-  printf("\033[?25h");
-  fflush(stdout);
-}
 
 // window operations
 typedef struct Widget {
@@ -141,6 +91,17 @@ Window* Window_new(int x, int y, int width, int height){
   return w;
 }
 
+int Widget_in_bounds(Widget* wg, int x, int y){
+  int wg_x = wg->parent->x + wg->x;
+  int wg_y = wg->parent->y + wg->y;
+  
+  if (wg_x <= x && x < wg_x + wg->width &&
+	  wg_y <= y && y < wg_y + wg->height) {
+	return 1;
+  }
+  return 0;
+}
+
 /*void Widget_init(Widget* wg, int x, int y, int width, char * c, ForegroundColor fg, BackgroundColor bg){
   wg->x = x;
   wg->y = y;
@@ -185,6 +146,7 @@ void Window_add_window_bar(struct Window* w){
   wg->on_mouse_down = on_mouse_down_window_bar;
 }
 
+/*
 int in_bounds(int x, int y, int width, int height, int point_x, int point_y) {
     if (x <= point_x && point_x < x + width &&
         y <= point_y && point_y < y + height) {
@@ -192,6 +154,7 @@ int in_bounds(int x, int y, int width, int height, int point_x, int point_y) {
     }
     return 0;
 }
+*/
 
 Widget* find_widget(int x, int y){
   Window* w = tail;
@@ -199,12 +162,14 @@ Widget* find_widget(int x, int y){
 	
 	Widget* wg = w->wg_tail;
 	while (wg != NULL) {
-	  if (in_bounds(wg->x, wg->y, wg->width, wg->height, x, y)) return wg;
+	  //if (in_bounds(wg->x, wg->y, wg->width, wg->height, x, y)) return wg;
+	  if (Widget_in_bounds(wg, x, y)) return wg;
 	  wg = wg->prev;
 	}
 	
 	w = w->prev;
   }
+  return NULL;
 }
 
 // FILE MANAGER
@@ -243,25 +208,44 @@ void init(){
   dragging = w2;
 }
 
+#include "logger.c"
 
-void on_click(int x, int y){
+void on_mouse_down(int x, int y){
   clear_screen();
   hide_cursor();
+  Widget* wg = find_widget(x, y);
 
+
+  /*if (wg) {
+    LOG_INFO("Found widget %p | pos(%d,%d) size(%dx%d)", 
+             (void*)wg, 
+             wg->x, wg->y, 
+             wg->width, wg->height);
+  } else {
+    LOG_INFO("No widget found at (%d, %d)", x, y);
+	}*/
+  //LOG_INFO("Application started");
+  if (wg != NULL){
+	dragging = wg->parent;
+  }
   if (dragging != NULL){
 	dragging->x = x;
 	dragging->y = y;
   }
 
-  Window* current = tail;
-  while (current != NULL) {
-	current->draw(current);  // or whatever you want to do	
-	current = current->prev;
+  // redraw everything
+  Window* win = tail;
+  while (win != NULL) {
+	win->draw(win);
+	win = win->prev;
   }
 }
-#include <locale.h>
+
+//#include <locale.h>
 int main() {
-  setlocale(LC_ALL, "");
+  log_init("app.log");
+  //log_set_level(LOG_DEBUG);
+  //setlocale(LC_ALL, "");
   enable_raw_mode();
   enable_mouse();
   init();
@@ -305,7 +289,7 @@ int main() {
 		}
 			  
 		if (dragging == 1){
-		  on_click(x, y);
+		  on_mouse_down(x, y);
 		}
 	  }
 	}
