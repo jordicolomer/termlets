@@ -62,22 +62,30 @@ int Widget_get_width(Widget* wg){
   return wg->parent->width - wg->x;
 }
 
+int Widget_get_x(Widget* wg){
+  if (wg->x >= 0){
+	return wg->x;
+  }
+  return wg->parent->width + wg->x;
+}
+
 void Window_draw(struct Window* w){
   int x = w->x;
   int y = w->y;
 
   // draw widgets
-  Widget* current = w->wg_tail;
+  Widget* current = w->wg_head;
   while (current != NULL) {
+	int wg_x = Widget_get_x(current);
+	int wg_width = Widget_get_width(current);
 	set_terminal_color(current->fg, current->bg);
-	move_cursor(y+current->y, x+current->x);
-	int wg_get_width = Widget_get_width(current);
-	if (wg_get_width > 0){
-	  for (int i = 0; i< wg_get_width; i++) printf(" ");
+	move_cursor(y+current->y, x+wg_x);
+	if (wg_width > 0){
+	  for (int i = 0; i< wg_width; i++) printf(" ");
 	}
-	move_cursor(y+current->y, x+current->x);
+	move_cursor(y+current->y, x+wg_x);
 	printf(current->c);
-	current = current->prev;
+	current = current->next;
   }
   
   printf("\033[0m");
@@ -103,7 +111,7 @@ Window* Window_new(int x, int y, int width, int height){
 }
 
 int Widget_in_bounds(Widget* wg, int x, int y){
-  int wg_x = wg->parent->x + wg->x;
+  int wg_x = wg->parent->x + Widget_get_x(wg);
   int wg_y = wg->parent->y + wg->y;
   
   if (wg_x <= x && x < wg_x + Widget_get_width(wg) &&
@@ -192,8 +200,8 @@ void Widget_on_resize(Widget* wg, int x, int y){
   //LOG_INFO("Widget_on_resize");
 
   resizing = wg->parent;
-  dragging_offset_x = wg->parent->width - x;
-  dragging_offset_y = wg->parent->height - y;
+  dragging_offset_x = x - wg->parent->width;
+  dragging_offset_y = y - wg->parent->height;
 }
 
 Window* FileExplorer_new(int x, int y, int width, int height){
@@ -213,8 +221,8 @@ Window* FileExplorer_new(int x, int y, int width, int height){
   widget_width = 6; Window_add_widget(w, x_offset, j, widget_width, 1, " File", BLACK, WHITE_BG); x_offset += widget_width;
   widget_width = 6; Window_add_widget(w, x_offset, j, widget_width, 1, " Edit", BLACK, WHITE_BG); x_offset += widget_width;
   widget_width = 6;  Window_add_widget(w, x_offset, j, widget_width, 1, " View", BLACK, WHITE_BG); x_offset += widget_width;
-  widget_width = 6;  Window_add_widget(w, x_offset, j, widget_width, 1, " Help", BLACK, WHITE_BG); x_offset += widget_width;
-  Window_add_widget(w, 0, j, width, 1, "", BLACK, WHITE_BG);
+  widget_width = 6;  Window_add_widget(w, x_offset, j, -1, 1, " Help", BLACK, WHITE_BG); x_offset += widget_width;
+  //Window_add_widget(w, 0, j, width, 1, "", BLACK, WHITE_BG);
   j++;
 
   // toolbar
@@ -225,19 +233,19 @@ Window* FileExplorer_new(int x, int y, int width, int height){
   widget_width = 8;  Window_add_widget(w, x_offset, j, widget_width, 1, "🔪 Cut", BLACK, WHITE_BG); x_offset += widget_width;
   widget_width = 10; Window_add_widget(w, x_offset, j, widget_width, 1, "📌 Paste", BLACK, WHITE_BG); x_offset += widget_width;
   widget_width = 10; Window_add_widget(w, x_offset, j, widget_width, 1, "🔤 Rename", BLACK, WHITE_BG); x_offset += widget_width;
-  widget_width = 10; Window_add_widget(w, x_offset, j, widget_width, 1, "❌ Delete", BLACK, WHITE_BG); x_offset += widget_width;
-  Window_add_widget(w, 0, j, width, 1, "", BLACK, WHITE_BG);
+  widget_width = 10; Window_add_widget(w, x_offset, j, -1, 1, "❌ Delete", BLACK, WHITE_BG); x_offset += widget_width;
+  //Window_add_widget(w, 0, j, width, 1, "", BLACK, WHITE_BG);
   j++;
 
   // tabs
   x_offset = 0;
   widget_width = 14; Window_add_widget(w, x_offset, j, widget_width, 1, "jordicolomer x", BLACK, WHITE_BG); x_offset += widget_width;
-  widget_width = 1;  Window_add_widget(w, x_offset, j, widget_width, 1, " + ", BLACK, WHITE_BG); x_offset += widget_width;
-  Window_add_widget(w, 0, j, width, 1, "", BLACK, WHITE_BG);
+  widget_width = 1;  Window_add_widget(w, x_offset, j, -1, 1, " + ", BLACK, WHITE_BG); x_offset += widget_width;
+  //Window_add_widget(w, 0, j, width, 1, "", BLACK, WHITE_BG);
   j++;
 
   // address bar
-  Window_add_widget(w, 0, j, width, 1, "📁 /Users/jordicolomer", BLACK, BRIGHT_BLUE_BG);
+  Window_add_widget(w, 0, j, -1, 1, "📁 /Users/jordicolomer", BLACK, BRIGHT_BLUE_BG);
   j++;
 
   // favorites
@@ -277,7 +285,7 @@ Window* FileExplorer_new(int x, int y, int width, int height){
 	char *str = NULL;
 	// memory leak here
 	int len = asprintf(&str, "%s %s", icon, entry->d_name);
-	Window_add_widget(w, fav_width, j++, width - fav_width, 1, str, BLACK, WHITE_BG);
+	Window_add_widget(w, fav_width, j++, -1, 1, str, BLACK, WHITE_BG);
 	if (height < j) break;
 	//mvwprintw(win, x++, 1, "%s %s", icon, entry->d_name);
   }
@@ -285,7 +293,7 @@ Window* FileExplorer_new(int x, int y, int width, int height){
   closedir(dir);
 
   // resize grip
-  Widget* resize_grip = Window_add_widget(w, width-1, height, 1, 1, "⌟", BLACK, WHITE_BG);
+  Widget* resize_grip = Window_add_widget(w, -1, height, 1, 1, "⌟", BLACK, WHITE_BG);
   resize_grip->on_mouse_down = Widget_on_resize;
 
   return w;
