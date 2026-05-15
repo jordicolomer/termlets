@@ -5,6 +5,7 @@
 #include <string.h>
 #include <dirent.h>
 #include "ansi_term.c"
+#include "logger.c"
 
 
 // window operations
@@ -37,6 +38,7 @@ typedef struct Window {
 Window* head = NULL;  // first node
 Window* tail = NULL;  // last node
 Window* dragging = NULL;
+Window* resizing = NULL;
 int dragging_offset_x, dragging_offset_y;
 
 void Window_append(Window* w){
@@ -53,6 +55,12 @@ void Window_append(Window* w){
   tail = w;  // new node becomes the last node
 }
 
+int Widget_get_width(Widget* wg){
+  if (wg->width >= 0){
+	return wg->width;
+  }
+  return wg->parent->width - wg->x;
+}
 
 void Window_draw(struct Window* w){
   int x = w->x;
@@ -63,8 +71,9 @@ void Window_draw(struct Window* w){
   while (current != NULL) {
 	set_terminal_color(current->fg, current->bg);
 	move_cursor(y+current->y, x+current->x);
-	if (current->width > 0){
-	  for (int i=0;i<current->width;i++) printf(" ");
+	int wg_get_width = Widget_get_width(current);
+	if (wg_get_width > 0){
+	  for (int i = 0; i< wg_get_width; i++) printf(" ");
 	}
 	move_cursor(y+current->y, x+current->x);
 	printf(current->c);
@@ -97,7 +106,7 @@ int Widget_in_bounds(Widget* wg, int x, int y){
   int wg_x = wg->parent->x + wg->x;
   int wg_y = wg->parent->y + wg->y;
   
-  if (wg_x <= x && x < wg_x + wg->width &&
+  if (wg_x <= x && x < wg_x + Widget_get_width(wg) &&
 	  wg_y <= y && y < wg_y + wg->height) {
 	return 1;
   }
@@ -147,7 +156,7 @@ void on_mouse_down_window_bar(Widget* wg, int x, int y){
 }
 
 void Window_add_window_bar(struct Window* w){
-  Widget* wg = Window_add_widget(w, 0, 0, w->width, 1, "", WHITE, BLUE_BG);
+  Widget* wg = Window_add_widget(w, 0, 0, -1, 1, "", WHITE, BLUE_BG);
   wg->on_mouse_down = on_mouse_down_window_bar;
 }
 
@@ -179,11 +188,19 @@ Widget* find_widget(int x, int y){
 
 // FILE MANAGER
 
+void Widget_on_resize(Widget* wg, int x, int y){
+  //LOG_INFO("Widget_on_resize");
+
+  resizing = wg->parent;
+  dragging_offset_x = wg->parent->width - x;
+  dragging_offset_y = wg->parent->height - y;
+}
 
 Window* FileExplorer_new(int x, int y, int width, int height){
   //Window* w = malloc(sizeof *w);
   Window* w = Window_new(x, y, width, height);
   //w->draw = FileExplorer_draw;
+
 
   Window_add_window_bar(w);
   
@@ -191,7 +208,7 @@ Window* FileExplorer_new(int x, int y, int width, int height){
 
   int widget_width;
   
-  // toolbar
+  // menubar
   int x_offset = 0;
   widget_width = 6; Window_add_widget(w, x_offset, j, widget_width, 1, " File", BLACK, WHITE_BG); x_offset += widget_width;
   widget_width = 6; Window_add_widget(w, x_offset, j, widget_width, 1, " Edit", BLACK, WHITE_BG); x_offset += widget_width;
@@ -267,6 +284,9 @@ Window* FileExplorer_new(int x, int y, int width, int height){
 
   closedir(dir);
 
+  // resize grip
+  Widget* resize_grip = Window_add_widget(w, width-1, height, 1, 1, "⌟", BLACK, WHITE_BG);
+  resize_grip->on_mouse_down = Widget_on_resize;
 
   return w;
 }
@@ -281,7 +301,6 @@ void init(){
   dragging = w2;
 }
 
-#include "logger.c"
 
 void repaint(){
   clear_screen();
@@ -300,6 +319,11 @@ void on_drag(int x, int y){
 	dragging->x = x - dragging_offset_x;
 	dragging->y = y - dragging_offset_y;
   }
+  if (resizing != NULL){
+	resizing->width = x - dragging_offset_x;
+	resizing->height = y - dragging_offset_y;
+	LOG_INFO("new dimensions width: %d height: %d", resizing->width, resizing->height);	
+  }
 
   repaint();
 }
@@ -315,11 +339,12 @@ void on_mouse_down(int x, int y){
              wg->x, wg->y, 
              wg->width, wg->height);*/
   }
-  on_drag(x, y);
+  //on_drag(x, y);
 }
 
 void on_mouse_up(){
   dragging = NULL;
+  resizing = NULL;
 }
 
 //#include <locale.h>

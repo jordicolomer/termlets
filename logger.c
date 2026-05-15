@@ -16,7 +16,7 @@ int log_init(const char* filename)
         fclose(log_file);
     }
     
-    log_file = fopen(filename, "a");  // append mode
+    log_file = fopen(filename, "w");  // append mode
     if (!log_file) {
         fprintf(stderr, "Failed to open log file: %s\n", filename);
         return 0;
