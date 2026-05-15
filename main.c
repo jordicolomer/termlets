@@ -65,8 +65,8 @@ typedef struct Window {
   void (*draw)(struct Window*);
 } Window;
 
-struct Window* top;
-struct Window* bottom;
+Window* head = NULL;  // first node
+Window* tail = NULL;  // last node
 
 void append_window(int x, int y, int width, int height, void (*draw)(struct Window*)){
   //Window* w = malloc(sizeof(Window));
@@ -78,23 +78,22 @@ void append_window(int x, int y, int width, int height, void (*draw)(struct Wind
   w->height = height;
   w->draw = draw;
 
-  // update links
   w->next = NULL;
-  w->prev = bottom;   // previous is old last element
+  w->prev = tail;   // link back to old last node
 
-  if (bottom != NULL) {
-	bottom->next = w;   // link old last to new one
+  if (tail != NULL) {
+	tail->next = w;   // link old tail forward
   } else {
-	// list was empty → this is also the first node
-	top = w;
+	// list was empty
+	head = w;
   }
 
-  bottom = w;  // update bottom to new last node
+  tail = w;  // new node becomes the last node
 }
 
-void draw_file_explorer(int x, int y){
-  clear_screen();
-  hide_cursor();
+void draw_file_explorer(struct Window* w){
+  int x = w->x;
+  int y = w->y;
   printf("\033[37;44m"); // white on blue background
   move_cursor(y, x);
   printf("                     ");
@@ -114,33 +113,31 @@ void draw_file_explorer(int x, int y){
 }
 
 void init(){
+  append_window(10, 20, 30, 40, draw_file_explorer);
+  append_window(20, 30, 30, 40, draw_file_explorer);
 }
 
 
 void draw(int x, int y){
   clear_screen();
   hide_cursor();
-  printf("\033[37;44m"); // white on blue background
-  move_cursor(y, x);
-  printf("                     ");
-  printf("\033[30;47m"); // black text on white background
-  move_cursor(y+1, x);
-  printf(" Favorites           ");
-  move_cursor(y+2, x);
-  printf(" 🏠 Home             ");
-  move_cursor(y+3, x);
-  printf(" 📥 Downloads        ");
-  move_cursor(y+4, x);
-  printf(" 📄 Documents        ");
-  move_cursor(y+5, x);
-  printf(" 📷 Pictures         ");
-  printf("\033[0m");
-  fflush(stdout);
+  if (head != 0){
+	head->x = x;
+	head->y = y;
+  }
+  Window* current = head;
+
+  while (current != NULL) {
+	current->draw(current);  // or whatever you want to do
+	
+	current = current->next;
+  }
 }
 
 int main() {
   enable_raw_mode();
   enable_mouse();
+  init();
 	
   //printf("\033[2J\033[H");
   //printf("Move mouse / click / drag. Press 'q' to quit.\n");
