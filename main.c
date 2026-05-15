@@ -61,6 +61,7 @@ typedef struct Widget {
   struct Widget* prev;
   int x;
   int y;
+  int width;
   char * c;
   ForegroundColor fg;
   BackgroundColor bg;
@@ -112,17 +113,18 @@ Window* Window_new(int x, int y, int width, int height){
   return w;
 }
 
-void Widget_init(Widget* wg, int x, int y, char * c, ForegroundColor fg, BackgroundColor bg){
+void Widget_init(Widget* wg, int x, int y, int width, char * c, ForegroundColor fg, BackgroundColor bg){
   wg->x = x;
   wg->y = y;
-  wg->c = c;  
+  wg->width = width;
+  wg->c = c;
   wg->fg = fg;
   wg->bg = bg;
 }
 
-void Window_add_widget(Window* w, int x, int y, char * c, ForegroundColor fg, BackgroundColor bg){
+void Window_add_widget(Window* w, int x, int y, int width, char * c, ForegroundColor fg, BackgroundColor bg){
   Widget* wg = malloc(sizeof *wg);
-  Widget_init(wg, x, y, c, fg, bg);
+  Widget_init(wg, x, y, width, c, fg, bg);
 
   // add to list
   wg->next = NULL;
@@ -143,13 +145,15 @@ void FileExplorer_draw(struct Window* w){
   int x = w->x;
   int y = w->y;
 
-
   // draw widgets
   Widget* current = w->wg_tail;
   while (current != NULL) {
 	set_terminal_color(current->fg, current->bg);
 	move_cursor(y+current->y, x+current->x);
-	printf(current->c);	
+	printf(current->c);
+	if (current->width > 0){
+	  for (int i=0;i<current->width;i++) printf(" ");
+	}
 	current = current->prev;
   }
   
@@ -157,16 +161,22 @@ void FileExplorer_draw(struct Window* w){
   fflush(stdout);
 }
 
+void Window_add_window_bar(struct Window* w){
+  Window_add_widget(w, 0, 0, w->width, "", WHITE, BLUE_BG);  
+}
+
 Window* FileExplorer_new(int x, int y, int width, int height){
   //Window* w = malloc(sizeof *w);
   Window* w = Window_new(x, y, width, height);
   w->draw = FileExplorer_draw;
-  
-  Window_add_widget(w, 0, 0, " Favorites           ", WHITE, BLUE_BG);
-  Window_add_widget(w, 0, 1, " 🏠 Home             ", BLACK, WHITE_BG);
-  Window_add_widget(w, 0, 2, " 📥 Downloads        ", BLACK, WHITE_BG);
-  Window_add_widget(w, 0, 3, " 📄 Documents        ", BLACK, WHITE_BG);
-  Window_add_widget(w, 0, 4, " 📷 Pictures         ", BLACK, WHITE_BG);
+
+  Window_add_window_bar(w);
+  int j = 1;
+  Window_add_widget(w, 0, j++, 0, " Favorites           ", WHITE, BRIGHT_BLACK_BG);
+  Window_add_widget(w, 0, j++, 0, " 🏠 Home             ", BLACK, WHITE_BG);
+  Window_add_widget(w, 0, j++, 0, " 📥 Downloads        ", BLACK, WHITE_BG);
+  Window_add_widget(w, 0, j++, 0, " 📄 Documents        ", BLACK, WHITE_BG);
+  Window_add_widget(w, 0, j++, 0, " 📷 Pictures         ", BLACK, WHITE_BG);
 
   return w;
 }
