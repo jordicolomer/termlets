@@ -219,6 +219,10 @@ Window* FileExplorer_new(int x, int y, int width, int height){
   Window_add_widget(w, 0, j, width, 1, "", BLACK, WHITE_BG);
   j++;
 
+  // address bar
+  Window_add_widget(w, 0, j, width, 1, "📁 /Users/jordicolomer", BLACK, BRIGHT_BLUE_BG);
+  j++;
+
   // favorites
   int start_j = j;
   int fav_width = 22;
