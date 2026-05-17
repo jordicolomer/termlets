@@ -55,21 +55,21 @@ void Window_append(Window* w, Window* new_w){
   w->tail = new_w;
 }
 
-int Widget_get_width(Window* wg){
+int Window_get_width(Window* wg){
   if (wg->width >= 0){
 	return wg->width;
   }
   return wg->parent->width - wg->x;
 }
 
-int Widget_get_x(Window* wg){
+int Window_get_x(Window* wg){
   if (wg->x >= 0){
 	return wg->x;
   }
   return wg->parent->width + wg->x;
 }
 
-int Widget_get_y(Window* wg){
+int Window_get_y(Window* wg){
   if (wg->y >= 0){
 	return wg->y;
   }
@@ -105,10 +105,10 @@ Window* Window_new(int x, int y, int width, int height){
 }
 
 int Window_in_bounds(Window* wg, int x, int y){
-  int wg_x = wg->parent->x + Widget_get_x(wg);
-  int wg_y = wg->parent->y + Widget_get_y(wg);
+  int wg_x = wg->parent->x + Window_get_x(wg);
+  int wg_y = wg->parent->y + Window_get_y(wg);
   
-  if (wg_x <= x && x < wg_x + Widget_get_width(wg) &&
+  if (wg_x <= x && x < wg_x + Window_get_width(wg) &&
 	  wg_y <= y && y < wg_y + wg->height) {
 	//LOG_INFO("Window_in_bounds: 1");
 	return 1;
@@ -164,10 +164,10 @@ void Widget_draw(struct Window* wg){
   int x = w->x;
   int y = w->y;
   Window_draw((Window*)current);
-  int wg_x = Widget_get_x(current);
-  int wg_y = Widget_get_y(current);
+  int wg_x = Window_get_x(current);
+  int wg_y = Window_get_y(current);
   if (wg_y <= w->height) {
-	int wg_width = Widget_get_width(current);
+	int wg_width = Window_get_width(current);
 	set_terminal_color(current->fg, current->bg);
 	move_cursor(y+wg_y, x+wg_x);
 	if (wg_width > 0){
