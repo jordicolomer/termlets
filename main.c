@@ -20,40 +20,80 @@ int ends_with(const char *str, const char *suffix) {
 
 
 // window operations
-typedef struct Widget {
-  struct Window* parent;
-  struct Widget* next;
-  struct Widget* prev;
-  int x;
-  int y;
-  int width;
-  int height;
-  char * c;
-  ForegroundColor fg;
-  BackgroundColor bg;
-  void (*on_mouse_down) (struct Widget* wg, int x, int y);  
-} Widget;
 
+/*
 typedef struct Window {
+  struct Window* parent;
   struct Window* next;
   struct Window* prev;
   int x;
   int y;
   int width;
   int height;
-  Widget* wg_head;
-  Widget* wg_tail;
+  //Widget* wg_head;
+  //Widget* wg_tail;
   void (*draw)(struct Window*);
 } Window;
 
-Window* head = NULL;  // first node
-Window* tail = NULL;  // last node
+typedef struct Widget {
+  Window win;
+  //struct Widget* next;
+  //struct Widget* prev;
+  //int x;
+  //int y;
+  //int width;
+  //int height;
+  char * c;
+  ForegroundColor fg;
+  BackgroundColor bg;
+  void (*on_mouse_down) (struct Widget* wg, int x, int y);  
+} Widget;
+*/
+
+typedef struct Window {
+  struct Window* parent;
+  struct Window* head;
+  struct Window* tail;
+  struct Window* next;
+  struct Window* prev;
+  int x;
+  int y;
+  int width;
+  int height;
+  void (*draw)(struct Window*);
+} Window;
+
+typedef struct Widget {
+  // for now we copy from Window
+  struct Window* parent;
+  struct Window* head;
+  struct Window* tail;
+  struct Window* next;
+  struct Window* prev;
+  int x;
+  int y;
+  int width;
+  int height;
+  void (*draw)(struct Window*);
+  // for now we copy from Window
+  
+  char * c;
+  ForegroundColor fg;
+  BackgroundColor bg;
+  void (*on_mouse_down) (struct Widget* wg, int x, int y);  
+} Widget;
+
+//Window* head = NULL;  // first node
+//Window* tail = NULL;  // last node
+Window* root = NULL;
+
 Window* dragging = NULL;
 Window* resizing = NULL;
 int dragging_offset_x, dragging_offset_y;
 
 /* Window */
 
+/*
 void Window_append(Window* w){
   w->next = NULL;
   w->prev = tail;   // link back to old last node
@@ -66,6 +106,20 @@ void Window_append(Window* w){
   }
 
   tail = w;  // new node becomes the last node
+}
+*/
+
+void Window_append2(Window* w, Window* new_w){
+  new_w->next = NULL;
+  new_w->prev = w->tail;
+
+  if (w->tail != NULL) {
+	w->tail->next = new_w;
+  } else {
+	w->head = new_w;
+  }
+
+  w->tail = new_w;
 }
 
 /* Widget */
@@ -92,6 +146,13 @@ int Widget_get_y(Widget* wg){
 }
 
 void Window_draw(struct Window* w){
+  LOG_INFO("Window_draw");
+  Window* current = w->head;
+  while (current != NULL) {
+	current->draw(current);
+	current = current->next;
+  }
+  /*
   int x = w->x;
   int y = w->y;
 
@@ -115,13 +176,33 @@ void Window_draw(struct Window* w){
   
   printf("\033[0m");
   fflush(stdout);
+  */
 }
 
+void Widget_draw(struct Window* wg){
+  Widget* current = (Widget*) wg;
+  Window* w = current->parent;
+  int x = w->x;
+  int y = w->y;
+  Window_draw((Window*)current);
+  int wg_x = Widget_get_x(current);
+  int wg_y = Widget_get_y(current);
+  if (wg_y <= w->height) {
+	int wg_width = Widget_get_width(current);
+	set_terminal_color(current->fg, current->bg);
+	move_cursor(y+wg_y, x+wg_x);
+	if (wg_width > 0){
+	  for (int i = 0; i< wg_width; i++) printf(" ");
+	}
+	move_cursor(y+wg_y, x+wg_x);
+	printf(current->c);
+  }
+}
 
 Window* Window_new(int x, int y, int width, int height){
   Window* w = malloc(sizeof *w);
-  w->wg_head = NULL;
-  w->wg_tail = NULL;
+  w->next = NULL;
+  w->prev = NULL;
   
   w->x = x;
   w->y = y;
@@ -130,7 +211,6 @@ Window* Window_new(int x, int y, int width, int height){
   //w->draw = draw;
   w->draw = Window_draw;
 
-  Window_append(w);
 
   return w;
 }
@@ -157,6 +237,7 @@ int Widget_in_bounds(Widget* wg, int x, int y){
 
 Widget* Window_add_widget(Window* w, int x, int y, int width, int height, char * c, ForegroundColor fg, BackgroundColor bg){
   Widget* wg = malloc(sizeof *wg);
+  wg->draw = Widget_draw;
   wg->parent = w;
   wg->x = x;
   wg->y = y;
@@ -167,8 +248,10 @@ Widget* Window_add_widget(Window* w, int x, int y, int width, int height, char *
   wg->bg = bg;
   //Widget_init(wg, x, y, width, c, fg, bg);
 
+  Window_append2(w, wg);
+
   // add to list
-  wg->next = NULL;
+  /*wg->next = NULL;
   wg->prev = w->wg_tail;
 
   if (w->wg_tail != NULL) {
@@ -177,7 +260,7 @@ Widget* Window_add_widget(Window* w, int x, int y, int width, int height, char *
 	w->wg_head = wg;
   }
 
-  w->wg_tail = wg;
+  w->wg_tail = wg;*/
 
   return wg;
 }
@@ -207,8 +290,8 @@ int in_bounds(int x, int y, int width, int height, int point_x, int point_y) {
 }
 */
 
-Widget* find_widget(int x, int y){
-  Window* w = tail;
+Widget* find_widget(Window* w, int x, int y){
+  /*Window* w = tail;
   while (w != NULL) {
 	
 	Widget* wg = w->wg_tail;
@@ -219,7 +302,7 @@ Widget* find_widget(int x, int y){
 	}
 	
 	w = w->prev;
-  }
+	}*/
   return NULL;
 }
 
@@ -335,8 +418,14 @@ Window* FileExplorer_new(int x, int y, int width, int height){
 void init(){
   //Window* w1 = append_window(10, 20, 30, 40, draw_file_explorer);
   //Window* w2 = append_window(100, 30, 30, 40, draw_file_explorer);
+  root = Window_new(0, 0, 200, 200);
+  
   Window* w1 = FileExplorer_new(10, 20, 80, 20);
+  Window_append2(root, w1);
+  
   Window* w2 = FileExplorer_new(100, 30, 80, 40);
+  Window_append2(root, w2);
+  
   dragging = w2;
 }
 
@@ -346,11 +435,12 @@ void repaint(){
   hide_cursor();
   
   // redraw everything
-  Window* win = tail;
+  root->draw(root);
+  /*Window* win = tail;
   while (win != NULL) {
 	win->draw(win);
 	win = win->prev;
-  }
+	}*/
 }
 
 void on_drag(int x, int y){
@@ -368,7 +458,7 @@ void on_drag(int x, int y){
 }
 
 void on_mouse_down(int x, int y){
-  Widget* wg = find_widget(x, y);
+  Widget* wg = find_widget(root, x, y);
 
 
   if (wg != NULL){
