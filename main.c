@@ -189,8 +189,8 @@ void Widget_draw(struct Window* wg){
   int wg_y = Widget_get_y(current);
   if (wg_y <= w->height) {
 	int wg_width = Widget_get_width(current);
-	LOG_INFO("set_terminal_color: %d %d", current->fg, current->bg);
-	LOG_INFO("print: %d %d %s %d", wg_y, wg_x, current->c, wg_width);
+	//LOG_INFO("set_terminal_color: %d %d", current->fg, current->bg);
+	//LOG_INFO("print: %d %d %s %d", wg_y, wg_x, current->c, wg_width);
 	set_terminal_color(current->fg, current->bg);
 	move_cursor(y+wg_y, x+wg_x);
 	if (wg_width > 0){
@@ -301,7 +301,7 @@ int in_bounds(int x, int y, int width, int height, int point_x, int point_y) {
 
 Widget* find_widget(Window* this, int x, int y){
   //LOG_INFO("find_widget: %p", (void*)this);
-  Window* child = this->head;
+  Window* child = this->tail;
   if (child == NULL){ // widget
 	  if (Widget_in_bounds(this, x, y)) return this;
   }
@@ -312,7 +312,7 @@ Widget* find_widget(Window* this, int x, int y){
 		//LOG_INFO("found: %p", (void*)found);
 		return found;
 	  }
-	  child = child->next;
+	  child = child->prev;
 	}
   }
   return NULL;
@@ -321,7 +321,7 @@ Widget* find_widget(Window* this, int x, int y){
 // FILE MANAGER
 
 void Widget_on_resize(Widget* wg, int x, int y){
-  //LOG_INFO("Widget_on_resize");
+  LOG_INFO("Widget_on_resize");
 
   resizing = wg->parent;
   dragging_offset_x = x - wg->parent->width;
