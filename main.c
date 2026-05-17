@@ -146,7 +146,7 @@ int Widget_get_y(Widget* wg){
 }
 
 void Window_draw(struct Window* w){
-  LOG_INFO("Window_draw");
+  //LOG_INFO("Window_draw");
   Window* current = w->head;
   while (current != NULL) {
 	current->draw(current);
@@ -201,6 +201,8 @@ void Widget_draw(struct Window* wg){
 
 Window* Window_new(int x, int y, int width, int height){
   Window* w = malloc(sizeof *w);
+  w->head = NULL;
+  w->tail = NULL;
   w->next = NULL;
   w->prev = NULL;
   
@@ -221,6 +223,7 @@ int Widget_in_bounds(Widget* wg, int x, int y){
   
   if (wg_x <= x && x < wg_x + Widget_get_width(wg) &&
 	  wg_y <= y && y < wg_y + wg->height) {
+	LOG_INFO("Widget_in_bounds: 1");
 	return 1;
   }
   return 0;
@@ -237,6 +240,10 @@ int Widget_in_bounds(Widget* wg, int x, int y){
 
 Widget* Window_add_widget(Window* w, int x, int y, int width, int height, char * c, ForegroundColor fg, BackgroundColor bg){
   Widget* wg = malloc(sizeof *wg);
+  wg->head = NULL;
+  wg->tail = NULL;
+  wg->next = NULL;
+  wg->prev = NULL;
   wg->draw = Widget_draw;
   wg->parent = w;
   wg->x = x;
@@ -290,19 +297,22 @@ int in_bounds(int x, int y, int width, int height, int point_x, int point_y) {
 }
 */
 
-Widget* find_widget(Window* w, int x, int y){
-  /*Window* w = tail;
-  while (w != NULL) {
-	
-	Widget* wg = w->wg_tail;
-	while (wg != NULL) {
-	  //if (in_bounds(wg->x, wg->y, wg->width, wg->height, x, y)) return wg;
-	  if (Widget_in_bounds(wg, x, y)) return wg;
-	  wg = wg->prev;
+Widget* find_widget(Window* this, int x, int y){
+  LOG_INFO("find_widget: %p", (void*)this);
+  Window* child = this->head;
+  if (child == NULL){ // widget
+	  if (Widget_in_bounds(this, x, y)) return this;
+  }
+  else{
+	while (child != NULL) {
+	  Window* found = find_widget(child, x, y);
+	  if (found != NULL) {
+		LOG_INFO("found: %p", (void*)found);
+		return found;
+	  }
+	  child = child->next;
 	}
-	
-	w = w->prev;
-	}*/
+  }
   return NULL;
 }
 
@@ -459,7 +469,7 @@ void on_drag(int x, int y){
 
 void on_mouse_down(int x, int y){
   Widget* wg = find_widget(root, x, y);
-
+  LOG_INFO("find_widget ret: %p", (void*)wg);
 
   if (wg != NULL){
 	if (wg->on_mouse_down != NULL) wg->on_mouse_down(wg, x, y);
