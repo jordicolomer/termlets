@@ -7,6 +7,8 @@
 #include "ansi_term.c"
 #include "logger.c"
 
+/* utils.c */
+
 int ends_with(const char *str, const char *suffix) {
     size_t len_str = strlen(str);
     size_t len_suf = strlen(suffix);
@@ -17,38 +19,6 @@ int ends_with(const char *str, const char *suffix) {
 
     return strcmp(str + (len_str - len_suf), suffix) == 0;
 }
-
-
-// window operations
-
-/*
-typedef struct Window {
-  struct Window* parent;
-  struct Window* next;
-  struct Window* prev;
-  int x;
-  int y;
-  int width;
-  int height;
-  //Widget* wg_head;
-  //Widget* wg_tail;
-  void (*draw)(struct Window*);
-} Window;
-
-typedef struct Widget {
-  Window win;
-  //struct Widget* next;
-  //struct Widget* prev;
-  //int x;
-  //int y;
-  //int width;
-  //int height;
-  char * c;
-  ForegroundColor fg;
-  BackgroundColor bg;
-  void (*on_mouse_down) (struct Widget* wg, int x, int y);  
-} Widget;
-*/
 
 /* window.c */
 
@@ -107,35 +77,11 @@ int Widget_get_y(Window* wg){
 }
 
 void Window_draw(struct Window* w){
-  //LOG_INFO("Window_draw");
   Window* current = w->head;
   while (current != NULL) {
 	current->draw(current);
 	current = current->next;
   }
-  /*
-  int x = w->x;
-  int y = w->y;
-
-  // draw widgets
-  Widget* current = w->wg_head;
-  while (current != NULL) {
-	int wg_x = Widget_get_x(current);
-	int wg_y = Widget_get_y(current);
-	if (wg_y <= w->height) {
-	  int wg_width = Widget_get_width(current);
-	  set_terminal_color(current->fg, current->bg);
-	  move_cursor(y+wg_y, x+wg_x);
-	  if (wg_width > 0){
-		for (int i = 0; i< wg_width; i++) printf(" ");
-	  }
-	  move_cursor(y+wg_y, x+wg_x);
-	  printf(current->c);
-	}
-	current = current->next;
-  }
-  
-  */
   printf("\033[0m");
   fflush(stdout);
 }
@@ -234,15 +180,6 @@ void Widget_draw(struct Window* wg){
 
 
 
-/*void Widget_init(Widget* wg, int x, int y, int width, char * c, ForegroundColor fg, BackgroundColor bg){
-  wg->x = x;
-  wg->y = y;
-  wg->width = width;
-  wg->c = c;
-  wg->fg = fg;
-  wg->bg = bg;
-  }*/
-
 Widget* Window_add_widget(Window* w, int x, int y, int width, int height, char * c, ForegroundColor fg, BackgroundColor bg){
   Widget* wg = malloc(sizeof *wg);
   wg->head = NULL;
@@ -261,7 +198,6 @@ Widget* Window_add_widget(Window* w, int x, int y, int width, int height, char *
 
   Window_append(w, wg);
 
-
   return wg;
 }
 
@@ -279,17 +215,6 @@ void Window_add_window_bar(struct Window* w){
   Widget* maximize = Window_add_widget(w, -3, 0, 1, 1, "□", WHITE, BLUE_BG);
   Widget* minimize = Window_add_widget(w, -5, 0, 1, 1, "-", WHITE, BLUE_BG);
 }
-
-/*
-int in_bounds(int x, int y, int width, int height, int point_x, int point_y) {
-    if (x <= point_x && point_x < x + width &&
-        y <= point_y && point_y < y + height) {
-        return 1;
-    }
-    return 0;
-}
-*/
-
 
 /* file_manager.c */
 
@@ -449,12 +374,7 @@ void on_mouse_down(int x, int y){
 
   if (wg != NULL){
 	if (wg->on_mouse_down != NULL) wg->on_mouse_down(wg, x, y);
-    /*LOG_INFO("Found widget %p | pos(%d,%d) size(%dx%d)", 
-             (void*)wg, 
-             wg->x, wg->y, 
-             wg->width, wg->height);*/
   }
-  //on_drag(x, y);
 }
 
 void on_mouse_up(){
@@ -465,14 +385,11 @@ void on_mouse_up(){
 //#include <locale.h>
 int main() {
   log_init("app.log");
-  //log_set_level(LOG_DEBUG);
   //setlocale(LC_ALL, "");
   enable_raw_mode();
   enable_mouse();
   init();
 	
-  //printf("\033[2J\033[H");
-  //printf("Move mouse / click / drag. Press 'q' to quit.\n");
   int dragging = 0;
 
   while (1) {
@@ -512,7 +429,6 @@ int main() {
 		}
 			  
 		if (dragging == 1){
-		  //repaint();
 		  on_drag(x, y);
 		}
 	  }
