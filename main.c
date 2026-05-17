@@ -206,7 +206,7 @@ void Widget_draw(struct Window* wg){
   Window_draw((Window*)current);
   int wg_x = Window_get_x(current);
   int wg_y = Window_get_y(current);
-  if (wg_y <= w->height) {
+  if (wg_y <= w->height && wg_x < w->width) {
 	int wg_width = Window_get_width(current);
 	set_terminal_color(current->fg, current->bg);
 	move_cursor(y+wg_y, x+wg_x);
@@ -284,7 +284,7 @@ Window* FileExplorer_new(int x, int y, int width, int height){
 
   // toolbar
   x_offset = 0;
-  widget_width = 12; Window_add_widget(w, x_offset, j, widget_width, 1, "📄 New File", BLACK, WHITE_BG); x_offset += widget_width;
+  widget_width = 12; Window_add_widget(w, x_offset, j, widget_width, 1, " 📄 New File", BLACK, WHITE_BG); x_offset += widget_width;
   widget_width = 12; Window_add_widget(w, x_offset, j, widget_width, 1, "📁 New Dir", BLACK, WHITE_BG); x_offset += widget_width;
   widget_width = 8;  Window_add_widget(w, x_offset, j, widget_width, 1, "📋 Copy", BLACK, WHITE_BG); x_offset += widget_width;
   widget_width = 8;  Window_add_widget(w, x_offset, j, widget_width, 1, "🔪 Cut", BLACK, WHITE_BG); x_offset += widget_width;
@@ -296,13 +296,13 @@ Window* FileExplorer_new(int x, int y, int width, int height){
 
   // tabs
   x_offset = 0;
-  widget_width = 14; Window_add_widget(w, x_offset, j, widget_width, 1, "jordicolomer x", BLACK, WHITE_BG); x_offset += widget_width;
+  widget_width = 14; Window_add_widget(w, x_offset, j, widget_width, 1, " jordicolomer x", BLACK, WHITE_BG); x_offset += widget_width;
   widget_width = 1;  Window_add_widget(w, x_offset, j, -1, 1, " + ", BLACK, WHITE_BG); x_offset += widget_width;
   //Window_add_widget(w, 0, j, width, 1, "", BLACK, WHITE_BG);
   j++;
 
   // address bar
-  Window_add_widget(w, 0, j, -1, 1, "📁 /Users/jordicolomer", BLACK, BRIGHT_BLUE_BG);
+  Window_add_widget(w, 0, j, -1, 1, " 📁 /Users/jordicolomer", BLACK, BRIGHT_BLUE_BG);
   j++;
 
   // favorites
@@ -351,8 +351,17 @@ Window* FileExplorer_new(int x, int y, int width, int height){
 
   closedir(dir);
 
+  // add right border
+  //for (int _ = 1; _ < w->height; _++) Window_add_widget(w, -1, _, 1, 1, "▊", WHITE, BLUE_BG);
+  for (int _ = 1; _ < 1000; _++) Window_add_widget(w, -1, _, 1, 1, "▐", WHITE_BG, BLUE);
+  for (int _ = 1; _ < 1000; _++) Window_add_widget(w, _, -1, 1, 1, "▄", WHITE_BG, BLUE);  
+  for (int _ = 1; _ < 1000; _++) Window_add_widget(w, 0, _, 1, 1, "▌", WHITE_BG, BLUE);
+  Window_add_widget(w, 0, -1, 1, 1, "▙", WHITE_BG, BLUE);
+  
+
   // resize grip
-  Widget* resize_grip = Window_add_widget(w, -1, -1, 1, 1, "⌟", BLACK, WHITE_BG);
+  //Widget* resize_grip = Window_add_widget(w, -1, -1, 1, 1, "⌟", BLACK, WHITE_BG);
+  Widget* resize_grip = Window_add_widget(w, -1, -1, 1, 1, "▟", WHITE_BG, BLUE);
   resize_grip->on_mouse_down = Widget_on_resize;
 
   return w;
@@ -371,6 +380,10 @@ void init(){
   Window* w2 = FileExplorer_new(100, 30, 80, 40);
   w2->parent = root;
   Window_append(root, w2);
+  
+  Window* w3 = FileExplorer_new(5, 5, 80, 40);
+  w3->parent = root;
+  Window_append(root, w3);
   
   dragging = w2;
 }
