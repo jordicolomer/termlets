@@ -135,6 +135,46 @@ Window* Window_find_widget(Window* this, int x, int y){
   return NULL;
 }
 
+void Window_bring_to_bottom(Window* this) {
+	LOG_INFO("Window_bring_to_bottom: %p", (void*)this->parent);
+    if (!this || !this->parent) return;
+
+    Window* parent = this->parent;
+
+    // If already the tail, nothing to do
+    if (parent->tail == this) return;
+
+    // ---- 1. Unlink from current position ----
+    if (this->prev) {
+        this->prev->next = this->next;
+    } else {
+        // this was head
+        parent->head = this->next;
+    }
+
+    if (this->next) {
+        this->next->prev = this->prev;
+    } else {
+        // this was tail (redundant check, but safe)
+        parent->tail = this->prev;
+    }
+
+    // ---- 2. Insert at tail ----
+    this->next = NULL;
+    this->prev = parent->tail;
+
+    if (parent->tail) {
+        parent->tail->next = this;
+    }
+
+    parent->tail = this;
+
+    // If list was empty or had one element
+    if (parent->head == NULL) {
+        parent->head = this;
+    }
+}
+
 /* widget.c */
 
 typedef struct Widget {
@@ -182,16 +222,9 @@ void Widget_draw(struct Window* wg){
 
 Widget* Window_add_widget(Window* w, int x, int y, int width, int height, char * c, ForegroundColor fg, BackgroundColor bg){
   Widget* wg = malloc(sizeof *wg);
-  wg->head = NULL;
-  wg->tail = NULL;
-  wg->next = NULL;
-  wg->prev = NULL;
+  Window_init(wg, x, y, width, height);
   wg->draw = Widget_draw;
   wg->parent = w;
-  wg->x = x;
-  wg->y = y;
-  wg->width = width;
-  wg->height = height;
   wg->c = c;
   wg->fg = fg;
   wg->bg = bg;
@@ -203,6 +236,7 @@ Widget* Window_add_widget(Window* w, int x, int y, int width, int height, char *
 
 void on_mouse_down_window_bar(Widget* wg, int x, int y){
   dragging = wg->parent;
+  Window_bring_to_bottom(dragging);
   dragging_offset_x = x - wg->parent->x;
   dragging_offset_y = y - wg->parent->y;
 }
@@ -327,15 +361,15 @@ Window* FileExplorer_new(int x, int y, int width, int height){
 // TERMINAL
 
 void init(){
-  //Window* w1 = append_window(10, 20, 30, 40, draw_file_explorer);
-  //Window* w2 = append_window(100, 30, 30, 40, draw_file_explorer);
   root = malloc(sizeof *root);
   Window_init(root, 0, 0, 200, 200);
   
   Window* w1 = FileExplorer_new(10, 20, 80, 20);
+  w1->parent = root;
   Window_append(root, w1);
   
   Window* w2 = FileExplorer_new(100, 30, 80, 40);
+  w2->parent = root;
   Window_append(root, w2);
   
   dragging = w2;
@@ -343,17 +377,12 @@ void init(){
 
 
 void repaint(){
-  LOG_INFO("repaint");
+  //LOG_INFO("repaint");
   clear_screen();
   hide_cursor();
   
   // redraw everything
   root->draw(root);
-  /*Window* win = tail;
-  while (win != NULL) {
-	win->draw(win);
-	win = win->prev;
-	}*/
 }
 
 void on_drag(int x, int y){
