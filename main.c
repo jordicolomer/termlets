@@ -50,6 +50,8 @@ typedef struct Widget {
 } Widget;
 */
 
+/* window.c */
+
 typedef struct Window {
   struct Window* parent;
   struct Window* head;
@@ -63,53 +65,14 @@ typedef struct Window {
   void (*draw)(struct Window*);
 } Window;
 
-typedef struct Widget {
-  // for now we copy from Window
-  struct Window* parent;
-  struct Window* head;
-  struct Window* tail;
-  struct Window* next;
-  struct Window* prev;
-  int x;
-  int y;
-  int width;
-  int height;
-  void (*draw)(struct Window*);
-  // for now we copy from Window
-  
-  char * c;
-  ForegroundColor fg;
-  BackgroundColor bg;
-  void (*on_mouse_down) (struct Widget* wg, int x, int y);  
-} Widget;
-
-//Window* head = NULL;  // first node
-//Window* tail = NULL;  // last node
 Window* root = NULL;
 
 Window* dragging = NULL;
 Window* resizing = NULL;
 int dragging_offset_x, dragging_offset_y;
 
-/* Window */
 
-/*
-void Window_append(Window* w){
-  w->next = NULL;
-  w->prev = tail;   // link back to old last node
-
-  if (tail != NULL) {
-	tail->next = w;   // link old tail forward
-  } else {
-	// list was empty
-	head = w;
-  }
-
-  tail = w;  // new node becomes the last node
-}
-*/
-
-void Window_append2(Window* w, Window* new_w){
+void Window_append(Window* w, Window* new_w){
   new_w->next = NULL;
   new_w->prev = w->tail;
 
@@ -122,23 +85,21 @@ void Window_append2(Window* w, Window* new_w){
   w->tail = new_w;
 }
 
-/* Widget */
-
-int Widget_get_width(Widget* wg){
+int Widget_get_width(Window* wg){
   if (wg->width >= 0){
 	return wg->width;
   }
   return wg->parent->width - wg->x;
 }
 
-int Widget_get_x(Widget* wg){
+int Widget_get_x(Window* wg){
   if (wg->x >= 0){
 	return wg->x;
   }
   return wg->parent->width + wg->x;
 }
 
-int Widget_get_y(Widget* wg){
+int Widget_get_y(Window* wg){
   if (wg->y >= 0){
 	return wg->y;
   }
@@ -179,28 +140,6 @@ void Window_draw(struct Window* w){
   fflush(stdout);
 }
 
-void Widget_draw(struct Window* wg){
-  Widget* current = (Widget*) wg;
-  Window* w = current->parent;
-  int x = w->x;
-  int y = w->y;
-  Window_draw((Window*)current);
-  int wg_x = Widget_get_x(current);
-  int wg_y = Widget_get_y(current);
-  if (wg_y <= w->height) {
-	int wg_width = Widget_get_width(current);
-	//LOG_INFO("set_terminal_color: %d %d", current->fg, current->bg);
-	//LOG_INFO("print: %d %d %s %d", wg_y, wg_x, current->c, wg_width);
-	set_terminal_color(current->fg, current->bg);
-	move_cursor(y+wg_y, x+wg_x);
-	if (wg_width > 0){
-	  for (int i = 0; i< wg_width; i++) printf(" ");
-	}
-	move_cursor(y+wg_y, x+wg_x);
-	printf(current->c);
-  }
-}
-
 Window* Window_new(int x, int y, int width, int height){
   Window* w = malloc(sizeof *w);
   w->head = NULL;
@@ -219,17 +158,81 @@ Window* Window_new(int x, int y, int width, int height){
   return w;
 }
 
-int Widget_in_bounds(Widget* wg, int x, int y){
+int Window_in_bounds(Window* wg, int x, int y){
   int wg_x = wg->parent->x + Widget_get_x(wg);
   int wg_y = wg->parent->y + Widget_get_y(wg);
   
   if (wg_x <= x && x < wg_x + Widget_get_width(wg) &&
 	  wg_y <= y && y < wg_y + wg->height) {
-	//LOG_INFO("Widget_in_bounds: 1");
+	//LOG_INFO("Window_in_bounds: 1");
 	return 1;
   }
   return 0;
 }
+
+Window* Window_find_widget(Window* this, int x, int y){
+  //LOG_INFO("find_widget: %p", (void*)this);
+  Window* child = this->tail;
+  if (child == NULL){ // widget
+	  if (Window_in_bounds(this, x, y)) return this;
+  }
+  else{
+	while (child != NULL) {
+	  Window* found = Window_find_widget(child, x, y);
+	  if (found != NULL) {
+		//LOG_INFO("found: %p", (void*)found);
+		return found;
+	  }
+	  child = child->prev;
+	}
+  }
+  return NULL;
+}
+
+/* widget.c */
+
+typedef struct Widget {
+  // for now we copy from Window
+  struct Window* parent;
+  struct Window* head;
+  struct Window* tail;
+  struct Window* next;
+  struct Window* prev;
+  int x;
+  int y;
+  int width;
+  int height;
+  void (*draw)(struct Window*);
+  // for now we copy from Window
+  
+  char * c;
+  ForegroundColor fg;
+  BackgroundColor bg;
+  void (*on_mouse_down) (struct Widget* wg, int x, int y);  
+} Widget;
+
+
+void Widget_draw(struct Window* wg){
+  Widget* current = (Widget*) wg;
+  Window* w = current->parent;
+  int x = w->x;
+  int y = w->y;
+  Window_draw((Window*)current);
+  int wg_x = Widget_get_x(current);
+  int wg_y = Widget_get_y(current);
+  if (wg_y <= w->height) {
+	int wg_width = Widget_get_width(current);
+	set_terminal_color(current->fg, current->bg);
+	move_cursor(y+wg_y, x+wg_x);
+	if (wg_width > 0){
+	  for (int i = 0; i< wg_width; i++) printf(" ");
+	}
+	move_cursor(y+wg_y, x+wg_x);
+	printf(current->c);
+  }
+}
+
+
 
 /*void Widget_init(Widget* wg, int x, int y, int width, char * c, ForegroundColor fg, BackgroundColor bg){
   wg->x = x;
@@ -255,21 +258,9 @@ Widget* Window_add_widget(Window* w, int x, int y, int width, int height, char *
   wg->c = c;
   wg->fg = fg;
   wg->bg = bg;
-  //Widget_init(wg, x, y, width, c, fg, bg);
 
-  Window_append2(w, wg);
+  Window_append(w, wg);
 
-  // add to list
-  /*wg->next = NULL;
-  wg->prev = w->wg_tail;
-
-  if (w->wg_tail != NULL) {
-	w->wg_tail->next = wg;
-  } else {
-	w->wg_head = wg;
-  }
-
-  w->wg_tail = wg;*/
 
   return wg;
 }
@@ -299,26 +290,8 @@ int in_bounds(int x, int y, int width, int height, int point_x, int point_y) {
 }
 */
 
-Widget* find_widget(Window* this, int x, int y){
-  //LOG_INFO("find_widget: %p", (void*)this);
-  Window* child = this->tail;
-  if (child == NULL){ // widget
-	  if (Widget_in_bounds(this, x, y)) return this;
-  }
-  else{
-	while (child != NULL) {
-	  Window* found = find_widget(child, x, y);
-	  if (found != NULL) {
-		//LOG_INFO("found: %p", (void*)found);
-		return found;
-	  }
-	  child = child->prev;
-	}
-  }
-  return NULL;
-}
 
-// FILE MANAGER
+/* file_manager.c */
 
 void Widget_on_resize(Widget* wg, int x, int y){
   LOG_INFO("Widget_on_resize");
@@ -433,10 +406,10 @@ void init(){
   root = Window_new(0, 0, 200, 200);
   
   Window* w1 = FileExplorer_new(10, 20, 80, 20);
-  Window_append2(root, w1);
+  Window_append(root, w1);
   
   Window* w2 = FileExplorer_new(100, 30, 80, 40);
-  Window_append2(root, w2);
+  Window_append(root, w2);
   
   dragging = w2;
 }
@@ -471,8 +444,8 @@ void on_drag(int x, int y){
 }
 
 void on_mouse_down(int x, int y){
-  Widget* wg = find_widget(root, x, y);
-  LOG_INFO("find_widget ret: %p", (void*)wg);
+  Widget* wg = Window_find_widget(root, x, y);
+  //LOG_INFO("Window_find_widget ret: %p", (void*)wg);
 
   if (wg != NULL){
 	if (wg->on_mouse_down != NULL) wg->on_mouse_down(wg, x, y);
