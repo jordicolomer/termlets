@@ -7,6 +7,17 @@
 #include "ansi_term.c"
 #include "logger.c"
 
+int ends_with(const char *str, const char *suffix) {
+    size_t len_str = strlen(str);
+    size_t len_suf = strlen(suffix);
+
+    if (len_str < len_suf) {
+        return 0;
+    }
+
+    return strcmp(str + (len_str - len_suf), suffix) == 0;
+}
+
 
 // window operations
 typedef struct Widget {
@@ -41,6 +52,8 @@ Window* dragging = NULL;
 Window* resizing = NULL;
 int dragging_offset_x, dragging_offset_y;
 
+/* Window */
+
 void Window_append(Window* w){
   w->next = NULL;
   w->prev = tail;   // link back to old last node
@@ -54,6 +67,8 @@ void Window_append(Window* w){
 
   tail = w;  // new node becomes the last node
 }
+
+/* Widget */
 
 int Widget_get_width(Widget* wg){
   if (wg->width >= 0){
@@ -296,6 +311,8 @@ Window* FileExplorer_new(int x, int y, int width, int height){
 	if (entry->d_type == DT_DIR) {
 	  icon = "📁";
 	}
+	if (ends_with(entry->d_name, ".png")){icon = "🖼️";}
+	if (ends_with(entry->d_name, ".pdf")){icon = "📖";}
 	char *str = NULL;
 	// memory leak here
 	int len = asprintf(&str, "%s %s", icon, entry->d_name);
