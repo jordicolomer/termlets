@@ -86,8 +86,8 @@ void Window_draw(struct Window* w){
   fflush(stdout);
 }
 
-Window* Window_new(int x, int y, int width, int height){
-  Window* w = malloc(sizeof *w);
+Window* Window_init(Window* w, int x, int y, int width, int height){
+  //Window* w = malloc(sizeof *w);
   w->head = NULL;
   w->tail = NULL;
   w->next = NULL;
@@ -228,7 +228,8 @@ void Widget_on_resize(Widget* wg, int x, int y){
 
 Window* FileExplorer_new(int x, int y, int width, int height){
   //Window* w = malloc(sizeof *w);
-  Window* w = Window_new(x, y, width, height);
+  Window* w = malloc(sizeof *w);
+  Window_init(w, x, y, width, height);
   //w->draw = FileExplorer_draw;
 
 
@@ -328,7 +329,8 @@ Window* FileExplorer_new(int x, int y, int width, int height){
 void init(){
   //Window* w1 = append_window(10, 20, 30, 40, draw_file_explorer);
   //Window* w2 = append_window(100, 30, 30, 40, draw_file_explorer);
-  root = Window_new(0, 0, 200, 200);
+  root = malloc(sizeof *root);
+  Window_init(root, 0, 0, 200, 200);
   
   Window* w1 = FileExplorer_new(10, 20, 80, 20);
   Window_append(root, w1);
