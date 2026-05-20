@@ -20,6 +20,125 @@ int ends_with(const char *str, const char *suffix) {
     return strcmp(str + (len_str - len_suf), suffix) == 0;
 }
 
+/* buffer.c */
+#include "buffer.c"
+
+/*
+typedef struct Buffer {
+  int width;
+  int height;
+  char * buffer;
+  char * bg;
+  char * fg;
+} Buffer;
+
+void Buffer_init(Buffer* buf, int width, int height){
+  buf->width = width;
+  buf->height = height;
+  buf->buffer = calloc(width * height, sizeof(char));
+  buf->bg = calloc(width * height, sizeof(char));
+  buf->fg = calloc(width * height, sizeof(char));
+}
+
+void Buffer_clear(Buffer* buf)
+{
+    int size = buf->width * buf->height;
+
+    memset(buf->buffer, 0, size);
+    memset(buf->bg, 0, size);
+    memset(buf->fg, 0, size);
+}
+
+void Buffer_print(Buffer* buf, int x, int y, int width, char *s, char fg, char bg)
+{
+    int px = x;
+    int py = y;
+
+    if (py < 0 || py >= buf->height)
+        return;
+
+    if (px >= buf->width)
+        return;
+
+    // clamp width to buffer boundary
+    if (px < 0) {
+        s += -px;
+        width -= -px;
+        px = 0;
+    }
+
+    if (width <= 0)
+        return;
+
+    if (px + width > buf->width) {
+        width = buf->width - px;
+    }
+
+    int idx = py * buf->width + px;
+
+    int slen = strlen(s);
+
+    for (int i = 0; i < width; i++) {
+
+        char c;
+
+        if (i < slen) {
+            c = s[i];          // use string content
+        } else {
+            c = ' ';           // pad with spaces
+        }
+
+        buf->buffer[idx + i] = c;
+        buf->fg[idx + i] = fg;
+        buf->bg[idx + i] = bg;
+    }
+}
+void Buffer_print_to_screen(Buffer* buf)
+{
+    int current_bg = -1;
+    int current_fg = -1;
+
+    // clear screen + move cursor home
+    fprintf(stdout, "\033[2J\033[H");
+
+    for (int y = 0; y < buf->height; y++) {
+        for (int x = 0; x < buf->width; x++) {
+
+            int idx = y * buf->width + x;
+
+            char c = buf->buffer[idx];
+            if (c == '\0')
+                continue;
+
+            char bg = buf->bg[idx];
+            char fg = buf->fg[idx];
+
+            // move cursor (ANSI is 1-based)
+            fprintf(stdout, "\033[%d;%dH", y + 1, x + 1);
+
+            // update color only if changed
+            if (bg != current_bg || fg != current_fg ) {
+			  //fprintf(stdout, "\033[%dm", color);
+			  set_terminal_color(bg, fg);
+			  current_bg = bg;
+			  current_fg = fg;
+            }
+
+            fwrite(&c, sizeof(char), 1, stdout);
+        }
+    }
+
+    // reset formatting at end
+    //fprintf(stdout, "\033[0m");
+
+	fprintf(stdout, "\033[0m");
+	fprintf(stdout, "\033[%d;1H", buf->height + 1);
+	fflush(stdout);
+}
+
+Buffer main_buf;
+*/
+
 /* window.c */
 
 typedef struct Window {
@@ -32,7 +151,8 @@ typedef struct Window {
   int y;
   int width;
   int height;
-  void (*draw)(struct Window*);
+  void (*draw)(struct Window*, int, int);
+  void (*on_mouse_down) (struct Widget* wg, int x, int y);  
 } Window;
 
 Window* root = NULL;
@@ -43,6 +163,7 @@ int dragging_offset_x, dragging_offset_y;
 
 
 void Window_append(Window* w, Window* new_w){
+  new_w->parent = w;
   new_w->next = NULL;
   new_w->prev = w->tail;
 
@@ -63,9 +184,12 @@ int Window_get_width(Window* wg){
 }
 
 int Window_get_x(Window* wg){
+  LOG_INFO("Window_get_x");
   if (wg->x >= 0){
+	LOG_INFO("if");
 	return wg->x;
   }
+  LOG_INFO("else");
   return wg->parent->width + wg->x;
 }
 
@@ -76,14 +200,29 @@ int Window_get_y(Window* wg){
   return wg->parent->height + wg->y + 1;
 }
 
-void Window_draw(struct Window* w){
+int Window_get_absolute_x(Window* w){
+  if (w == NULL) return 0;
+  int x = Window_get_x(w);
+  int x_parent = Window_get_absolute_x(w->parent);
+  return x_parent+x;
+}
+
+int Window_get_absolute_y(Window* w){
+  if (w == NULL) return 0;
+  int y = Window_get_y(w);
+  int y_parent = Window_get_absolute_y(w->parent);
+  return y_parent+y;
+}
+
+
+void Window_draw(struct Window* w, int bias_x, int bias_y){
   Window* current = w->head;
   while (current != NULL) {
-	current->draw(current);
+	current->draw(current, bias_x + w->x, bias_y + w->y);
 	current = current->next;
   }
-  printf("\033[0m");
-  fflush(stdout);
+  //printf("\033[0m");
+  //fflush(stdout);
 }
 
 Window* Window_init(Window* w, int x, int y, int width, int height){
@@ -99,15 +238,21 @@ Window* Window_init(Window* w, int x, int y, int width, int height){
   w->height = height;
   //w->draw = draw;
   w->draw = Window_draw;
+  w->parent = NULL;
 
 
   return w;
 }
 
 int Window_in_bounds(Window* wg, int x, int y){
-  int wg_x = wg->parent->x + Window_get_x(wg);
-  int wg_y = wg->parent->y + Window_get_y(wg);
-  
+  //LOG_INFO("Window_in_bounds %d", wg->x);
+  int wg_x = Window_get_x(wg);
+  //int wg_x = wg->parent->x + Window_get_x(wg);
+  //LOG_INFO("wg_x = %d", wg_x);
+  int wg_y = Window_get_y(wg);
+  //int wg_y = wg->parent->y + Window_get_y(wg);
+
+  //printf("Window_in_bounds: %d <= %d < %d and %d <= %d < %d\n", wg_x, x, wg_x + Window_get_width(wg), wg_y, y, wg_y + wg->height);
   if (wg_x <= x && x < wg_x + Window_get_width(wg) &&
 	  wg_y <= y && y < wg_y + wg->height) {
 	//LOG_INFO("Window_in_bounds: 1");
@@ -116,6 +261,7 @@ int Window_in_bounds(Window* wg, int x, int y){
   return 0;
 }
 
+/*
 Window* Window_find_widget(Window* this, int x, int y){
   //LOG_INFO("find_widget: %p", (void*)this);
   Window* child = this->tail;
@@ -133,6 +279,26 @@ Window* Window_find_widget(Window* this, int x, int y){
 	}
   }
   return NULL;
+}
+*/
+Window* Window_find_widget(Window* this, int x, int y){
+  LOG_INFO("Window_find_widget: %p", this);
+  if (!this) return NULL;
+  Window* ret = NULL;
+  if (Window_in_bounds(this, x, y)){
+	ret = this;
+	LOG_INFO("ret: %p", ret);
+  }
+  Window* child = this->tail;
+  while (child != NULL) {
+	LOG_INFO("child: %p", child);
+	Window* found = Window_find_widget(child,  x - this->x,  y - this->y);
+	if (found != NULL) {
+		return found;
+	}
+	child = child->prev;
+  }
+  return ret;
 }
 
 void Window_bring_to_bottom(Window* this) {
@@ -188,33 +354,37 @@ typedef struct Widget {
   int y;
   int width;
   int height;
-  void (*draw)(struct Window*);
+  void (*draw)(struct Window*, int, int);
+  void (*on_mouse_down) (struct Widget* wg, int x, int y);  
   // for now we copy from Window
   
   char * c;
   ForegroundColor fg;
   BackgroundColor bg;
-  void (*on_mouse_down) (struct Widget* wg, int x, int y);  
 } Widget;
 
 
-void Widget_draw(struct Window* wg){
+void Widget_draw(struct Window* wg, int bias_x, int bias_y){
   Widget* current = (Widget*) wg;
   Window* w = current->parent;
-  int x = w->x;
-  int y = w->y;
-  Window_draw((Window*)current);
+  //int x = w->x;
+  //int y = w->y;
+  //int x = Window_get_absolute_x(w);
+  //int y = Window_get_absolute_y(w);
+  Window_draw((Window*)current, bias_x, bias_y);
   int wg_x = Window_get_x(current);
   int wg_y = Window_get_y(current);
   if (wg_y <= w->height && wg_x < w->width) {
 	int wg_width = Window_get_width(current);
-	set_terminal_color(current->fg, current->bg);
-	move_cursor(y+wg_y, x+wg_x);
+	/*set_terminal_color(current->fg, current->bg);
+	move_cursor(y + wg_y, x + wg_x);
 	if (wg_width > 0){
 	  for (int i = 0; i< wg_width; i++) printf(" ");
 	}
-	move_cursor(y+wg_y, x+wg_x);
-	printf(current->c);
+	move_cursor(bias_y + wg_y, bias_x + wg_x);
+	printf(current->c);*/
+	Buffer_print(&main_buf, bias_y + wg_y, bias_x + wg_x, wg_width, current->c, current->fg, current->bg);
+	LOG_INFO("Widget_draw: %s %d %d", current->c, bias_y + wg_y, bias_x + wg_x);
   }
 }
 
@@ -234,7 +404,11 @@ Widget* Window_add_widget(Window* w, int x, int y, int width, int height, char *
   return wg;
 }
 
+/* frame.c */
+
+
 void on_mouse_down_window_bar(Widget* wg, int x, int y){
+  LOG_INFO("on_mouse_down_window_bar");
   dragging = wg->parent;
   Window_bring_to_bottom(dragging);
   dragging_offset_x = x - wg->parent->x;
@@ -250,8 +424,6 @@ void Window_add_window_bar(struct Window* w){
   Widget* minimize = Window_add_widget(w, -5, 0, 1, 1, "-", WHITE, BLUE_BG);
 }
 
-/* file_manager.c */
-
 void Widget_on_resize(Widget* wg, int x, int y){
   LOG_INFO("Widget_on_resize");
 
@@ -260,16 +432,42 @@ void Widget_on_resize(Widget* wg, int x, int y){
   dragging_offset_y = y - wg->parent->height;
 }
 
+Window* Frame_init(Window* w, int x, int y, int width, int height){
+  Window_init(w, x, y, width, height);
+  Window_add_window_bar(w);
+
+  // add right border
+  //for (int _ = 1; _ < w->height; _++) Window_add_widget(w, -1, _, 1, 1, "▊", WHITE, BLUE_BG);
+  for (int _ = 1; _ < 1000; _++) Window_add_widget(w, -1, _, 1, 1, "▐", WHITE_BG, BLUE);
+  for (int _ = 1; _ < 1000; _++) Window_add_widget(w, _, -1, 1, 1, "▄", WHITE_BG, BLUE);  
+  for (int _ = 1; _ < 1000; _++) Window_add_widget(w, 0, _, 1, 1, "▌", WHITE_BG, BLUE);
+  Window_add_widget(w, 0, -1, 1, 1, "▙", WHITE_BG, BLUE);  
+
+  // resize grip
+  //Widget* resize_grip = Window_add_widget(w, -1, -1, 1, 1, "⌟", BLACK, WHITE_BG);
+  Widget* resize_grip = Window_add_widget(w, -1, -1, 1, 1, "▟", WHITE_BG, BLUE);
+  resize_grip->on_mouse_down = Widget_on_resize;
+
+  Window* child = malloc(sizeof *child);
+  Window_init(child, 1, 1, width-2, height-2);
+  Window_append(w, child);
+
+  return child;
+}
+
+/* file_manager.c */
+
+
 Window* FileExplorer_new(int x, int y, int width, int height){
   //Window* w = malloc(sizeof *w);
-  Window* w = malloc(sizeof *w);
-  Window_init(w, x, y, width, height);
+  Window* frame = malloc(sizeof *frame);
+  //Window_init(w, x, y, width, height);
+  Window* w = Frame_init(frame, x, y, width, height);
+  LOG_INFO("FileExplorer_new: %d %d %d %d %d", x, y, Window_get_absolute_x(w), Window_get_absolute_y(w), w->x);
+
   //w->draw = FileExplorer_draw;
 
-
-  Window_add_window_bar(w);
-  
-  int j = 1;
+  int j = 0;
 
   int widget_width;
   
@@ -351,20 +549,14 @@ Window* FileExplorer_new(int x, int y, int width, int height){
 
   closedir(dir);
 
-  // add right border
-  //for (int _ = 1; _ < w->height; _++) Window_add_widget(w, -1, _, 1, 1, "▊", WHITE, BLUE_BG);
-  for (int _ = 1; _ < 1000; _++) Window_add_widget(w, -1, _, 1, 1, "▐", WHITE_BG, BLUE);
-  for (int _ = 1; _ < 1000; _++) Window_add_widget(w, _, -1, 1, 1, "▄", WHITE_BG, BLUE);  
-  for (int _ = 1; _ < 1000; _++) Window_add_widget(w, 0, _, 1, 1, "▌", WHITE_BG, BLUE);
-  Window_add_widget(w, 0, -1, 1, 1, "▙", WHITE_BG, BLUE);
-  
 
-  // resize grip
-  //Widget* resize_grip = Window_add_widget(w, -1, -1, 1, 1, "⌟", BLACK, WHITE_BG);
-  Widget* resize_grip = Window_add_widget(w, -1, -1, 1, 1, "▟", WHITE_BG, BLUE);
-  resize_grip->on_mouse_down = Widget_on_resize;
+  return frame;
+}
 
-  return w;
+Window* FileExplorer_test(int x, int y, int width, int height){
+  Window* frame = malloc(sizeof *frame);
+  Window* w = Frame_init(frame, x, y, width, height);
+  return frame;
 }
 
 // TERMINAL
@@ -377,29 +569,36 @@ void init(){
   w1->parent = root;
   Window_append(root, w1);
   
-  Window* w2 = FileExplorer_new(100, 30, 80, 40);
+  /*Window* w2 = FileExplorer_new(100, 30, 80, 40);
   w2->parent = root;
   Window_append(root, w2);
   
   Window* w3 = FileExplorer_new(5, 5, 80, 40);
   w3->parent = root;
-  Window_append(root, w3);
+  Window_append(root, w3);*/
   
-  dragging = w2;
+  /*Window* w2 = FileExplorer_test(100, 30, 80, 40);
+  w2->parent = root;
+  Window_append(root, w2);*/
+  
+  dragging = w1;
 }
 
 
 void repaint(){
-  //LOG_INFO("repaint");
+  LOG_INFO("repaint");
   clear_screen();
   hide_cursor();
   
   // redraw everything
-  root->draw(root);
+  Buffer_clear(&main_buf);
+  root->draw(root, 0, 0);
+  Buffer_print_to_screen(&main_buf);
 }
 
 void on_drag(int x, int y){
   if (dragging != NULL){
+	LOG_INFO("dragging");	
 	dragging->x = x - dragging_offset_x;
 	dragging->y = y - dragging_offset_y;
   }
@@ -413,11 +612,19 @@ void on_drag(int x, int y){
 }
 
 void on_mouse_down(int x, int y){
+  LOG_INFO("on_mouse_down: %d %d", x, y);
   Widget* wg = Window_find_widget(root, x, y);
-  //LOG_INFO("Window_find_widget ret: %p", (void*)wg);
+  /*Widget* current = wg;
+  LOG_INFO("Window_find_widget current: %p", (void*)current);
+  while (current!=NULL){
+	current = current->parent;
+	}*/
+  //if (wg != NULL) LOG_INFO("Window_find_widget parent: %p", wg->parent);
 
   if (wg != NULL){
+	LOG_INFO("wg->on_mouse_down");
 	if (wg->on_mouse_down != NULL) wg->on_mouse_down(wg, x, y);
+	//dragging = wg;
   }
 }
 
@@ -427,13 +634,18 @@ void on_mouse_up(){
 }
 
 //#include <locale.h>
-int main() {
+int start() {
   log_init("app.log");
+
   //setlocale(LC_ALL, "");
   enable_raw_mode();
   enable_mouse();
   init();
-	
+
+  int rows; int cols; get_terminal_size(&rows, &cols);
+  LOG_INFO("get_terminal_size: %d %d", rows, cols);
+  Buffer_init(&main_buf, cols, rows);
+  
   int dragging = 0;
 
   while (1) {
@@ -484,4 +696,128 @@ int main() {
 
   printf("\033[2J\033[H");
   return 0;
+}
+
+/*
+int test_buffer(){  
+  Buffer buf;
+  Buffer_init(&buf, 20, 20);
+  Buffer_print(&buf, 0, 0, 10, "🔪hello", RED_BG, BLACK);
+  Buffer_print(&buf, 1, 0, 10, "🔪hi", BLUE_BG, BLACK);
+  Buffer_print(&buf, 3, 3, 11, "hello world", WHITE_BG, BLACK);
+  Buffer_print(&buf, 0, 4, 10, "hello", GREEN_BG, BLACK);
+  Buffer_print_to_screen(&buf);
+}
+*/
+
+#include <signal.h>
+#include <execinfo.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <fcntl.h>
+void write_stacktrace_to_fd(int fd)
+{
+    void *array[50];
+    int size = backtrace(array, 50);
+
+    backtrace_symbols_fd(array, size, fd);
+}
+
+void crash_handler(int sig)
+{
+    int fd = open("crash.log",
+                  O_WRONLY | O_CREAT | O_APPEND,
+                  0644);
+
+    if (fd >= 0) {
+        dprintf(fd, "\n--- Crash detected (signal %d) ---\n", sig);
+        write_stacktrace_to_fd(fd);
+        close(fd);
+    }
+
+    _exit(1);
+}
+void setup_crash_handler()
+{
+    signal(SIGSEGV, crash_handler);
+    signal(SIGABRT, crash_handler);
+    signal(SIGFPE,  crash_handler);
+}
+
+#include <assert.h>
+
+int test_windows1(){
+  int grid[2][2] = {
+    {1, 1},
+    {1, 2}
+  };
+  log_init("app.log");
+  Window* w1 = malloc(sizeof *w1);
+  Window_init(w1, 0, 0, 2, 2);
+
+  Window* w2 = malloc(sizeof *w2);
+  Window_init(w2, 1, 1, 1, 1);
+  Window_append(w1, w2);
+
+  for (int i = 0; i <= 3; i++) {
+	for (int j = 0; j <= 3; j++) {
+	  Window* found = Window_find_widget(w1, i, j);
+	  if (found){
+		int idx = 0;
+		if (found == w1) idx = 1;
+		if (found == w2) idx = 2;
+		assert(idx == grid[j][i]);
+		printf("found: %d %d %d %d\n", i, j, idx, grid[j][i]);
+	  }
+	}
+  }
+}
+
+int test_windows2(){
+  int grid[5][5] = {
+    {2, 2, 2, 1, 1},
+    {2, 3, 2, 1, 1},
+    {2, 2, 2, 1, 1},
+    {1, 1, 4, 4, 1},
+    {1, 1, 4, 4, 1},
+  };
+  log_init("app.log");
+  Window* w1 = malloc(sizeof *w1);
+  Window_init(w1, 0, 0, 5, 5);
+
+  Window* w2 = malloc(sizeof *w2);
+  Window_init(w2, 0, 0, 3, 3);
+  Window_append(w1, w2);
+
+  Window* w3 = malloc(sizeof *w3);
+  Window_init(w3, 1, 1, 1, 1);
+  Window_append(w2, w3);
+
+  Window* w4 = malloc(sizeof *w4);
+  Window_init(w4, 2, 3, 2, 2);
+  Window_append(w1, w4);
+
+  for (int i = 0; i < 5; i++) {
+	for (int j = 0; j < 5; j++) {
+	  Window* found = Window_find_widget(w1, i, j);
+	  if (found){
+		int idx = 0;
+		if (found == w1) idx = 1;
+		if (found == w2) idx = 2;
+		if (found == w3) idx = 3;
+		if (found == w4) idx = 4;
+		assert(idx == grid[j][i]);
+		printf("found: %d %d %d %d\n", i, j, idx, grid[j][i]);
+		//printf("found: %d %d %d\n", i, j, idx);
+	  }
+	}
+  }
+}
+
+int main() {
+  setup_crash_handler();
+  start();
+  //test_buffer();
+  //test_windows2();
 }

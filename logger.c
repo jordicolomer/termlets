@@ -1,3 +1,6 @@
+#ifndef LOGGER_C
+#define LOGGER_C
+
 #include "logger.h"
 #include <stdarg.h>
 #include <string.h>
@@ -77,3 +80,4 @@ void log_message(LogLevel level, const char* file, int line, const char* fmt, ..
         fflush(stderr);
 	*/
 }
+#endif // LOGGER_C
