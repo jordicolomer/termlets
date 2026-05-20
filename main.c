@@ -25,121 +25,6 @@ int ends_with(const char *str, const char *suffix) {
 /* buffer.c */
 #include "buffer.c"
 
-/*
-typedef struct Buffer {
-  int width;
-  int height;
-  char * buffer;
-  char * bg;
-  char * fg;
-} Buffer;
-
-void Buffer_init(Buffer* buf, int width, int height){
-  buf->width = width;
-  buf->height = height;
-  buf->buffer = calloc(width * height, sizeof(char));
-  buf->bg = calloc(width * height, sizeof(char));
-  buf->fg = calloc(width * height, sizeof(char));
-}
-
-void Buffer_clear(Buffer* buf)
-{
-    int size = buf->width * buf->height;
-
-    memset(buf->buffer, 0, size);
-    memset(buf->bg, 0, size);
-    memset(buf->fg, 0, size);
-}
-
-void Buffer_print(Buffer* buf, int x, int y, int width, char *s, char fg, char bg)
-{
-    int px = x;
-    int py = y;
-
-    if (py < 0 || py >= buf->height)
-        return;
-
-    if (px >= buf->width)
-        return;
-
-    // clamp width to buffer boundary
-    if (px < 0) {
-        s += -px;
-        width -= -px;
-        px = 0;
-    }
-
-    if (width <= 0)
-        return;
-
-    if (px + width > buf->width) {
-        width = buf->width - px;
-    }
-
-    int idx = py * buf->width + px;
-
-    int slen = strlen(s);
-
-    for (int i = 0; i < width; i++) {
-
-        char c;
-
-        if (i < slen) {
-            c = s[i];          // use string content
-        } else {
-            c = ' ';           // pad with spaces
-        }
-
-        buf->buffer[idx + i] = c;
-        buf->fg[idx + i] = fg;
-        buf->bg[idx + i] = bg;
-    }
-}
-void Buffer_print_to_screen(Buffer* buf)
-{
-    int current_bg = -1;
-    int current_fg = -1;
-
-    // clear screen + move cursor home
-    fprintf(stdout, "\033[2J\033[H");
-
-    for (int y = 0; y < buf->height; y++) {
-        for (int x = 0; x < buf->width; x++) {
-
-            int idx = y * buf->width + x;
-
-            char c = buf->buffer[idx];
-            if (c == '\0')
-                continue;
-
-            char bg = buf->bg[idx];
-            char fg = buf->fg[idx];
-
-            // move cursor (ANSI is 1-based)
-            fprintf(stdout, "\033[%d;%dH", y + 1, x + 1);
-
-            // update color only if changed
-            if (bg != current_bg || fg != current_fg ) {
-			  //fprintf(stdout, "\033[%dm", color);
-			  set_terminal_color(bg, fg);
-			  current_bg = bg;
-			  current_fg = fg;
-            }
-
-            fwrite(&c, sizeof(char), 1, stdout);
-        }
-    }
-
-    // reset formatting at end
-    //fprintf(stdout, "\033[0m");
-
-	fprintf(stdout, "\033[0m");
-	fprintf(stdout, "\033[%d;1H", buf->height + 1);
-	fflush(stdout);
-}
-
-Buffer main_buf;
-*/
 
 /* window.c */
 
@@ -263,26 +148,6 @@ int Window_in_bounds(Window* wg, int x, int y){
   return 0;
 }
 
-/*
-Window* Window_find_widget(Window* this, int x, int y){
-  //LOG_INFO("find_widget: %p", (void*)this);
-  Window* child = this->tail;
-  if (child == NULL){ // widget
-	  if (Window_in_bounds(this, x, y)) return this;
-  }
-  else{
-	while (child != NULL) {
-	  Window* found = Window_find_widget(child, x, y);
-	  if (found != NULL) {
-		//LOG_INFO("found: %p", (void*)found);
-		return found;
-	  }
-	  child = child->prev;
-	}
-  }
-  return NULL;
-}
-*/
 Window* Window_find_widget(Window* this, int x, int y){
   LOG_INFO("Window_find_widget: %p", this);
   if (!this) return NULL;
@@ -574,17 +439,17 @@ void init(){
   root = malloc(sizeof *root);
   Window_init(root, 0, 0, 200, 200);
   
-  Window* w1 = FileExplorer_new(10, 20, 80, 20);
+  Window* w1 = FileExplorer_new(20, 10, 80, 20);
   w1->parent = root;
   Window_append(root, w1);
   
-  /*Window* w2 = FileExplorer_new(100, 30, 80, 40);
+  Window* w2 = FileExplorer_new(30, 15, 80, 30);
   w2->parent = root;
   Window_append(root, w2);
   
-  Window* w3 = FileExplorer_new(5, 5, 80, 40);
+  Window* w3 = FileExplorer_new(5, 5, 80, 30);
   w3->parent = root;
-  Window_append(root, w3);*/
+  Window_append(root, w3);
   
   /*Window* w2 = FileExplorer_test(100, 30, 80, 40);
   w2->parent = root;
