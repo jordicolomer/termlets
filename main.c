@@ -226,8 +226,10 @@ typedef struct Widget {
   // for now we copy from Window
   
   char * c;
-  ForegroundColor fg;
-  BackgroundColor bg;
+  int fg;
+  int bg;
+  //int _fg;
+  //int _bg;
 } Widget;
 
 
@@ -264,7 +266,7 @@ void Widget_draw(struct Window* wg, int bias_x, int bias_y){
 
 
 
-Widget* Window_add_widget(Window* w, int x, int y, int width, int height, char * c, ForegroundColor fg, BackgroundColor bg){
+Widget* Window_add_widget(Window* w, int x, int y, int width, int height, char * c, int fg, int bg){
   Widget* wg = malloc(sizeof *wg);
   Window_init(wg, x, y, width, height);
   wg->draw = Widget_draw;
@@ -272,6 +274,8 @@ Widget* Window_add_widget(Window* w, int x, int y, int width, int height, char *
   wg->c = c;
   wg->fg = fg;
   wg->bg = bg;
+  //wg->_fg = 0;
+  //wg->_bg = 0;
 
   Window_append(w, wg);
 
@@ -312,18 +316,33 @@ Window* Frame_init(Window* w, int x, int y, int width, int height){
 
   // add right border
   //for (int _ = 1; _ < w->height; _++) Window_add_widget(w, -1, _, 1, 1, "▊", WHITE, BLUE_BG);
+  /*
   for (int _ = 1; _ < 1000; _++) Window_add_widget(w, -1, _, 1, 1, "▐", WHITE_BG, BLUE);
   for (int _ = 1; _ < 1000; _++) Window_add_widget(w, _, -1, 1, 1, "▄", WHITE_BG, BLUE);  
   for (int _ = 1; _ < 1000; _++) Window_add_widget(w, 0, _, 1, 1, "▌", WHITE_BG, BLUE);
   Window_add_widget(w, 0, -1, 1, 1, "▙", WHITE_BG, BLUE);  
-
+  */
+  /*
+  for (int _ = 1; _ < 1000; _++) Window_add_widget(w, -1, _, 1, 1, " ", BLUE_BG, WHITE);
+  for (int _ = 1; _ < 1000; _++) Window_add_widget(w, _, -1, 1, 1, " ", BLUE_BG, WHITE);  
+  for (int _ = 1; _ < 1000; _++) Window_add_widget(w, 0, _, 1, 1, " ", BLUE_BG, WHITE);
+  Window_add_widget(w, 0, -1, 1, 1, " ", BLUE_BG, WHITE);
+  */
+  /*
+  for (int _ = 1; _ < 1000; _++) Window_add_widget(w, -1, _, 1, 1, "│", WHITE_BG, BLUE);
+  for (int _ = 1; _ < 1000; _++) Window_add_widget(w, _, -1, 1, 1, "─", WHITE_BG, BLUE);  
+  for (int _ = 1; _ < 1000; _++) Window_add_widget(w, 0, _, 1, 1, "│", WHITE_BG, BLUE);
+  Window_add_widget(w, 0, -1, 1, 1, "└", WHITE_BG, BLUE);
+  */
+  
   // resize grip
   //Widget* resize_grip = Window_add_widget(w, -1, -1, 1, 1, "⌟", BLACK, WHITE_BG);
   Widget* resize_grip = Window_add_widget(w, -1, -1, 1, 1, "▟", WHITE_BG, BLUE);
   resize_grip->on_mouse_down = Widget_on_resize;
 
   Window* child = malloc(sizeof *child);
-  Window_init(child, 1, 1, width-2, height-2);
+  //Window_init(child, 1, 1, width-2, height-2);
+  Window_init(child, 0, 1, width, height);
   Window_append(w, child);
 
   return child;
@@ -380,17 +399,17 @@ Window* FileExplorer_new(int x, int y, int width, int height){
   // favorites
   int start_j = j;
   int fav_width = 22;
-  Window_add_widget(w, 0, j++, fav_width, 1, " Favorites", WHITE, BRIGHT_BLACK_BG);
-  Window_add_widget(w, 0, j++, fav_width, 1, " 🏠 Home", BLACK, WHITE_BG);
-  Window_add_widget(w, 0, j++, fav_width, 1, " 📥 Downloads", BLACK, WHITE_BG);
-  Window_add_widget(w, 0, j++, fav_width, 1, " 📄 Documents", BLACK, WHITE_BG);
-  Window_add_widget(w, 0, j++, fav_width, 1, " 📷 Pictures", BLACK, WHITE_BG);
-  Window_add_widget(w, 0, j++, fav_width, 1, " 🎵 Music", BLACK, WHITE_BG);
-  Window_add_widget(w, 0, j++, fav_width, 1, " 🎬 Movies", BLACK, WHITE_BG);
-  Window_add_widget(w, 0, j++, fav_width, 1, "", BLACK, WHITE_BG);
-  Window_add_widget(w, 0, j++, fav_width, 1, " Locations", WHITE, BRIGHT_BLACK_BG);
-  Window_add_widget(w, 0, j++, fav_width, 1, " 💻 Root", BLACK, WHITE_BG);
-  Window_add_widget(w, 0, j++, fav_width, 1, " 👥 Users", BLACK, WHITE_BG);
+  Window_add_widget(w, 0, j++, fav_width, 1, " Favorites", 255, 240);
+  Window_add_widget(w, 0, j++, fav_width, 1, " 🏠 Home", 255, 247);
+  Window_add_widget(w, 0, j++, fav_width, 1, " 📥 Downloads", 255, 247);
+  Window_add_widget(w, 0, j++, fav_width, 1, " 📄 Documents", 255, 247);
+  Window_add_widget(w, 0, j++, fav_width, 1, " 📷 Pictures", 255, 247);
+  Window_add_widget(w, 0, j++, fav_width, 1, " 🎵 Music", 255, 247);
+  Window_add_widget(w, 0, j++, fav_width, 1, " 🎬 Movies", 255, 247);
+  Window_add_widget(w, 0, j++, fav_width, 1, "", 255, 247);
+  Window_add_widget(w, 0, j++, fav_width, 1, " Locations", 255, 240);
+  Window_add_widget(w, 0, j++, fav_width, 1, " 💻 Root", 255, 247);
+  Window_add_widget(w, 0, j++, fav_width, 1, " 👥 Users", 255, 247);
   while(j <= 200) Window_add_widget(w, 0, j++, fav_width, 1, "", BLACK, WHITE_BG);
 
   // list files
@@ -474,6 +493,7 @@ void repaint(){
 }
 
 void on_drag(int x, int y){
+  LOG_INFO("on_drag x: %d y: %d", x, y);	
   if (dragging != NULL){
 	LOG_INFO("dragging");	
 	dragging->x = x - dragging_offset_x;
@@ -551,6 +571,8 @@ int start() {
 	  char type;
 
 	  if (sscanf(seq, "[<%d;%d;%d%c", &btn, &x, &y, &type) == 4) {
+		if (y == 1) continue;
+		LOG_INFO("sscanf %d %d %d %c", btn, x, y, type);		
 		if (dragging == 0 && btn == 0 && type == 'M') { //click
 		  dragging = 1;
 		  on_mouse_down(x, y);

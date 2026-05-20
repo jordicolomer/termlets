@@ -64,7 +64,7 @@
 #include <stdio.h>
 
 typedef enum {
-    BLACK = 30,
+    BLACK = 0,
     RED = 31,
     GREEN = 32,
     YELLOW = 33,
@@ -90,10 +90,10 @@ typedef enum {
     RED_BG = 41,
     GREEN_BG = 42,
     YELLOW_BG = 43,
-    BLUE_BG = 44,
+    BLUE_BG = 27,
     MAGENTA_BG = 45,
     CYAN_BG = 46,
-    WHITE_BG = 47,
+    WHITE_BG = 15,
 
     DEFAULT_BG = 49,
 
@@ -109,6 +109,16 @@ typedef enum {
 
 void set_terminal_color(ForegroundColor fg, BackgroundColor bg) {
     printf("\033[%d;%dm", fg, bg);
+}
+
+void set_terminal_fg_color256(int color) {
+    printf("\x1b[38;5;%dm", color);
+}
+void set_terminal_bg_color256(int color) {
+    printf("\x1b[48;5;%dm", color);
+}
+void set_color256(int fg, int bg) {
+    printf("\x1b[38;5;%d;48;5;%dm", fg, bg);
 }
 
 void reset_terminal_color(void) {
