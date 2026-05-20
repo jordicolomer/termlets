@@ -7,7 +7,11 @@
 #include "ansi_term.c"
 #include "logger.c"
 
+
 //#define USE_BUFFER
+
+#define WINDOW_BAR_COLOR 20
+
 
 /* utils.c */
 
@@ -38,7 +42,7 @@ typedef struct Window {
   int y;
   int width;
   int height;
-  void (*draw)(struct Window*, int, int);
+  void (*draw)(struct Window*, int, int, int);
   void (*on_mouse_down) (struct Widget* wg, int x, int y);  
 } Window;
 
@@ -102,10 +106,10 @@ int Window_get_absolute_y(Window* w){
 }
 
 
-void Window_draw(struct Window* w, int bias_x, int bias_y){
+void Window_draw(struct Window* w, int bias_x, int bias_y, int hasFocus){
   Window* current = w->head;
   while (current != NULL) {
-	current->draw(current, bias_x + w->x, bias_y + w->y);
+	current->draw(current, bias_x + w->x, bias_y + w->y, hasFocus || current == dragging);
 	current = current->next;
   }
   //printf("\033[0m");
@@ -221,7 +225,7 @@ typedef struct Widget {
   int y;
   int width;
   int height;
-  void (*draw)(struct Window*, int, int);
+  void (*draw)(struct Window*, int, int, int);
   void (*on_mouse_down) (struct Widget* wg, int x, int y);  
   // for now we copy from Window
   
@@ -233,14 +237,14 @@ typedef struct Widget {
 } Widget;
 
 
-void Widget_draw(struct Window* wg, int bias_x, int bias_y){
+void Widget_draw(struct Window* wg, int bias_x, int bias_y, int hasFocus){
   Widget* current = (Widget*) wg;
   Window* w = current->parent;
   //int x = w->x;
   //int y = w->y;
   //int x = Window_get_absolute_x(w);
   //int y = Window_get_absolute_y(w);
-  Window_draw((Window*)current, bias_x, bias_y);
+  Window_draw((Window*)current, bias_x, bias_y, hasFocus);
   int wg_x = Window_get_x(current);
   int wg_y = Window_get_y(current);
   if (wg_y <= w->height && wg_x < w->width) {
@@ -255,7 +259,11 @@ void Widget_draw(struct Window* wg, int bias_x, int bias_y){
 #ifdef USE_BUFFER
 	Buffer_print(&main_buf, bias_y + wg_y, bias_x + wg_x, wg_width, current->c, current->fg, current->bg);
 #else
-	Buffer_print_raw(&main_buf, bias_y + wg_y, bias_x + wg_x, wg_width, current->c, current->fg, current->bg);
+	int fg = current->fg;
+	int bg = current->bg;
+	if (bg >= 232+4 && ! hasFocus) bg -= 4;
+	if (bg == WINDOW_BAR_COLOR && ! hasFocus) bg = 243;
+	Buffer_print_raw(&main_buf, bias_y + wg_y, bias_x + wg_x, wg_width, current->c, fg, bg);
 	fprintf(stdout, "\033[0m");
 	fflush(stdout);
 
@@ -293,13 +301,14 @@ void on_mouse_down_window_bar(Widget* wg, int x, int y){
   dragging_offset_y = y - wg->parent->y;
 }
 
+
 void Window_add_window_bar(struct Window* w){
-  Widget* wg = Window_add_widget(w, 0, 0, -1, 1, "", WHITE, BLUE_BG);
+  Widget* wg = Window_add_widget(w, 0, 0, -1, 1, "", 255, WINDOW_BAR_COLOR);
   wg->on_mouse_down = on_mouse_down_window_bar;
   
-  Widget* close = Window_add_widget(w, -1, 0, 1, 1, "X", WHITE, BLUE_BG);
-  Widget* maximize = Window_add_widget(w, -3, 0, 1, 1, "□", WHITE, BLUE_BG);
-  Widget* minimize = Window_add_widget(w, -5, 0, 1, 1, "-", WHITE, BLUE_BG);
+  Widget* close = Window_add_widget(w, -1, 0, 1, 1, "X", 255, WINDOW_BAR_COLOR);
+  Widget* maximize = Window_add_widget(w, -3, 0, 1, 1, "□", 255, WINDOW_BAR_COLOR);
+  Widget* minimize = Window_add_widget(w, -5, 0, 1, 1, "-", 255, WINDOW_BAR_COLOR);
 }
 
 void Widget_on_resize(Widget* wg, int x, int y){
@@ -366,51 +375,51 @@ Window* FileExplorer_new(int x, int y, int width, int height){
   
   // menubar
   int x_offset = 0;
-  widget_width = 6; Window_add_widget(w, x_offset, j, widget_width, 1, " File", BLACK, WHITE_BG); x_offset += widget_width;
-  widget_width = 6; Window_add_widget(w, x_offset, j, widget_width, 1, " Edit", BLACK, WHITE_BG); x_offset += widget_width;
-  widget_width = 6;  Window_add_widget(w, x_offset, j, widget_width, 1, " View", BLACK, WHITE_BG); x_offset += widget_width;
-  widget_width = 6;  Window_add_widget(w, x_offset, j, -1, 1, " Help", BLACK, WHITE_BG); x_offset += widget_width;
+  widget_width = 6; Window_add_widget(w, x_offset, j, widget_width, 1, " File", 232, 253); x_offset += widget_width;
+  widget_width = 6; Window_add_widget(w, x_offset, j, widget_width, 1, " Edit", 232, 253); x_offset += widget_width;
+  widget_width = 6;  Window_add_widget(w, x_offset, j, widget_width, 1, " View", 232, 253); x_offset += widget_width;
+  widget_width = 6;  Window_add_widget(w, x_offset, j, -1, 1, " Help", 232, 253); x_offset += widget_width;
   //Window_add_widget(w, 0, j, width, 1, "", BLACK, WHITE_BG);
   j++;
 
   // toolbar
   x_offset = 0;
-  widget_width = 12; Window_add_widget(w, x_offset, j, widget_width, 1, " 📄 New File", BLACK, WHITE_BG); x_offset += widget_width;
-  widget_width = 12; Window_add_widget(w, x_offset, j, widget_width, 1, "📁 New Dir", BLACK, WHITE_BG); x_offset += widget_width;
-  widget_width = 8;  Window_add_widget(w, x_offset, j, widget_width, 1, "📋 Copy", BLACK, WHITE_BG); x_offset += widget_width;
-  widget_width = 8;  Window_add_widget(w, x_offset, j, widget_width, 1, "🔪 Cut", BLACK, WHITE_BG); x_offset += widget_width;
-  widget_width = 10; Window_add_widget(w, x_offset, j, widget_width, 1, "📌 Paste", BLACK, WHITE_BG); x_offset += widget_width;
-  widget_width = 10; Window_add_widget(w, x_offset, j, widget_width, 1, "🔤 Rename", BLACK, WHITE_BG); x_offset += widget_width;
-  widget_width = 10; Window_add_widget(w, x_offset, j, -1, 1, "❌ Delete", BLACK, WHITE_BG); x_offset += widget_width;
+  widget_width = 12; Window_add_widget(w, x_offset, j, widget_width, 1, " 📄 New File", 232, 254); x_offset += widget_width;
+  widget_width = 12; Window_add_widget(w, x_offset, j, widget_width, 1, "📁 New Dir", 232, 254); x_offset += widget_width;
+  widget_width = 8;  Window_add_widget(w, x_offset, j, widget_width, 1, "📋 Copy", 232, 254); x_offset += widget_width;
+  widget_width = 8;  Window_add_widget(w, x_offset, j, widget_width, 1, "🔪 Cut", 232, 254); x_offset += widget_width;
+  widget_width = 10; Window_add_widget(w, x_offset, j, widget_width, 1, "📌 Paste", 232, 254); x_offset += widget_width;
+  widget_width = 10; Window_add_widget(w, x_offset, j, widget_width, 1, "🔤 Rename", 232, 254); x_offset += widget_width;
+  widget_width = 10; Window_add_widget(w, x_offset, j, -1, 1, "❌ Delete", 232, 254); x_offset += widget_width;
   //Window_add_widget(w, 0, j, width, 1, "", BLACK, WHITE_BG);
   j++;
 
   // tabs
   x_offset = 0;
-  widget_width = 14; Window_add_widget(w, x_offset, j, widget_width, 1, " jordicolomer x", BLACK, WHITE_BG); x_offset += widget_width;
-  widget_width = 1;  Window_add_widget(w, x_offset, j, -1, 1, " + ", BLACK, WHITE_BG); x_offset += widget_width;
+  widget_width = 14; Window_add_widget(w, x_offset, j, widget_width, 1, " jordicolomer x", 232, 255); x_offset += widget_width;
+  widget_width = 1;  Window_add_widget(w, x_offset, j, -1, 1, " + ", 232, 255); x_offset += widget_width;
   //Window_add_widget(w, 0, j, width, 1, "", BLACK, WHITE_BG);
   j++;
 
   // address bar
-  Window_add_widget(w, 0, j, -1, 1, " 📁 /Users/jordicolomer", BLACK, BRIGHT_BLUE_BG);
+  Window_add_widget(w, 0, j, -1, 1, " 📁 /Users/jordicolomer", 232, 255);
   j++;
 
   // favorites
   int start_j = j;
   int fav_width = 22;
-  Window_add_widget(w, 0, j++, fav_width, 1, " Favorites", 255, 240);
-  Window_add_widget(w, 0, j++, fav_width, 1, " 🏠 Home", 255, 247);
-  Window_add_widget(w, 0, j++, fav_width, 1, " 📥 Downloads", 255, 247);
-  Window_add_widget(w, 0, j++, fav_width, 1, " 📄 Documents", 255, 247);
-  Window_add_widget(w, 0, j++, fav_width, 1, " 📷 Pictures", 255, 247);
-  Window_add_widget(w, 0, j++, fav_width, 1, " 🎵 Music", 255, 247);
-  Window_add_widget(w, 0, j++, fav_width, 1, " 🎬 Movies", 255, 247);
-  Window_add_widget(w, 0, j++, fav_width, 1, "", 255, 247);
-  Window_add_widget(w, 0, j++, fav_width, 1, " Locations", 255, 240);
-  Window_add_widget(w, 0, j++, fav_width, 1, " 💻 Root", 255, 247);
-  Window_add_widget(w, 0, j++, fav_width, 1, " 👥 Users", 255, 247);
-  while(j <= 200) Window_add_widget(w, 0, j++, fav_width, 1, "", BLACK, WHITE_BG);
+  Window_add_widget(w, 0, j++, fav_width, 1, " Favorites", 255, 245);
+  Window_add_widget(w, 0, j++, fav_width, 1, " 🏠 Home", 232, 254);
+  Window_add_widget(w, 0, j++, fav_width, 1, " 📥 Downloads", 232, 254);
+  Window_add_widget(w, 0, j++, fav_width, 1, " 📄 Documents", 232, 254);
+  Window_add_widget(w, 0, j++, fav_width, 1, " 📷 Pictures", 232, 254);
+  Window_add_widget(w, 0, j++, fav_width, 1, " 🎵 Music", 232, 254);
+  Window_add_widget(w, 0, j++, fav_width, 1, " 🎬 Movies", 232, 254);
+  Window_add_widget(w, 0, j++, fav_width, 1, "", 232, 254);
+  Window_add_widget(w, 0, j++, fav_width, 1, " Locations", 255, 245);
+  Window_add_widget(w, 0, j++, fav_width, 1, " 💻 Root", 232, 254);
+  Window_add_widget(w, 0, j++, fav_width, 1, " 👥 Users", 232, 254);
+  while(j <= 200) Window_add_widget(w, 0, j++, fav_width, 1, "", 232, 255);
 
   // list files
   j = start_j;
@@ -435,7 +444,7 @@ Window* FileExplorer_new(int x, int y, int width, int height){
 	char *str = NULL;
 	// memory leak here
 	int len = asprintf(&str, "%s %s", icon, entry->d_name);
-	Window_add_widget(w, fav_width, j++, -1, 1, str, BLACK, WHITE_BG);
+	Window_add_widget(w, fav_width, j++, -1, 1, str, 232, 255);
 	//if (height < j) break;
 	//mvwprintw(win, x++, 1, "%s %s", icon, entry->d_name);
   }
@@ -485,7 +494,7 @@ void repaint(){
   
   // redraw everything
   Buffer_clear(&main_buf);
-  root->draw(root, 0, 0);
+  root->draw(root, 0, 0, 0);
 
 #ifdef USE_BUFFER
 	Buffer_print_to_screen(&main_buf);
