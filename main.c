@@ -7,6 +7,8 @@
 #include "ansi_term.c"
 #include "logger.c"
 
+//#define USE_BUFFER
+
 /* utils.c */
 
 int ends_with(const char *str, const char *suffix) {
@@ -184,12 +186,12 @@ int Window_get_width(Window* wg){
 }
 
 int Window_get_x(Window* wg){
-  LOG_INFO("Window_get_x");
+  //LOG_INFO("Window_get_x");
   if (wg->x >= 0){
-	LOG_INFO("if");
+	//LOG_INFO("if");
 	return wg->x;
   }
-  LOG_INFO("else");
+  //LOG_INFO("else");
   return wg->parent->width + wg->x;
 }
 
@@ -383,7 +385,14 @@ void Widget_draw(struct Window* wg, int bias_x, int bias_y){
 	}
 	move_cursor(bias_y + wg_y, bias_x + wg_x);
 	printf(current->c);*/
+#ifdef USE_BUFFER
 	Buffer_print(&main_buf, bias_y + wg_y, bias_x + wg_x, wg_width, current->c, current->fg, current->bg);
+#else
+	Buffer_print_raw(&main_buf, bias_y + wg_y, bias_x + wg_x, wg_width, current->c, current->fg, current->bg);
+	fprintf(stdout, "\033[0m");
+	fflush(stdout);
+
+#endif
 	LOG_INFO("Widget_draw: %s %d %d", current->c, bias_y + wg_y, bias_x + wg_x);
   }
 }
@@ -593,7 +602,10 @@ void repaint(){
   // redraw everything
   Buffer_clear(&main_buf);
   root->draw(root, 0, 0);
-  Buffer_print_to_screen(&main_buf);
+
+#ifdef USE_BUFFER
+	Buffer_print_to_screen(&main_buf);
+#endif
 }
 
 void on_drag(int x, int y){

@@ -8,6 +8,7 @@
 #include <stdint.h>
 #include <wchar.h>
 #include <locale.h>
+#include <time.h>
 
 #include "ansi_term.c"
 #include "logger.c"
@@ -142,12 +143,16 @@ void Buffer_print(Buffer* buf, int y, int x, int width, char *s, char fg, char b
 }
 void Buffer_print_to_screen(Buffer* buf)
 {
+  clock_t start = clock();
+  
     int current_bg = -1;
     int current_fg = -1;
 
     // clear screen + move cursor home
-    fprintf(stdout, "\033[2J\033[H");
-	LOG_INFO("buf->height buf->width: %d %d", buf->height, buf->width);
+    //fprintf(stdout, "\033[2J\033[H");
+    //fprintf(stdout, "\033[2J");
+    //fprintf(stdout, "\033[H");
+	//LOG_INFO("buf->height buf->width: %d %d", buf->height, buf->width);
 
     for (int y = 0; y < buf->height; y++) {
         for (int x = 0; x < buf->width; x++) {
@@ -197,6 +202,9 @@ void Buffer_print_to_screen(Buffer* buf)
 	fprintf(stdout, "\033[%d;1H", buf->height + 1);
 	//fprintf(stdout, "\033[%d;1H", 20);
 	fflush(stdout);
+  clock_t end = clock();
+  double cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
+  LOG_INFO("Execution time: %f ms\n", cpu_time_used*1000);
 }
 
 Buffer main_buf;
