@@ -306,9 +306,9 @@ void Window_add_window_bar(struct Window* w){
   Widget* wg = Window_add_widget(w, 0, 0, -1, 1, "", 255, WINDOW_BAR_COLOR);
   wg->on_mouse_down = on_mouse_down_window_bar;
   
-  Widget* close = Window_add_widget(w, -1, 0, 1, 1, "X", 255, WINDOW_BAR_COLOR);
-  Widget* maximize = Window_add_widget(w, -3, 0, 1, 1, "□", 255, WINDOW_BAR_COLOR);
-  Widget* minimize = Window_add_widget(w, -5, 0, 1, 1, "-", 255, WINDOW_BAR_COLOR);
+  Widget* close = Window_add_widget(w, -2, 0, 1, 1, "X", 255, WINDOW_BAR_COLOR);
+  Widget* maximize = Window_add_widget(w, -4, 0, 1, 1, "□", 255, WINDOW_BAR_COLOR);
+  Widget* minimize = Window_add_widget(w, -6, 0, 1, 1, "-", 255, WINDOW_BAR_COLOR);
 }
 
 void Widget_on_resize(Widget* wg, int x, int y){
@@ -346,13 +346,14 @@ Window* Frame_init(Window* w, int x, int y, int width, int height){
   
   // resize grip
   //Widget* resize_grip = Window_add_widget(w, -1, -1, 1, 1, "⌟", BLACK, WHITE_BG);
-  Widget* resize_grip = Window_add_widget(w, -1, -1, 1, 1, "▟", WHITE_BG, BLUE);
-  resize_grip->on_mouse_down = Widget_on_resize;
 
   Window* child = malloc(sizeof *child);
   //Window_init(child, 1, 1, width-2, height-2);
-  Window_init(child, 0, 1, width, height);
+  Window_init(child, 0, 1, width, height-1);
   Window_append(w, child);
+  
+  Widget* resize_grip = Window_add_widget(w, -1, -1, 1, 1, "▟", WHITE_BG, BLUE);
+  resize_grip->on_mouse_down = Widget_on_resize;
 
   return child;
 }
