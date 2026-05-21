@@ -122,7 +122,7 @@ int Window_get_absolute_y(Window* w){
 
 //void Window_draw(struct Window* w, int bias_x, int bias_y, int hasFocus){
 void Window_draw(struct Window* w, Geometry geo, int hasFocus){
-  LOG_INFO("Window_draw %s w:%p geo.x:%d, geo.y:%d, geo.width:%d, geo.height:%d", w->id, w, geo.x, geo.y, geo.width, geo.height);
+  //LOG_INFO("Window_draw %s w:%p geo.x:%d, geo.y:%d, geo.width:%d, geo.height:%d", w->id, w, geo.x, geo.y, geo.width, geo.height);
 
   Window* current = w->head;
   while (current != NULL) {
@@ -149,10 +149,10 @@ void Window_draw(struct Window* w, Geometry geo, int hasFocus){
 
 	
 	Geometry rect = {geo.x + left, geo.y + top, width, height};
-	LOG_INFO("Window_draw loop %s %p orig css left:%d right:%d width:%d top:%d bottom:%d height:%d", current->id, current, current->left, current->right, current->width, current->top, current->bottom, current->height);
-	LOG_INFO("Window_draw loop %s %p comp css left:%d right:%d width:%d top:%d bottom:%d height:%d", current->id, current, left, right, width, top, bottom, height);
-	LOG_INFO("Window_draw loop %s %p rect     rect.x:%d, rect.y:%d, rect.width:%d, rect.height:%d", current->id, current, rect.x, rect.y, rect.width, rect.height);
-	LOG_INFO("parent %s", w->id);
+	//LOG_INFO("Window_draw loop %s %p orig css left:%d right:%d width:%d top:%d bottom:%d height:%d", current->id, current, current->left, current->right, current->width, current->top, current->bottom, current->height);
+	//LOG_INFO("Window_draw loop %s %p comp css left:%d right:%d width:%d top:%d bottom:%d height:%d", current->id, current, left, right, width, top, bottom, height);
+	//LOG_INFO("Window_draw loop %s %p rect     rect.x:%d, rect.y:%d, rect.width:%d, rect.height:%d", current->id, current, rect.x, rect.y, rect.width, rect.height);
+	//LOG_INFO("parent %s", w->id);
 	if (top < geo.height) 
 	  current->draw(current, rect, hasFocus || current == dragging);
 	current = current->next;
@@ -238,7 +238,7 @@ Window* Window_find_widget(struct Window* this, Geometry geo, int x, int y){
   Window* ret = NULL;
   //LOG_INFO(" Window_find_widget %p %d %d %d %d %d %d", this, geo.x, geo.y, geo.width, geo.height, x, y);
   if (Geometry_in_bounds(geo, x, y)){
-	LOG_INFO("in bounds");
+	//LOG_INFO("in bounds");
 	ret = this;
   }
   Window* current = this->tail;
@@ -353,7 +353,7 @@ void Widget_draw(struct Window* wg, Geometry geo, int hasFocus){
   //int y = w->y;
   //int x = Window_get_absolute_x(w);
   //int y = Window_get_absolute_y(w);
-  LOG_INFO("Widget_draw: %p %d %d %d %s", wg, geo.y, geo.x, geo.width, current->c);
+  //LOG_INFO("Widget_draw: %p %d %d %d %s", wg, geo.y, geo.x, geo.width, current->c);
   Window_draw((Window*)current, geo, hasFocus);
 
   //if (!(wg->top <= geo.height && wg->left < geo.width)) return;
@@ -466,7 +466,7 @@ Window* Frame_init(Window* w, int left, int right, int top, int bottom, int widt
   Window_append(w, child);
   child->id = "child";
   
-  Widget* resize_grip = Window_add_widget(w, -1, 0, -1, 0, 1, 1, "▟", WHITE_BG, BLUE);
+  Widget* resize_grip = Window_add_widget(w, -1, 0, -1, 0, 1, 1, "▟", 250, 255);
   resize_grip->on_mouse_down = Widget_on_resize;
 
   return child;
