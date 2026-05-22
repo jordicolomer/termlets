@@ -539,7 +539,11 @@ Window* FileExplorer_new(int left, int right, int top, int bottom, int width, in
   while(j <= 200) Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, "", 232, 255);
 
   // list files
-  j = start_j;
+  Window* fm = malloc(sizeof *fm);
+  Window_init(fm, fav_width, 0, 4, 0, -1, -1);
+  Window_append(w, fm);
+  
+  j = 0;
   DIR *dir;
   struct dirent *entry;
 
@@ -561,7 +565,8 @@ Window* FileExplorer_new(int left, int right, int top, int bottom, int width, in
 	char *str = NULL;
 	// memory leak here
 	int len = asprintf(&str, "%s %s", icon, entry->d_name);
-	Window_add_widget(w, fav_width, 0, j++, -1, -1, 1, str, 232, 255);
+	//Window_add_widget(w, fav_width, 0, j++, -1, -1, 1, str, 232, 255);
+	Window_add_widget(fm, 0, 0, j++, -1, -1, 1, str, 232, 255);
 	//if (height < j) break;
 	//mvwprintw(win, x++, 1, "%s %s", icon, entry->d_name);
   }
@@ -655,7 +660,7 @@ void on_mouse_down(int x, int y){
   //if (wg != NULL) LOG_INFO("Window_find_widget parent: %p", wg->parent);
 
   if (wg != NULL){
-	LOG_INFO("wg wg->left:%d wg->right:%d wg->top:%d wg->bottom:%d wg->width:%d wg->height:%d", wg->left, wg->right, wg->top, wg->bottom, wg->width, wg->height);
+	LOG_INFO("wg id:%s wg->left:%d wg->right:%d wg->top:%d wg->bottom:%d wg->width:%d wg->height:%d", wg->id, wg->left, wg->right, wg->top, wg->bottom, wg->width, wg->height);
 	if (wg->on_mouse_down != NULL) {
 	  LOG_INFO("wg->on_mouse_down");
 	  wg->on_mouse_down(wg, x, y);
@@ -708,7 +713,7 @@ int start() {
 
 	  if (sscanf(seq, "[<%d;%d;%d%c", &btn, &x, &y, &type) == 4) {
 		if (y == 1) continue;
-		LOG_INFO("sscanf %d %d %d %c", btn, x, y, type);		
+		//LOG_INFO("sscanf %d %d %d %c", btn, x, y, type);		
 		if (dragging == 0 && btn == 0 && type == 'M') { //click
 		  dragging = 1;
 		  on_mouse_down(x, y);
