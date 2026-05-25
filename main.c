@@ -527,7 +527,20 @@ void Slider_on_mouse_down(Window* wg, int x, int y){
   child->shift -= slider_data->height;
 }
 
+void Slider_grip_draw(struct Window* w, Geometry geo, int hasFocus){
+  Slider_data * slider_data = (Slider_data*) w->parent->data;
+  Window* child = slider_data->child;
+  child->shift = -w->top;
+  Widget_draw(w, geo, hasFocus);
+}
+
 void on_mouse_down_slider_grip(Window* wg, int x, int y){
+  /*
+  Slider_data * slider_data = (Slider_data*) wg->parent->data;
+  Window* child = slider_data->child;
+  child->shift -= 1;
+  */
+  
   dragging = wg;
   dragging_offset_x = x - wg->parent->left;
   //dragging_offset_y = y - wg->parent->top;
@@ -654,6 +667,7 @@ Window* FileExplorer_new(int left, int right, int top, int bottom, int width, in
   slider_grip->hidden = 1;
   slider_grip->on_hover = Slider_grip_hover;
   slider_grip->undo_on_hover = Slider_grip_undo_hover;
+  slider_grip->draw = Slider_grip_draw;
   slider_data->slider_grip = slider_grip;
 
   return frame;
