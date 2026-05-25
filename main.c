@@ -55,11 +55,13 @@ typedef struct Window {
   int height;
   //void (*draw)(struct Window*, int, int, int);
   void (*draw)(struct Window*, Geometry, int);
-  void (*on_mouse_down) (struct Widget* wg, int x, int y);  
+  void (*on_mouse_down) (struct Window* wg, int x, int y);  
   void (*on_hover) (struct Window* wg, int x, int y);  
   void (*undo_on_hover) (struct Window* wg, int x, int y);  
   void* data;
+  void* data2;
   int hidden;
+  int shift;
 } Window;
 
 Window* root = NULL;
@@ -146,7 +148,7 @@ void Window_draw(struct Window* w, Geometry geo, int hasFocus){
 
 	// geo.height = w->top + w->height + w->bottom
 
-	int top = current->top;
+	int top = current->top + w->shift;
 	int bottom = current->bottom;
 	int height = current->height;
 	
@@ -160,8 +162,13 @@ void Window_draw(struct Window* w, Geometry geo, int hasFocus){
 	//LOG_INFO("Window_draw loop %s %p comp css left:%d right:%d width:%d top:%d bottom:%d height:%d", current->id, current, left, right, width, top, bottom, height);
 	//LOG_INFO("Window_draw loop %s %p rect     rect.x:%d, rect.y:%d, rect.width:%d, rect.height:%d", current->id, current, rect.x, rect.y, rect.width, rect.height);
 	//LOG_INFO("parent %s", w->id);
-	if (top < geo.height) 
-	  current->draw(current, rect, hasFocus || current == dragging);
+	int skip = 0;
+	//if (top < 0) skip = 1;
+	if (geo.height < top) skip = 1;
+	//if (geo.height < bottom) skip = 1;
+	if (height == 1 && top < 0) skip = 1;
+	//if ((!(height == 1 && top < 0)) && top < geo.height)
+	if (! skip) current->draw(current, rect, hasFocus || current == dragging);
 	current = current->next;
   }
   //printf("\033[0m");
@@ -189,6 +196,7 @@ Window* Window_init(Window* w, int left, int right, int top, int bottom, int wid
   w->undo_on_hover = NULL;
   w->parent = NULL;
   w->hidden = 0;
+  //w->shift = 0;
 
 
   return w;
@@ -346,7 +354,9 @@ typedef struct Widget {
   void (*on_hover) (struct Window* wg, int x, int y);  
   void (*undo_on_hover) (struct Window* wg, int x, int y);  
   void* data;
+  void* data2;
   int hidden;
+  int shift;
   // for now we copy from Window
   
   char * c;
@@ -497,6 +507,10 @@ void Slider_undo_hover(Window* wg, int x, int y){
   //LOG_INFO("Slider_hover");
 }
 
+void Slider_on_mouse_down(Window* wg, int x, int y){
+  Window* child = wg->data2;
+  child->shift -= 1;
+}
 
 Window* FileExplorer_new(int left, int right, int top, int bottom, int width, int height){
   //Window* w = malloc(sizeof *w);
@@ -562,9 +576,13 @@ Window* FileExplorer_new(int left, int right, int top, int bottom, int width, in
   while(j <= 200) Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, "", 232, 255);
 
   // list files
+  Window* fm_slider = malloc(sizeof *fm_slider);
+  Window_init(fm_slider, fav_width, 0, 4, 0, -1, -1);
+  Window_append(w, fm_slider);
+  
   Window* fm = malloc(sizeof *fm);
-  Window_init(fm, fav_width, 0, 4, 0, -1, -1);
-  Window_append(w, fm);
+  Window_init(fm, 0, 0, 0, 0, -1, -1);
+  Window_append(fm_slider, fm);
   
   j = 0;
   DIR *dir;
@@ -598,11 +616,13 @@ Window* FileExplorer_new(int left, int right, int top, int bottom, int width, in
 
   Window* slider = malloc(sizeof *slider);
   Window_init(slider, -1, 0, 0, 0, 1, -1);
-  Window_append(fm, slider);
+  Window_append(fm_slider, slider);
   slider->on_hover = Slider_hover;
   slider->undo_on_hover = Slider_undo_hover;
+  slider->on_mouse_down = Slider_on_mouse_down;
+  slider->data2 = fm;
   
-  Window* slider_grip = Window_add_widget(slider, -1, 0, 0, -1, 1, 1, "o", 232, 255);
+  Window* slider_grip = Window_add_widget(slider, -1, 0, 0, -1, 1, 1, "░", 232, 255);
   slider_grip->hidden = 1;
   slider->data = slider_grip;
 
