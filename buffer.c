@@ -110,7 +110,36 @@ void Buffer_clear(Buffer* buf)
     memset(buf->fg, 0, size);
 }
 
+int cp_width(int cp){
+  int width = wcwidth(cp);
+  if (width == -1) return 2;
+  return width;
+}
+
+int calculate_width(char *s){
+  const uint8_t *p = (const uint8_t *)s;
+  int total = 0;
+
+  while (*p) {
+	uint32_t cp = utf8_decode(&p);
+	int w = cp_width(cp);
+
+	total += w;
+  }
+
+  return total;  
+}
+
 void Buffer_print_raw(Buffer* buf, int y, int x, int width, char *s, int fg, int bg)
+{
+  set_color256(fg, bg);
+  move_cursor(y, x);
+  printf(s);
+  LOG_INFO("y:%d x:%d width:%d s:%s calculate_width:%d\n", y, x, width, s, calculate_width(s));
+  for (int i = 0; i < width - calculate_width(s) ; i++) printf(" ");
+}
+
+void Buffer_print_raw_slow(Buffer* buf, int y, int x, int width, char *s, int fg, int bg)
 {
   //set_terminal_color(fg, bg);
 	set_color256(fg, bg);
@@ -365,26 +394,4 @@ void Buffer_print_to_screen(Buffer *buf)
 }
 
 Buffer main_buf;
-
-int test_buffer(){
-  int raw = 0;
-  
-  Buffer buf;
-  void (*fn)(Buffer*, int, int, int, char*, int, int) = Buffer_print;
-  if (raw) fn = Buffer_print_raw;
-  
-  //if (raw) fn = 
-  Buffer_init(&buf, 20, 20);
-  fn(&buf, 1, 1, 10, "🔪hello", RED_BG, BLACK);
-  fn(&buf, 1, 3, 10, "🔪hi", BLUE_BG, BLACK);
-  fn(&buf, 2, 1, 10, "123456789", YELLOW_BG, WHITE);
-  fn(&buf, 3, 1, 11, "🏠hello world", WHITE_BG, BLACK);
-  fn(&buf, 4, 1, 10, "hello", GREEN_BG, BLACK);
-  if (raw == 0) Buffer_print_to_screen(&buf);
-  else{
-	fprintf(stdout, "\033[0m");
-	fprintf(stdout, "\033[%d;1H", 20);
-	fflush(stdout);	
-  }
-}
 

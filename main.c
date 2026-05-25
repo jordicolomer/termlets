@@ -623,7 +623,10 @@ void repaint(){
   hide_cursor();
   
   // redraw everything
+#ifdef USE_BUFFER
   Buffer_clear(&main_buf);
+#endif
+  
   Geometry rect = {0, 0, root->width, root->height};
   root->draw(root, rect, 0);
 
