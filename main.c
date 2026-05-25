@@ -638,7 +638,7 @@ Window* FileExplorer_new(int left, int right, int top, int bottom, int width, in
   closedir(dir);
 
   Window* slider = malloc(sizeof *slider);
-  Window_init(slider, -1, 0, 0, 0, 1, -1);
+  Window_init(slider, -1, 0, 0, 0, 2, -1);
   Window_append(fm_slider, slider);
   slider->on_hover = Slider_hover;
   slider->undo_on_hover = Slider_undo_hover;
@@ -649,7 +649,7 @@ Window* FileExplorer_new(int left, int right, int top, int bottom, int width, in
   slider_data->child = fm;
   slider_data->height = height-4;
     
-  Window* slider_grip = Window_add_widget(slider, -1, 0, 0, -1, 1, 1, "░", 232, 255);
+  Window* slider_grip = Window_add_widget(slider, -1, 0, 0, -1, 2, 1, "░░", 232, 255);
   slider_grip->on_mouse_down  = on_mouse_down_slider_grip;
   slider_grip->hidden = 1;
   slider_grip->on_hover = Slider_grip_hover;
@@ -731,7 +731,7 @@ void on_drag(int x, int y){
   //LOG_INFO("on_drag x: %d y: %d", x, y);	
   if (dragging != NULL){
 	LOG_INFO("dragging");
-	dragging->left = min(max(0, x - dragging_offset_x), dragging->parent->width-1);
+	dragging->left = min(max(0, x - dragging_offset_x), dragging->parent->width-2);
 	dragging->top = max(0, y - dragging_offset_y);
 	repaint();
   }
