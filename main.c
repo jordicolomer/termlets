@@ -530,7 +530,8 @@ void Slider_on_mouse_down(Window* wg, int x, int y){
 void on_mouse_down_slider_grip(Window* wg, int x, int y){
   dragging = wg;
   dragging_offset_x = x - wg->parent->left;
-  dragging_offset_y = y - wg->parent->top;
+  //dragging_offset_y = y - wg->parent->top;
+  dragging_offset_y = y - wg->parent->top - wg->top;
 }
 
 
