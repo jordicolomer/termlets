@@ -130,13 +130,27 @@ int calculate_width(char *s){
   return total;  
 }
 
+int y_state = -1;
+int x_state = -1;
+int fg_state = -1;
+int bg_state = -1;
+
 void Buffer_print_raw(Buffer* buf, int y, int x, int width, char *s, int fg, int bg)
 {
-  set_color256(fg, bg);
-  move_cursor(y, x);
+  if (fg != fg_state || bg != bg_state){	
+	set_color256(fg, bg);
+	fg_state = fg;
+	bg_state = bg;
+  }
+  if (x != x_state || y != y_state){	
+	move_cursor(y, x);
+	y_state = y;
+	x_state = x;
+  }
+  int terminal_width = calculate_width(s);
   printf(s);
-  //LOG_INFO("y:%d x:%d width:%d s:%s calculate_width:%d\n", y, x, width, s, calculate_width(s));
-  for (int i = 0; i < width - calculate_width(s) ; i++) printf(" ");
+  for (int i = 0; i < width - terminal_width; i++) printf(" ");
+  x_state += terminal_width;
 }
 
 void Buffer_print_raw_slow(Buffer* buf, int y, int x, int width, char *s, int fg, int bg)
