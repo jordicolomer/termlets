@@ -343,47 +343,41 @@ typedef struct Widget {
 } Widget;
 
 
-//void Widget_draw(struct Window* wg, int bias_x, int bias_y, int hasFocus){
 void Widget_draw(struct Window* wg, Geometry geo, int hasFocus){
-  //if (wg->top > geo.height) return;
-  
   Widget* current = (Widget*) wg;
-  //Window* w = current->parent;
-  //int x = w->x;
-  //int y = w->y;
-  //int x = Window_get_absolute_x(w);
-  //int y = Window_get_absolute_y(w);
-  //LOG_INFO("Widget_draw: %p %d %d %d %s", wg, geo.y, geo.x, geo.width, current->c);
   Window_draw((Window*)current, geo, hasFocus);
-
-  //if (!(wg->top <= geo.height && wg->left < geo.width)) return;
-  //int wg_x = Window_get_x(current);
-  //int wg_y = Window_get_y(current);
-  //if (wg_y <= w->height && wg_x < w->width) {
-  //int wg_width = Window_get_width(current);
-	/*set_terminal_color(current->fg, current->bg);
-	move_cursor(y + wg_y, x + wg_x);
-	if (wg_width > 0){
-	  for (int i = 0; i< wg_width; i++) printf(" ");
-	}
-	move_cursor(bias_y + wg_y, bias_x + wg_x);
-	printf(current->c);*/
 #ifdef USE_BUFFER
 	Buffer_print(&main_buf, geo.y + wg_y, geo.x + wg_x, wg_width, current->c, current->fg, current->bg);
 #else
+
+	// check if visible
+	int visible = 1;
+	Window* cursor = wg;
+	while (cursor->parent != root){
+	  cursor = cursor->parent;
+	}
+	cursor = cursor->next;
+	while (cursor != NULL) {
+	  if (cursor->left < geo.x && geo.x + geo.width < cursor->left + cursor->width &&
+		  cursor->top < geo.y && geo.y + geo.height < cursor->top + cursor->height) {
+		//LOG_INFO("skipping Widget_draw");
+		return;
+	  }
+		//visible = 0;
+	  cursor = cursor->next;
+	}
+	//if (! visible) return;
+
+	
 	int fg = current->fg;
 	int bg = current->bg;
 	if (bg >= 232+4 && ! hasFocus) bg -= 4;
 	if (bg == WINDOW_BAR_COLOR && ! hasFocus) bg = 243;
-	//Buffer_print_raw(&main_buf, geo.y + wg_y, geo.x + wg_x, wg_width, current->c, fg, bg);
 	Buffer_print_raw(&main_buf, geo.y, geo.x, geo.width, current->c, fg, bg);
-	fprintf(stdout, "\033[0m");
-	fflush(stdout);
-
+	//fprintf(stdout, "\033[0m");
+	//fflush(stdout);
 #endif
-	//}
 }
-
 
 
 Widget* Window_add_widget(Window* w, int left, int right, int top, int bottom, int width, int height, char * c, int fg, int bg){
@@ -629,6 +623,8 @@ void repaint(){
   
   Geometry rect = {0, 0, root->width, root->height};
   root->draw(root, rect, 0);
+  fprintf(stdout, "\033[0m");
+  fflush(stdout);
 
 #ifdef USE_BUFFER
 	Buffer_print_to_screen(&main_buf);
