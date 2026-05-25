@@ -135,7 +135,7 @@ void Buffer_print_raw(Buffer* buf, int y, int x, int width, char *s, int fg, int
   set_color256(fg, bg);
   move_cursor(y, x);
   printf(s);
-  LOG_INFO("y:%d x:%d width:%d s:%s calculate_width:%d\n", y, x, width, s, calculate_width(s));
+  //LOG_INFO("y:%d x:%d width:%d s:%s calculate_width:%d\n", y, x, width, s, calculate_width(s));
   for (int i = 0; i < width - calculate_width(s) ; i++) printf(" ");
 }
 
