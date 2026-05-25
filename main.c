@@ -56,12 +56,18 @@ typedef struct Window {
   //void (*draw)(struct Window*, int, int, int);
   void (*draw)(struct Window*, Geometry, int);
   void (*on_mouse_down) (struct Widget* wg, int x, int y);  
+  void (*on_hover) (struct Window* wg, int x, int y);  
+  void (*undo_on_hover) (struct Window* wg, int x, int y);  
+  void* data;
+  int hidden;
 } Window;
 
 Window* root = NULL;
 
 Window* dragging = NULL;
 Window* resizing = NULL;
+Window* focused = NULL;
+Window* hovering = NULL;
 int dragging_offset_x, dragging_offset_y;
 
 
@@ -123,6 +129,7 @@ int Window_get_absolute_y(Window* w){
 //void Window_draw(struct Window* w, int bias_x, int bias_y, int hasFocus){
 void Window_draw(struct Window* w, Geometry geo, int hasFocus){
   //LOG_INFO("Window_draw %s w:%p geo.x:%d, geo.y:%d, geo.width:%d, geo.height:%d", w->id, w, geo.x, geo.y, geo.width, geo.height);
+  if (focused == w) hasFocus = 1;
 
   Window* current = w->head;
   while (current != NULL) {
@@ -178,7 +185,10 @@ Window* Window_init(Window* w, int left, int right, int top, int bottom, int wid
   w->height = height;
   //w->draw = draw;
   w->draw = Window_draw;
+  w->on_hover = NULL;
+  w->undo_on_hover = NULL;
   w->parent = NULL;
+  w->hidden = 0;
 
 
   return w;
@@ -333,6 +343,10 @@ typedef struct Widget {
   //void (*draw)(struct Window*, int, int, int);
   void (*draw)(struct Window*, Geometry, int);
   void (*on_mouse_down) (struct Widget* wg, int x, int y);  
+  void (*on_hover) (struct Window* wg, int x, int y);  
+  void (*undo_on_hover) (struct Window* wg, int x, int y);  
+  void* data;
+  int hidden;
   // for now we copy from Window
   
   char * c;
@@ -349,6 +363,8 @@ void Widget_draw(struct Window* wg, Geometry geo, int hasFocus){
 #ifdef USE_BUFFER
 	Buffer_print(&main_buf, geo.y + wg_y, geo.x + wg_x, wg_width, current->c, current->fg, current->bg);
 #else
+
+	if (wg->hidden) return;
 
 	// check if visible
 	int visible = 1;
@@ -403,6 +419,7 @@ Widget* Window_add_widget(Window* w, int left, int right, int top, int bottom, i
 void on_mouse_down_window_bar(Widget* wg, int x, int y){
   LOG_INFO("on_mouse_down_window_bar");
   dragging = wg->parent;
+  focused = wg->parent;
   Window_bring_to_bottom(dragging);
   dragging_offset_x = x - wg->parent->left;
   dragging_offset_y = y - wg->parent->top;
@@ -467,6 +484,18 @@ Window* Frame_init(Window* w, int left, int right, int top, int bottom, int widt
 }
 
 /* file_manager.c */
+
+void Slider_hover(Window* wg, int x, int y){
+  Window* slider_grip = wg->data;
+  slider_grip->hidden = 0;
+  //LOG_INFO("Slider_hover");
+}
+
+void Slider_undo_hover(Window* wg, int x, int y){
+  Window* slider_grip = wg->data;
+  slider_grip->hidden = 1;
+  //LOG_INFO("Slider_hover");
+}
 
 
 Window* FileExplorer_new(int left, int right, int top, int bottom, int width, int height){
@@ -567,6 +596,15 @@ Window* FileExplorer_new(int left, int right, int top, int bottom, int width, in
 
   closedir(dir);
 
+  Window* slider = malloc(sizeof *slider);
+  Window_init(slider, -1, 0, 0, 0, 1, -1);
+  Window_append(fm, slider);
+  slider->on_hover = Slider_hover;
+  slider->undo_on_hover = Slider_undo_hover;
+  
+  Window* slider_grip = Window_add_widget(slider, -1, 0, 0, -1, 1, 1, "o", 232, 255);
+  slider_grip->hidden = 1;
+  slider->data = slider_grip;
 
   return frame;
 }
@@ -607,7 +645,7 @@ void init(){
   w2->parent = root;
   Window_append(root, w2);*/
   
-  dragging = w1;
+  //dragging = w1;
 }
 
 
@@ -632,19 +670,31 @@ void repaint(){
 }
 
 void on_drag(int x, int y){
-  LOG_INFO("on_drag x: %d y: %d", x, y);	
+  //LOG_INFO("on_drag x: %d y: %d", x, y);	
   if (dragging != NULL){
 	LOG_INFO("dragging");	
 	dragging->left = x - dragging_offset_x;
 	dragging->top = y - dragging_offset_y;
+	repaint();
   }
-  if (resizing != NULL){
+  else if (resizing != NULL){
 	resizing->width = x - dragging_offset_x;
 	resizing->height = y - dragging_offset_y;
 	LOG_INFO("new dimensions width: %d height: %d", resizing->width, resizing->height);	
+	repaint();
+  } else {
+	Geometry rect = {0, 0, root->width, root->height};
+	Widget* wg = Window_find_widget(root, rect, x, y);
+	if (wg != NULL && wg->on_hover != NULL){
+	  hovering = wg;
+	  wg->on_hover(wg, x, y);
+	  repaint();
+	} else if (hovering != NULL && hovering->undo_on_hover != NULL) {
+	  hovering->undo_on_hover(hovering, x, y);
+	  repaint();
+	  hovering = NULL;
+	}
   }
-
-  repaint();
 }
 
 void on_mouse_down(int x, int y){
@@ -684,6 +734,7 @@ int start() {
 
   
   int dragging = 0;
+  repaint();
 
   while (1) {
 	char c;
@@ -723,9 +774,9 @@ int start() {
 		  on_mouse_up();
 		}
 			  
-		if (dragging == 1){
+		//if (dragging == 1){
 		  on_drag(x, y);
-		}
+		  //}
 	  }
 	}
   }
