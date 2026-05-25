@@ -495,22 +495,44 @@ Window* Frame_init(Window* w, int left, int right, int top, int bottom, int widt
 
 /* file_manager.c */
 
+typedef struct Slider_data{
+  Window* slider_grip;
+  Window* child;
+  int height;
+} Slider_data;
+
 void Slider_hover(Window* wg, int x, int y){
-  Window* slider_grip = wg->data;
+  Window* slider_grip = ((Slider_data*) wg->data)->slider_grip;
   slider_grip->hidden = 0;
   //LOG_INFO("Slider_hover");
 }
 
+void Slider_grip_hover(Window* wg, int x, int y){
+  wg->hidden = 0;
+}
+
+void Slider_grip_undo_hover(Window* wg, int x, int y){
+  wg->hidden = 1;
+}
+
 void Slider_undo_hover(Window* wg, int x, int y){
-  Window* slider_grip = wg->data;
+  Window* slider_grip = ((Slider_data*) wg->data)->slider_grip;
   slider_grip->hidden = 1;
   //LOG_INFO("Slider_hover");
 }
 
 void Slider_on_mouse_down(Window* wg, int x, int y){
-  Window* child = wg->data2;
-  child->shift -= 1;
+  Slider_data * slider_data = (Slider_data*) wg->data;
+  Window* child = slider_data->child;
+  child->shift -= slider_data->height;
 }
+
+void on_mouse_down_slider_grip(Window* wg, int x, int y){
+  dragging = wg;
+  dragging_offset_x = x - wg->parent->left;
+  dragging_offset_y = y - wg->parent->top;
+}
+
 
 Window* FileExplorer_new(int left, int right, int top, int bottom, int width, int height){
   //Window* w = malloc(sizeof *w);
@@ -620,11 +642,18 @@ Window* FileExplorer_new(int left, int right, int top, int bottom, int width, in
   slider->on_hover = Slider_hover;
   slider->undo_on_hover = Slider_undo_hover;
   slider->on_mouse_down = Slider_on_mouse_down;
-  slider->data2 = fm;
-  
+
+  Slider_data* slider_data = (Slider_data*) malloc(sizeof(Slider_data));
+  slider->data = slider_data;
+  slider_data->child = fm;
+  slider_data->height = height-4;
+    
   Window* slider_grip = Window_add_widget(slider, -1, 0, 0, -1, 1, 1, "░", 232, 255);
+  slider_grip->on_mouse_down  = on_mouse_down_slider_grip;
   slider_grip->hidden = 1;
-  slider->data = slider_grip;
+  slider_grip->on_hover = Slider_grip_hover;
+  slider_grip->undo_on_hover = Slider_grip_undo_hover;
+  slider_data->slider_grip = slider_grip;
 
   return frame;
 }
@@ -689,12 +718,20 @@ void repaint(){
 #endif
 }
 
+int max(int a, int b) {
+    return (a > b) ? a : b;
+}
+
+int min(int a, int b) {
+    return (a < b) ? a : b;
+}
+
 void on_drag(int x, int y){
   //LOG_INFO("on_drag x: %d y: %d", x, y);	
   if (dragging != NULL){
-	LOG_INFO("dragging");	
-	dragging->left = x - dragging_offset_x;
-	dragging->top = y - dragging_offset_y;
+	LOG_INFO("dragging");
+	dragging->left = min(max(0, x - dragging_offset_x), dragging->parent->width-1);
+	dragging->top = max(0, y - dragging_offset_y);
 	repaint();
   }
   else if (resizing != NULL){
