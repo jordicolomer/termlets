@@ -59,11 +59,16 @@ typedef struct Window
   void (*on_mouse_down)(struct Window *wg, int x, int y);
   void (*on_hover)(struct Window *wg, int x, int y);
   void (*undo_on_hover)(struct Window *wg, int x, int y);
+  void (*set_top)(struct Window *wg, int top);
   void *data;
   void *data2;
   int hidden;
   int shift;
 } Window;
+
+void Window_set_top(struct Window *wg, int top){
+  wg->top = top;
+}
 
 Window *root = NULL;
 
@@ -196,6 +201,8 @@ void Window_draw(struct Window *w, Geometry geo, int hasFocus)
   // fflush(stdout);
 }
 
+
+
 Window *Window_init(Window *w, int left, int right, int top, int bottom, int width, int height)
 {
   // Window* w = malloc(sizeof *w);
@@ -214,6 +221,7 @@ Window *Window_init(Window *w, int left, int right, int top, int bottom, int wid
   w->height = height;
   // w->draw = draw;
   w->draw = Window_draw;
+  w->set_top = Window_set_top;
   w->on_hover = NULL;
   w->undo_on_hover = NULL;
   w->parent = NULL;
@@ -359,6 +367,7 @@ typedef struct Widget
   void (*on_mouse_down)(struct Widget *wg, int x, int y);
   void (*on_hover)(struct Window *wg, int x, int y);
   void (*undo_on_hover)(struct Window *wg, int x, int y);
+  void (*set_top)(struct Window *wg, int top);
   void *data;
   void *data2;
   int hidden;
@@ -476,7 +485,7 @@ Window *Frame_init(Window *w, int left, int right, int top, int bottom, int widt
   Window_append(w, child);
   child->id = "child";
 
-  Widget *resize_grip = Window_add_widget(w, -1, 0, -1, 0, 1, 1, "▟", 250, 255);
+  Widget *resize_grip = Window_add_widget(w, -1, 0, -1, 0, 1, 1, "⌟", 232, 255);
   resize_grip->on_mouse_down = Widget_on_resize;
 
   return child;
@@ -522,13 +531,13 @@ void Slider_on_mouse_down(Window *wg, int x, int y)
   child->shift -= slider_data->height;
 }
 
-void Slider_grip_draw(struct Window *w, Geometry geo, int hasFocus)
+/*void Slider_grip_draw(struct Window *w, Geometry geo, int hasFocus)
 {
   Slider_data *slider_data = (Slider_data *)w->parent->data;
   Window *child = slider_data->child;
   child->shift = -w->top;
   Widget_draw(w, geo, hasFocus);
-}
+}*/
 
 void on_mouse_down_slider_grip(Window *wg, int x, int y)
 {
@@ -543,6 +552,15 @@ void on_mouse_down_slider_grip(Window *wg, int x, int y)
   // dragging_offset_y = y - wg->parent->top;
   dragging_offset_y = y - wg->parent->top - wg->top;
 }
+
+void Slider_set_top(struct Window *w, int top){
+  w->top = top;
+
+  Slider_data *slider_data = (Slider_data *)w->parent->data;
+  Window *child = slider_data->child;
+  child->shift = -w->top;
+}
+
 
 Window *FileExplorer_new(int left, int right, int top, int bottom, int width, int height)
 {
@@ -699,7 +717,8 @@ Window *FileExplorer_new(int left, int right, int top, int bottom, int width, in
   slider_grip->hidden = 1;
   slider_grip->on_hover = Slider_grip_hover;
   slider_grip->undo_on_hover = Slider_grip_undo_hover;
-  slider_grip->draw = Slider_grip_draw;
+  //slider_grip->draw = Slider_grip_draw;
+  slider_grip->set_top = Slider_set_top;
   slider_data->slider_grip = slider_grip;
 
   return frame;
@@ -789,7 +808,8 @@ void on_drag(int x, int y)
     LOG_INFO("dragging");
     dragging->left = min(max(0, x - dragging_offset_x), dragging->parent->width - dragging->width);
     int parent_height = Window_get_height(dragging->parent);
-    dragging->top = min(max(0, y - dragging_offset_y), parent_height - dragging->height);
+    int new_top = min(max(0, y - dragging_offset_y), parent_height - dragging->height);
+    dragging->set_top(dragging, new_top);
     repaint();
   }
   else if (resizing != NULL)
