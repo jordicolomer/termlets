@@ -91,6 +91,13 @@ void Window_append(Window *w, Window *new_w)
   w->tail = new_w;
 }
 
+int Window_get_height(Window* wg){
+  if (wg->height >= 0){
+    return wg->height;
+  }
+  return Window_get_height(wg->parent) - wg->top - wg->bottom;
+}
+
 /*
 int Window_get_width(Window* wg){
   if (wg->width >= 0){
@@ -772,14 +779,17 @@ int min(int a, int b)
   return (a < b) ? a : b;
 }
 
+ 
+
 void on_drag(int x, int y)
 {
   // LOG_INFO("on_drag x: %d y: %d", x, y);
   if (dragging != NULL)
   {
     LOG_INFO("dragging");
-    dragging->left = min(max(0, x - dragging_offset_x), dragging->parent->width - 2);
-    dragging->top = max(0, y - dragging_offset_y);
+    dragging->left = min(max(0, x - dragging_offset_x), dragging->parent->width - dragging->width);
+    int parent_height = Window_get_height(dragging->parent);
+    dragging->top = min(max(0, y - dragging_offset_y), parent_height - dragging->height);
     repaint();
   }
   else if (resizing != NULL)
