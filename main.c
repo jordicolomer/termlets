@@ -498,6 +498,7 @@ typedef struct Slider_data
   Window *slider_grip;
   Window *child;
   int height;
+  int virtual_height;
 } Slider_data;
 
 void Slider_hover(Window *wg, int x, int y)
@@ -558,7 +559,11 @@ void Slider_set_top(struct Window *w, int top){
 
   Slider_data *slider_data = (Slider_data *)w->parent->data;
   Window *child = slider_data->child;
-  child->shift = -w->top;
+  int height = Window_get_height(w->parent) - 1;
+  //child->shift = -w->top*(slider_data->virtual_height)/slider_data->height;
+  //int height = slider_data->height-2;
+  //LOG_INFO("Slider_set_top %d %d %d", height, height2, w->top);
+  child->shift = -w->top*(slider_data->virtual_height-height-1)/height;
 }
 
 
@@ -711,6 +716,7 @@ Window *FileExplorer_new(int left, int right, int top, int bottom, int width, in
   slider->data = slider_data;
   slider_data->child = fm;
   slider_data->height = height - 4;
+  slider_data->virtual_height = j;
 
   Window *slider_grip = Window_add_widget(slider, -1, 0, 0, -1, 2, 1, "░░", 232, 255);
   slider_grip->on_mouse_down = on_mouse_down_slider_grip;
