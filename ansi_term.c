@@ -224,14 +224,14 @@ void enter_alternate_screen(void) {
     printf("\x1b[?1049h");
 
     // Hide cursor
-    printf("\x1b[?25l");
+    //printf("\x1b[?25l");
 
     // Blue background + white text
     //printf("\x1b[44m\x1b[37m");
 	//set_color256(232, 32);
 
     // Clear + home
-    printf("\x1b[2J\x1b[H");
+    //printf("\x1b[2J\x1b[H");
 
     fflush(stdout);
 }

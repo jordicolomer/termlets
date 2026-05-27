@@ -881,6 +881,8 @@ int start()
 {
   log_init("app.log");
 
+  // Enter alternate screen
+  printf("\x1b[?1049h");
   // setlocale(LC_ALL, "");
   enable_raw_mode();
   enable_mouse();
@@ -948,7 +950,13 @@ int start()
   disable_mouse();
   disable_raw_mode();
 
-  printf("\033[2J\033[H");
+   // Leave alternate screen
+  printf("\x1b[?1049l");
+  
+  //set_color256(255, 0);
+  //clear_screen();
+
+  //printf("\033[2J\033[H");
   return 0;
 }
 
