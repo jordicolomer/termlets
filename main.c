@@ -776,6 +776,8 @@ void init()
 void repaint()
 {
   LOG_INFO("repaint");
+  //printf("\x1b[44m\x1b[37m");
+  set_color256(232, 26);
   clear_screen();
   hide_cursor();
 
@@ -882,6 +884,7 @@ int start()
   // setlocale(LC_ALL, "");
   enable_raw_mode();
   enable_mouse();
+  //enter_alternate_screen();
   init();
 
   int dragging = 0;
