@@ -199,4 +199,24 @@ void get_terminal_size(int *rows, int *cols) {
     *rows = w.ws_row;
 }
 
+void cleanup(void) {
+    // Disable mouse tracking modes
+    printf("\x1b[?1000l"); // normal mouse tracking
+    printf("\x1b[?1002l"); // button-event tracking
+    printf("\x1b[?1003l"); // any-event tracking
+    printf("\x1b[?1006l"); // SGR extended mode
+    printf("\x1b[?1015l"); // urxvt mode
+
+    // Show cursor
+    printf("\x1b[?25h");
+
+    // Leave alternate screen buffer
+    printf("\x1b[?1049l");
+
+    // Reset attributes/colors
+    printf("\x1b[0m");
+
+    fflush(stdout);
+}
+
 #endif // ANSI_TERM_H

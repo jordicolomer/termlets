@@ -941,6 +941,7 @@ int start()
     }
   }
 
+  cleanup();
   disable_mouse();
   disable_raw_mode();
 
