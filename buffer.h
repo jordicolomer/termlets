@@ -4,6 +4,9 @@
 #include <stdio.h>
 #include <stdint.h>
 
+// #define USE_BUFFER
+
+
 typedef struct Buffer
 {
   int width;
