@@ -11,6 +11,32 @@
 #include "file_manager.h"
 
 
+// start menu
+void start_mouse_down(struct Window *w, int x, int y){
+  //LOG_INFO("start_mouse_down");
+  Window *startMenu = w->data;
+  startMenu->hidden = 0;
+}
+
+Window * TaskBar_new(){
+  Window *taskBar = malloc(sizeof *taskBar);
+  Window_init(taskBar, 0, -1, 2, -1, -1, 1);
+  Window_append(root, taskBar);
+
+  //Window_add_widget(taskBar, 0, -1, -1, 0, -1, 1, "", 232, 250);
+  Window *start = Window_add_widget(taskBar, 0, -1, -1, 0, 10, 1, "💻 Start", 232, 250);
+  start->on_mouse_down = start_mouse_down;
+
+  Window *startMenu = malloc(sizeof *startMenu);
+  Window_init(startMenu, 0, -1, 3, -1, 10, 2);
+  startMenu->hidden = 1;
+  Window_append(root, startMenu);
+  start->data = startMenu;
+
+  Window *terminal = Window_add_widget(startMenu, 0, -1, 0, -1, 10, 1, "💻 Terminal", 232, 250);
+  Window *file_manager = Window_add_widget(startMenu, 0, -1, 1, -1, 10, 1, "📁 File Manager", 232, 250);
+}
+
 // TERMINAL
 
 void init()
@@ -39,6 +65,8 @@ void init()
   w3->parent = root;
   w3->id = "FileExplorer3";
   Window_append(root, w3);
+
+  TaskBar_new();
 
   /*Window* w2 = FileExplorer_test(100, 30, 80, 40);
   w2->parent = root;
@@ -139,6 +167,7 @@ void on_mouse_down(int x, int y)
     {
       LOG_INFO("wg->on_mouse_down");
       wg->on_mouse_down(wg, x, y);
+      repaint();
     }
     // dragging = wg;
   }

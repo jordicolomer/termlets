@@ -90,6 +90,10 @@ int Window_get_absolute_y(Window* w){
 // void Window_draw(struct Window* w, int bias_x, int bias_y, int hasFocus){
 void Window_draw(struct Window *w, Geometry geo, int hasFocus)
 {
+    if (w->hidden == 1){
+        return;
+    }
+
   // LOG_INFO("Window_draw %s w:%p geo.x:%d, geo.y:%d, geo.width:%d, geo.height:%d", w->id, w, geo.x, geo.y, geo.width, geo.height);
   if (focused == w)
     hasFocus = 1;
@@ -299,8 +303,10 @@ void Widget_draw(struct Window *wg, Geometry geo, int hasFocus)
   Buffer_print(&main_buf, geo.y + wg_y, geo.x + wg_x, wg_width, current->c, current->fg, current->bg);
 #else
 
-  if (wg->hidden)
+  if (wg->hidden == 1){
+    //LOG_INFO("wg->hidden");
     return;
+  }
 
   // check if visible
   int visible = 1;
