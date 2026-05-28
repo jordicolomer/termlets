@@ -4,8 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <dirent.h>
-#include "ansi_term.c"
-#include "logger.c"
+#include "ansi_term.h"
+#include "logger.h"
 
 // #define USE_BUFFER
 
@@ -27,7 +27,7 @@ int ends_with(const char *str, const char *suffix)
 }
 
 /* buffer.c */
-#include "buffer.c"
+#include "buffer.h"
 
 /* window.c */
 typedef struct Geometry

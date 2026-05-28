@@ -10,8 +10,9 @@
 #include <locale.h>
 #include <time.h>
 
-#include "ansi_term.c"
-#include "logger.c"
+#include "ansi_term.h"
+#include "logger.h"
+#include "buffer.h"
 
 uint32_t utf8_decode(const uint8_t **s)
 {
@@ -96,14 +97,6 @@ int utf8_encode(uint32_t cp, uint8_t **s)
   return ret;
 }
 
-typedef struct Buffer
-{
-  int width;
-  int height;
-  uint32_t *buffer;
-  char *bg;
-  char *fg;
-} Buffer;
 
 void Buffer_init(Buffer *buf, int width, int height)
 {
