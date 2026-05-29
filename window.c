@@ -20,6 +20,7 @@ Window *dragging = NULL;
 Window *resizing = NULL;
 Window *focused = NULL;
 Window *hovering = NULL;
+Window *open_menu = NULL;
 int dragging_offset_x, dragging_offset_y;
 
 void Window_append(Window *w, Window *new_w)
@@ -195,6 +196,10 @@ Window *Window_find_widget(struct Window *this, Geometry geo, int x, int y)
   // Window* current = w->head;
   if (!this)
     return NULL;
+  if (this->hidden == 1){
+    return NULL;
+  }
+
   Window *ret = NULL;
   // LOG_INFO(" Window_find_widget %p %d %d %d %d %d %d", this, geo.x, geo.y, geo.width, geo.height, x, y);
   if (Geometry_in_bounds(geo, x, y))

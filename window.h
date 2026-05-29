@@ -48,6 +48,7 @@ extern Window *dragging;
 extern Window *resizing;
 extern Window *focused;
 extern Window *hovering;
+extern Window *open_menu;
 extern int dragging_offset_x, dragging_offset_y;
 
 void Window_append(Window *w, Window *new_w);

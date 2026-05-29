@@ -15,26 +15,28 @@
 void start_mouse_down(struct Window *w, int x, int y){
   //LOG_INFO("start_mouse_down");
   Window *startMenu = w->data;
-  startMenu->hidden = 0;
+  startMenu->hidden = 1 - startMenu->hidden;
+  open_menu = startMenu;
 }
 
 Window * TaskBar_new(){
   Window *taskBar = malloc(sizeof *taskBar);
-  Window_init(taskBar, 0, -1, 2, -1, -1, 1);
+  Window_init(taskBar, 0, -1, -1, 0, -1, 1);
   Window_append(root, taskBar);
+  int taskbar_color = 255;
 
   //Window_add_widget(taskBar, 0, -1, -1, 0, -1, 1, "", 232, 250);
-  Window *start = Window_add_widget(taskBar, 0, -1, -1, 0, 10, 1, "💻 Start", 232, 250);
+  Window *start = Window_add_widget(taskBar, 0, -1, -1, 0, 9, 1, "💻 Start", 0, taskbar_color);
   start->on_mouse_down = start_mouse_down;
 
   Window *startMenu = malloc(sizeof *startMenu);
-  Window_init(startMenu, 0, -1, 3, -1, 10, 2);
+  Window_init(startMenu, 0, -1, -1, 1, 10, 2);
   startMenu->hidden = 1;
   Window_append(root, startMenu);
   start->data = startMenu;
 
-  Window *terminal = Window_add_widget(startMenu, 0, -1, 0, -1, 10, 1, "💻 Terminal", 232, 250);
-  Window *file_manager = Window_add_widget(startMenu, 0, -1, 1, -1, 10, 1, "📁 File Manager", 232, 250);
+  Window *terminal = Window_add_widget(startMenu, 0, -1, 0, -1, 16, 1, "💻 Terminal", 0, taskbar_color);
+  Window *file_manager = Window_add_widget(startMenu, 0, -1, 1, -1, 16, 1, "📁 File Manager", 0, taskbar_color);
 }
 
 // TERMINAL
@@ -45,11 +47,12 @@ void init()
   int cols;
   get_terminal_size(&rows, &cols);
   LOG_INFO("get_terminal_size: %d %d", rows, cols);
+  #ifdef USE_BUFFER
   Buffer_init(&main_buf, cols, rows);
+  #endif
 
   root = malloc(sizeof *root);
-
-  Window_init(root, 0, -1, 0, -1, cols, rows);
+  Window_init(root, 0, -1, 0, -1, cols, rows+1);
 
   Window *w1 = FileExplorer_new(20, -1, 10, -1, 80, 20);
   w1->parent = root;
@@ -154,11 +157,24 @@ void on_mouse_down(int x, int y)
   Geometry rect = {0, 0, root->width, root->height};
   Widget *wg = Window_find_widget(root, rect, x, y);
   LOG_INFO("Window_find_widget: %p", (void *)wg);
+
+  /*if (open_menu == wg){
+    open_menu->hidden = 1;
+    open_menu = NULL;
+    repaint();
+    return;
+  }*/
+
+  /*if (open_menu != NULL){
+    open_menu->hidden = 1;
+    open_menu = NULL;
+  }*/
   /*Widget* current = wg;
   while (current!=NULL){
   current = current->parent;
   }*/
   // if (wg != NULL) LOG_INFO("Window_find_widget parent: %p", wg->parent);
+  int action_triggered = 0;
 
   if (wg != NULL)
   {
@@ -167,10 +183,15 @@ void on_mouse_down(int x, int y)
     {
       LOG_INFO("wg->on_mouse_down");
       wg->on_mouse_down(wg, x, y);
-      repaint();
+      action_triggered = 1;
     }
     // dragging = wg;
   }
+  if (!action_triggered && open_menu != NULL){
+    open_menu->hidden = 1;
+    open_menu = NULL;
+  }
+  repaint();
 }
 
 void on_mouse_up()
