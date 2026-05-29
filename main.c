@@ -15,6 +15,7 @@
 void start_mouse_down(struct Window *w, int x, int y){
   Window *startMenu = w->data;
   startMenu->hidden = 1 - startMenu->hidden;
+  Window_bring_to_bottom(startMenu);
   open_menu = startMenu;
 }
 

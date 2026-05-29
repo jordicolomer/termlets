@@ -271,10 +271,18 @@ Window *Window_find_widget(struct Window *this, Geometry geo, int x, int y)
 
     Geometry rect = {geo.x + left, geo.y + top, width, height};
 
+    int skip = 0;
+    if (geo.height <= top)
+      skip = 1;
+    if (height == 1 && top < 0)
+      skip = 1;
+    if (!skip) {
+
     Window *found = Window_find_widget(current, rect, x, y);
     if (found != NULL)
     {
       return found;
+    }
     }
 
     current = current->prev;
