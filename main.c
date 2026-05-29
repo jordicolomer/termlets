@@ -50,12 +50,13 @@ Window * TaskBar_new(){
   Window_append(root, startMenu);
   start->data = startMenu;
 
-  Window *terminal = Window_add_widget(startMenu, 0, -1, 0, -1, 16, 1, "💻 Terminal", 0, taskbar_color);
-  terminal->on_mouse_down = terminal_mouse_down;
-  terminal->data = startMenu;
-  Window *file_manager = Window_add_widget(startMenu, 0, -1, 1, -1, 16, 1, "📁 File Manager", 0, taskbar_color);
+  Window *file_manager = Window_add_widget(startMenu, 0, -1, 0, -1, 16, 1, "📁 File Manager", 0, taskbar_color);
   file_manager->on_mouse_down = file_manager_mouse_down;
   file_manager->data = startMenu;
+
+  Window *terminal = Window_add_widget(startMenu, 0, -1, 1, -1, 16, 1, "💻 Terminal", 0, taskbar_color);
+  terminal->on_mouse_down = terminal_mouse_down;
+  terminal->data = startMenu;
 }
 
 // TERMINAL

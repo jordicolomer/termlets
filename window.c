@@ -41,6 +41,43 @@ void Window_append(Window *w, Window *new_w)
   w->tail = new_w;
 }
 
+void Window_remove(Window *w)
+{
+    if (w == NULL || w->parent == NULL)
+    {
+        return;
+    }
+
+    Window *parent = w->parent;
+
+    /* Link previous node to next node */
+    if (w->prev != NULL)
+    {
+        w->prev->next = w->next;
+    }
+    else
+    {
+        /* w was the head */
+        parent->head = w->next;
+    }
+
+    /* Link next node to previous node */
+    if (w->next != NULL)
+    {
+        w->next->prev = w->prev;
+    }
+    else
+    {
+        /* w was the tail */
+        parent->tail = w->prev;
+    }
+
+    /* Fully detach w */
+    w->parent = NULL;
+    w->next = NULL;
+    w->prev = NULL;
+}
+
 int Window_get_height(Window* wg){
   if (wg->height >= 0){
     return wg->height;
