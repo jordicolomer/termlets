@@ -13,10 +13,26 @@
 
 // start menu
 void start_mouse_down(struct Window *w, int x, int y){
-  //LOG_INFO("start_mouse_down");
   Window *startMenu = w->data;
   startMenu->hidden = 1 - startMenu->hidden;
   open_menu = startMenu;
+}
+
+void terminal_mouse_down(struct Window *w, int x, int y){
+  Window *startMenu = w->data;
+  startMenu->hidden = 1;
+  open_menu = NULL;
+}
+
+void file_manager_mouse_down(struct Window *w, int x, int y){
+  Window *startMenu = w->data;
+  startMenu->hidden = 1;
+  open_menu = NULL;
+
+  Window *fm = FileExplorer_new(5, -1, 5, -1, 80, 30);
+  fm->parent = root;
+  fm->id = "FileExplorer";
+  Window_append(root, fm);
 }
 
 Window * TaskBar_new(){
@@ -25,7 +41,6 @@ Window * TaskBar_new(){
   Window_append(root, taskBar);
   int taskbar_color = 255;
 
-  //Window_add_widget(taskBar, 0, -1, -1, 0, -1, 1, "", 232, 250);
   Window *start = Window_add_widget(taskBar, 0, -1, -1, 0, 9, 1, "💻 Start", 0, taskbar_color);
   start->on_mouse_down = start_mouse_down;
 
@@ -36,7 +51,11 @@ Window * TaskBar_new(){
   start->data = startMenu;
 
   Window *terminal = Window_add_widget(startMenu, 0, -1, 0, -1, 16, 1, "💻 Terminal", 0, taskbar_color);
+  terminal->on_mouse_down = terminal_mouse_down;
+  terminal->data = startMenu;
   Window *file_manager = Window_add_widget(startMenu, 0, -1, 1, -1, 16, 1, "📁 File Manager", 0, taskbar_color);
+  file_manager->on_mouse_down = file_manager_mouse_down;
+  file_manager->data = startMenu;
 }
 
 // TERMINAL
@@ -158,22 +177,6 @@ void on_mouse_down(int x, int y)
   Widget *wg = Window_find_widget(root, rect, x, y);
   LOG_INFO("Window_find_widget: %p", (void *)wg);
 
-  /*if (open_menu == wg){
-    open_menu->hidden = 1;
-    open_menu = NULL;
-    repaint();
-    return;
-  }*/
-
-  /*if (open_menu != NULL){
-    open_menu->hidden = 1;
-    open_menu = NULL;
-  }*/
-  /*Widget* current = wg;
-  while (current!=NULL){
-  current = current->parent;
-  }*/
-  // if (wg != NULL) LOG_INFO("Window_find_widget parent: %p", wg->parent);
   int action_triggered = 0;
 
   if (wg != NULL)
