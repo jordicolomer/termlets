@@ -381,10 +381,12 @@ void Widget_draw(struct Window *wg, Geometry geo, int hasFocus)
 
   int fg = current->fg;
   int bg = current->bg;
+  if (strcmp(current->id, "menu")!=0){
   if (bg >= 232 + 4 && !hasFocus)
     bg -= 4;
   if (bg == WINDOW_BAR_COLOR && !hasFocus)
     bg = 243;
+  }
   Buffer_print_raw(&main_buf, geo.y, geo.x, geo.width, current->c, fg, bg);
   // fprintf(stdout, "\033[0m");
   // fflush(stdout);

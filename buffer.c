@@ -145,8 +145,16 @@ int x_state = -1;
 int fg_state = -1;
 int bg_state = -1;
 
+void Buffer_reset(){
+  y_state = -1;
+  x_state = -1;
+  fg_state = -1;
+  bg_state = -1;
+}
+
 void Buffer_print_raw(Buffer *buf, int y, int x, int width, char *s, int fg, int bg)
 {
+  LOG_INFO("Buffer_print_raw: %s y:%d x:%d width:%d fg:%d bg:%d", s, y, x, width, fg, bg);
   if (fg != fg_state || bg != bg_state)
   {
     set_color256(fg, bg);

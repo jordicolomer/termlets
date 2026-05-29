@@ -33,6 +33,7 @@ void file_manager_mouse_down(struct Window *w, int x, int y){
   Window *fm = FileExplorer_new(5, -1, 5, -1, 80, 30);
   fm->parent = root;
   fm->id = "FileExplorer";
+  focused = fm;
   Window_append(root, fm);
 }
 
@@ -41,6 +42,7 @@ Window * TaskBar_new(){
   Window_init(taskBar, 0, -1, -1, 0, -1, 1);
   Window_append(root, taskBar);
   int taskbar_color = 255;
+  taskbar_color = 103;
 
   Window *start = Window_add_widget(taskBar, 0, -1, -1, 0, 9, 1, "💻 Start", 0, taskbar_color);
   start->on_mouse_down = start_mouse_down;
@@ -49,6 +51,7 @@ Window * TaskBar_new(){
   Window_init(startMenu, 0, -1, -1, 1, 10, 2);
   startMenu->hidden = 1;
   Window_append(root, startMenu);
+  startMenu->id = "menu";
   start->data = startMenu;
 
   Window *file_manager = Window_add_widget(startMenu, 0, -1, 0, -1, 16, 1, "📁 File Manager", 0, taskbar_color);
@@ -58,6 +61,8 @@ Window * TaskBar_new(){
   Window *terminal = Window_add_widget(startMenu, 0, -1, 1, -1, 16, 1, "💻 Terminal", 0, taskbar_color);
   terminal->on_mouse_down = terminal_mouse_down;
   terminal->data = startMenu;
+
+  Window *tasks = Window_add_widget(taskBar, 20, -1, -1, 0, 9, 1, " Explorer 1", 0, 105);
 }
 
 // TERMINAL
@@ -74,8 +79,9 @@ void init()
 
   root = malloc(sizeof *root);
   Window_init(root, 0, -1, 0, -1, cols, rows+1);
+  root->id = "root";
 
-  Window *w1 = FileExplorer_new(20, -1, 10, -1, 80, 20);
+  /*Window *w1 = FileExplorer_new(20, -1, 10, -1, 80, 20);
   w1->parent = root;
   w1->id = "FileExplorer1";
   Window_append(root, w1);
@@ -88,7 +94,7 @@ void init()
   Window *w3 = FileExplorer_new(5, -1, 5, -1, 80, 30);
   w3->parent = root;
   w3->id = "FileExplorer3";
-  Window_append(root, w3);
+  Window_append(root, w3);*/
 
   TaskBar_new();
 
@@ -103,7 +109,7 @@ void repaint()
 {
   LOG_INFO("repaint");
   //printf("\x1b[44m\x1b[37m");
-  set_color256(232, 26);
+  //set_color256(232, 26);
   clear_screen();
   hide_cursor();
 
@@ -114,12 +120,15 @@ void repaint()
 
   Geometry rect = {0, 0, root->width, root->height};
   root->draw(root, rect, 0);
+  
+  //Reset all text attributes to terminal defaults.
   fprintf(stdout, "\033[0m");
   fflush(stdout);
 
 #ifdef USE_BUFFER
   Buffer_print_to_screen(&main_buf);
 #endif
+  Buffer_reset();
 }
 
 int max(int a, int b)
@@ -197,6 +206,7 @@ void on_mouse_down(int x, int y)
     open_menu = NULL;
   }
   repaint();
+  //repaint();
 }
 
 void on_mouse_up()
