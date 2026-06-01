@@ -185,6 +185,15 @@ int start()
     if (c == 'q')
       break;
 
+    if (c != 27){
+      if (focused != NULL) {
+        if (focused->send_key != NULL){
+          focused->send_key(focused, c);
+        }
+      }
+    }
+
+
     // ESC sequence
     if (c == 27)
     {

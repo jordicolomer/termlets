@@ -7,6 +7,7 @@
 #include "window.h"
 #include "frame.h"
 #include "buffer.h"
+#include "logger.h"
 
 typedef struct LineNode {
     char *line;
@@ -149,6 +150,13 @@ void Terminal_draw(struct Window *wg, Geometry geo, int hasFocus){
     }
 }
 
+void send_key(struct Window *wg, char c){
+    terminal_data *td = wg->data2;
+    write(td->master, &c, 1);
+    LOG_INFO("send_key %c", c);
+    Terminal_update(td);
+}
+
 Window *Terminal_new(int left, int right, int top, int bottom, int width, int height){
     Window *frame = malloc(sizeof *frame);
     Window *w = Frame_init(frame, left, right, top, bottom, width, height);
@@ -156,6 +164,8 @@ Window *Terminal_new(int left, int right, int top, int bottom, int width, int he
 
     terminal_data *td = malloc(sizeof *td);
     w->data2 = td;
+    frame->data2 = td;
+    frame->send_key = send_key;
 
     pid_t pid = forkpty(&td->master, NULL, NULL, NULL);
 
@@ -164,11 +174,11 @@ Window *Terminal_new(int left, int right, int top, int bottom, int width, int he
         exit(1);
     }
 
-    write(td->master, "ll", 2);
+    /*write(td->master, "ll", 2);
     char bs = 0x7f;
     write(td->master, &bs, 1);
     write(td->master, "s", 1);
-    write(td->master, "\n", 1);
+    write(td->master, "\n", 1);*/
 
     //td->lines = {0};
     td->lines.head = NULL;
