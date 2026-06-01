@@ -52,12 +52,12 @@ void free_lines(LineList *list)
 typedef struct terminal_data{
     int master;
     LineList lines;
+    char incomplete_line[8192];
+    size_t incomplete_len;
 } terminal_data;
 
 void Terminal_update(terminal_data *td){
     char buf[4096];
-    char current_line[8192];
-    size_t current_len = 0;
 
     for (int i = 0; i < 1; i++)
     {
@@ -86,22 +86,16 @@ void Terminal_update(terminal_data *td){
 
                 /* line complete */
                 if (c == '\n') {
-                    current_line[current_len] = '\0';
-                    append_line(&td->lines, current_line);
-                    current_len = 0;
+                    td->incomplete_line[td->incomplete_len] = '\0';
+                    append_line(&td->lines, td->incomplete_line);
+                    td->incomplete_len = 0;
                     continue;
                 }
 
-                if (current_len < sizeof(current_line) - 1)
-                    current_line[current_len++] = c;
+                if (td->incomplete_len < sizeof(td->incomplete_line) - 1)
+                    td->incomplete_line[td->incomplete_len++] = c;
             }
         }
-    }
-
-    /* flush final partial line */
-    if (current_len > 0) {
-        current_line[current_len] = '\0';
-        append_line(&td->lines, current_line);
     }
 
     /*
@@ -149,6 +143,13 @@ void Terminal_draw(struct Window *wg, Geometry geo, int hasFocus){
         expand_tabs(n->line, expanded, sizeof(expanded));
         Buffer_print_raw(&main_buf, geo.y + i++, geo.x, geo.width, expanded, 15, 0);
     }
+
+    /* draw incomplete line if any */
+    if (td->incomplete_len > 0) {
+        td->incomplete_line[td->incomplete_len] = '\0';
+        expand_tabs(td->incomplete_line, expanded, sizeof(expanded));
+        Buffer_print_raw(&main_buf, geo.y + i, geo.x, geo.width, expanded, 15, 0);
+    }
 }
 
 void send_key(struct Window *wg, char c){
@@ -156,8 +157,8 @@ void send_key(struct Window *wg, char c){
     write(td->master, &c, 1);
     //LOG_INFO("send_key %c", c);
 
-    if (c == '\n')
-        Terminal_update(td);
+    //if (c == '\n')
+    Terminal_update(td);
 }
 
 Window *Terminal_new(int left, int right, int top, int bottom, int width, int height){
@@ -186,6 +187,7 @@ Window *Terminal_new(int left, int right, int top, int bottom, int width, int he
     //td->lines = {0};
     td->lines.head = NULL;
     td->lines.tail = NULL;
+    td->incomplete_len = 0;
 
     Terminal_update(td);
 
