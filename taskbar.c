@@ -20,16 +20,27 @@ void terminal_mouse_down(struct Window *w, int x, int y){
 }
 
 Window *taskBar;
+Widget *selectedTask = NULL;
 int x = 11;
+int unselectedTaskColor = 251;
+int selectedTaskColor = 15;
 
-void task_on_mouse_down(struct Window *w, int x, int y){
+void task_on_mouse_down(struct Widget *w, int x, int y){
+    if (selectedTask != NULL) selectedTask->bg = unselectedTaskColor;
+
     Window *task = w->data;
     focused = task;
     Window_bring_to_bottom(task);
+
+    w->bg = selectedTaskColor;
+    selectedTask = w;
 }
 
 Window * TaskBar_new_task(const char * name, Window *fm){
-  Window *task = Window_add_widget(taskBar, x, -1, -1, 0, 9, 1, name, 0, 105);
+  if (selectedTask != NULL) selectedTask->bg = unselectedTaskColor;
+  Widget *task = Window_add_widget(taskBar, x, -1, -1, 0, 9, 1, name, 0, selectedTaskColor);
+  selectedTask = task;
+
   task->data = fm;
   task->on_mouse_down = task_on_mouse_down;
   x += strlen(name)-1;
