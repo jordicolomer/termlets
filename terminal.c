@@ -59,7 +59,8 @@ typedef struct terminal_data{
 void Terminal_update(terminal_data *td){
     char buf[4096];
 
-    for (int i = 0; i < 1; i++)
+    /* keep reading until no more data is available */
+    while (1)
     {
         fd_set fds;
         FD_ZERO(&fds);
@@ -67,34 +68,36 @@ void Terminal_update(terminal_data *td){
 
         struct timeval tv = {
             .tv_sec = 0,
-            .tv_usec = 150000
+            .tv_usec = 10000  /* 10ms timeout */
         };
 
-        if (select(td->master + 1, &fds, NULL, NULL, &tv) > 0) {
+        int ret = select(td->master + 1, &fds, NULL, NULL, &tv);
 
-            int n = read(td->master, buf, sizeof(buf));
+        if (ret <= 0)
+            break;  /* no more data or error */
 
-            if (n <= 0)
+        int n = read(td->master, buf, sizeof(buf));
+
+        if (n <= 0)
+            break;
+
+        for (int j = 0; j < n; j++) {
+            char c = buf[j];
+
+            /* ignore CR */
+            if (c == '\r')
                 continue;
 
-            for (int j = 0; j < n; j++) {
-                char c = buf[j];
-
-                /* ignore CR */
-                if (c == '\r')
-                    continue;
-
-                /* line complete */
-                if (c == '\n') {
-                    td->incomplete_line[td->incomplete_len] = '\0';
-                    append_line(&td->lines, td->incomplete_line);
-                    td->incomplete_len = 0;
-                    continue;
-                }
-
-                if (td->incomplete_len < sizeof(td->incomplete_line) - 1)
-                    td->incomplete_line[td->incomplete_len++] = c;
+            /* line complete */
+            if (c == '\n') {
+                td->incomplete_line[td->incomplete_len] = '\0';
+                append_line(&td->lines, td->incomplete_line);
+                td->incomplete_len = 0;
+                continue;
             }
+
+            if (td->incomplete_len < sizeof(td->incomplete_line) - 1)
+                td->incomplete_line[td->incomplete_len++] = c;
         }
     }
 
