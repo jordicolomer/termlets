@@ -22,8 +22,16 @@ void terminal_mouse_down(struct Window *w, int x, int y){
 Window *taskBar;
 int x = 11;
 
-Window * TaskBar_new_task(const char * name){
-  Window *tasks = Window_add_widget(taskBar, x, -1, -1, 0, 9, 1, name, 0, 105);
+void task_on_mouse_down(struct Window *w, int x, int y){
+    Window *task = w->data;
+    focused = task;
+    Window_bring_to_bottom(task);
+}
+
+Window * TaskBar_new_task(const char * name, Window *fm){
+  Window *task = Window_add_widget(taskBar, x, -1, -1, 0, 9, 1, name, 0, 105);
+  task->data = fm;
+  task->on_mouse_down = task_on_mouse_down;
   x += strlen(name)-1;
 }
 
@@ -39,7 +47,7 @@ void file_manager_mouse_down(struct Window *w, int x, int y){
   focused = fm;
   Window_append(root, fm);
 
-  TaskBar_new_task("📁 Explorer");
+  TaskBar_new_task("📁 Explorer", fm);
 }
 
 Window * TaskBar_new(){
