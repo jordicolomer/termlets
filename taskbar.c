@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "taskbar.h"
 #include "file_manager.h"
 
@@ -18,6 +19,15 @@ void terminal_mouse_down(struct Window *w, int x, int y){
   open_menu = NULL;
 }
 
+Window *taskBar;
+int x = 11;
+
+Window * TaskBar_new_task(const char * name){
+  Window *tasks = Window_add_widget(taskBar, x, -1, -1, 0, 9, 1, name, 0, 105);
+  x += strlen(name)-1;
+}
+
+
 void file_manager_mouse_down(struct Window *w, int x, int y){
   Window *startMenu = w->data;
   startMenu->hidden = 1;
@@ -28,10 +38,12 @@ void file_manager_mouse_down(struct Window *w, int x, int y){
   fm->id = "FileExplorer";
   focused = fm;
   Window_append(root, fm);
+
+  TaskBar_new_task("📁 Explorer");
 }
 
 Window * TaskBar_new(){
-  Window *taskBar = malloc(sizeof *taskBar);
+  taskBar = malloc(sizeof *taskBar);
   Window_init(taskBar, 0, -1, -1, 0, -1, 1);
   Window_append(root, taskBar);
   int taskbar_color = 255;
@@ -55,5 +67,7 @@ Window * TaskBar_new(){
   terminal->on_mouse_down = terminal_mouse_down;
   terminal->data = startMenu;
 
-  Window *tasks = Window_add_widget(taskBar, 20, -1, -1, 0, 9, 1, " Explorer 1", 0, 105);
+  //Window *tasks = Window_add_widget(taskBar, 20, -1, -1, 0, 9, 1, , 0, 105);
+  
 }
+
