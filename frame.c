@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include "frame.h"
 #include "logger.h"
+#include "taskbar.h"
 
 void on_mouse_down_window_bar(Widget *wg, int x, int y)
 {
@@ -10,6 +11,7 @@ void on_mouse_down_window_bar(Widget *wg, int x, int y)
   Window_bring_to_bottom(dragging);
   dragging_offset_x = x - wg->parent->left;
   dragging_offset_y = y - wg->parent->top;
+  TaskBar_switch((Widget *)(wg->parent->data));
 }
 
 void on_mouse_down_close(Widget *wg, int x, int y)

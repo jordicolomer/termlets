@@ -44,8 +44,16 @@ Window * TaskBar_new_task(const char * name, Window *fm){
   task->data = fm;
   task->on_mouse_down = task_on_mouse_down;
   x += strlen(name)-1;
+
+  return task;
 }
 
+void TaskBar_switch(Widget *w){
+  if (w == NULL) return;
+  if (selectedTask != NULL) selectedTask->bg = unselectedTaskColor;
+  w->bg = selectedTaskColor;
+  selectedTask = w;
+}
 
 void file_manager_mouse_down(struct Window *w, int x, int y){
   Window *startMenu = w->data;
@@ -58,7 +66,8 @@ void file_manager_mouse_down(struct Window *w, int x, int y){
   focused = fm;
   Window_append(root, fm);
 
-  TaskBar_new_task("📁 Explorer", fm);
+  Widget *task = TaskBar_new_task("📁 Explorer", fm);
+  fm->data = task;
 }
 
 Window * TaskBar_new(){
