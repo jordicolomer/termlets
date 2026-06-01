@@ -3,6 +3,10 @@
 #include <string.h>
 #include "taskbar.h"
 #include "file_manager.h"
+#include "terminal.h"
+
+int window_x = 5;
+int window_y = 3;
 
 // start menu
 
@@ -11,12 +15,6 @@ void start_mouse_down(struct Window *w, int x, int y){
   startMenu->hidden = 1 - startMenu->hidden;
   Window_bring_to_bottom(startMenu);
   open_menu = startMenu;
-}
-
-void terminal_mouse_down(struct Window *w, int x, int y){
-  Window *startMenu = w->data;
-  startMenu->hidden = 1;
-  open_menu = NULL;
 }
 
 Window *taskBar;
@@ -60,7 +58,9 @@ void file_manager_mouse_down(struct Window *w, int x, int y){
   startMenu->hidden = 1;
   open_menu = NULL;
 
-  Window *fm = FileExplorer_new(5, -1, 5, -1, 80, 30);
+  Window *fm = FileExplorer_new(window_x, -1, window_y, -1, 80, 30);
+  window_x += 10;
+  window_y += 3;
   fm->parent = root;
   fm->id = "FileExplorer";
   focused = fm;
@@ -68,6 +68,24 @@ void file_manager_mouse_down(struct Window *w, int x, int y){
 
   Widget *task = TaskBar_new_task("📁 Explorer", fm);
   fm->data = task;
+}
+
+void terminal_mouse_down(struct Window *w, int x, int y){
+  Window *startMenu = w->data;
+  startMenu->hidden = 1;
+  open_menu = NULL;
+
+  Window *fm = Terminal_new(window_x, -1, window_y, -1, 80, 30);
+  window_x += 10;
+  window_y += 3;
+  fm->parent = root;
+  fm->id = "Terminal";
+  focused = fm;
+  Window_append(root, fm);
+
+  Widget *task = TaskBar_new_task("💻 Terminal", fm);
+  fm->data = task;
+
 }
 
 Window * TaskBar_new(){
