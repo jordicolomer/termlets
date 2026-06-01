@@ -59,7 +59,8 @@ void Terminal_update(terminal_data *td){
     char current_line[8192];
     size_t current_len = 0;
 
-    for (int i = 0; i < 20; i++) {
+    for (int i = 0; i < 1; i++)
+    {
         fd_set fds;
         FD_ZERO(&fds);
         FD_SET(td->master, &fds);
@@ -153,8 +154,10 @@ void Terminal_draw(struct Window *wg, Geometry geo, int hasFocus){
 void send_key(struct Window *wg, char c){
     terminal_data *td = wg->data2;
     write(td->master, &c, 1);
-    LOG_INFO("send_key %c", c);
-    Terminal_update(td);
+    //LOG_INFO("send_key %c", c);
+
+    if (c == '\n')
+        Terminal_update(td);
 }
 
 Window *Terminal_new(int left, int right, int top, int bottom, int width, int height){

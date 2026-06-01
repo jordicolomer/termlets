@@ -189,6 +189,7 @@ int start()
       if (focused != NULL) {
         if (focused->send_key != NULL){
           focused->send_key(focused, c);
+          repaint();
         }
       }
     }
