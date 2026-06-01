@@ -113,13 +113,39 @@ void Terminal_update(terminal_data *td){
     free_lines(&td->lines);
     */
 }
+#define TAB_WIDTH 8
+
+static void expand_tabs(const char *src, char *dst, size_t dst_size)
+{
+    size_t col = 0;
+    size_t out = 0;
+
+    while (*src && out < dst_size - 1) {
+        if (*src == '\t') {
+            int spaces = TAB_WIDTH - (col % TAB_WIDTH);
+
+            while (spaces-- && out < dst_size - 1) {
+                dst[out++] = ' ';
+                col++;
+            }
+        } else {
+            dst[out++] = *src;
+            col++;
+        }
+
+        src++;
+    }
+
+    dst[out] = '\0';
+}
 
 void Terminal_draw(struct Window *wg, Geometry geo, int hasFocus){
+    char expanded[4096];
     terminal_data *td = wg->data2;
     int i = 0;
     for (LineNode *n = td->lines.head; n; n = n->next){
-        //printf("[%s]\n", n->line);
-        Buffer_print_raw(&main_buf, geo.y + i++, geo.x, geo.width, n->line, 15, 0);
+        expand_tabs(n->line, expanded, sizeof(expanded));
+        Buffer_print_raw(&main_buf, geo.y + i++, geo.x, geo.width, expanded, 15, 0);
     }
 }
 
