@@ -18,6 +18,7 @@ typedef struct LineNode {
 typedef struct {
     LineNode *head;
     LineNode *tail;
+    int size;
 } LineList;
 
 void append_line(LineList *list, const char *text)
@@ -33,6 +34,8 @@ void append_line(LineList *list, const char *text)
         list->head = node;
 
     list->tail = node;
+
+    list->size += 1;
 }
 
 void free_lines(LineList *list)
@@ -192,6 +195,7 @@ Window *Terminal_new(int left, int right, int top, int bottom, int width, int he
     td->lines.tail = NULL;
     td->incomplete_len = 0;
 
+    Terminal_update(td);
     Terminal_update(td);
 
     return frame;
