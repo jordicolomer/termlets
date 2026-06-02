@@ -144,14 +144,27 @@ static void expand_tabs(const char *src, char *dst, size_t dst_size)
 void Terminal_draw(struct Window *wg, Geometry geo, int hasFocus){
     char expanded[4096];
     terminal_data *td = wg->data2;
+
+    /* calculate available height (reserve 1 line for incomplete line if present) */
+    int available_height = geo.height;
+    int has_incomplete = (td->incomplete_len > 0);
+    if (has_incomplete)
+        available_height--;
+
+    /* start from tail and go back available_height - 1 times */
+    LineNode *start = td->lines.tail;
+    for (int j = 0; j < available_height - 1 && start && start->prev; j++)
+        start = start->prev;
+
+    /* draw lines forward from start */
     int i = 0;
-    for (LineNode *n = td->lines.head; n; n = n->next){
+    for (LineNode *n = start; n && i < available_height; n = n->next){
         expand_tabs(n->line, expanded, sizeof(expanded));
         Buffer_print_raw(&main_buf, geo.y + i++, geo.x, geo.width, expanded, 15, 0);
     }
 
     /* draw incomplete line if any */
-    if (td->incomplete_len > 0) {
+    if (has_incomplete) {
         td->incomplete_line[td->incomplete_len] = '\0';
         expand_tabs(td->incomplete_line, expanded, sizeof(expanded));
         Buffer_print_raw(&main_buf, geo.y + i, geo.x, geo.width, expanded, 15, 0);
