@@ -156,18 +156,25 @@ void Terminal_draw(struct Window *wg, Geometry geo, int hasFocus){
     for (int j = 0; j < available_height - 1 && start && start->prev; j++)
         start = start->prev;
 
+    int fg = 15;
+    int bg = 240;
+    if (hasFocus) bg = 0;
+
     /* draw lines forward from start */
     int i = 0;
     for (LineNode *n = start; n && i < available_height; n = n->next){
         expand_tabs(n->line, expanded, sizeof(expanded));
-        Buffer_print_raw(&main_buf, geo.y + i++, geo.x, geo.width, expanded, 15, 0);
+        Buffer_print_raw(&main_buf, geo.y + i++, geo.x, geo.width, expanded, fg, bg);
     }
 
     /* draw incomplete line if any */
     if (has_incomplete) {
         td->incomplete_line[td->incomplete_len] = '\0';
         expand_tabs(td->incomplete_line, expanded, sizeof(expanded));
-        Buffer_print_raw(&main_buf, geo.y + i, geo.x, geo.width, expanded, 15, 0);
+        Buffer_print_raw(&main_buf, geo.y + i++, geo.x, geo.width, expanded, fg, bg);
+    }
+    while (i < available_height){
+        Buffer_print_raw(&main_buf, geo.y + i++, geo.x, geo.width, "", fg, bg);
     }
 }
 
