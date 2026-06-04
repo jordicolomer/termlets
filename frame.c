@@ -42,16 +42,17 @@ void Widget_on_resize(Widget *wg, int x, int y)
   dragging_offset_y = y - wg->parent->height;
 }
 
-Window *Frame_init(Window *w, int left, int right, int top, int bottom, int width, int height)
+Window *Frame_init(Window *w, int left, int right, int top, int bottom, int width, int height, Window *child)
 {
   Window_init(w, left, right, top, bottom, width, height);
   Window_add_window_bar(w);
 
-  Window *child = malloc(sizeof *child);
-  // Window_init(child, 1, 1, width-2, height-2);
-  Window_init(child, 0, 0, 1, 0, -1, -1);
+  if (child == NULL){
+    child = malloc(sizeof *child);
+    Window_init(child, 0, 0, 1, 0, -1, -1);
+    child->id = "child";
+  }
   Window_append(w, child);
-  child->id = "child";
 
   Widget *resize_grip = Window_add_widget(w, -1, 0, -1, 0, 1, 1, "⌟", 232, 255);
   resize_grip->on_mouse_down = Widget_on_resize;

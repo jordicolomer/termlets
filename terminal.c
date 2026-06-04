@@ -8,6 +8,7 @@
 #include "frame.h"
 #include "buffer.h"
 #include "logger.h"
+#include "slider.h"
 
 typedef struct LineNode {
     char *line;
@@ -189,7 +190,7 @@ void send_key(struct Window *wg, char c){
 
 Window *Terminal_new(int left, int right, int top, int bottom, int width, int height){
     Window *frame = malloc(sizeof *frame);
-    Window *w = Frame_init(frame, left, right, top, bottom, width, height);
+    Window *w = Frame_init(frame, left, right, top, bottom, width, height, NULL);
     w->draw = Terminal_draw;
 
     terminal_data *td = malloc(sizeof *td);
@@ -217,6 +218,9 @@ Window *Terminal_new(int left, int right, int top, int bottom, int width, int he
 
     Terminal_update(td);
     Terminal_update(td);
+
+    //Window * fm_slider = slider_new(w, width, height - 1, height);
+    //Window_append(w, fm_slider);
 
     return frame;
 }

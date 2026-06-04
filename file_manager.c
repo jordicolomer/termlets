@@ -26,7 +26,7 @@ Window *FileExplorer_new(int left, int right, int top, int bottom, int width, in
   // Window* w = malloc(sizeof *w);
   Window *frame = malloc(sizeof *frame);
   // Window_init(w, x, y, width, height);
-  Window *w = Frame_init(frame, left, right, top, bottom, width, height);
+  Window *w = Frame_init(frame, left, right, top, bottom, width, height, NULL);
   // LOG_INFO("FileExplorer_new: %d %d %d %d %d", x, y, Window_get_absolute_x(w), Window_get_absolute_y(w), w->x);
 
   // w->draw = FileExplorer_draw;
