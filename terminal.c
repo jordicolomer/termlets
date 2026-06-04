@@ -143,6 +143,7 @@ static void expand_tabs(const char *src, char *dst, size_t dst_size)
 }
 
 void Terminal_draw(struct Window *wg, Geometry geo, int hasFocus){
+    LOG_INFO("Terminal_draw %d", geo.x);
     char expanded[4096];
     terminal_data *td = wg->data2;
 
@@ -188,13 +189,15 @@ void send_key(struct Window *wg, char c){
     Terminal_update(td);
 }
 
-Window *Terminal_new(int left, int right, int top, int bottom, int width, int height){
-    Window *frame = malloc(sizeof *frame);
-    Window *w = Frame_init(frame, left, right, top, bottom, width, height, NULL);
-    w->draw = Terminal_draw;
+Window *Terminal_window(Window *frame){
+    Window *terminal = malloc(sizeof *terminal);
+    Window_init(terminal, 0, 0, 1, 0, -1, -1);
+    terminal->id = "terminal window";
+
+    terminal->draw = Terminal_draw;
 
     terminal_data *td = malloc(sizeof *td);
-    w->data2 = td;
+    terminal->data2 = td;
     frame->data2 = td;
     frame->send_key = send_key;
 
@@ -205,13 +208,6 @@ Window *Terminal_new(int left, int right, int top, int bottom, int width, int he
         exit(1);
     }
 
-    /*write(td->master, "ll", 2);
-    char bs = 0x7f;
-    write(td->master, &bs, 1);
-    write(td->master, "s", 1);
-    write(td->master, "\n", 1);*/
-
-    //td->lines = {0};
     td->lines.head = NULL;
     td->lines.tail = NULL;
     td->incomplete_len = 0;
@@ -219,8 +215,43 @@ Window *Terminal_new(int left, int right, int top, int bottom, int width, int he
     Terminal_update(td);
     Terminal_update(td);
 
-    //Window * fm_slider = slider_new(w, width, height - 1, height);
-    //Window_append(w, fm_slider);
+    return terminal;
+}
+
+Window *Terminal_new(int left, int right, int top, int bottom, int width, int height){
+    Window *frame = malloc(sizeof *frame);
+    Window *w = Frame_init(frame, left, right, top, bottom, width, height, NULL);
+
+    // toolbar
+    int j = 0;
+    int x_offset = 0;
+    int widget_width = 12;
+    Window_add_widget(w, x_offset, -1, j, -1, widget_width, 1, " 📄 New File", 232, 254);
+    x_offset += widget_width;
+    widget_width = 12;
+    Window_add_widget(w, x_offset, -1, j, -1, widget_width, 1, "📁 New Dir", 232, 254);
+    x_offset += widget_width;
+    widget_width = 8;
+    Window_add_widget(w, x_offset, -1, j, -1, widget_width, 1, "📋 Copy", 232, 254);
+    x_offset += widget_width;
+    widget_width = 8;
+    Window_add_widget(w, x_offset, -1, j, -1, widget_width, 1, "🔪 Cut", 232, 254);
+    x_offset += widget_width;
+    widget_width = 10;
+    Window_add_widget(w, x_offset, -1, j, -1, widget_width, 1, "📌 Paste", 232, 254);
+    x_offset += widget_width;
+    widget_width = 10;
+    Window_add_widget(w, x_offset, -1, j, -1, widget_width, 1, "🔤 Rename", 232, 254);
+    x_offset += widget_width;
+    widget_width = 10;
+    Window_add_widget(w, x_offset, 0, j, -1, -1, 1, "❌ Delete", 232, 254);
+    x_offset += widget_width;
+
+    Window * terminal = Terminal_window(frame);
+
+    Window * slider = slider_new(terminal, 0, height - 1, height);
+    slider->top = 0;
+    Window_append(w, slider);
 
     return frame;
 }

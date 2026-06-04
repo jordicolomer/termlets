@@ -73,10 +73,12 @@ void Slider_set_top(struct Window *w, int top){
 Window *slider_new(Window *fm, int width, int height, int virtual_height){
   Window *fm_slider = malloc(sizeof *fm_slider);
   Window_init(fm_slider, width, 0, 4, 0, -1, -1);
+  fm_slider->id = "fm_slider";
   Window_append(fm_slider, fm);
 
   Window *slider = malloc(sizeof *slider);
   Window_init(slider, -1, 0, 0, 0, 2, -1);
+  slider->id = "slider";
   Window_append(fm_slider, slider);
   slider->on_hover = Slider_hover;
   slider->undo_on_hover = Slider_undo_hover;
