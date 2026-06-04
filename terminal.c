@@ -143,7 +143,7 @@ static void expand_tabs(const char *src, char *dst, size_t dst_size)
 }
 
 void Terminal_draw(struct Window *wg, Geometry geo, int hasFocus){
-    LOG_INFO("Terminal_draw %d", geo.x);
+    //LOG_INFO("Terminal_draw %d", geo.x);
     char expanded[4096];
     terminal_data *td = wg->data2;
 
