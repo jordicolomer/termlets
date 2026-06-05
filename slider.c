@@ -31,6 +31,8 @@ void Slider_on_mouse_down(Window *wg, int x, int y)
 {
   Slider_data *slider_data = (Slider_data *)wg->data;
   Window *child = slider_data->child;
+  //LOG_INFO("Slider_on_mouse_down %d %d", slider_data->height, child->calculated.height);
+  //child->shift -= child->calculated.height;
   child->shift -= slider_data->height;
 }
 
@@ -45,8 +47,9 @@ void Slider_set_top(struct Window *w, int top){
   w->top = top;
   Slider_data *slider_data = (Slider_data *)w->parent->data;
   Window *child = slider_data->child;
-  int height = Window_get_height(w->parent) - 1;
-  //LOG_INFO("Slider_set_top %d %d", slider_data->virtual_height, child->virtual_height);
+  int height = child->calculated.height - 1;
+  //int height = Window_get_height(w->parent) - 1;
+  //LOG_INFO("Slider_set_top %d %d", Window_get_height(w->parent), child->calculated.height);
   child->shift = -w->top * (child->virtual_height - height - 1) / height;
 }
 
