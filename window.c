@@ -79,12 +79,12 @@ void Window_remove(Window *w)
     w->prev = NULL;
 }
 
-int Window_get_height(Window* wg){
+/*int Window_get_height(Window* wg){
   if (wg->height >= 0){
     return wg->height;
   }
   return Window_get_height(wg->parent) - wg->top - wg->bottom;
-}
+}*/
 
 /*
 int Window_get_width(Window* wg){

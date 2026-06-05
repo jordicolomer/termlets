@@ -89,7 +89,8 @@ void on_drag(int x, int y)
   {
     LOG_INFO("dragging");
     dragging->left = min(max(0, x - dragging_offset_x), dragging->parent->width - dragging->width);
-    int parent_height = Window_get_height(dragging->parent);
+    int parent_height = dragging->parent->calculated.height;
+    //LOG_INFO("on_drag %d %d", parent_height, dragging->parent->calculated.height);
     int new_top = min(max(0, y - dragging_offset_y), parent_height - dragging->height);
     dragging->set_top(dragging, new_top);
     repaint();
