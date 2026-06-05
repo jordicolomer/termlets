@@ -156,7 +156,7 @@ Window *FileExplorer_new(int left, int right, int top, int bottom, int width, in
   closedir(dir);
 
 
-  Window * fm_slider = slider_new(fm, height - 4);
+  Window * fm_slider = slider_new(fm);
   fm_slider->left = fav_width;
   fm_slider->right = 0;
   fm_slider->top = 4;

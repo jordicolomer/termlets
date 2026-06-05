@@ -33,7 +33,7 @@ void Slider_on_mouse_down(Window *wg, int x, int y)
   Window *child = slider_data->child;
   //LOG_INFO("Slider_on_mouse_down %d %d", slider_data->height, child->calculated.height);
   //child->shift -= child->calculated.height;
-  child->shift -= slider_data->height;
+  child->shift -= child->calculated.height;
 }
 
 void on_mouse_down_slider_grip(Window *wg, int x, int y)
@@ -53,7 +53,7 @@ void Slider_set_top(struct Window *w, int top){
   child->shift = -w->top * (child->virtual_height - height - 1) / height;
 }
 
-Window *slider_new(Window *fm, int height){
+Window *slider_new(Window *fm){
   Window *fm_slider = malloc(sizeof *fm_slider);
   Window_init(fm_slider, -1, -1, -1, -1, -1, -1);
   fm_slider->id = "fm_slider";
@@ -70,7 +70,7 @@ Window *slider_new(Window *fm, int height){
   Slider_data *slider_data = (Slider_data *)malloc(sizeof(Slider_data));
   slider->data = slider_data;
   slider_data->child = fm;
-  slider_data->height = height;
+  //slider_data->height = height;
   //slider_data->virtual_height = virtual_height;
 
   Window *slider_grip = Window_add_widget(slider, -1, 0, 0, -1, 2, 1, "░░", 232, 255);
