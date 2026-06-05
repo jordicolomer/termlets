@@ -170,8 +170,7 @@ void Terminal_draw(struct Window *wg, int hasFocus){
     int i = 0;
     for (LineNode *n = start; n && i < available_height; n = n->next){
         expand_tabs(n->line, expanded, sizeof(expanded));
-        Buffer_print_raw(&main_buf, geo.y + i, geo.x, geo.width, expanded, fg, bg);
-        i++;
+        Buffer_print_raw(&main_buf, geo.y + i++, geo.x, geo.width, expanded, fg, bg);
     }
 
     /* draw incomplete line if any */
@@ -180,7 +179,7 @@ void Terminal_draw(struct Window *wg, int hasFocus){
         expand_tabs(td->incomplete_line, expanded, sizeof(expanded));
         Buffer_print_raw(&main_buf, geo.y + i++, geo.x, geo.width, expanded, fg, bg);
     }
-    while (i < available_height){
+    while (i <= available_height){
         Buffer_print_raw(&main_buf, geo.y + i++, geo.x, geo.width, "", fg, bg);
     }
 }
