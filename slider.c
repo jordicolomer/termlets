@@ -70,9 +70,10 @@ void Slider_set_top(struct Window *w, int top){
 
 
 
-Window *slider_new(Window *fm, int width, int height, int virtual_height){
+Window *slider_new(Window *fm, int height, int virtual_height){
   Window *fm_slider = malloc(sizeof *fm_slider);
-  Window_init(fm_slider, width, 0, 4, 0, -1, -1);
+  //Window_init(fm_slider, width, 0, 4, 0, -1, -1);
+  Window_init(fm_slider, -1, -1, -1, -1, -1, -1);
   fm_slider->id = "fm_slider";
   Window_append(fm_slider, fm);
 

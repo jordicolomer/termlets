@@ -249,8 +249,11 @@ Window *Terminal_new(int left, int right, int top, int bottom, int width, int he
 
     Window * terminal = Terminal_window(frame);
 
-    Window * slider = slider_new(terminal, 0, height - 1, height);
+    Window * slider = slider_new(terminal, height - 1, height);
+    slider->left = 0;
+    slider->right = 0;
     slider->top = 0;
+    slider->bottom = 0;
     Window_append(w, slider);
 
     return frame;
