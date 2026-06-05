@@ -60,7 +60,7 @@ void Window_remove(Window *w);
 void Window_draw(struct Window *w, int hasFocus);
 Window *Window_init(Window *w, int left, int right, int top, int bottom, int width, int height);
 int Geometry_in_bounds(Geometry geo, int x, int y);
-Window *Window_find_widget(struct Window *this, Geometry geo, int x, int y);
+Window *Window_find_widget(struct Window *this, int x, int y);
 void Window_bring_to_bottom(Window *this);
 
 /* widget.c */

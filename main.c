@@ -105,7 +105,7 @@ void on_drag(int x, int y)
   else
   {
     Geometry rect = {0, 0, root->width, root->height};
-    Widget *wg = Window_find_widget(root, rect, x, y);
+    Widget *wg = Window_find_widget(root, x, y);
     if (wg != NULL && wg->on_hover != NULL)
     {
       hovering = wg;
@@ -124,8 +124,8 @@ void on_drag(int x, int y)
 void on_mouse_down(int x, int y)
 {
   LOG_INFO("on_mouse_down: %d %d", x, y);
-  Geometry rect = {0, 0, root->width, root->height};
-  Widget *wg = Window_find_widget(root, rect, x, y);
+  //Geometry rect = {0, 0, root->width, root->height};
+  Widget *wg = Window_find_widget(root, x, y);
   LOG_INFO("Window_find_widget: %p", (void *)wg);
 
   int action_triggered = 0;

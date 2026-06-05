@@ -79,52 +79,7 @@ void Window_remove(Window *w)
     w->prev = NULL;
 }
 
-/*int Window_get_height(Window* wg){
-  if (wg->height >= 0){
-    return wg->height;
-  }
-  return Window_get_height(wg->parent) - wg->top - wg->bottom;
-}*/
 
-/*
-int Window_get_width(Window* wg){
-  if (wg->width >= 0){
-  return wg->width;
-  }
-  return wg->parent->width - wg->left;
-}
-
-int Window_get_x(Window* wg){
-  //LOG_INFO("Window_get_x");
-  if (wg->left >= 0){
-  //LOG_INFO("if");
-  return wg->left;
-  }
-  //LOG_INFO("else");
-  return wg->parent->width + wg->left;
-}
-
-int Window_get_y(Window* wg){
-  if (wg-> >= 0){
-  return wg->y;
-  }
-  return wg->parent->height + wg->y + 1;
-}
-
-int Window_get_absolute_x(Window* w){
-  if (w == NULL) return 0;
-  int x = Window_get_x(w);
-  int x_parent = Window_get_absolute_x(w->parent);
-  return x_parent+x;
-}
-
-int Window_get_absolute_y(Window* w){
-  if (w == NULL) return 0;
-  int y = Window_get_y(w);
-  int y_parent = Window_get_absolute_y(w->parent);
-  return y_parent+y;
-}
-*/
 
 // void Window_draw(struct Window* w, int bias_x, int bias_y, int hasFocus){
 void Window_draw(struct Window *w, int hasFocus)
@@ -233,8 +188,9 @@ int Geometry_in_bounds(Geometry geo, int x, int y)
   return 0;
 }
 
-Window *Window_find_widget(struct Window *this, Geometry geo, int x, int y)
+Window *Window_find_widget(struct Window *this, int x, int y)
 {
+  Geometry geo = this->calculated;
   // Window* current = w->head;
   if (!this)
     return NULL;
@@ -252,42 +208,13 @@ Window *Window_find_widget(struct Window *this, Geometry geo, int x, int y)
   Window *current = this->tail;
   while (current != NULL)
   {
-    int left = current->left;
-    int right = current->right;
-    int width = current->width;
-
-    if (left == -1)
-      left = geo.width - current->right - current->width;
-    if (right == -1)
-      right = geo.width - current->left - current->width;
-    if (width == -1)
-      width = geo.width - current->left - current->right;
-
-    int top = current->top;
-    int bottom = current->bottom;
-    int height = current->height;
-
-    if (top == -1)
-      top = geo.height - current->height - current->bottom;
-    if (bottom == -1)
-      bottom = geo.height - current->top - current->height;
-    if (height == -1)
-      height = geo.height - current->top - current->bottom;
-
-    Geometry rect = {geo.x + left, geo.y + top, width, height};
-
     int skip = 0;
-    if (geo.height <= top)
-      skip = 1;
-    if (height == 1 && top < 0)
-      skip = 1;
     if (!skip) {
-
-    Window *found = Window_find_widget(current, rect, x, y);
-    if (found != NULL)
-    {
-      return found;
-    }
+      Window *found = Window_find_widget(current, x, y);
+      if (found != NULL)
+      {
+        return found;
+      }
     }
 
     current = current->prev;
