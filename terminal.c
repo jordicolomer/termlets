@@ -60,6 +60,44 @@ typedef struct terminal_data{
     size_t incomplete_len;
 } terminal_data;
 
+#include <ctype.h>
+
+void strip_ansi(char *s)
+{
+    char *src = s;
+    char *dst = s;
+
+    while (*src) {
+        if ((unsigned char)src[0] == 0x1B) {
+            src++;
+
+            /* CSI: ESC [ ... final-byte */
+            if (*src == '[') {
+                src++;
+
+                while (*src) {
+                    unsigned char c = (unsigned char)*src++;
+
+                    /* ANSI CSI final byte range */
+                    if (c >= 0x40 && c <= 0x7E)
+                        break;
+                }
+                continue;
+            }
+
+            /* Other ESC sequences: skip one following byte */
+            if (*src)
+                src++;
+
+            continue;
+        }
+
+        *dst++ = *src++;
+    }
+
+    *dst = '\0';
+}
+
 void Terminal_update(terminal_data *td){
     char buf[4096];
 
@@ -95,6 +133,7 @@ void Terminal_update(terminal_data *td){
             /* line complete */
             if (c == '\n') {
                 td->incomplete_line[td->incomplete_len] = '\0';
+                //strip_ansi(td->incomplete_line);
                 append_line(&td->lines, td->incomplete_line);
                 td->incomplete_len = 0;
                 continue;
@@ -170,6 +209,7 @@ void Terminal_draw(struct Window *wg, int hasFocus){
     int i = 0;
     for (LineNode *n = start; n && i < available_height; n = n->next){
         expand_tabs(n->line, expanded, sizeof(expanded));
+        strip_ansi(expanded);
         Buffer_print_raw(&main_buf, geo.y + i++, geo.x, geo.width, expanded, fg, bg);
     }
 
@@ -177,6 +217,7 @@ void Terminal_draw(struct Window *wg, int hasFocus){
     if (has_incomplete) {
         td->incomplete_line[td->incomplete_len] = '\0';
         expand_tabs(td->incomplete_line, expanded, sizeof(expanded));
+        strip_ansi(expanded);
         Buffer_print_raw(&main_buf, geo.y + i++, geo.x, geo.width, expanded, fg, bg);
     }
     while (i <= available_height){
