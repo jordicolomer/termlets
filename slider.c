@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include "window.h"
 #include "slider.h"
+#include "logger.h"
+
 
 void Slider_hover(Window *wg, int x, int y)
 {
@@ -44,10 +46,11 @@ void Slider_set_top(struct Window *w, int top){
   Slider_data *slider_data = (Slider_data *)w->parent->data;
   Window *child = slider_data->child;
   int height = Window_get_height(w->parent) - 1;
-  child->shift = -w->top * (slider_data->virtual_height-height - 1) / height;
+  //LOG_INFO("Slider_set_top %d %d", slider_data->virtual_height, child->virtual_height);
+  child->shift = -w->top * (child->virtual_height - height - 1) / height;
 }
 
-Window *slider_new(Window *fm, int height, int virtual_height){
+Window *slider_new(Window *fm, int height){
   Window *fm_slider = malloc(sizeof *fm_slider);
   Window_init(fm_slider, -1, -1, -1, -1, -1, -1);
   fm_slider->id = "fm_slider";
@@ -65,7 +68,7 @@ Window *slider_new(Window *fm, int height, int virtual_height){
   slider->data = slider_data;
   slider_data->child = fm;
   slider_data->height = height;
-  slider_data->virtual_height = virtual_height;
+  //slider_data->virtual_height = virtual_height;
 
   Window *slider_grip = Window_add_widget(slider, -1, 0, 0, -1, 2, 1, "░░", 232, 255);
   slider_grip->on_mouse_down = on_mouse_down_slider_grip;
