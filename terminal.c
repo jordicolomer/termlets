@@ -159,9 +159,12 @@ void Terminal_draw(struct Window *wg, int hasFocus){
     for (int j = 0; j < available_height - 1 && start && start->prev; j++)
         start = start->prev;
 
-    int fg = 15;
+    int fg = 250;
     int bg = 240;
-    if (hasFocus) bg = 0;
+    if (hasFocus){
+        fg = 15;
+        bg = 0;
+    }
 
     /* draw lines forward from start */
     int i = 0;
