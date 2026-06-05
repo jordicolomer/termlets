@@ -127,8 +127,9 @@ int Window_get_absolute_y(Window* w){
 */
 
 // void Window_draw(struct Window* w, int bias_x, int bias_y, int hasFocus){
-void Window_draw(struct Window *w, Geometry geo, int hasFocus)
+void Window_draw(struct Window *w, int hasFocus)
 {
+  Geometry geo = w->calculated;
     if (w->hidden == 1){
         return;
     }
@@ -168,6 +169,7 @@ void Window_draw(struct Window *w, Geometry geo, int hasFocus)
       height = geo.height - current->top - current->bottom;
 
     Geometry rect = {geo.x + left, geo.y + top, width, height};
+    current->calculated = rect;
     //LOG_INFO("Window_draw loop %s %p orig css left:%d right:%d width:%d top:%d bottom:%d height:%d", current->id, current, current->left, current->right, current->width, current->top, current->bottom, current->height);
     //LOG_INFO("Window_draw loop %s %p comp css left:%d right:%d width:%d top:%d bottom:%d height:%d", current->id, current, left, right, width, top, bottom, height);
     //LOG_INFO("Window_draw loop %s %p rect     rect.x:%d, rect.y:%d, rect.width:%d, rect.height:%d", current->id, current, rect.x, rect.y, rect.width, rect.height);
@@ -181,7 +183,7 @@ void Window_draw(struct Window *w, Geometry geo, int hasFocus)
       skip = 1;
     // if ((!(height == 1 && top < 0)) && top < geo.height)
     if (!skip)
-      current->draw(current, rect, hasFocus || current == dragging);
+      current->draw(current, hasFocus || current == dragging);
     current = current->next;
   }
   // printf("\033[0m");
@@ -348,14 +350,15 @@ void Window_bring_to_bottom(Window *this)
 
 
 
-void Widget_draw(struct Window *wg, Geometry geo, int hasFocus)
+void Widget_draw(struct Window *wg, int hasFocus)
 {
   Widget *current = (Widget *)wg;
-  Window_draw((Window *)current, geo, hasFocus);
+  Window_draw((Window *)current, hasFocus);
 #ifdef USE_BUFFER
   Buffer_print(&main_buf, geo.y + wg_y, geo.x + wg_x, wg_width, current->c, current->fg, current->bg);
 #else
 
+  Geometry geo = wg->calculated;
   if (wg->hidden == 1){
     //LOG_INFO("wg->hidden");
     return;

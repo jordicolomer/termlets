@@ -29,8 +29,9 @@ typedef struct Window
   int width;
   int height;
   int virtual_height;
+  Geometry calculated;
   // void (*draw)(struct Window*, int, int, int);
-  void (*draw)(struct Window *, Geometry, int);
+  void (*draw)(struct Window *, int);
   void (*on_mouse_down)(struct Window *wg, int x, int y);
   void (*on_hover)(struct Window *wg, int x, int y);
   void (*undo_on_hover)(struct Window *wg, int x, int y);
@@ -56,7 +57,7 @@ extern int dragging_offset_x, dragging_offset_y;
 void Window_append(Window *w, Window *new_w);
 void Window_remove(Window *w);
 int Window_get_height(Window* wg);
-void Window_draw(struct Window *w, Geometry geo, int hasFocus);
+void Window_draw(struct Window *w, int hasFocus);
 Window *Window_init(Window *w, int left, int right, int top, int bottom, int width, int height);
 int Geometry_in_bounds(Geometry geo, int x, int y);
 Window *Window_find_widget(struct Window *this, Geometry geo, int x, int y);
@@ -82,8 +83,9 @@ typedef struct Widget
   int width;
   int height;
   int virtual_height;
+  Geometry calculated;
   // void (*draw)(struct Window*, int, int, int);
-  void (*draw)(struct Window *, Geometry, int);
+  void (*draw)(struct Window *, int);
   void (*on_mouse_down)(struct Widget *wg, int x, int y);
   void (*on_hover)(struct Window *wg, int x, int y);
   void (*undo_on_hover)(struct Window *wg, int x, int y);
@@ -102,7 +104,7 @@ typedef struct Widget
   // int _bg;
 } Widget;
 
-void Widget_draw(struct Window *wg, Geometry geo, int hasFocus);
+void Widget_draw(struct Window *wg, int hasFocus);
 Widget *Window_add_widget(Window *w, int left, int right, int top, int bottom, int width, int height, char *c, int fg, int bg);
 
 #endif

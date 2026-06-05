@@ -66,7 +66,8 @@ void repaint()
 #endif
 
   Geometry rect = {0, 0, root->width, root->height};
-  root->draw(root, rect, 0);
+  root->calculated = rect;
+  root->draw(root, 0);
   
   //Reset all text attributes to terminal defaults.
   fprintf(stdout, "\033[0m");
