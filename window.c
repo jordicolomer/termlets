@@ -8,6 +8,7 @@
 #include "window.h"
 #include "logger.h"
 #include "buffer.h"
+#include "utils.h"
 
 
 void Window_set_top(struct Window *wg, int top){
@@ -205,6 +206,7 @@ Window *Window_init(Window *w, int left, int right, int top, int bottom, int wid
   // w->y = y;
   w->width = width;
   w->height = height;
+  w->virtual_height = height;
   // w->draw = draw;
   w->draw = Window_draw;
   w->set_top = Window_set_top;
@@ -408,6 +410,8 @@ Widget *Window_add_widget(Window *w, int left, int right, int top, int bottom, i
   // wg->_bg = 0;
 
   Window_append(w, wg);
+
+  w->virtual_height = max(w->virtual_height, top+height);
 
   return wg;
 }

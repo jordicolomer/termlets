@@ -10,6 +10,7 @@
 #include "frame.h"
 #include "file_manager.h"
 #include "taskbar.h"
+#include "utils.h"
 
 // TERMINAL
 
@@ -77,15 +78,6 @@ void repaint()
   Buffer_reset();
 }
 
-int max(int a, int b)
-{
-  return (a > b) ? a : b;
-}
-
-int min(int a, int b)
-{
-  return (a < b) ? a : b;
-}
 
  
 

@@ -7,7 +7,6 @@ void Slider_hover(Window *wg, int x, int y)
 {
   Window *slider_grip = ((Slider_data *)wg->data)->slider_grip;
   slider_grip->hidden = 0;
-  // LOG_INFO("Slider_hover");
 }
 
 void Slider_grip_hover(Window *wg, int x, int y)
@@ -24,7 +23,6 @@ void Slider_undo_hover(Window *wg, int x, int y)
 {
   Window *slider_grip = ((Slider_data *)wg->data)->slider_grip;
   slider_grip->hidden = 1;
-  // LOG_INFO("Slider_hover");
 }
 
 void Slider_on_mouse_down(Window *wg, int x, int y)
@@ -34,45 +32,23 @@ void Slider_on_mouse_down(Window *wg, int x, int y)
   child->shift -= slider_data->height;
 }
 
-/*void Slider_grip_draw(struct Window *w, Geometry geo, int hasFocus)
-{
-  Slider_data *slider_data = (Slider_data *)w->parent->data;
-  Window *child = slider_data->child;
-  child->shift = -w->top;
-  Widget_draw(w, geo, hasFocus);
-}*/
-
 void on_mouse_down_slider_grip(Window *wg, int x, int y)
 {
-  /*
-  Slider_data * slider_data = (Slider_data*) wg->parent->data;
-  Window* child = slider_data->child;
-  child->shift -= 1;
-  */
-
   dragging = wg;
   dragging_offset_x = x - wg->parent->left;
-  // dragging_offset_y = y - wg->parent->top;
   dragging_offset_y = y - wg->parent->top - wg->top;
 }
 
 void Slider_set_top(struct Window *w, int top){
   w->top = top;
-
   Slider_data *slider_data = (Slider_data *)w->parent->data;
   Window *child = slider_data->child;
   int height = Window_get_height(w->parent) - 1;
-  //child->shift = -w->top*(slider_data->virtual_height)/slider_data->height;
-  //int height = slider_data->height-2;
-  //LOG_INFO("Slider_set_top %d %d %d", height, height2, w->top);
-  child->shift = -w->top*(slider_data->virtual_height-height-1)/height;
+  child->shift = -w->top * (slider_data->virtual_height-height - 1) / height;
 }
-
-
 
 Window *slider_new(Window *fm, int height, int virtual_height){
   Window *fm_slider = malloc(sizeof *fm_slider);
-  //Window_init(fm_slider, width, 0, 4, 0, -1, -1);
   Window_init(fm_slider, -1, -1, -1, -1, -1, -1);
   fm_slider->id = "fm_slider";
   Window_append(fm_slider, fm);
@@ -96,7 +72,6 @@ Window *slider_new(Window *fm, int height, int virtual_height){
   slider_grip->hidden = 1;
   slider_grip->on_hover = Slider_grip_hover;
   slider_grip->undo_on_hover = Slider_grip_undo_hover;
-  //slider_grip->draw = Slider_grip_draw;
   slider_grip->set_top = Slider_set_top;
   slider_data->slider_grip = slider_grip;
 

@@ -28,6 +28,7 @@ typedef struct Window
   int bottom;
   int width;
   int height;
+  int virtual_height;
   // void (*draw)(struct Window*, int, int, int);
   void (*draw)(struct Window *, Geometry, int);
   void (*on_mouse_down)(struct Window *wg, int x, int y);
@@ -80,6 +81,7 @@ typedef struct Widget
   int bottom;
   int width;
   int height;
+  int virtual_height;
   // void (*draw)(struct Window*, int, int, int);
   void (*draw)(struct Window *, Geometry, int);
   void (*on_mouse_down)(struct Widget *wg, int x, int y);
