@@ -56,7 +56,7 @@ void repaint()
 {
   LOG_INFO("repaint");
   //printf("\x1b[44m\x1b[37m");
-  //set_color256(232, 26);
+  set_color256(232, 17);
   clear_screen();
   hide_cursor();
 

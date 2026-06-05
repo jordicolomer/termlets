@@ -144,7 +144,7 @@ static void expand_tabs(const char *src, char *dst, size_t dst_size)
 
 void Terminal_draw(struct Window *wg, int hasFocus){
     Geometry geo = wg->calculated;
-    //LOG_INFO("Terminal_draw %d", geo.x);
+    //LOG_INFO("Terminal_draw x:%d y:%d", geo.x, geo.y);
     char expanded[4096];
     terminal_data *td = wg->data2;
 
@@ -170,7 +170,8 @@ void Terminal_draw(struct Window *wg, int hasFocus){
     int i = 0;
     for (LineNode *n = start; n && i < available_height; n = n->next){
         expand_tabs(n->line, expanded, sizeof(expanded));
-        Buffer_print_raw(&main_buf, geo.y + i++, geo.x, geo.width, expanded, fg, bg);
+        Buffer_print_raw(&main_buf, geo.y + i, geo.x, geo.width, expanded, fg, bg);
+        i++;
     }
 
     /* draw incomplete line if any */
@@ -195,7 +196,7 @@ void send_key(struct Window *wg, char c){
 
 Window *Terminal_window(Window *frame){
     Window *terminal = malloc(sizeof *terminal);
-    Window_init(terminal, 0, 0, 1, 0, -1, -1);
+    Window_init(terminal, 0, 0, 0, 0, -1, -1);
     terminal->id = "terminal window";
 
     terminal->draw = Terminal_draw;
@@ -256,7 +257,7 @@ Window *Terminal_new(int left, int right, int top, int bottom, int width, int he
     Window * slider = slider_new(terminal);
     slider->left = 0;
     slider->right = 0;
-    slider->top = 0;
+    slider->top = 1;
     slider->bottom = 0;
     Window_append(w, slider);
 
