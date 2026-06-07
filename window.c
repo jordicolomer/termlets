@@ -17,7 +17,8 @@ void Window_set_top(struct Window *wg, int top){
 
 Window *root = NULL;
 
-Window *dragging = NULL;
+Window *draggingX = NULL;
+Window *draggingY = NULL;
 Window *resizing = NULL;
 Window *focused = NULL;
 Window *hovering = NULL;
@@ -138,7 +139,7 @@ void Window_draw(struct Window *w, int hasFocus)
       skip = 1;
     // if ((!(height == 1 && top < 0)) && top < geo.height)
     if (!skip)
-      current->draw(current, hasFocus || current == dragging);
+      current->draw(current, hasFocus || current == draggingY);
     current = current->next;
   }
   // printf("\033[0m");

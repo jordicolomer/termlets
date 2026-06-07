@@ -38,7 +38,8 @@ void Slider_on_mouse_down(Window *wg, int x, int y)
 
 void on_mouse_down_slider_grip(Window *wg, int x, int y)
 {
-  dragging = wg;
+  draggingX = NULL;
+  draggingY = wg;
   dragging_offset_x = x - wg->parent->left;
   dragging_offset_y = y - wg->parent->top - wg->top;
 }
@@ -60,7 +61,13 @@ Window *slider_new(Window *fm){
   Window_append(fm_slider, fm);
 
   Window *slider = malloc(sizeof *slider);
-  Window_init(slider, -1, 0, 0, 0, 2, -1);
+  //Window_init(slider, -1, 0, 0, 0, 2, -1);
+  Window_init(slider, -1, -1, -1, -1, -1, -1);
+  slider->left = 0;
+  slider->right = 0;
+  slider->top = 0;
+  slider->bottom = 0;
+  //slider->width = 2;
   slider->id = "slider";
   Window_append(fm_slider, slider);
   slider->on_hover = Slider_hover;
@@ -73,7 +80,12 @@ Window *slider_new(Window *fm){
   //slider_data->height = height;
   //slider_data->virtual_height = virtual_height;
 
-  Window *slider_grip = Window_add_widget(slider, -1, 0, 0, -1, 2, 1, "░░", 232, 255);
+  //Window *slider_grip = Window_add_widget(slider, -1, 0, 0, -1, 2, 1, "░░", 232, 255);
+  Window *slider_grip = Window_add_widget(slider, -1, -1, -1, -1, -1, -1, "░░", 232, 255);
+  slider_grip->right = 0;
+  slider_grip->top = 0;
+  slider_grip->width = 2;
+  slider_grip->height = 1;
   slider_grip->on_mouse_down = on_mouse_down_slider_grip;
   slider_grip->hidden = 1;
   slider_grip->on_hover = Slider_grip_hover;

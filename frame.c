@@ -6,9 +6,10 @@
 void on_mouse_down_window_bar(Window *wg, int x, int y)
 {
   LOG_INFO("on_mouse_down_window_bar");
-  dragging = wg->parent;
+  draggingX = wg->parent;
+  draggingY = wg->parent;
   focused = wg->parent;
-  Window_bring_to_bottom(dragging);
+  Window_bring_to_bottom(draggingY);
   dragging_offset_x = x - wg->parent->left;
   dragging_offset_y = y - wg->parent->top;
   TaskBar_switch((Window *)(wg->parent->data));

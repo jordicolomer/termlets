@@ -50,7 +50,8 @@ void Window_set_top(struct Window *wg, int top);
 
 extern Window *root;
 
-extern Window *dragging;
+extern Window *draggingX;
+extern Window *draggingY;
 extern Window *resizing;
 extern Window *focused;
 extern Window *hovering;
