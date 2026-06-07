@@ -174,6 +174,9 @@ Window *Window_init(Window *w, int left, int right, int top, int bottom, int wid
   w->hidden = 0;
   w->shift = 0;
 
+  w->c = NULL;
+
+
   return w;
 }
 
@@ -277,23 +280,23 @@ void Window_bring_to_bottom(Window *this)
 
 
 
-void Widget_draw(struct Window *wg, int hasFocus)
+void Widget_draw(struct Window *current, int hasFocus)
 {
-  Widget *current = (Widget *)wg;
+  //Widget *current = (Widget *)wg;
   Window_draw((Window *)current, hasFocus);
 #ifdef USE_BUFFER
   Buffer_print(&main_buf, geo.y + wg_y, geo.x + wg_x, wg_width, current->c, current->fg, current->bg);
 #else
 
-  Geometry geo = wg->calculated;
-  if (wg->hidden == 1){
+  Geometry geo = current->calculated;
+  if (current->hidden == 1){
     //LOG_INFO("wg->hidden");
     return;
   }
 
   // check if visible
   int visible = 1;
-  Window *cursor = wg;
+  Window *cursor = current;
   while (cursor->parent != root)
   {
     cursor = cursor->parent;
@@ -326,9 +329,9 @@ void Widget_draw(struct Window *wg, int hasFocus)
 #endif
 }
 
-Widget *Window_add_widget(Window *w, int left, int right, int top, int bottom, int width, int height, char *c, int fg, int bg)
+Window *Window_add_widget(Window *w, int left, int right, int top, int bottom, int width, int height, char *c, int fg, int bg)
 {
-  Widget *wg = malloc(sizeof *wg);
+  Window *wg = malloc(sizeof *wg);
   Window_init(wg, left, right, top, bottom, width, height);
   wg->draw = Widget_draw;
   wg->parent = w;

@@ -41,6 +41,9 @@ typedef struct Window
   void *data2;
   int hidden;
   int shift;
+  char *c;
+  int fg;
+  int bg;
 } Window;
 
 void Window_set_top(struct Window *wg, int top);
@@ -65,6 +68,7 @@ void Window_bring_to_bottom(Window *this);
 
 /* widget.c */
 
+/*
 typedef struct Widget
 {
   char *id;
@@ -103,8 +107,9 @@ typedef struct Widget
   // int _fg;
   // int _bg;
 } Widget;
+*/
 
 void Widget_draw(struct Window *wg, int hasFocus);
-Widget *Window_add_widget(Window *w, int left, int right, int top, int bottom, int width, int height, char *c, int fg, int bg);
+Window *Window_add_widget(Window *w, int left, int right, int top, int bottom, int width, int height, char *c, int fg, int bg);
 
 #endif

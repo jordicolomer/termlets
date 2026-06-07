@@ -18,12 +18,12 @@ void start_mouse_down(struct Window *w, int x, int y){
 }
 
 Window *taskBar;
-Widget *selectedTask = NULL;
+Window *selectedTask = NULL;
 int x = 11;
 int unselectedTaskColor = 251;
 int selectedTaskColor = 15;
 
-void task_on_mouse_down(struct Widget *w, int x, int y){
+void task_on_mouse_down(struct Window *w, int x, int y){
     if (selectedTask != NULL) selectedTask->bg = unselectedTaskColor;
 
     Window *task = w->data;
@@ -36,7 +36,7 @@ void task_on_mouse_down(struct Widget *w, int x, int y){
 
 Window * TaskBar_new_task(const char * name, Window *fm){
   if (selectedTask != NULL) selectedTask->bg = unselectedTaskColor;
-  Widget *task = Window_add_widget(taskBar, x, -1, -1, 0, 9, 1, name, 0, selectedTaskColor);
+  Window *task = Window_add_widget(taskBar, x, -1, -1, 0, 9, 1, name, 0, selectedTaskColor);
   selectedTask = task;
 
   task->data = fm;
@@ -46,7 +46,7 @@ Window * TaskBar_new_task(const char * name, Window *fm){
   return task;
 }
 
-void TaskBar_switch(Widget *w){
+void TaskBar_switch(Window *w){
   if (w == NULL) return;
   if (selectedTask != NULL) selectedTask->bg = unselectedTaskColor;
   w->bg = selectedTaskColor;
@@ -66,7 +66,7 @@ void file_manager_mouse_down(struct Window *w, int x, int y){
   focused = fm;
   Window_append(root, fm);
 
-  Widget *task = TaskBar_new_task("📁 Explorer", fm);
+  Window *task = TaskBar_new_task("📁 Explorer", fm);
   fm->data = task;
 }
 
@@ -83,7 +83,7 @@ void terminal_mouse_down(struct Window *w, int x, int y){
   focused = fm;
   Window_append(root, fm);
 
-  Widget *task = TaskBar_new_task("💻 Terminal", fm);
+  Window *task = TaskBar_new_task("💻 Terminal", fm);
   fm->data = task;
 
 }
