@@ -10,6 +10,10 @@ void Slider_hover(Window *wg, int x, int y)
 {
   Window *slider_grip = ((Slider_data *)wg->data)->slider_grip;
   slider_grip->hidden = 0;
+  Window *fm = ((Slider_data *)wg->data)->child;
+  slider_grip->height  = fm->calculated.height * fm->calculated.height / fm->virtual_height;
+  //LOG_INFO("slider_new %d %d %d %d", fm->height, fm->height, fm->virtual_height, slider_grip->height);
+
 }
 
 void Slider_grip_hover(Window *wg, int x, int y)
@@ -49,16 +53,20 @@ void Slider_set_top(struct Window *w, int top){
   w->top = top;
   Slider_data *slider_data = (Slider_data *)w->parent->data;
   Window *child = slider_data->child;
-  int height = child->calculated.height - 1;
+  int height = child->calculated.height - slider_data->slider_grip->height;
   //int height = Window_get_height(w->parent) - 1;
   //LOG_INFO("Slider_set_top %d %d", Window_get_height(w->parent), child->calculated.height);
-  child->shift = -w->top * (child->virtual_height - height - 1) / height;
+  //LOG_INFO("Slider_set_top %d %d %d %d",  -w->top , (child->virtual_height - height - slider_data->slider_grip->height) , height, -w->top * (child->virtual_height - height - slider_data->slider_grip->height) / height);
+  //child->shift = -w->top * (child->virtual_height - height - slider_data->slider_grip->height) / height;
+  LOG_INFO("Slider_set_top %d %d", w->top, height);
+  child->shift = -w->top * (child->virtual_height - child->calculated.height) / height;
 }
 
 void slider_grip_draw(struct Window *w, int hasFocus){
   if (w->hidden == 1) return;
   Geometry geo = w->calculated;
-  Buffer_print_raw(&main_buf, geo.y, geo.x, geo.width, "░░", 232, 255);
+  for (int i=0;i<w->height;i++)
+    Buffer_print_raw(&main_buf, geo.y+i, geo.x, geo.width, "  ", 0, 250);
 }
 
 Window *slider_new(Window *fm){
@@ -99,6 +107,7 @@ Window *slider_new(Window *fm){
   slider_grip->top = 0;
   slider_grip->width = 2;
   slider_grip->height = 1;
+  //fm->virtual_height / fm->calculated.height = fm->calculated.height / slider_grip->height
   slider_grip->on_mouse_down = on_mouse_down_slider_grip;
   slider_grip->hidden = 1;
   slider_grip->on_hover = Slider_grip_hover;
