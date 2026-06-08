@@ -3,6 +3,7 @@
 #include "window.h"
 #include "slider.h"
 #include "logger.h"
+#include "buffer.h"
 
 
 void Slider_hover(Window *wg, int x, int y)
@@ -54,6 +55,12 @@ void Slider_set_top(struct Window *w, int top){
   child->shift = -w->top * (child->virtual_height - height - 1) / height;
 }
 
+void slider_grip_draw(struct Window *w, int hasFocus){
+  if (w->hidden == 1) return;
+  Geometry geo = w->calculated;
+  Buffer_print_raw(&main_buf, geo.y, geo.x, geo.width, "░░", 232, 255);
+}
+
 Window *slider_new(Window *fm){
   Window *fm_slider = malloc(sizeof *fm_slider);
   Window_init(fm_slider, -1, -1, -1, -1, -1, -1);
@@ -81,7 +88,13 @@ Window *slider_new(Window *fm){
   //slider_data->virtual_height = virtual_height;
 
   //Window *slider_grip = Window_add_widget(slider, -1, 0, 0, -1, 2, 1, "░░", 232, 255);
-  Window *slider_grip = Window_add_widget(slider, -1, -1, -1, -1, -1, -1, "░░", 232, 255);
+  //Window *slider_grip = Window_add_widget(slider, -1, -1, -1, -1, -1, -1, "░░", 232, 255);
+  Window *slider_grip = malloc(sizeof *slider_grip);
+  Window_init(slider_grip, -1, -1, -1, -1, -1, -1);
+  slider_grip->parent = slider;
+  Window_append(slider, slider_grip);
+
+  slider_grip->draw = slider_grip_draw;
   slider_grip->right = 0;
   slider_grip->top = 0;
   slider_grip->width = 2;
