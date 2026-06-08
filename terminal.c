@@ -181,7 +181,18 @@ static void expand_tabs(const char *src, char *dst, size_t dst_size)
     dst[out] = '\0';
 }
 
+int Terminal_get_virtual_height(struct Window *wg){
+    terminal_data *td = wg->data2;
+    int size = td->lines.size;
+    int has_incomplete = (td->incomplete_len > 0);
+    if (has_incomplete)
+        size++;
+    return size;
+}
+
 void Terminal_draw(struct Window *wg, int hasFocus){
+    wg->virtual_height = Terminal_get_virtual_height(wg);
+
     Geometry geo = wg->calculated;
     //LOG_INFO("Terminal_draw x:%d y:%d", geo.x, geo.y);
     char expanded[4096];

@@ -58,7 +58,7 @@ void Slider_set_top(struct Window *w, int top){
   //LOG_INFO("Slider_set_top %d %d", Window_get_height(w->parent), child->calculated.height);
   //LOG_INFO("Slider_set_top %d %d %d %d",  -w->top , (child->virtual_height - height - slider_data->slider_grip->height) , height, -w->top * (child->virtual_height - height - slider_data->slider_grip->height) / height);
   //child->shift = -w->top * (child->virtual_height - height - slider_data->slider_grip->height) / height;
-  LOG_INFO("Slider_set_top %d %d", w->top, height);
+  //LOG_INFO("Slider_set_top %d %d", w->top, height);
   child->shift = -w->top * (child->virtual_height - child->calculated.height) / height;
 }
 
