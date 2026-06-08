@@ -58,6 +58,8 @@ typedef struct terminal_data{
     LineList lines;
     char incomplete_line[8192];
     size_t incomplete_len;
+    Window *terminal;
+    Window *slider;
 } terminal_data;
 
 #include <ctype.h>
@@ -205,9 +207,13 @@ void Terminal_draw(struct Window *wg, int hasFocus){
         available_height--;
 
     /* start from tail and go back available_height - 1 times */
-    LineNode *start = td->lines.tail;
+    /*LineNode *start = td->lines.tail;
     for (int j = 0; j < available_height - 1 && start && start->prev; j++)
-        start = start->prev;
+        start = start->prev;*/
+    //LOG_INFO("Terminal_draw %d", wg->shift);
+    LineNode *start = td->lines.head;
+    for (int j = 0; j < -wg->shift && start && start->next; j++)
+        start = start->next;
 
     int fg = 250;
     int bg = 240;
@@ -243,6 +249,11 @@ void send_key(struct Window *wg, char c){
 
     //if (c == '\n')
     Terminal_update(td);
+    Window *terminal = td->terminal;
+    terminal->shift = -(Terminal_get_virtual_height(terminal) - terminal->calculated.height);
+
+    Window * slider = td->slider;
+    Slider_update_top(slider);
 }
 
 Window *Terminal_window(Window *frame){
@@ -267,6 +278,7 @@ Window *Terminal_window(Window *frame){
     td->lines.head = NULL;
     td->lines.tail = NULL;
     td->incomplete_len = 0;
+    td->terminal = terminal;
 
     Terminal_update(td);
     Terminal_update(td);
@@ -311,6 +323,8 @@ Window *Terminal_new(int left, int right, int top, int bottom, int width, int he
     slider->top = 1;
     slider->bottom = 0;
     Window_append(w, slider);
+    terminal_data *td = terminal->data2;
+    td->slider = slider; 
 
     return frame;
 }

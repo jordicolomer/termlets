@@ -28,6 +28,7 @@ void Slider_undo_hover(Window *wg, int x, int y);
 void Slider_on_mouse_down(Window *wg, int x, int y);
 void on_mouse_down_slider_grip(Window *wg, int x, int y);
 void Slider_set_top(struct Window *w, int top);
+void Slider_update_top(struct Window *w);
 Window *slider_new(Window *fm);
 
 #endif
