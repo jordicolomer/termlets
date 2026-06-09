@@ -251,8 +251,10 @@ void send_key(struct Window *wg, char c){
     Terminal_update(td);
     Window *terminal = td->terminal;
     terminal->shift = -(Terminal_get_virtual_height(terminal) - terminal->calculated.height);
+    if (terminal->shift > 0) terminal->shift = 0;
 
     Window * slider = td->slider;
+    //repaint();
     Slider_update_top(slider);
 }
 

@@ -6,14 +6,23 @@
 #include "buffer.h"
 #include "utils.h"
 
+void update_height(Window *slider_grip, Window *fm){
+  slider_grip->height = fm->calculated.height * fm->calculated.height / fm->virtual_height;
+  slider_grip->height = min(slider_grip->height, fm->calculated.height);
+  //LOG_INFO("update_height slider_grip->height %d", slider_grip->height);
+  //LOG_INFO("update_height fm->calculated.height %d", fm->calculated.height);
+  //LOG_INFO("update_height fm->virtual_height %d", fm->virtual_height);
+}
 
 void Slider_hover(Window *wg, int x, int y)
 {
+  //LOG_INFO("Slider_hover");
   Window *slider_grip = ((Slider_data *)wg->data)->slider_grip;
   slider_grip->hidden = 0;
   Window *fm = ((Slider_data *)wg->data)->child;
-  slider_grip->height = fm->calculated.height * fm->calculated.height / fm->virtual_height;
-  slider_grip->height = min(slider_grip->height, fm->calculated.height);
+  update_height(slider_grip, fm);
+  //slider_grip->height = fm->calculated.height * fm->calculated.height / fm->virtual_height;
+  //slider_grip->height = min(slider_grip->height, fm->calculated.height);
   //LOG_INFO("slider_new %d %d %d %d", fm->height, fm->height, fm->virtual_height, slider_grip->height);
 
 }
@@ -55,16 +64,29 @@ void Slider_set_top(struct Window *w, int top){
   w->top = top;
   Slider_data *slider_data = (Slider_data *)w->parent->data;
   Window *child = slider_data->child;
+  // how much free room there is for the handle
   int height = child->calculated.height - slider_data->slider_grip->height;
+  // child->virtual_height - child->calculated.height is the first visible element when the scroll is at the bottom
+  // w->top / height is the fraction of the scroll (0 top 1 bottom)
   child->shift = -w->top * (child->virtual_height - child->calculated.height) / height;
 }
 
 void Slider_update_top(struct Window *w){
+  // invert Slider_set_top
   Slider_data *slider_data = (Slider_data *)w->data;
   //LOG_INFO("Slider_update_top %p", slider_data);
   Window *child = slider_data->child;
+  update_height(slider_data->slider_grip, child);
   int height = child->calculated.height - slider_data->slider_grip->height;
-  slider_data->slider_grip->top = - child->shift / (child->virtual_height - child->calculated.height) * height;
+  //LOG_INFO("Slider_update_top height %d %d %d", child->calculated.height, slider_data->slider_grip->height, slider_data->slider_grip->shift);
+  //LOG_INFO("pre Slider_update_top %d %d %d %d", slider_data->slider_grip->top, child->shift, (child->virtual_height - child->calculated.height), height);
+  //LOG_INFO("Slider_update_top slider_data->slider_grip->top %d", slider_data->slider_grip->top);
+  //LOG_INFO("Slider_update_top child->shift %d", child->shift);
+  //LOG_INFO("Slider_update_top height %d", height);
+  //LOG_INFO("Slider_update_top (child->virtual_height - child->calculated.height) %d",(child->virtual_height - child->calculated.height));
+  //LOG_INFO("Slider_update_top fraction child->shift / (child->virtual_height - child->calculated.height) %d",child->shift / (child->virtual_height - child->calculated.height));
+  slider_data->slider_grip->top = - child->shift * height / (child->virtual_height - child->calculated.height);
+  //LOG_INFO("post Slider_update_top %d", slider_data->slider_grip->top);
 }
 
 void slider_grip_draw(struct Window *w, int hasFocus){
@@ -72,6 +94,11 @@ void slider_grip_draw(struct Window *w, int hasFocus){
   Geometry geo = w->calculated;
   for (int i=0;i<w->height;i++)
     Buffer_print_raw(&main_buf, geo.y+i, geo.x, geo.width, "  ", 0, 250);
+}
+
+void Slider_draw(struct Window *current, int hasFocus){
+  Slider_update_top(current);
+  Window_draw(current, hasFocus);
 }
 
 Window *slider_new(Window *fm){
@@ -90,9 +117,11 @@ Window *slider_new(Window *fm){
   //slider->width = 2;
   slider->id = "slider";
   Window_append(fm_slider, slider);
+  //Window_append(slider, fm);
   slider->on_hover = Slider_hover;
   slider->undo_on_hover = Slider_undo_hover;
   slider->on_mouse_down = Slider_on_mouse_down;
+  slider->draw = Slider_draw;
 
   Slider_data *slider_data = (Slider_data *)malloc(sizeof(Slider_data));
   slider->data = slider_data;
