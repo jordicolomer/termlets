@@ -237,7 +237,7 @@ void Terminal_draw(struct Window *wg, int hasFocus){
         expand_tabs(td->incomplete_line, expanded, sizeof(expanded));
         strip_ansi(expanded);
         Buffer_print_raw(&main_buf, geo.y + i++, geo.x, geo.width, expanded, fg, bg);
-    } else {
+    } else if (n != NULL){
         expand_tabs(n->line, expanded, sizeof(expanded));
         strip_ansi(expanded);
         Buffer_print_raw(&main_buf, geo.y + i++, geo.x, geo.width, expanded, fg, bg);
