@@ -9,6 +9,7 @@
 void update_height(Window *slider_grip, Window *fm){
   slider_grip->height = fm->calculated.height * fm->calculated.height / fm->virtual_height;
   slider_grip->height = min(slider_grip->height, fm->calculated.height);
+  slider_grip->height = max(slider_grip->height, 1);
   //LOG_INFO("update_height slider_grip->height %d", slider_grip->height);
   //LOG_INFO("update_height fm->calculated.height %d", fm->calculated.height);
   //LOG_INFO("update_height fm->virtual_height %d", fm->virtual_height);
