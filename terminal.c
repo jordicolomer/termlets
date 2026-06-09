@@ -59,7 +59,7 @@ typedef struct terminal_data{
     char incomplete_line[8192];
     size_t incomplete_len;
     Window *terminal;
-    Window *slider;
+    //Window *slider;
 } terminal_data;
 
 #include <ctype.h>
@@ -258,9 +258,9 @@ void send_key(struct Window *wg, char c){
     terminal->shift = -(Terminal_get_virtual_height(terminal) - terminal->calculated.height);
     if (terminal->shift > 0) terminal->shift = 0;
 
-    Window * slider = td->slider;
+    //Window * slider = td->slider;
     //repaint();
-    Slider_update_top(slider);
+    //Slider_update_top(slider);
 }
 
 Window *Terminal_window(Window *frame){
@@ -331,7 +331,7 @@ Window *Terminal_new(int left, int right, int top, int bottom, int width, int he
     slider->bottom = 0;
     Window_append(w, slider);
     terminal_data *td = terminal->data2;
-    td->slider = slider; 
+    //td->slider = slider; 
 
     return frame;
 }
