@@ -224,16 +224,21 @@ void Terminal_draw(struct Window *wg, int hasFocus){
 
     /* draw lines forward from start */
     int i = 0;
-    for (LineNode *n = start; n && i < available_height; n = n->next){
+    LineNode *n = start;
+    for (; n && i < available_height; n = n->next){
         expand_tabs(n->line, expanded, sizeof(expanded));
         strip_ansi(expanded);
         Buffer_print_raw(&main_buf, geo.y + i++, geo.x, geo.width, expanded, fg, bg);
     }
 
     /* draw incomplete line if any */
-    if (has_incomplete) {
+    if (has_incomplete && n == NULL) {
         td->incomplete_line[td->incomplete_len] = '\0';
         expand_tabs(td->incomplete_line, expanded, sizeof(expanded));
+        strip_ansi(expanded);
+        Buffer_print_raw(&main_buf, geo.y + i++, geo.x, geo.width, expanded, fg, bg);
+    } else {
+        expand_tabs(n->line, expanded, sizeof(expanded));
         strip_ansi(expanded);
         Buffer_print_raw(&main_buf, geo.y + i++, geo.x, geo.width, expanded, fg, bg);
     }
