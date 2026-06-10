@@ -205,6 +205,17 @@ int start()
           i++;
           break;
         }
+        /* for arrow keys and other sequences, stop at a letter */
+        if (i > 0 && seq[i] >= 'A' && seq[i] <= 'Z')
+        {
+          i++;
+          break;
+        }
+        if (i > 0 && seq[i] >= 'a' && seq[i] <= 'z')
+        {
+          i++;
+          break;
+        }
         i++;
       }
 
@@ -215,6 +226,7 @@ int start()
 
       if (sscanf(seq, "[<%d;%d;%d%c", &btn, &x, &y, &type) == 4)
       {
+        /* mouse event */
         if (y == 1)
           continue;
         // LOG_INFO("sscanf %d %d %d %c", btn, x, y, type);
@@ -233,6 +245,19 @@ int start()
         // if (dragging == 1){
         on_drag(x, y);
         //}
+      }
+      else
+      {
+        /* not a mouse event, probably arrow keys or other keyboard sequence */
+        if (focused != NULL && focused->send_sequence != NULL)
+        {
+          /* construct full escape sequence */
+          char full_seq[34];
+          full_seq[0] = 27;  /* ESC */
+          memcpy(full_seq + 1, seq, i);
+          focused->send_sequence(focused, full_seq, i + 1);
+          repaint();
+        }
       }
     }
   }

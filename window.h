@@ -37,6 +37,7 @@ typedef struct Window
   void (*undo_on_hover)(struct Window *wg, int x, int y);
   void (*set_top)(struct Window *wg, int top);
   void (*send_key)(struct Window *wg, char c);
+  void (*send_sequence)(struct Window *wg, const char *seq, int len);
   void *data;
   void *data2;
   int hidden;

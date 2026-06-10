@@ -148,7 +148,27 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
 void vterm_send_key(struct Window *wg, char c)
 {
     vterm_terminal_data *vtd = wg->data2;
-    write(vtd->master, &c, 1);
+
+    /* handle escape sequences for arrow keys and other special keys */
+    if (c == 27) {  /* ESC - this might be the start of an escape sequence */
+        /* For now, just pass through the ESC */
+        write(vtd->master, &c, 1);
+    } else {
+        write(vtd->master, &c, 1);
+    }
+
+    VTermTerminal_update(vtd);
+
+    Window *terminal = vtd->terminal;
+    terminal->shift = -(VTermTerminal_get_virtual_height(terminal) - terminal->calculated.height);
+    if (terminal->shift > 0)
+        terminal->shift = 0;
+}
+
+void vterm_send_sequence(struct Window *wg, const char *seq, int len)
+{
+    vterm_terminal_data *vtd = wg->data2;
+    write(vtd->master, seq, len);
 
     VTermTerminal_update(vtd);
 
@@ -170,6 +190,7 @@ Window *VTermTerminal_window(Window *frame, int initial_rows, int initial_cols)
     terminal->data2 = vtd;
     frame->data2 = vtd;
     frame->send_key = vterm_send_key;
+    frame->send_sequence = vterm_send_sequence;
 
     /* initialize libvterm */
     vtd->rows = initial_rows;
