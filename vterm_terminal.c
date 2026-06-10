@@ -145,6 +145,10 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
     VTermScreenCell cell;
     char line_buf[4096];
 
+    Window *terminal = vtd->terminal;
+    int shift0 = -(VTermTerminal_get_virtual_height(terminal) - terminal->calculated.height);
+    int shift_diff = terminal->shift - shift0;
+
     for (int row = 0; row < vtd->rows && row < geo.height; row++) {
         int buf_idx = 0;
 
@@ -185,7 +189,9 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
         }
 
         line_buf[buf_idx] = '\0';
-        Buffer_print_raw(&main_buf, geo.y + row, geo.x, geo.width, line_buf, fg, bg);
+        int y = geo.y + row + shift_diff;
+        if (geo.y > y || y > geo.y + geo.height) continue;
+        Buffer_print_raw(&main_buf, y, geo.x, geo.width, line_buf, fg, bg);
     }
 }
 
