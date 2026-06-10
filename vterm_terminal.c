@@ -140,57 +140,116 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
         bg = 0;
     }
 
-    /* render each row from vterm screen */
+    /* render each row from scrollback and vterm screen */
     VTermPos pos;
     VTermScreenCell cell;
     char line_buf[4096];
 
     Window *terminal = vtd->terminal;
-    int shift0 = -(VTermTerminal_get_virtual_height(terminal) - terminal->calculated.height);
-    int shift_diff = terminal->shift - shift0;
+    int virtual_height = VTermTerminal_get_virtual_height(terminal);
 
-    for (int row = 0; row < vtd->rows && row < geo.height; row++) {
+    /* calculate which virtual lines are visible */
+    int first_visible_line = -terminal->shift;
+    int last_visible_line = first_visible_line + geo.height - 1;
+
+    /* render visible rows */
+    for (int viewport_row = 0; viewport_row < geo.height; viewport_row++) {
+        int virtual_line = first_visible_line + viewport_row;
+
+        /* skip if outside virtual content bounds */
+        if (virtual_line < 0 || virtual_line >= virtual_height) {
+            continue;
+        }
+
         int buf_idx = 0;
 
-        for (int col = 0; col < vtd->cols && col < geo.width; col++) {
-            pos.row = row;
-            pos.col = col;
+        /* determine if this line is in scrollback or current screen */
+        if (virtual_line < vtd->scrollback.count) {
+            /* this is a scrollback line - find it in the linked list */
+            ScrollbackLine *line = vtd->scrollback.head;
+            for (int i = 0; i < virtual_line && line != NULL; i++) {
+                line = line->next;
+            }
 
-            vterm_screen_get_cell(vtd->vts, pos, &cell);
+            if (line) {
+                /* render scrollback line */
+                for (int col = 0; col < line->cols && col < geo.width; col++) {
+                    VTermScreenCell *cell_ptr = &line->cells[col];
 
-            /* extract character (handling UTF-8) */
-            if (cell.chars[0] == 0) {
-                line_buf[buf_idx++] = ' ';
-            } else {
-                /* libvterm gives us UCS-4 codepoints, convert to UTF-8 if needed */
-                /* for simplicity, just handle ASCII for now */
-                uint32_t c = cell.chars[0];
-                if (c < 128) {
-                    line_buf[buf_idx++] = (char)c;
-                } else {
-                    /* handle multi-byte UTF-8 */
-                    if (c < 0x80) {
-                        line_buf[buf_idx++] = c;
-                    } else if (c < 0x800) {
-                        line_buf[buf_idx++] = 0xC0 | (c >> 6);
-                        line_buf[buf_idx++] = 0x80 | (c & 0x3F);
-                    } else if (c < 0x10000) {
-                        line_buf[buf_idx++] = 0xE0 | (c >> 12);
-                        line_buf[buf_idx++] = 0x80 | ((c >> 6) & 0x3F);
-                        line_buf[buf_idx++] = 0x80 | (c & 0x3F);
+                    if (cell_ptr->chars[0] == 0) {
+                        line_buf[buf_idx++] = ' ';
                     } else {
-                        line_buf[buf_idx++] = 0xF0 | (c >> 18);
-                        line_buf[buf_idx++] = 0x80 | ((c >> 12) & 0x3F);
-                        line_buf[buf_idx++] = 0x80 | ((c >> 6) & 0x3F);
-                        line_buf[buf_idx++] = 0x80 | (c & 0x3F);
+                        uint32_t c = cell_ptr->chars[0];
+                        if (c < 128) {
+                            line_buf[buf_idx++] = (char)c;
+                        } else {
+                            /* handle multi-byte UTF-8 */
+                            if (c < 0x80) {
+                                line_buf[buf_idx++] = c;
+                            } else if (c < 0x800) {
+                                line_buf[buf_idx++] = 0xC0 | (c >> 6);
+                                line_buf[buf_idx++] = 0x80 | (c & 0x3F);
+                            } else if (c < 0x10000) {
+                                line_buf[buf_idx++] = 0xE0 | (c >> 12);
+                                line_buf[buf_idx++] = 0x80 | ((c >> 6) & 0x3F);
+                                line_buf[buf_idx++] = 0x80 | (c & 0x3F);
+                            } else {
+                                line_buf[buf_idx++] = 0xF0 | (c >> 18);
+                                line_buf[buf_idx++] = 0x80 | ((c >> 12) & 0x3F);
+                                line_buf[buf_idx++] = 0x80 | ((c >> 6) & 0x3F);
+                                line_buf[buf_idx++] = 0x80 | (c & 0x3F);
+                            }
+                        }
+                    }
+                }
+                /* pad remaining columns with spaces */
+                for (int col = line->cols; col < geo.width; col++) {
+                    line_buf[buf_idx++] = ' ';
+                }
+            }
+        } else {
+            /* this is a current screen line */
+            int screen_row = virtual_line - vtd->scrollback.count;
+
+            if (screen_row >= 0 && screen_row < vtd->rows) {
+                for (int col = 0; col < vtd->cols && col < geo.width; col++) {
+                    pos.row = screen_row;
+                    pos.col = col;
+
+                    vterm_screen_get_cell(vtd->vts, pos, &cell);
+
+                    /* extract character (handling UTF-8) */
+                    if (cell.chars[0] == 0) {
+                        line_buf[buf_idx++] = ' ';
+                    } else {
+                        uint32_t c = cell.chars[0];
+                        if (c < 128) {
+                            line_buf[buf_idx++] = (char)c;
+                        } else {
+                            /* handle multi-byte UTF-8 */
+                            if (c < 0x80) {
+                                line_buf[buf_idx++] = c;
+                            } else if (c < 0x800) {
+                                line_buf[buf_idx++] = 0xC0 | (c >> 6);
+                                line_buf[buf_idx++] = 0x80 | (c & 0x3F);
+                            } else if (c < 0x10000) {
+                                line_buf[buf_idx++] = 0xE0 | (c >> 12);
+                                line_buf[buf_idx++] = 0x80 | ((c >> 6) & 0x3F);
+                                line_buf[buf_idx++] = 0x80 | (c & 0x3F);
+                            } else {
+                                line_buf[buf_idx++] = 0xF0 | (c >> 18);
+                                line_buf[buf_idx++] = 0x80 | ((c >> 12) & 0x3F);
+                                line_buf[buf_idx++] = 0x80 | ((c >> 6) & 0x3F);
+                                line_buf[buf_idx++] = 0x80 | (c & 0x3F);
+                            }
+                        }
                     }
                 }
             }
         }
 
         line_buf[buf_idx] = '\0';
-        int y = geo.y + row + shift_diff;
-        if (geo.y > y || y > geo.y + geo.height) continue;
+        int y = geo.y + viewport_row;
         Buffer_print_raw(&main_buf, y, geo.x, geo.width, line_buf, fg, bg);
     }
 }
