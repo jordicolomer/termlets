@@ -20,6 +20,7 @@ typedef struct vterm_terminal_data {
     int rows;
     int cols;
     int scrollback_size;
+    VTermScreenCallbacks callbacks;
 } vterm_terminal_data;
 
 void VTermTerminal_update(vterm_terminal_data *vtd)
@@ -58,12 +59,13 @@ int VTermTerminal_get_virtual_height(struct Window *wg)
     vterm_terminal_data *vtd = wg->data2;
 
     /* query scrollback from vterm */
-    VTermState *state = vterm_obtain_state(vtd->vt);
-    int scrollback_lines = 0;
+    //VTermState *state = vterm_obtain_state(vtd->vt);
+    //int scrollback_lines = 0;
+    //vtd->scrollback_size++;
 
     /* For now, return the screen rows + any scrollback buffer we maintain */
     /* libvterm's scrollback handling can be queried if needed */
-    return vtd->rows + scrollback_lines;
+    return vtd->rows + vtd->scrollback_size;
 }
 
 void VTermTerminal_draw(struct Window *wg, int hasFocus)
@@ -178,6 +180,22 @@ void vterm_send_sequence(struct Window *wg, const char *seq, int len)
         terminal->shift = 0;
 }
 
+static int cb_sb_pushline(int cols, const VTermScreenCell *cells, void *user)
+{
+    vterm_terminal_data *vtd = user;
+
+    vtd->scrollback_size++;
+    
+    /*LOG_INFO("[sb_pushline]\n");
+    LOG_INFO("  cols=%d\n", cols);
+
+    for (int i = 0; i < cols; i++) {
+        LOG_INFO("    cell[%d]=%c\n", i, cells[i].chars[0]);
+    }*/
+
+    return 1;
+}
+
 Window *VTermTerminal_window(Window *frame, int initial_rows, int initial_cols)
 {
     Window *terminal = malloc(sizeof *terminal);
@@ -198,6 +216,11 @@ Window *VTermTerminal_window(Window *frame, int initial_rows, int initial_cols)
     vtd->vt = vterm_new(vtd->rows, vtd->cols);
     vtd->vts = vterm_obtain_screen(vtd->vt);
 
+    vtd->callbacks.sb_pushline = cb_sb_pushline;
+    vtd->callbacks.sb_popline = NULL;
+
+    vterm_screen_set_callbacks(vtd->vts, &vtd->callbacks, vtd);
+
     vterm_screen_reset(vtd->vts, 1);
     vterm_screen_enable_altscreen(vtd->vts, 1);
 
@@ -214,7 +237,7 @@ Window *VTermTerminal_window(Window *frame, int initial_rows, int initial_cols)
     }
 
     vtd->terminal = terminal;
-    vtd->scrollback_size = 1000;
+    vtd->scrollback_size = 0;
 
     /* initial update */
     VTermTerminal_update(vtd);
