@@ -4,6 +4,7 @@
 #include "taskbar.h"
 #include "file_manager.h"
 #include "terminal.h"
+#include "vterm_terminal.h"
 
 int window_x = 5;
 int window_y = 3;
@@ -88,6 +89,23 @@ void terminal_mouse_down(struct Window *w, int x, int y){
 
 }
 
+void vterminal_mouse_down(struct Window *w, int x, int y){
+  Window *startMenu = w->data;
+  startMenu->hidden = 1;
+  open_menu = NULL;
+
+  Window *fm = VTermTerminal_new(window_x, -1, window_y, -1, 80, 30);
+  window_x += 10;
+  window_y += 3;
+  fm->parent = root;
+  fm->id = "Terminal";
+  focused = fm;
+  Window_append(root, fm);
+
+  Window *task = TaskBar_new_task("💻 vTerm", fm);
+  fm->data = task;
+
+}
 Window * TaskBar_new(){
   taskBar = malloc(sizeof *taskBar);
   Window_init(taskBar, 0, -1, -1, 0, -1, 1);
@@ -99,7 +117,7 @@ Window * TaskBar_new(){
   start->on_mouse_down = start_mouse_down;
 
   Window *startMenu = malloc(sizeof *startMenu);
-  Window_init(startMenu, 0, -1, -1, 1, 10, 2);
+  Window_init(startMenu, 0, -1, -1, 1, 10, 3);
   startMenu->hidden = 1;
   Window_append(root, startMenu);
   startMenu->id = "menu";
@@ -112,6 +130,10 @@ Window * TaskBar_new(){
   Window *terminal = Window_add_widget(startMenu, 0, -1, 1, -1, 16, 1, "💻 Terminal", 0, taskbar_color);
   terminal->on_mouse_down = terminal_mouse_down;
   terminal->data = startMenu;
+
+  Window *vterminal = Window_add_widget(startMenu, 0, -1, 2, -1, 16, 1, "💻 vTerm", 0, taskbar_color);
+  vterminal->on_mouse_down = vterminal_mouse_down;
+  vterminal->data = startMenu;
 
   //Window *tasks = Window_add_widget(taskBar, 20, -1, -1, 0, 9, 1, , 0, 105);
   

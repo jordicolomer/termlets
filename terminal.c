@@ -141,6 +141,13 @@ void Terminal_update(terminal_data *td){
                 continue;
             }
 
+            /* handle backspace */
+            /*if (c == '\b' || c == 127) {
+                if (td->incomplete_len > 0)
+                    td->incomplete_len--;
+                continue;
+            }*/
+
             if (td->incomplete_len < sizeof(td->incomplete_line) - 1)
                 td->incomplete_line[td->incomplete_len++] = c;
         }
