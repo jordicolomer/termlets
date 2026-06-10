@@ -12,6 +12,20 @@
 #include "logger.h"
 #include "slider.h"
 
+typedef struct ScrollbackLine {
+    VTermScreenCell *cells;
+    int cols;
+    struct ScrollbackLine *prev;
+    struct ScrollbackLine *next;
+} ScrollbackLine;
+
+typedef struct ScrollbackList {
+    ScrollbackLine *head;
+    ScrollbackLine *tail;
+    int count;
+    int max_size;
+} ScrollbackList;
+
 typedef struct vterm_terminal_data {
     int master;
     VTerm *vt;
@@ -19,9 +33,43 @@ typedef struct vterm_terminal_data {
     Window *terminal;
     int rows;
     int cols;
-    int scrollback_size;
+    ScrollbackList scrollback;
     VTermScreenCallbacks callbacks;
 } vterm_terminal_data;
+
+void scrollback_add_line(ScrollbackList *sb, int cols, const VTermScreenCell *cells)
+{
+    /* create new line node */
+    ScrollbackLine *line = malloc(sizeof(ScrollbackLine));
+    line->cols = cols;
+    line->cells = malloc(cols * sizeof(VTermScreenCell));
+    memcpy(line->cells, cells, cols * sizeof(VTermScreenCell));
+    line->next = NULL;
+    line->prev = sb->tail;
+
+    /* add to tail of list */
+    if (sb->tail) {
+        sb->tail->next = line;
+    } else {
+        sb->head = line;
+    }
+    sb->tail = line;
+    sb->count++;
+
+    /* remove oldest line if we exceed max size */
+    while (sb->count > sb->max_size && sb->head) {
+        ScrollbackLine *old = sb->head;
+        sb->head = old->next;
+        if (sb->head) {
+            sb->head->prev = NULL;
+        } else {
+            sb->tail = NULL;
+        }
+        free(old->cells);
+        free(old);
+        sb->count--;
+    }
+}
 
 void VTermTerminal_update(vterm_terminal_data *vtd)
 {
@@ -58,14 +106,8 @@ int VTermTerminal_get_virtual_height(struct Window *wg)
 {
     vterm_terminal_data *vtd = wg->data2;
 
-    /* query scrollback from vterm */
-    //VTermState *state = vterm_obtain_state(vtd->vt);
-    //int scrollback_lines = 0;
-    //vtd->scrollback_size++;
-
-    /* For now, return the screen rows + any scrollback buffer we maintain */
-    /* libvterm's scrollback handling can be queried if needed */
-    return vtd->rows + vtd->scrollback_size;
+    /* total virtual height = scrollback + visible screen */
+    return vtd->scrollback.count + vtd->rows;
 }
 
 void VTermTerminal_draw(struct Window *wg, int hasFocus)
@@ -184,8 +226,8 @@ static int cb_sb_pushline(int cols, const VTermScreenCell *cells, void *user)
 {
     vterm_terminal_data *vtd = user;
 
-    vtd->scrollback_size++;
-    
+    scrollback_add_line(&vtd->scrollback, cols, cells);
+
     /*LOG_INFO("[sb_pushline]\n");
     LOG_INFO("  cols=%d\n", cols);
 
@@ -213,6 +255,13 @@ Window *VTermTerminal_window(Window *frame, int initial_rows, int initial_cols)
     /* initialize libvterm */
     vtd->rows = initial_rows;
     vtd->cols = initial_cols;
+
+    /* initialize scrollback list */
+    vtd->scrollback.head = NULL;
+    vtd->scrollback.tail = NULL;
+    vtd->scrollback.count = 0;
+    vtd->scrollback.max_size = 1000;
+
     vtd->vt = vterm_new(vtd->rows, vtd->cols);
     vtd->vts = vterm_obtain_screen(vtd->vt);
 
@@ -237,7 +286,6 @@ Window *VTermTerminal_window(Window *frame, int initial_rows, int initial_cols)
     }
 
     vtd->terminal = terminal;
-    vtd->scrollback_size = 0;
 
     /* initial update */
     VTermTerminal_update(vtd);
