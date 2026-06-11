@@ -259,6 +259,13 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
                         VTermScreenCell *first_cell = &line->cells[col];
                         fg = vterm_color_to_256(first_cell->fg);
                         bg = vterm_color_to_256(first_cell->bg);
+
+                        /* handle reverse video attribute */
+                        if (first_cell->attrs.reverse) {
+                            int temp = fg;
+                            fg = bg;
+                            bg = temp;
+                        }
                     }
 
                     /* collect consecutive cells with same colors */
@@ -271,6 +278,13 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
                             VTermScreenCell *cell_ptr = &line->cells[col];
                             cell_fg = vterm_color_to_256(cell_ptr->fg);
                             cell_bg = vterm_color_to_256(cell_ptr->bg);
+
+                            /* handle reverse video attribute */
+                            if (cell_ptr->attrs.reverse) {
+                                int temp = cell_fg;
+                                cell_fg = cell_bg;
+                                cell_bg = temp;
+                            }
 
                             /* break batch if colors changed */
                             if (cell_fg != fg || cell_bg != bg) {
@@ -312,6 +326,13 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
                     int fg = vterm_color_to_256(cell.fg);
                     int bg = vterm_color_to_256(cell.bg);
 
+                    /* handle reverse video attribute */
+                    if (cell.attrs.reverse) {
+                        int temp = fg;
+                        fg = bg;
+                        bg = temp;
+                    }
+
                     /* collect consecutive cells with same colors */
                     int batch_start = col;
                     while (col < geo.width && col < vtd->cols) {
@@ -321,6 +342,13 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
 
                         int cell_fg = vterm_color_to_256(cell.fg);
                         int cell_bg = vterm_color_to_256(cell.bg);
+
+                        /* handle reverse video attribute */
+                        if (cell.attrs.reverse) {
+                            int temp = cell_fg;
+                            cell_fg = cell_bg;
+                            cell_bg = temp;
+                        }
 
                         /* break batch if colors changed */
                         if (cell_fg != fg || cell_bg != bg) {
