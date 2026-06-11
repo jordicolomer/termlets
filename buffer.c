@@ -168,7 +168,7 @@ void Buffer_print_raw(Buffer *buf, int y, int x, int width, char *s, int fg, int
     x_state = x;
   }
   int terminal_width = calculate_width(s);
-  printf(s);
+  printf("%s", s);
   for (int i = 0; i < width - terminal_width; i++)
     printf(" ");
   x_state += terminal_width;
@@ -185,7 +185,7 @@ void Buffer_print_raw_slow(Buffer *buf, int y, int x, int width, char *s, int fg
       printf(" ");
   }
   move_cursor(y, x);
-  printf(s);
+  printf("%s", s);
 }
 
 void Buffer_print(Buffer *buf, int y, int x, int width, char *s, int fg, int bg)
