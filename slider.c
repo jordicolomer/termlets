@@ -122,7 +122,7 @@ Window *slider_new(Window *fm){
   //Window_append(slider, fm);
   slider->on_hover = Slider_hover;
   slider->undo_on_hover = Slider_undo_hover;
-  slider->on_mouse_down = Slider_on_mouse_down;
+  //slider->on_mouse_down = Slider_on_mouse_down;
   slider->draw = Slider_draw;
 
   Slider_data *slider_data = (Slider_data *)malloc(sizeof(Slider_data));

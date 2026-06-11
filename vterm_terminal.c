@@ -112,16 +112,18 @@ int VTermTerminal_get_virtual_height(struct Window *wg)
 
 void VTermTerminal_draw(struct Window *wg, int hasFocus)
 {
+    //LOG_INFO("VTermTerminal_draw");
     vterm_terminal_data *vtd = wg->data2;
     Geometry geo = wg->calculated;
 
     /* resize vterm if window size changed */
     if (vtd->rows != geo.height || vtd->cols != geo.width) {
+        //LOG_INFO("resize");
         vtd->rows = geo.height;
         vtd->cols = geo.width;
         vterm_set_size(vtd->vt, vtd->rows, vtd->cols);
 
-        /* also update PTY size */
+        // also update PTY size
         struct winsize ws = {
             .ws_row = vtd->rows,
             .ws_col = vtd->cols,
@@ -151,20 +153,24 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
     /* calculate which virtual lines are visible */
     int first_visible_line = -terminal->shift;
     int last_visible_line = first_visible_line + geo.height - 1;
+    //LOG_INFO("VTermTerminal_draw %d", terminal->shift);
 
     /* render visible rows */
     for (int viewport_row = 0; viewport_row < geo.height; viewport_row++) {
+        //LOG_INFO("for %d", viewport_row);
         int virtual_line = first_visible_line + viewport_row;
 
         /* skip if outside virtual content bounds */
-        if (virtual_line < 0 || virtual_line >= virtual_height) {
+        /*if (virtual_line < 0 || virtual_line >= virtual_height) {
+            LOG_INFO("continue");
             continue;
-        }
+        }*/
 
         int buf_idx = 0;
 
         /* determine if this line is in scrollback or current screen */
         if (virtual_line < vtd->scrollback.count) {
+            //LOG_INFO("scrollback line");
             /* this is a scrollback line - find it in the linked list */
             ScrollbackLine *line = vtd->scrollback.head;
             for (int i = 0; i < virtual_line && line != NULL; i++) {
@@ -210,6 +216,7 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
         } else {
             /* this is a current screen line */
             int screen_row = virtual_line - vtd->scrollback.count;
+            //LOG_INFO("current screen %d %d", screen_row, virtual_line);
 
             if (screen_row >= 0 && screen_row < vtd->rows) {
                 for (int col = 0; col < vtd->cols && col < geo.width; col++) {
@@ -250,6 +257,7 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
 
         line_buf[buf_idx] = '\0';
         int y = geo.y + viewport_row;
+        //LOG_INFO("Buffer_print_raw %s", line_buf);
         Buffer_print_raw(&main_buf, y, geo.x, geo.width, line_buf, fg, bg);
     }
 }
