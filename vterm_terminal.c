@@ -110,6 +110,45 @@ int VTermTerminal_get_virtual_height(struct Window *wg)
     return vtd->scrollback.count + vtd->rows;
 }
 
+/* convert VTermColor to 256-color palette index */
+static int vterm_color_to_256(VTermColor color)
+{
+    /* if it's an indexed color, use it directly */
+    if (VTERM_COLOR_IS_INDEXED(&color)) {
+        return color.indexed.idx;
+    }
+
+    /* if it's RGB, convert to nearest 256-color */
+    if (VTERM_COLOR_IS_RGB(&color)) {
+        int r = color.rgb.red;
+        int g = color.rgb.green;
+        int b = color.rgb.blue;
+
+        /* check for grayscale (232-255) */
+        if (r == g && g == b) {
+            if (r < 8) return 16;  /* black */
+            if (r > 247) return 231;  /* white */
+            return 232 + (r - 8) / 10;
+        }
+
+        /* convert to 6x6x6 color cube (16-231) */
+        int ir = (r * 6) / 256;
+        int ig = (g * 6) / 256;
+        int ib = (b * 6) / 256;
+        return 16 + 36 * ir + 6 * ig + ib;
+    }
+
+    /* default colors */
+    if (VTERM_COLOR_IS_DEFAULT_FG(&color)) {
+        return 7;  /* default foreground */
+    }
+    if (VTERM_COLOR_IS_DEFAULT_BG(&color)) {
+        return 0;  /* default background */
+    }
+
+    return 7;  /* fallback */
+}
+
 void VTermTerminal_draw(struct Window *wg, int hasFocus)
 {
     //LOG_INFO("VTermTerminal_draw");
@@ -135,17 +174,16 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
 
     wg->virtual_height = VTermTerminal_get_virtual_height(wg);
 
-    int fg = 250;
-    int bg = 240;
+    int default_fg = 250;
+    int default_bg = 240;
     if (hasFocus) {
-        fg = 15;
-        bg = 0;
+        default_fg = 7;
+        default_bg = 0;
     }
 
     /* render each row from scrollback and vterm screen */
     VTermPos pos;
     VTermScreenCell cell;
-    char line_buf[4096];
 
     Window *terminal = vtd->terminal;
     int virtual_height = VTermTerminal_get_virtual_height(terminal);
@@ -166,7 +204,7 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
             continue;
         }*/
 
-        int buf_idx = 0;
+        int y = geo.y + viewport_row;
 
         /* determine if this line is in scrollback or current screen */
         if (virtual_line < vtd->scrollback.count) {
@@ -178,39 +216,75 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
             }
 
             if (line) {
-                /* render scrollback line */
-                for (int col = 0; col < line->cols && col < geo.width; col++) {
-                    VTermScreenCell *cell_ptr = &line->cells[col];
+                /* render scrollback line with color batching */
+                int col = 0;
+                while (col < geo.width) {
+                    char line_buf[4096];
+                    int buf_idx = 0;
 
-                    if (cell_ptr->chars[0] == 0) {
-                        line_buf[buf_idx++] = ' ';
-                    } else {
-                        uint32_t c = cell_ptr->chars[0];
-                        if (c < 128) {
-                            line_buf[buf_idx++] = (char)c;
-                        } else {
-                            /* handle multi-byte UTF-8 */
-                            if (c < 0x80) {
-                                line_buf[buf_idx++] = c;
-                            } else if (c < 0x800) {
-                                line_buf[buf_idx++] = 0xC0 | (c >> 6);
-                                line_buf[buf_idx++] = 0x80 | (c & 0x3F);
-                            } else if (c < 0x10000) {
-                                line_buf[buf_idx++] = 0xE0 | (c >> 12);
-                                line_buf[buf_idx++] = 0x80 | ((c >> 6) & 0x3F);
-                                line_buf[buf_idx++] = 0x80 | (c & 0x3F);
-                            } else {
-                                line_buf[buf_idx++] = 0xF0 | (c >> 18);
-                                line_buf[buf_idx++] = 0x80 | ((c >> 12) & 0x3F);
-                                line_buf[buf_idx++] = 0x80 | ((c >> 6) & 0x3F);
-                                line_buf[buf_idx++] = 0x80 | (c & 0x3F);
-                            }
-                        }
+                    /* get colors from first cell in batch */
+                    int fg = default_fg;
+                    int bg = default_bg;
+                    if (col < line->cols) {
+                        VTermScreenCell *first_cell = &line->cells[col];
+                        fg = vterm_color_to_256(first_cell->fg);
+                        bg = vterm_color_to_256(first_cell->bg);
                     }
-                }
-                /* pad remaining columns with spaces */
-                for (int col = line->cols; col < geo.width; col++) {
-                    line_buf[buf_idx++] = ' ';
+
+                    /* collect consecutive cells with same colors */
+                    int batch_start = col;
+                    while (col < geo.width) {
+                        int cell_fg = default_fg;
+                        int cell_bg = default_bg;
+
+                        if (col < line->cols) {
+                            VTermScreenCell *cell_ptr = &line->cells[col];
+                            cell_fg = vterm_color_to_256(cell_ptr->fg);
+                            cell_bg = vterm_color_to_256(cell_ptr->bg);
+
+                            /* break batch if colors changed */
+                            if (cell_fg != fg || cell_bg != bg) {
+                                break;
+                            }
+
+                            /* add character to buffer */
+                            if (cell_ptr->chars[0] == 0) {
+                                line_buf[buf_idx++] = ' ';
+                            } else {
+                                uint32_t c = cell_ptr->chars[0];
+                                if (c < 128) {
+                                    line_buf[buf_idx++] = (char)c;
+                                } else {
+                                    /* handle multi-byte UTF-8 */
+                                    if (c < 0x80) {
+                                        line_buf[buf_idx++] = c;
+                                    } else if (c < 0x800) {
+                                        line_buf[buf_idx++] = 0xC0 | (c >> 6);
+                                        line_buf[buf_idx++] = 0x80 | (c & 0x3F);
+                                    } else if (c < 0x10000) {
+                                        line_buf[buf_idx++] = 0xE0 | (c >> 12);
+                                        line_buf[buf_idx++] = 0x80 | ((c >> 6) & 0x3F);
+                                        line_buf[buf_idx++] = 0x80 | (c & 0x3F);
+                                    } else {
+                                        line_buf[buf_idx++] = 0xF0 | (c >> 18);
+                                        line_buf[buf_idx++] = 0x80 | ((c >> 12) & 0x3F);
+                                        line_buf[buf_idx++] = 0x80 | ((c >> 6) & 0x3F);
+                                        line_buf[buf_idx++] = 0x80 | (c & 0x3F);
+                                    }
+                                }
+                            }
+                        } else {
+                            /* past end of line, fill with spaces */
+                            line_buf[buf_idx++] = ' ';
+                        }
+
+                        col++;
+                    }
+
+                    /* render this batch */
+                    line_buf[buf_idx] = '\0';
+                    int batch_width = col - batch_start;
+                    Buffer_print_raw(&main_buf, y, geo.x + batch_start, batch_width, line_buf, fg, bg);
                 }
             }
         } else {
@@ -219,46 +293,71 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
             //LOG_INFO("current screen %d %d", screen_row, virtual_line);
 
             if (screen_row >= 0 && screen_row < vtd->rows) {
-                for (int col = 0; col < vtd->cols && col < geo.width; col++) {
+                /* render current screen line with color batching */
+                int col = 0;
+                while (col < geo.width) {
+                    char line_buf[4096];
+                    int buf_idx = 0;
+
+                    /* get colors from first cell in batch */
                     pos.row = screen_row;
                     pos.col = col;
-
                     vterm_screen_get_cell(vtd->vts, pos, &cell);
+                    int fg = vterm_color_to_256(cell.fg);
+                    int bg = vterm_color_to_256(cell.bg);
 
-                    /* extract character (handling UTF-8) */
-                    if (cell.chars[0] == 0) {
-                        line_buf[buf_idx++] = ' ';
-                    } else {
-                        uint32_t c = cell.chars[0];
-                        if (c < 128) {
-                            line_buf[buf_idx++] = (char)c;
+                    /* collect consecutive cells with same colors */
+                    int batch_start = col;
+                    while (col < geo.width && col < vtd->cols) {
+                        pos.row = screen_row;
+                        pos.col = col;
+                        vterm_screen_get_cell(vtd->vts, pos, &cell);
+
+                        int cell_fg = vterm_color_to_256(cell.fg);
+                        int cell_bg = vterm_color_to_256(cell.bg);
+
+                        /* break batch if colors changed */
+                        if (cell_fg != fg || cell_bg != bg) {
+                            break;
+                        }
+
+                        /* add character to buffer */
+                        if (cell.chars[0] == 0) {
+                            line_buf[buf_idx++] = ' ';
                         } else {
-                            /* handle multi-byte UTF-8 */
-                            if (c < 0x80) {
-                                line_buf[buf_idx++] = c;
-                            } else if (c < 0x800) {
-                                line_buf[buf_idx++] = 0xC0 | (c >> 6);
-                                line_buf[buf_idx++] = 0x80 | (c & 0x3F);
-                            } else if (c < 0x10000) {
-                                line_buf[buf_idx++] = 0xE0 | (c >> 12);
-                                line_buf[buf_idx++] = 0x80 | ((c >> 6) & 0x3F);
-                                line_buf[buf_idx++] = 0x80 | (c & 0x3F);
+                            uint32_t c = cell.chars[0];
+                            if (c < 128) {
+                                line_buf[buf_idx++] = (char)c;
                             } else {
-                                line_buf[buf_idx++] = 0xF0 | (c >> 18);
-                                line_buf[buf_idx++] = 0x80 | ((c >> 12) & 0x3F);
-                                line_buf[buf_idx++] = 0x80 | ((c >> 6) & 0x3F);
-                                line_buf[buf_idx++] = 0x80 | (c & 0x3F);
+                                /* handle multi-byte UTF-8 */
+                                if (c < 0x80) {
+                                    line_buf[buf_idx++] = c;
+                                } else if (c < 0x800) {
+                                    line_buf[buf_idx++] = 0xC0 | (c >> 6);
+                                    line_buf[buf_idx++] = 0x80 | (c & 0x3F);
+                                } else if (c < 0x10000) {
+                                    line_buf[buf_idx++] = 0xE0 | (c >> 12);
+                                    line_buf[buf_idx++] = 0x80 | ((c >> 6) & 0x3F);
+                                    line_buf[buf_idx++] = 0x80 | (c & 0x3F);
+                                } else {
+                                    line_buf[buf_idx++] = 0xF0 | (c >> 18);
+                                    line_buf[buf_idx++] = 0x80 | ((c >> 12) & 0x3F);
+                                    line_buf[buf_idx++] = 0x80 | ((c >> 6) & 0x3F);
+                                    line_buf[buf_idx++] = 0x80 | (c & 0x3F);
+                                }
                             }
                         }
+
+                        col++;
                     }
+
+                    /* render this batch */
+                    line_buf[buf_idx] = '\0';
+                    int batch_width = col - batch_start;
+                    Buffer_print_raw(&main_buf, y, geo.x + batch_start, batch_width, line_buf, fg, bg);
                 }
             }
         }
-
-        line_buf[buf_idx] = '\0';
-        int y = geo.y + viewport_row;
-        //LOG_INFO("Buffer_print_raw %s", line_buf);
-        Buffer_print_raw(&main_buf, y, geo.x, geo.width, line_buf, fg, bg);
     }
 }
 
