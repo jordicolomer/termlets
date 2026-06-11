@@ -326,7 +326,7 @@ void setup_crash_handler()
 
 int main()
 {
-  setup_crash_handler();
+  //setup_crash_handler();
   start();
   // test_buffer();
   // test_windows2();
