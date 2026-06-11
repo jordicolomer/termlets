@@ -102,7 +102,7 @@ void vterminal_mouse_down(struct Window *w, int x, int y){
   focused = fm;
   Window_append(root, fm);
 
-  Window *task = TaskBar_new_task("💻 vTerm", fm);
+  Window *task = TaskBar_new_task("💻 Terminal", fm);
   fm->data = task;
 
 }
@@ -117,7 +117,7 @@ Window * TaskBar_new(){
   start->on_mouse_down = start_mouse_down;
 
   Window *startMenu = malloc(sizeof *startMenu);
-  Window_init(startMenu, 0, -1, -1, 1, 10, 3);
+  Window_init(startMenu, 0, -1, -1, 1, 10, 2);
   startMenu->hidden = 1;
   Window_append(root, startMenu);
   startMenu->id = "menu";
@@ -127,11 +127,11 @@ Window * TaskBar_new(){
   file_manager->on_mouse_down = file_manager_mouse_down;
   file_manager->data = startMenu;
 
-  Window *terminal = Window_add_widget(startMenu, 0, -1, 1, -1, 16, 1, "💻 Terminal", 0, taskbar_color);
+  /*Window *terminal = Window_add_widget(startMenu, 0, -1, 1, -1, 16, 1, "💻 Terminal", 0, taskbar_color);
   terminal->on_mouse_down = terminal_mouse_down;
-  terminal->data = startMenu;
+  terminal->data = startMenu;*/
 
-  Window *vterminal = Window_add_widget(startMenu, 0, -1, 2, -1, 16, 1, "💻 vTerm", 0, taskbar_color);
+  Window *vterminal = Window_add_widget(startMenu, 0, -1, 1, -1, 16, 1, "💻 Terminal", 0, taskbar_color);
   vterminal->on_mouse_down = vterminal_mouse_down;
   vterminal->data = startMenu;
 
