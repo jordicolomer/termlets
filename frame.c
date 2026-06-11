@@ -43,7 +43,7 @@ void Widget_on_resize(Window *wg, int x, int y)
   dragging_offset_y = y - wg->parent->height;
 }
 
-Window *Frame_init(Window *w, int left, int right, int top, int bottom, int width, int height, Window *child)
+Window *Frame_init(Window *w, int left, int right, int top, int bottom, int width, int height, Window *child, int black_grip)
 {
   Window_init(w, left, right, top, bottom, width, height);
   Window_add_window_bar(w);
@@ -55,7 +55,13 @@ Window *Frame_init(Window *w, int left, int right, int top, int bottom, int widt
   }
   Window_append(w, child);
 
-  Window *resize_grip = Window_add_widget(w, -1, 0, -1, 0, 1, 1, "⌟", 232, 255);
+  int fg = 232;
+  int bg = 255;
+  if (black_grip){
+    fg = 255;
+    bg = 234;
+  }
+  Window *resize_grip = Window_add_widget(w, -1, 0, -1, 0, 1, 1, "⌟", fg, bg);
   resize_grip->on_mouse_down = Widget_on_resize;
 
   return child;

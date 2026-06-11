@@ -370,7 +370,7 @@ Window *VTermTerminal_window(Window *frame, int initial_rows, int initial_cols)
 Window *VTermTerminal_new(int left, int right, int top, int bottom, int width, int height)
 {
     Window *frame = malloc(sizeof *frame);
-    Window *w = Frame_init(frame, left, right, top, bottom, width, height, NULL);
+    Window *w = Frame_init(frame, left, right, top, bottom, width, height, NULL, 1);
 
     /* toolbar */
     int j = 0;
