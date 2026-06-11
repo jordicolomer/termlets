@@ -25,6 +25,7 @@ void on_mouse_down_close(Window *wg, int x, int y)
 void Window_add_window_bar(struct Window *w)
 {
   Window *wg = Window_add_widget(w, 0, 0, 0, -1, -1, 1, "", 255, WINDOW_BAR_COLOR);
+  wg->id = "window bar";
   wg->on_mouse_down = on_mouse_down_window_bar;
 
   Window *close = Window_add_widget(w, -1, 1, 0, -1, 1, 1, "X", 255, WINDOW_BAR_COLOR);

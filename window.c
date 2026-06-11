@@ -213,6 +213,24 @@ Window *Window_find_widget(struct Window *this, int x, int y)
   while (current != NULL)
   {
     int skip = 0;
+
+    /* Skip widgets that are outside parent's visible area (scrolled out of view) */
+    if (current->parent) {
+      Geometry parent_geo = current->parent->calculated;
+      Geometry child_geo = current->calculated;
+
+      /* Check if child is completely outside parent's bounds */
+      if (child_geo.y >= parent_geo.y + parent_geo.height) {
+        skip = 1; /* below parent's bottom */
+      }
+      if (child_geo.height == 1 && child_geo.y < parent_geo.y) {
+        skip = 1; /* single-line widget above parent's top */
+      }
+      if (child_geo.y + child_geo.height <= parent_geo.y) {
+        skip = 1; /* completely above parent's top */
+      }
+    }
+
     if (!skip) {
       Window *found = Window_find_widget(current, x, y);
       if (found != NULL)
