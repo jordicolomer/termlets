@@ -503,6 +503,59 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
             }
         }
     }
+
+    /* Render cursor if this terminal has focus */
+    if (hasFocus) {
+        VTermState *state = vterm_obtain_state(vtd->vt);
+        VTermPos cursor_pos;
+        vterm_state_get_cursorpos(state, &cursor_pos);
+
+        /* Convert cursor position from screen coordinates to viewport coordinates */
+        int cursor_virtual_line = vtd->scrollback.count + cursor_pos.row;
+        int cursor_viewport_row = cursor_virtual_line - first_visible_line;
+
+        /* Only draw cursor if it's visible in the viewport */
+        if (cursor_viewport_row >= 0 && cursor_viewport_row < geo.height &&
+            cursor_pos.col >= 0 && cursor_pos.col < geo.width) {
+            int cursor_y = geo.y + cursor_viewport_row;
+            int cursor_x = geo.x + cursor_pos.col;
+
+            /* Get the character at cursor position */
+            VTermScreenCell cell;
+            vterm_screen_get_cell(vtd->vts, cursor_pos, &cell);
+
+            int fg = vterm_color_to_256(cell.fg);
+            int bg = vterm_color_to_256(cell.bg);
+
+            /* Apply reverse video if already set */
+            if (cell.attrs.reverse) {
+                int temp = fg;
+                fg = bg;
+                bg = temp;
+            }
+
+            /* Render cursor - handle wide characters and continuation cells properly */
+            char cursor_char[8];
+            int cursor_width = 1;
+
+            if (cell.chars[0] == (uint32_t)-1) {
+                /* This is a continuation cell for a wide char, render space */
+                strcpy(cursor_char, " ");
+            } else if (cell.chars[0] == 0) {
+                /* Empty cell */
+                strcpy(cursor_char, " ");
+            } else {
+                /* Regular character - encode it */
+                int len = encode_utf8(cell.chars[0], cursor_char);
+                cursor_char[len] = '\0';
+                /* Use the cell width from libvterm */
+                cursor_width = cell.width > 0 ? cell.width : 1;
+            }
+
+            /* Render cursor with swapped colors (reverse video) */
+            Buffer_print_raw(&main_buf, cursor_y, cursor_x, cursor_width, cursor_char, bg, fg);
+        }
+    }
 }
 
 void vterm_send_key(struct Window *wg, char c)
