@@ -8,6 +8,7 @@
 
 int window_x = 5;
 int window_y = 3;
+int should_quit = 0;
 
 // start menu
 
@@ -106,6 +107,14 @@ void vterminal_mouse_down(struct Window *w, int x, int y){
   fm->data = task;
 
 }
+
+void quit_mouse_down(struct Window *w, int x, int y){
+  Window *startMenu = w->data;
+  startMenu->hidden = 1;
+  open_menu = NULL;
+  should_quit = 1;
+}
+
 Window * TaskBar_new(){
   taskBar = malloc(sizeof *taskBar);
   Window_init(taskBar, 0, -1, -1, 0, -1, 1);
@@ -117,7 +126,7 @@ Window * TaskBar_new(){
   start->on_mouse_down = start_mouse_down;
 
   Window *startMenu = malloc(sizeof *startMenu);
-  Window_init(startMenu, 0, -1, -1, 1, 10, 2);
+  Window_init(startMenu, 0, -1, -1, 1, 10, 3);
   startMenu->hidden = 1;
   Window_append(root, startMenu);
   startMenu->id = "menu";
@@ -134,6 +143,10 @@ Window * TaskBar_new(){
   Window *vterminal = Window_add_widget(startMenu, 0, -1, 1, -1, 16, 1, "💻 Terminal", 0, taskbar_color);
   vterminal->on_mouse_down = vterminal_mouse_down;
   vterminal->data = startMenu;
+
+  Window *quit = Window_add_widget(startMenu, 0, -1, 2, -1, 16, 1, "❌ Quit", 0, taskbar_color);
+  quit->on_mouse_down = quit_mouse_down;
+  quit->data = startMenu;
 
   //Window *tasks = Window_add_widget(taskBar, 20, -1, -1, 0, 9, 1, , 0, 105);
   

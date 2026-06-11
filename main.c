@@ -201,11 +201,12 @@ int start()
       continue;  /* timeout or error, check repaint flag again */
     }
 
+    /* Check if quit was requested from the menu */
+    if (should_quit)
+      break;
+
     char c;
     read(STDIN_FILENO, &c, 1);
-
-    if (c == 'q')
-      break;
 
     if (c != 27){
       if (focused != NULL) {
