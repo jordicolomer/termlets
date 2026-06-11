@@ -5,12 +5,24 @@
 #include <util.h>
 #include <sys/select.h>
 #include <sys/ioctl.h>
+#include <pthread.h>
 #include <vterm.h>
 #include "window.h"
 #include "frame.h"
 #include "buffer.h"
 #include "logger.h"
 #include "slider.h"
+
+/* Global state for PTY monitoring thread */
+static pthread_t pty_monitor_thread;
+static pthread_mutex_t terminals_mutex = PTHREAD_MUTEX_INITIALIZER;
+static int need_repaint = 0;
+static int thread_running = 0;
+
+/* List of all terminal instances */
+#define MAX_TERMINALS 32
+static struct vterm_terminal_data *active_terminals[MAX_TERMINALS];
+static int terminal_count = 0;
 
 typedef struct ScrollbackLine {
     VTermScreenCell *cells;
@@ -36,6 +48,9 @@ typedef struct vterm_terminal_data {
     ScrollbackList scrollback;
     VTermScreenCallbacks callbacks;
 } vterm_terminal_data;
+
+/* Forward declarations */
+int VTermTerminal_get_virtual_height(struct Window *wg);
 
 void scrollback_add_line(ScrollbackList *sb, int cols, const VTermScreenCell *cells)
 {
@@ -100,6 +115,125 @@ void VTermTerminal_update(vterm_terminal_data *vtd)
         /* feed data to libvterm */
         vterm_input_write(vtd->vt, buf, n);
     }
+}
+
+/* Register a terminal for monitoring */
+void register_terminal(vterm_terminal_data *vtd)
+{
+    pthread_mutex_lock(&terminals_mutex);
+    if (terminal_count < MAX_TERMINALS) {
+        active_terminals[terminal_count++] = vtd;
+    }
+    pthread_mutex_unlock(&terminals_mutex);
+}
+
+/* Unregister a terminal from monitoring */
+void unregister_terminal(vterm_terminal_data *vtd)
+{
+    pthread_mutex_lock(&terminals_mutex);
+    for (int i = 0; i < terminal_count; i++) {
+        if (active_terminals[i] == vtd) {
+            /* shift remaining terminals */
+            for (int j = i; j < terminal_count - 1; j++) {
+                active_terminals[j] = active_terminals[j + 1];
+            }
+            terminal_count--;
+            break;
+        }
+    }
+    pthread_mutex_unlock(&terminals_mutex);
+}
+
+/* Background thread that monitors all PTYs */
+void *pty_monitor_thread_func(void *arg)
+{
+    char buf[4096];
+
+    while (thread_running) {
+        fd_set fds;
+        FD_ZERO(&fds);
+        int max_fd = -1;
+
+        /* Build fd_set with all active terminal master FDs */
+        pthread_mutex_lock(&terminals_mutex);
+        for (int i = 0; i < terminal_count; i++) {
+            int fd = active_terminals[i]->master;
+            FD_SET(fd, &fds);
+            if (fd > max_fd) max_fd = fd;
+        }
+        pthread_mutex_unlock(&terminals_mutex);
+
+        if (max_fd < 0) {
+            /* No terminals, sleep briefly */
+            usleep(50000);  /* 50ms */
+            continue;
+        }
+
+        /* Wait for data with timeout */
+        struct timeval tv = {
+            .tv_sec = 0,
+            .tv_usec = 50000  /* 50ms timeout */
+        };
+
+        int ret = select(max_fd + 1, &fds, NULL, NULL, &tv);
+
+        if (ret > 0) {
+            /* Data available on one or more terminals */
+            pthread_mutex_lock(&terminals_mutex);
+            for (int i = 0; i < terminal_count; i++) {
+                vterm_terminal_data *vtd = active_terminals[i];
+
+                if (FD_ISSET(vtd->master, &fds)) {
+                    /* Read and process data from this terminal */
+                    int n = read(vtd->master, buf, sizeof(buf));
+                    if (n > 0) {
+                        vterm_input_write(vtd->vt, buf, n);
+
+                        /* Update scroll position to follow output */
+                        Window *terminal = vtd->terminal;
+                        terminal->shift = -(VTermTerminal_get_virtual_height(terminal) - terminal->calculated.height);
+                        if (terminal->shift > 0)
+                            terminal->shift = 0;
+
+                        /* Signal that repaint is needed */
+                        need_repaint = 1;
+                    }
+                }
+            }
+            pthread_mutex_unlock(&terminals_mutex);
+        }
+    }
+
+    return NULL;
+}
+
+/* Start the PTY monitoring thread */
+void start_pty_monitor_thread()
+{
+    if (!thread_running) {
+        thread_running = 1;
+        pthread_create(&pty_monitor_thread, NULL, pty_monitor_thread_func, NULL);
+    }
+}
+
+/* Stop the PTY monitoring thread */
+void stop_pty_monitor_thread()
+{
+    if (thread_running) {
+        thread_running = 0;
+        pthread_join(pty_monitor_thread, NULL);
+    }
+}
+
+/* Check if repaint is needed and clear the flag */
+int check_and_clear_repaint_flag()
+{
+    int result;
+    pthread_mutex_lock(&terminals_mutex);
+    result = need_repaint;
+    need_repaint = 0;
+    pthread_mutex_unlock(&terminals_mutex);
+    return result;
 }
 
 int VTermTerminal_get_virtual_height(struct Window *wg)
@@ -375,33 +509,16 @@ void vterm_send_key(struct Window *wg, char c)
 {
     vterm_terminal_data *vtd = wg->data2;
 
-    /* handle escape sequences for arrow keys and other special keys */
-    if (c == 27) {  /* ESC - this might be the start of an escape sequence */
-        /* For now, just pass through the ESC */
-        write(vtd->master, &c, 1);
-    } else {
-        write(vtd->master, &c, 1);
-    }
-
-    VTermTerminal_update(vtd);
-
-    Window *terminal = vtd->terminal;
-    terminal->shift = -(VTermTerminal_get_virtual_height(terminal) - terminal->calculated.height);
-    if (terminal->shift > 0)
-        terminal->shift = 0;
+    /* just write to the PTY, the monitoring thread will handle reading the response */
+    write(vtd->master, &c, 1);
 }
 
 void vterm_send_sequence(struct Window *wg, const char *seq, int len)
 {
     vterm_terminal_data *vtd = wg->data2;
+
+    /* just write to the PTY, the monitoring thread will handle reading the response */
     write(vtd->master, seq, len);
-
-    VTermTerminal_update(vtd);
-
-    Window *terminal = vtd->terminal;
-    terminal->shift = -(VTermTerminal_get_virtual_height(terminal) - terminal->calculated.height);
-    if (terminal->shift > 0)
-        terminal->shift = 0;
 }
 
 static int cb_sb_pushline(int cols, const VTermScreenCell *cells, void *user)
@@ -469,8 +586,11 @@ Window *VTermTerminal_window(Window *frame, int initial_rows, int initial_cols)
 
     vtd->terminal = terminal;
 
-    /* initial update */
-    VTermTerminal_update(vtd);
+    /* register this terminal for background monitoring */
+    register_terminal(vtd);
+
+    /* initial update to get the shell prompt */
+    usleep(100000);  /* wait 100ms for initial shell output */
     VTermTerminal_update(vtd);
 
     return terminal;

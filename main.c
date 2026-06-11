@@ -3,6 +3,7 @@
 #include <termios.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/select.h>
 #include "ansi_term.h"
 #include "logger.h"
 #include "buffer.h"
@@ -11,6 +12,7 @@
 #include "file_manager.h"
 #include "taskbar.h"
 #include "utils.h"
+#include "vterm_terminal.h"
 
 // TERMINAL
 
@@ -170,11 +172,35 @@ int start()
   //enter_alternate_screen();
   init();
 
+  /* Start the PTY monitoring thread */
+  start_pty_monitor_thread();
+
   int dragging = 0;
   repaint();
 
   while (1)
   {
+    /* Check if background thread signaled a repaint */
+    if (check_and_clear_repaint_flag()) {
+      repaint();
+    }
+
+    /* Use non-blocking read with timeout */
+    fd_set fds;
+    FD_ZERO(&fds);
+    FD_SET(STDIN_FILENO, &fds);
+
+    struct timeval tv = {
+      .tv_sec = 0,
+      .tv_usec = 16666  /* ~60fps */
+    };
+
+    int ret = select(STDIN_FILENO + 1, &fds, NULL, NULL, &tv);
+
+    if (ret <= 0) {
+      continue;  /* timeout or error, check repaint flag again */
+    }
+
     char c;
     read(STDIN_FILENO, &c, 1);
 
@@ -185,7 +211,7 @@ int start()
       if (focused != NULL) {
         if (focused->send_key != NULL){
           focused->send_key(focused, c);
-          repaint();
+          /* repaint will be triggered by PTY monitor thread */
         }
       }
     }
@@ -267,8 +293,11 @@ int start()
   disable_raw_mode();
 
    // Leave alternate screen
+  /* Stop the PTY monitoring thread */
+  stop_pty_monitor_thread();
+
   printf("\x1b[?1049l");
-  
+
   //set_color256(255, 0);
   //clear_screen();
 
