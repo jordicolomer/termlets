@@ -149,6 +149,36 @@ static int vterm_color_to_256(VTermColor color)
     return 7;  /* fallback */
 }
 
+/* Helper function to encode a unicode codepoint to UTF-8 */
+static int encode_utf8(uint32_t c, char *buf)
+{
+    if (c == 0) {
+        buf[0] = ' ';
+        return 1;
+    } else if (c == (uint32_t)-1) {
+        /* skip continuation cell for wide characters */
+        return 0;
+    } else if (c < 0x80) {
+        buf[0] = (char)c;
+        return 1;
+    } else if (c < 0x800) {
+        buf[0] = 0xC0 | (c >> 6);
+        buf[1] = 0x80 | (c & 0x3F);
+        return 2;
+    } else if (c < 0x10000) {
+        buf[0] = 0xE0 | (c >> 12);
+        buf[1] = 0x80 | ((c >> 6) & 0x3F);
+        buf[2] = 0x80 | (c & 0x3F);
+        return 3;
+    } else {
+        buf[0] = 0xF0 | (c >> 18);
+        buf[1] = 0x80 | ((c >> 12) & 0x3F);
+        buf[2] = 0x80 | ((c >> 6) & 0x3F);
+        buf[3] = 0x80 | (c & 0x3F);
+        return 4;
+    }
+}
+
 void VTermTerminal_draw(struct Window *wg, int hasFocus)
 {
     //LOG_INFO("VTermTerminal_draw");
@@ -248,33 +278,7 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
                             }
 
                             /* add character to buffer */
-                            if (cell_ptr->chars[0] == 0) {
-                                line_buf[buf_idx++] = ' ';
-                            } else if (cell_ptr->chars[0] == (uint32_t)-1) {
-                                /* skip continuation cell for wide characters */
-                            } else {
-                                uint32_t c = cell_ptr->chars[0];
-                                if (c < 128) {
-                                    line_buf[buf_idx++] = (char)c;
-                                } else {
-                                    /* handle multi-byte UTF-8 */
-                                    if (c < 0x80) {
-                                        line_buf[buf_idx++] = c;
-                                    } else if (c < 0x800) {
-                                        line_buf[buf_idx++] = 0xC0 | (c >> 6);
-                                        line_buf[buf_idx++] = 0x80 | (c & 0x3F);
-                                    } else if (c < 0x10000) {
-                                        line_buf[buf_idx++] = 0xE0 | (c >> 12);
-                                        line_buf[buf_idx++] = 0x80 | ((c >> 6) & 0x3F);
-                                        line_buf[buf_idx++] = 0x80 | (c & 0x3F);
-                                    } else {
-                                        line_buf[buf_idx++] = 0xF0 | (c >> 18);
-                                        line_buf[buf_idx++] = 0x80 | ((c >> 12) & 0x3F);
-                                        line_buf[buf_idx++] = 0x80 | ((c >> 6) & 0x3F);
-                                        line_buf[buf_idx++] = 0x80 | (c & 0x3F);
-                                    }
-                                }
-                            }
+                            buf_idx += encode_utf8(cell_ptr->chars[0], &line_buf[buf_idx]);
                         } else {
                             /* past end of line, fill with spaces */
                             line_buf[buf_idx++] = ' ';
@@ -324,33 +328,7 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
                         }
 
                         /* add character to buffer */
-                        if (cell.chars[0] == 0) {
-                            line_buf[buf_idx++] = ' ';
-                        } else if (cell.chars[0] == (uint32_t)-1) {
-                            /* skip continuation cell for wide characters */
-                        } else {
-                            uint32_t c = cell.chars[0];
-                            if (c < 128) {
-                                line_buf[buf_idx++] = (char)c;
-                            } else {
-                                /* handle multi-byte UTF-8 */
-                                if (c < 0x80) {
-                                    line_buf[buf_idx++] = c;
-                                } else if (c < 0x800) {
-                                    line_buf[buf_idx++] = 0xC0 | (c >> 6);
-                                    line_buf[buf_idx++] = 0x80 | (c & 0x3F);
-                                } else if (c < 0x10000) {
-                                    line_buf[buf_idx++] = 0xE0 | (c >> 12);
-                                    line_buf[buf_idx++] = 0x80 | ((c >> 6) & 0x3F);
-                                    line_buf[buf_idx++] = 0x80 | (c & 0x3F);
-                                } else {
-                                    line_buf[buf_idx++] = 0xF0 | (c >> 18);
-                                    line_buf[buf_idx++] = 0x80 | ((c >> 12) & 0x3F);
-                                    line_buf[buf_idx++] = 0x80 | ((c >> 6) & 0x3F);
-                                    line_buf[buf_idx++] = 0x80 | (c & 0x3F);
-                                }
-                            }
-                        }
+                        buf_idx += encode_utf8(cell.chars[0], &line_buf[buf_idx]);
 
                         col++;
                     }
