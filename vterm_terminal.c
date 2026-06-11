@@ -250,6 +250,8 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
                             /* add character to buffer */
                             if (cell_ptr->chars[0] == 0) {
                                 line_buf[buf_idx++] = ' ';
+                            } else if (cell_ptr->chars[0] == (uint32_t)-1) {
+                                /* skip continuation cell for wide characters */
                             } else {
                                 uint32_t c = cell_ptr->chars[0];
                                 if (c < 128) {
@@ -324,6 +326,8 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
                         /* add character to buffer */
                         if (cell.chars[0] == 0) {
                             line_buf[buf_idx++] = ' ';
+                        } else if (cell.chars[0] == (uint32_t)-1) {
+                            /* skip continuation cell for wide characters */
                         } else {
                             uint32_t c = cell.chars[0];
                             if (c < 128) {
