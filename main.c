@@ -225,8 +225,29 @@ int start()
       int i = 0;
 
       // read rest of escape sequence
-      while (i < 31 && read(STDIN_FILENO, &seq[i], 1) == 1)
+      while (i < 31)
       {
+        /* wait for more data with a short timeout */
+        fd_set read_fds;
+        FD_ZERO(&read_fds);
+        FD_SET(STDIN_FILENO, &read_fds);
+
+        struct timeval timeout = {
+          .tv_sec = 0,
+          .tv_usec = 100000  /* 100ms timeout for escape sequences */
+        };
+
+        int sel_ret = select(STDIN_FILENO + 1, &read_fds, NULL, NULL, &timeout);
+
+        if (sel_ret <= 0) {
+          /* timeout or error - no more data in escape sequence */
+          break;
+        }
+
+        if (read(STDIN_FILENO, &seq[i], 1) != 1) {
+          break;
+        }
+
         if (seq[i] == 'm' || seq[i] == 'M')
         {
           i++;

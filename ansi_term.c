@@ -45,7 +45,12 @@ void enable_raw_mode() {
   tcgetattr(STDIN_FILENO, &orig);
   struct termios raw = orig;
 
-  raw.c_lflag &= ~(ICANON | ECHO | ISIG);
+  /* disable input processing that could interfere with escape sequences */
+  raw.c_iflag &= ~(BRKINT | ICRNL | INPCK | ISTRIP | IXON);
+  /* disable output processing */
+  raw.c_oflag &= ~(OPOST);
+  /* disable canonical mode, echo, and signals */
+  raw.c_lflag &= ~(ICANON | ECHO | ISIG | IEXTEN);
   raw.c_cc[VMIN] = 1;
   raw.c_cc[VTIME] = 0;
 
