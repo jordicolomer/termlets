@@ -612,7 +612,7 @@ Window *VTermTerminal_window(Window *frame, int initial_rows, int initial_cols)
     vtd->scrollback.head = NULL;
     vtd->scrollback.tail = NULL;
     vtd->scrollback.count = 0;
-    vtd->scrollback.max_size = 1000;
+    vtd->scrollback.max_size = 1000000;
 
     vtd->vt = vterm_new(vtd->rows, vtd->cols);
     vtd->vts = vterm_obtain_screen(vtd->vt);
