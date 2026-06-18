@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include "tabs.h"
-#include "vterm_terminal.h"
-#include "slider.h"
+//#include "vterm_terminal.h"
+//#include "slider.h"
 
 void change_color_hover(Window *wg, int x, int y)
 {
@@ -20,31 +20,26 @@ void change_color_normal(Window *wg, int x, int y)
 typedef struct Tabs {
     Window *tabs;
     int x_offset;
-    Window* (*create_terminal)(void);
+    tab_create_callback callback;
 } Tabs;
 
 typedef struct Tab {
     Tabs * parent;
-    Window *terminal;
+    //Window *terminal;
     Window *slider;
 } Tab;
 
 void tab_clicked(Window *wg, int x, int y)
 {
     Tab *tab = (Tab *) wg->data;
-    tab->parent->tabs->focused = tab->terminal;
+    tab->parent->tabs->focused = tab->slider;
     Window_bring_to_bottom(tab->slider);
 }
 
 void tabs_new_tab(Tabs *self){
-    Window *terminal = self->create_terminal();
-    self->tabs->focused = terminal;
+    Window *slider = self->callback();
+    self->tabs->focused = slider;
 
-    Window *slider = slider_new(terminal);
-    slider->left = 0;
-    slider->right = 0;
-    slider->top = 1;
-    slider->bottom = 0;
     Window_append(self->tabs, slider);
 
     Window * tab = Window_add_widget(self->tabs, -1, -1, -1, -1, -1, -1, " ~ ", 232, 255);
@@ -56,7 +51,7 @@ void tabs_new_tab(Tabs *self){
 
     Tab *mytab = malloc(sizeof *mytab);
     mytab->parent = self;
-    mytab->terminal = terminal;
+    //mytab->terminal = terminal;
     mytab->slider = slider;
     tab->data = mytab;
 
@@ -85,7 +80,7 @@ Window *Tab_new(tab_create_callback callback){
 
     Tabs *mytab = malloc(sizeof *mytab);
     mytab->tabs = tabs;
-    mytab->create_terminal = callback;
+    mytab->callback = callback;
 
     Window * plus_button = Window_add_widget(tabs_bar, -1, -1, -1, -1, -1, -1, " + ", 232, 255);
     plus_button->left = mytab->x_offset;

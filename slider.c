@@ -152,5 +152,7 @@ Window *slider_new(Window *fm){
   slider_grip->set_top = Slider_set_top;
   slider_data->slider_grip = slider_grip;
 
+  fm_slider->focused = fm;
+
   return fm_slider;
 }

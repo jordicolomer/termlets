@@ -694,7 +694,14 @@ Window *VTermTerminal_window(int initial_rows, int initial_cols)
 
 
 Window *VTermTerminal_callback(){
-    return VTermTerminal_window(24, 80);
+    Window *terminal = VTermTerminal_window(24, 80);
+    Window *slider = slider_new(terminal);
+    slider->left = 0;
+    slider->right = 0;
+    slider->top = 1;
+    slider->bottom = 0;
+
+    return slider;
 }
 
 Window *VTermTerminal_new(int left, int right, int top, int bottom, int width, int height)
