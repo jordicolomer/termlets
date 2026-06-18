@@ -36,6 +36,10 @@ void tab_clicked(Window *wg, int x, int y)
 
 void tabs_new_tab(Tabs *self){
     Window *child = self->callback();
+    child->left = 0;
+    child->right = 0;
+    child->top = 1;
+    child->bottom = 0;
     self->tabs->focused = child;
 
     Window_append(self->tabs, child);
