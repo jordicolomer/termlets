@@ -19,7 +19,6 @@ void change_color_normal(Window *wg, int x, int y)
 
 typedef struct Tabs {
     Window *frame;
-    Window *w;
     Window *tabs;
     int x_offset;
 } Tabs;
@@ -44,9 +43,9 @@ void tabs_new_tab(Tabs *self){
     Window *slider = slider_new(terminal);
     slider->left = 0;
     slider->right = 0;
-    slider->top = 2;
+    slider->top = 1;
     slider->bottom = 0;
-    Window_append(self->w, slider);
+    Window_append(self->tabs, slider);
 
     Window * tab = Window_add_widget(self->tabs, -1, -1, -1, -1, -1, -1, " ~ ", 232, 255);
     tab->left = self->x_offset;
@@ -71,7 +70,7 @@ void tabs_plus_clicked(Window *wg, int x, int y)
     tabs_new_tab(mytab);
 }
 
-Window *Tab_new(Window *w){
+Window *Tab_new(){
     Window *tabs = malloc(sizeof *tabs);
     Window_init(tabs, -1, -1, -1, -1, -1, -1);
     tabs->id = "tabs";
@@ -85,7 +84,6 @@ Window *Tab_new(Window *w){
     Window_append(tabs, tabs_bar);
 
     Tabs *mytab = malloc(sizeof *mytab);
-    mytab->w = w;
     mytab->tabs = tabs;
 
     Window * plus_button = Window_add_widget(tabs_bar, -1, -1, -1, -1, -1, -1, " + ", 232, 255);

@@ -2,6 +2,6 @@
 #define TABS_H
 
 #include "window.h"
-Window *Tab_new(Window *w);
+Window *Tab_new();
 
 #endif
