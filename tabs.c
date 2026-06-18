@@ -1,7 +1,5 @@
 #include <stdlib.h>
 #include "tabs.h"
-//#include "vterm_terminal.h"
-//#include "slider.h"
 
 void change_color_hover(Window *wg, int x, int y)
 {
@@ -26,21 +24,21 @@ typedef struct Tabs {
 typedef struct Tab {
     Tabs * parent;
     //Window *terminal;
-    Window *slider;
+    Window *child;
 } Tab;
 
 void tab_clicked(Window *wg, int x, int y)
 {
     Tab *tab = (Tab *) wg->data;
-    tab->parent->tabs->focused = tab->slider;
-    Window_bring_to_bottom(tab->slider);
+    tab->parent->tabs->focused = tab->child;
+    Window_bring_to_bottom(tab->child);
 }
 
 void tabs_new_tab(Tabs *self){
-    Window *slider = self->callback();
-    self->tabs->focused = slider;
+    Window *child = self->callback();
+    self->tabs->focused = child;
 
-    Window_append(self->tabs, slider);
+    Window_append(self->tabs, child);
 
     Window * tab = Window_add_widget(self->tabs, -1, -1, -1, -1, -1, -1, " ~ ", 232, 255);
     tab->left = self->x_offset;
@@ -52,7 +50,7 @@ void tabs_new_tab(Tabs *self){
     Tab *mytab = malloc(sizeof *mytab);
     mytab->parent = self;
     //mytab->terminal = terminal;
-    mytab->slider = slider;
+    mytab->child = child;
     tab->data = mytab;
 
     self->x_offset += tab->width;
