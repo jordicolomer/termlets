@@ -705,23 +705,29 @@ void change_color_normal(Window *wg, int x, int y)
     wg->bg = 254;
 }
 
-typedef struct TabWindow {
+typedef struct Tabs {
     Window *frame;
     Window *w;
     Window *tabs;
     int x_offset;
-} TabWindow;
+} Tabs;
+
+typedef struct Tab {
+    Tabs * parent;
+    Window *terminal;
+    Window *slider;
+} Tab;
 
 void tab_clicked(Window *wg, int x, int y)
 {
-    TabWindow *self = (TabWindow *) wg->data;
-    Window *terminal = (Window *) wg->data2;
-    vterm_terminal_data *vtd = terminal->data2;
-    self->frame->data2 = vtd;
-    Window_bring_to_bottom(terminal);
+    Tab *tab = (Tab *) wg->data;
+    //Window *terminal = (Window *) wg->data2;
+    vterm_terminal_data *vtd = tab->terminal->data2;
+    tab->parent->frame->data2 = vtd;
+    Window_bring_to_bottom(tab->slider);
 }
 
-void tabs_new_tab(TabWindow *self){
+void tabs_new_tab(Tabs *self){
     Window *terminal = VTermTerminal_window(self->frame, 24, 80);
     vterm_terminal_data *vtd = terminal->data2;
     self->frame->data2 = vtd;
@@ -739,16 +745,23 @@ void tabs_new_tab(TabWindow *self){
     tab->top = 0;
     tab->height = 1;
     tab->width = 3;
-    tab->data = self;
-    tab->data2 = terminal;
+    //tab->data = self;
+    //tab->data2 = slider;
     tab->on_mouse_down = tab_clicked;
+
+    Tab *mytab = malloc(sizeof *mytab);
+    mytab->parent = self;
+    mytab->terminal = terminal;
+    mytab->slider = slider;
+    tab->data = mytab;
+
     self->x_offset += tab->width;
 
 }
 
 void tabs_plus_clicked(Window *wg, int x, int y)
 {
-    TabWindow *mytab = (TabWindow *) wg->data;
+    Tabs *mytab = (Tabs *) wg->data;
     tabs_new_tab(mytab);
 }
 
@@ -795,7 +808,7 @@ Window *VTermTerminal_new(int left, int right, int top, int bottom, int width, i
     Window_append(w, tabs);
 
     //x_offset = 0;
-    TabWindow *mytab = malloc(sizeof *mytab);
+    Tabs *mytab = malloc(sizeof *mytab);
     mytab->frame = frame;
     mytab->w = w;
     mytab->tabs = tabs;
@@ -828,7 +841,7 @@ Window *VTermTerminal_new(int left, int right, int top, int bottom, int width, i
     //plus_button->data2 = frame;
     plus_button->data = mytab;
     mytab->x_offset += plus_button->width;
-    
+
     tabs_new_tab(mytab);
 
     /*Window * fill = Window_add_widget(tabs, -1, -1, -1, -1, -1, -1, "", 232, 255);
