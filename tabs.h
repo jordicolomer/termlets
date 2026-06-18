@@ -2,6 +2,9 @@
 #define TABS_H
 
 #include "window.h"
-Window *Tab_new();
+
+typedef Window* (*tab_create_callback)(void);
+
+Window *Tab_new(tab_create_callback callback);
 
 #endif

@@ -18,9 +18,9 @@ void change_color_normal(Window *wg, int x, int y)
 }
 
 typedef struct Tabs {
-    Window *frame;
     Window *tabs;
     int x_offset;
+    Window* (*create_terminal)(void);
 } Tabs;
 
 typedef struct Tab {
@@ -37,7 +37,7 @@ void tab_clicked(Window *wg, int x, int y)
 }
 
 void tabs_new_tab(Tabs *self){
-    Window *terminal = VTermTerminal_window(24, 80);
+    Window *terminal = self->create_terminal();
     self->tabs->focused = terminal;
 
     Window *slider = slider_new(terminal);
@@ -70,7 +70,7 @@ void tabs_plus_clicked(Window *wg, int x, int y)
     tabs_new_tab(mytab);
 }
 
-Window *Tab_new(){
+Window *Tab_new(tab_create_callback callback){
     Window *tabs = malloc(sizeof *tabs);
     Window_init(tabs, -1, -1, -1, -1, -1, -1);
     tabs->id = "tabs";
@@ -85,6 +85,7 @@ Window *Tab_new(){
 
     Tabs *mytab = malloc(sizeof *mytab);
     mytab->tabs = tabs;
+    mytab->create_terminal = callback;
 
     Window * plus_button = Window_add_widget(tabs_bar, -1, -1, -1, -1, -1, -1, " + ", 232, 255);
     plus_button->left = mytab->x_offset;
