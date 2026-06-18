@@ -20,6 +20,7 @@ typedef struct Window
   struct Window *tail;
   struct Window *next;
   struct Window *prev;
+  struct Window *focused;
   // int x;
   // int y;
   int left;

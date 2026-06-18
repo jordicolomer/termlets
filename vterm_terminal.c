@@ -630,19 +630,19 @@ static int cb_sb_pushline(int cols, const VTermScreenCell *cells, void *user)
     return 1;
 }
 
-Window *VTermTerminal_window(Window *frame,int initial_rows, int initial_cols)
+Window *VTermTerminal_window(int initial_rows, int initial_cols)
 {
     Window *terminal = malloc(sizeof *terminal);
     Window_init(terminal, 0, 0, 0, 0, -1, -1);
     terminal->id = "vterm terminal window";
+    terminal->send_key = vterm_send_key;
+    terminal->send_sequence = vterm_send_sequence;
 
     terminal->draw = VTermTerminal_draw;
 
     vterm_terminal_data *vtd = malloc(sizeof *vtd);
     terminal->data2 = vtd;
-    frame->data2 = vtd;
-    frame->send_key = vterm_send_key;
-    frame->send_sequence = vterm_send_sequence;
+    //frame->data2 = vtd;
 
     /* initialize libvterm */
     vtd->rows = initial_rows;
@@ -722,13 +722,15 @@ void tab_clicked(Window *wg, int x, int y)
 {
     Tab *tab = (Tab *) wg->data;
     //Window *terminal = (Window *) wg->data2;
-    vterm_terminal_data *vtd = tab->terminal->data2;
-    tab->parent->frame->data2 = vtd;
+    //vterm_terminal_data *vtd = tab->terminal->data2;
+    //tab->parent->frame->data2 = vtd;
+    tab->parent->frame->focused = tab->terminal;
     Window_bring_to_bottom(tab->slider);
 }
 
 void tabs_new_tab(Tabs *self){
-    Window *terminal = VTermTerminal_window(self->frame, 24, 80);
+    Window *terminal = VTermTerminal_window(24, 80);
+    self->frame->focused = terminal;
     vterm_terminal_data *vtd = terminal->data2;
     self->frame->data2 = vtd;
 
@@ -769,8 +771,9 @@ void tabs_plus_clicked(Window *wg, int x, int y)
 Window *VTermTerminal_new(int left, int right, int top, int bottom, int width, int height)
 {
     Window *frame = malloc(sizeof *frame);
-
     Window *w = Frame_init(frame, left, right, top, bottom, width, height, NULL, 1);
+    //frame->send_key = vterm_send_key;
+    //frame->send_sequence = vterm_send_sequence;
 
     /* toolbar */
     int j = 0;
@@ -807,27 +810,10 @@ Window *VTermTerminal_new(int left, int right, int top, int bottom, int width, i
     tabs->height = 1;
     Window_append(w, tabs);
 
-    //x_offset = 0;
     Tabs *mytab = malloc(sizeof *mytab);
     mytab->frame = frame;
     mytab->w = w;
     mytab->tabs = tabs;
-
-    /*Window * tab = Window_add_widget(tabs, -1, -1, -1, -1, -1, -1, " ~ ", 232, 255);
-    tab->left = mytab->x_offset;
-    tab->top = 0;
-    tab->height = 1;
-    tab->width = 3;
-    mytab->x_offset += tab->width;
-    tab->on_mouse_down = tab_clicked;*/
-
-    /*Window * tab2 = Window_add_widget(tabs, -1, -1, -1, -1, -1, -1, " ~ ", 232, 255);
-    tab2->left = mytab->x_offset;
-    tab2->top = 0;
-    tab2->height = 1;
-    tab2->width = 3;
-    mytab->x_offset += tab2->width;
-    tab2->on_mouse_down = tab_clicked;*/
 
     Window * plus_button = Window_add_widget(tabs, -1, -1, -1, -1, -1, -1, " + ", 232, 255);
     plus_button->left = mytab->x_offset;
@@ -837,33 +823,10 @@ Window *VTermTerminal_new(int left, int right, int top, int bottom, int width, i
     plus_button->on_hover = change_color_hover;
     plus_button->undo_on_hover = change_color_normal;
     plus_button->on_mouse_down = tabs_plus_clicked;
-    //plus_button->data = w;
-    //plus_button->data2 = frame;
     plus_button->data = mytab;
     mytab->x_offset += plus_button->width;
 
     tabs_new_tab(mytab);
-
-    /*Window * fill = Window_add_widget(tabs, -1, -1, -1, -1, -1, -1, "", 232, 255);
-    fill->left = mytab->x_offset;
-    fill->right = 0;
-    fill->top = 0;
-    fill->bottom = 0;*/
-
-    //j++;
-
-    /* create terminal with initial size (will be resized on first draw) */
-    /*Window *terminal = VTermTerminal_window(frame, 24, 80);
-    //vterm_terminal_data *vtd = terminal->data2;
-    //frame->data2 = vtd;
-
-    /* create slider */
-    /*Window *slider = slider_new(terminal);
-    slider->left = 0;
-    slider->right = 0;
-    slider->top = 2;
-    slider->bottom = 0;
-    Window_append(w, slider);*/
 
     return frame;
 }

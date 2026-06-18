@@ -181,6 +181,9 @@ int start()
 
   while (1)
   {
+    Window *focused_cursor = focused;
+    if (focused_cursor != NULL) while (focused_cursor->focused != NULL) focused_cursor = focused_cursor->focused;
+
     /* Check if background thread signaled a repaint */
     if (check_and_clear_repaint_flag()) {
       repaint();
@@ -210,9 +213,9 @@ int start()
     read(STDIN_FILENO, &c, 1);
 
     if (c != 27){
-      if (focused != NULL) {
-        if (focused->send_key != NULL){
-          focused->send_key(focused, c);
+      if (focused_cursor != NULL) {
+        if (focused_cursor->send_key != NULL){
+          focused_cursor->send_key(focused_cursor, c);
           /* repaint will be triggered by PTY monitor thread */
         }
       }
@@ -298,13 +301,13 @@ int start()
       else
       {
         /* not a mouse event, probably arrow keys or other keyboard sequence */
-        if (focused != NULL && focused->send_sequence != NULL)
+        if (focused_cursor != NULL && focused_cursor->send_sequence != NULL)
         {
           /* construct full escape sequence */
           char full_seq[34];
           full_seq[0] = 27;  /* ESC */
           memcpy(full_seq + 1, seq, i);
-          focused->send_sequence(focused, full_seq, i + 1);
+          focused_cursor->send_sequence(focused_cursor, full_seq, i + 1);
           repaint();
         }
       }
