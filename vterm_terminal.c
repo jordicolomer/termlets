@@ -729,13 +729,13 @@ Window *VTermTerminal_new(int left, int right, int top, int bottom, int width, i
     j++;
 
     // tabs
-    Window *tabs = Tab_new(frame, w);
+    Window *tabs = Tab_new(w);
     tabs->top = 1;
     tabs->bottom = 0;
     tabs->left = 0;
     tabs->right = 0;
     Window_append(w, tabs);
-    w->focused = tabs;
+    frame->focused = tabs;
 
 
     return frame;
