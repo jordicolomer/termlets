@@ -693,7 +693,9 @@ Window *VTermTerminal_window(int initial_rows, int initial_cols)
 }
 
 
-
+Window *VTermTerminal_callback(){
+    return VTermTerminal_window(24, 80);
+}
 
 Window *VTermTerminal_new(int left, int right, int top, int bottom, int width, int height)
 {
