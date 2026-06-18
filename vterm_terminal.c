@@ -630,7 +630,7 @@ static int cb_sb_pushline(int cols, const VTermScreenCell *cells, void *user)
     return 1;
 }
 
-Window *VTermTerminal_window(Window *frame, int initial_rows, int initial_cols)
+Window *VTermTerminal_window(Window *frame,int initial_rows, int initial_cols)
 {
     Window *terminal = malloc(sizeof *terminal);
     Window_init(terminal, 0, 0, 0, 0, -1, -1);
@@ -691,9 +691,43 @@ Window *VTermTerminal_window(Window *frame, int initial_rows, int initial_cols)
     return terminal;
 }
 
+void change_color_hover(Window *wg, int x, int y)
+{
+    //LOG_INFO("change_color_hover");
+    wg->fg = 236;
+    wg->bg = 250;
+}
+
+void change_color_normal(Window *wg, int x, int y)
+{
+    //LOG_INFO("change_color_normal");
+    wg->fg = 232;
+    wg->bg = 254;
+}
+
+void tabs_plus_clicked(Window *wg, int x, int y)
+{
+    //LOG_INFO("tabs_plus_clicked");
+    Window *w = (Window *) wg->data;
+    Window *frame = (Window *) wg->data2;
+    //wg->fg = 232;
+    //wg->bg = 254;
+    Window *terminal = VTermTerminal_window(frame, 24, 80);
+    vterm_terminal_data *vtd = terminal->data2;
+    frame->data2 = vtd;
+
+    Window *slider = slider_new(terminal);
+    slider->left = 0;
+    slider->right = 0;
+    slider->top = 2;
+    slider->bottom = 0;
+    Window_append(w, slider);
+}
+
 Window *VTermTerminal_new(int left, int right, int top, int bottom, int width, int height)
 {
     Window *frame = malloc(sizeof *frame);
+
     Window *w = Frame_init(frame, left, right, top, bottom, width, height, NULL, 1);
 
     /* toolbar */
@@ -720,15 +754,55 @@ Window *VTermTerminal_new(int left, int right, int top, int bottom, int width, i
     widget_width = 10;
     Window_add_widget(w, x_offset, 0, j, -1, -1, 1, "❌ Delete", 232, 254);
     x_offset += widget_width;
+    j++;
+
+    // tabs
+    Window *tabs = malloc(sizeof *tabs);
+    Window_init(tabs, -1, -1, -1, -1, -1, -1);
+    tabs->left = 0;
+    tabs->right = 0;
+    tabs->top = j;
+    tabs->height = 1;
+    Window_append(w, tabs);
+
+    x_offset = 0;
+    Window * tab = Window_add_widget(tabs, -1, -1, -1, -1, -1, -1, " jordicolomer x", 232, 255);
+    tab->left = 0;
+    tab->top = 0;
+    tab->height = 1;
+    tab->width = 14;
+    x_offset += tab->width;
+
+    Window * plus_button = Window_add_widget(tabs, -1, -1, -1, -1, -1, -1, " + ", 232, 255);
+    plus_button->left = x_offset;
+    plus_button->top = 0;
+    plus_button->width = 3;
+    plus_button->height = 1;
+    plus_button->on_hover = change_color_hover;
+    plus_button->undo_on_hover = change_color_normal;
+    plus_button->on_mouse_down = tabs_plus_clicked;
+    plus_button->data = w;
+    plus_button->data2 = frame;
+    x_offset += plus_button->width;
+
+    Window * fill = Window_add_widget(tabs, -1, -1, -1, -1, -1, -1, "", 232, 255);
+    fill->left = x_offset;
+    fill->right = 0;
+    fill->top = 0;
+    fill->bottom = 0;
+
+    j++;
 
     /* create terminal with initial size (will be resized on first draw) */
     Window *terminal = VTermTerminal_window(frame, 24, 80);
+    //vterm_terminal_data *vtd = terminal->data2;
+    //frame->data2 = vtd;
 
     /* create slider */
     Window *slider = slider_new(terminal);
     slider->left = 0;
     slider->right = 0;
-    slider->top = 1;
+    slider->top = 2;
     slider->bottom = 0;
     Window_append(w, slider);
 

@@ -109,6 +109,7 @@ void on_drag(int x, int y)
   {
     Geometry rect = {0, 0, root->width, root->height};
     Window *wg = Window_find_widget(root, x, y);
+    //LOG_INFO("Window_find_widget: %p id: %s", wg, wg->id);
     if (wg != NULL && wg->on_hover != NULL)
     {
       hovering = wg;
