@@ -33,9 +33,6 @@ typedef struct Tab {
 void tab_clicked(Window *wg, int x, int y)
 {
     Tab *tab = (Tab *) wg->data;
-    //Window *terminal = (Window *) wg->data2;
-    //vterm_terminal_data *vtd = tab->terminal->data2;
-    //tab->parent->frame->data2 = vtd;
     tab->parent->frame->focused = tab->terminal;
     Window_bring_to_bottom(tab->slider);
 }
@@ -43,8 +40,6 @@ void tab_clicked(Window *wg, int x, int y)
 void tabs_new_tab(Tabs *self){
     Window *terminal = VTermTerminal_window(24, 80);
     self->frame->focused = terminal;
-    //vterm_terminal_data *vtd = terminal->data2;
-    //self->frame->data2 = vtd;
 
     Window *slider = slider_new(terminal);
     slider->left = 0;
@@ -55,12 +50,9 @@ void tabs_new_tab(Tabs *self){
 
     Window * tab = Window_add_widget(self->tabs, -1, -1, -1, -1, -1, -1, " ~ ", 232, 255);
     tab->left = self->x_offset;
-    //tab->left = 10;
     tab->top = 0;
     tab->height = 1;
     tab->width = 3;
-    //tab->data = self;
-    //tab->data2 = slider;
     tab->on_mouse_down = tab_clicked;
 
     Tab *mytab = malloc(sizeof *mytab);

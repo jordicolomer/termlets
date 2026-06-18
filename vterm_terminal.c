@@ -734,8 +734,8 @@ Window *VTermTerminal_new(int left, int right, int top, int bottom, int width, i
     tabs->bottom = 0;
     tabs->left = 0;
     tabs->right = 0;
-
     Window_append(w, tabs);
+    w->focused = tabs;
 
 
     return frame;
