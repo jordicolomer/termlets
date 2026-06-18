@@ -705,24 +705,53 @@ void change_color_normal(Window *wg, int x, int y)
     wg->bg = 254;
 }
 
-void tabs_plus_clicked(Window *wg, int x, int y)
+typedef struct TabWindow {
+    Window *frame;
+    Window *w;
+    Window *tabs;
+    int x_offset;
+} TabWindow;
+
+void tab_clicked(Window *wg, int x, int y)
 {
-    //LOG_INFO("tabs_plus_clicked");
-    Window *w = (Window *) wg->data;
-    Window *frame = (Window *) wg->data2;
-    //wg->fg = 232;
-    //wg->bg = 254;
-    Window *terminal = VTermTerminal_window(frame, 24, 80);
+    TabWindow *self = (TabWindow *) wg->data;
+    Window *terminal = (Window *) wg->data2;
     vterm_terminal_data *vtd = terminal->data2;
-    frame->data2 = vtd;
+    self->frame->data2 = vtd;
+    Window_bring_to_bottom(terminal);
+}
+
+void tabs_new_tab(TabWindow *self){
+    Window *terminal = VTermTerminal_window(self->frame, 24, 80);
+    vterm_terminal_data *vtd = terminal->data2;
+    self->frame->data2 = vtd;
 
     Window *slider = slider_new(terminal);
     slider->left = 0;
     slider->right = 0;
     slider->top = 2;
     slider->bottom = 0;
-    Window_append(w, slider);
+    Window_append(self->w, slider);
+
+    Window * tab = Window_add_widget(self->tabs, -1, -1, -1, -1, -1, -1, " ~ ", 232, 255);
+    tab->left = self->x_offset;
+    //tab->left = 10;
+    tab->top = 0;
+    tab->height = 1;
+    tab->width = 3;
+    tab->data = self;
+    tab->data2 = terminal;
+    tab->on_mouse_down = tab_clicked;
+    self->x_offset += tab->width;
+
 }
+
+void tabs_plus_clicked(Window *wg, int x, int y)
+{
+    TabWindow *mytab = (TabWindow *) wg->data;
+    tabs_new_tab(mytab);
+}
+
 
 Window *VTermTerminal_new(int left, int right, int top, int bottom, int width, int height)
 {
@@ -765,46 +794,63 @@ Window *VTermTerminal_new(int left, int right, int top, int bottom, int width, i
     tabs->height = 1;
     Window_append(w, tabs);
 
-    x_offset = 0;
-    Window * tab = Window_add_widget(tabs, -1, -1, -1, -1, -1, -1, " jordicolomer x", 232, 255);
-    tab->left = 0;
+    //x_offset = 0;
+    TabWindow *mytab = malloc(sizeof *mytab);
+    mytab->frame = frame;
+    mytab->w = w;
+    mytab->tabs = tabs;
+
+    /*Window * tab = Window_add_widget(tabs, -1, -1, -1, -1, -1, -1, " ~ ", 232, 255);
+    tab->left = mytab->x_offset;
     tab->top = 0;
     tab->height = 1;
-    tab->width = 14;
-    x_offset += tab->width;
+    tab->width = 3;
+    mytab->x_offset += tab->width;
+    tab->on_mouse_down = tab_clicked;*/
+
+    /*Window * tab2 = Window_add_widget(tabs, -1, -1, -1, -1, -1, -1, " ~ ", 232, 255);
+    tab2->left = mytab->x_offset;
+    tab2->top = 0;
+    tab2->height = 1;
+    tab2->width = 3;
+    mytab->x_offset += tab2->width;
+    tab2->on_mouse_down = tab_clicked;*/
 
     Window * plus_button = Window_add_widget(tabs, -1, -1, -1, -1, -1, -1, " + ", 232, 255);
-    plus_button->left = x_offset;
+    plus_button->left = mytab->x_offset;
     plus_button->top = 0;
     plus_button->width = 3;
     plus_button->height = 1;
     plus_button->on_hover = change_color_hover;
     plus_button->undo_on_hover = change_color_normal;
     plus_button->on_mouse_down = tabs_plus_clicked;
-    plus_button->data = w;
-    plus_button->data2 = frame;
-    x_offset += plus_button->width;
+    //plus_button->data = w;
+    //plus_button->data2 = frame;
+    plus_button->data = mytab;
+    mytab->x_offset += plus_button->width;
+    
+    tabs_new_tab(mytab);
 
-    Window * fill = Window_add_widget(tabs, -1, -1, -1, -1, -1, -1, "", 232, 255);
-    fill->left = x_offset;
+    /*Window * fill = Window_add_widget(tabs, -1, -1, -1, -1, -1, -1, "", 232, 255);
+    fill->left = mytab->x_offset;
     fill->right = 0;
     fill->top = 0;
-    fill->bottom = 0;
+    fill->bottom = 0;*/
 
-    j++;
+    //j++;
 
     /* create terminal with initial size (will be resized on first draw) */
-    Window *terminal = VTermTerminal_window(frame, 24, 80);
+    /*Window *terminal = VTermTerminal_window(frame, 24, 80);
     //vterm_terminal_data *vtd = terminal->data2;
     //frame->data2 = vtd;
 
     /* create slider */
-    Window *slider = slider_new(terminal);
+    /*Window *slider = slider_new(terminal);
     slider->left = 0;
     slider->right = 0;
     slider->top = 2;
     slider->bottom = 0;
-    Window_append(w, slider);
+    Window_append(w, slider);*/
 
     return frame;
 }
