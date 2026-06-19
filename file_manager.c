@@ -30,15 +30,14 @@ void item_clicked(Window *wg, int x, int y)
     FileExplorer_list_files(self, dire);
 }
 
-/*typedef struct Item {
-    Window *file_list;
-    char * dire;
-    char str[20];
-} Item;*/
-
 Window *FileExplorer_list_files(Window * self, char * dire){
   LOG_INFO("FileExplorer_list_files: %p %s", self, dire);
   Window *fm = self->data;
+
+  // todo: clean properly
+  fm->head = NULL;
+  fm->tail = NULL;
+
   int j = 0;
   DIR *dir;
   struct dirent *entry;
