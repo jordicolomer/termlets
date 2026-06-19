@@ -20,6 +20,81 @@ int ends_with(const char *str, const char *suffix)
   return strcmp(str + (len_str - len_suf), suffix) == 0;
 }
 
+Window *FileExplorer_file_list(){
+  Window *w = malloc(sizeof *w);
+  Window_init(w, -1, -1, -1, -1, -1, -1);
+  w->id = "file list";
+  int j = 0;
+
+  // favorites
+  int start_j = 0;
+  int fav_width = 22;
+  Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, " Favorites", 255, 245);
+  Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, " 🏠 Home", 232, 254);
+  Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, " 📥 Downloads", 232, 254);
+  Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, " 📄 Documents", 232, 254);
+  Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, " 📷 Pictures", 232, 254);
+  Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, " 🎵 Music", 232, 254);
+  Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, " 🎬 Movies", 232, 254);
+  Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, "", 232, 254);
+  Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, " Locations", 255, 245);
+  Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, " 💻 Root", 232, 254);
+  Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, " 👥 Users", 232, 254);
+  while (j <= 200)
+    Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, "", 232, 255);
+    
+  Window *fm = malloc(sizeof *fm);
+  Window_init(fm, 0, 0, 0, 0, -1, -1);
+
+  j = 0;
+  DIR *dir;
+  struct dirent *entry;
+
+  dir = opendir("/Users/jordicolomer"); // current directory
+
+  if (dir == NULL)
+  {
+    perror("opendir");
+    return NULL;
+  }
+
+  // int x = 0;
+  while ((entry = readdir(dir)) != NULL)
+  {
+    char *icon = "📄";
+    if (entry->d_type == DT_DIR)
+    {
+      icon = "📁";
+    }
+    /*if (ends_with(entry->d_name, ".png"))
+    {
+      icon = "🖼️";
+    }*/
+    if (ends_with(entry->d_name, ".pdf"))
+    {
+      icon = "📖";
+    }
+    char *str = NULL;
+    // memory leak here
+    int len = asprintf(&str, "%s %s", icon, entry->d_name);
+    // Window_add_widget(w, fav_width, 0, j++, -1, -1, 1, str, 232, 255);
+    Window_add_widget(fm, 0, 0, j++, -1, -1, 1, str, 232, 255);
+    // if (height < j) break;
+    // mvwprintw(win, x++, 1, "%s %s", icon, entry->d_name);
+  }
+
+  closedir(dir);
+
+
+  Window * fm_slider = slider_new(fm);
+  fm_slider->left = fav_width;
+  fm_slider->right = 0;
+  fm_slider->top = 0;
+  fm_slider->bottom = 0;
+  Window_append(w, fm_slider);
+
+  return w;
+}
 
 Window *FileExplorer_new(int left, int right, int top, int bottom, int width, int height)
 {
@@ -94,74 +169,13 @@ Window *FileExplorer_new(int left, int right, int top, int bottom, int width, in
   Window_add_widget(w, 0, 0, j, -1, -1, 1, " 📁 /Users/jordicolomer", 232, 255);
   j++;
 
-  // favorites
-  int start_j = j;
-  int fav_width = 22;
-  Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, " Favorites", 255, 245);
-  Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, " 🏠 Home", 232, 254);
-  Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, " 📥 Downloads", 232, 254);
-  Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, " 📄 Documents", 232, 254);
-  Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, " 📷 Pictures", 232, 254);
-  Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, " 🎵 Music", 232, 254);
-  Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, " 🎬 Movies", 232, 254);
-  Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, "", 232, 254);
-  Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, " Locations", 255, 245);
-  Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, " 💻 Root", 232, 254);
-  Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, " 👥 Users", 232, 254);
-  while (j <= 200)
-    Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, "", 232, 255);
-
   // list files
-
-  Window *fm = malloc(sizeof *fm);
-  Window_init(fm, 0, 0, 0, 0, -1, -1);
-
-  j = 0;
-  DIR *dir;
-  struct dirent *entry;
-
-  dir = opendir("/Users/jordicolomer"); // current directory
-
-  if (dir == NULL)
-  {
-    perror("opendir");
-    return NULL;
-  }
-
-  // int x = 0;
-  while ((entry = readdir(dir)) != NULL)
-  {
-    char *icon = "📄";
-    if (entry->d_type == DT_DIR)
-    {
-      icon = "📁";
-    }
-    /*if (ends_with(entry->d_name, ".png"))
-    {
-      icon = "🖼️";
-    }*/
-    if (ends_with(entry->d_name, ".pdf"))
-    {
-      icon = "📖";
-    }
-    char *str = NULL;
-    // memory leak here
-    int len = asprintf(&str, "%s %s", icon, entry->d_name);
-    // Window_add_widget(w, fav_width, 0, j++, -1, -1, 1, str, 232, 255);
-    Window_add_widget(fm, 0, 0, j++, -1, -1, 1, str, 232, 255);
-    // if (height < j) break;
-    // mvwprintw(win, x++, 1, "%s %s", icon, entry->d_name);
-  }
-
-  closedir(dir);
-
-
-  Window * fm_slider = slider_new(fm);
-  fm_slider->left = fav_width;
-  fm_slider->right = 0;
-  fm_slider->top = 4;
-  fm_slider->bottom = 0;
-  Window_append(w, fm_slider);
+  Window * lf = FileExplorer_file_list();
+  lf->left = 0;
+  lf->right = 0;
+  lf->top = j;
+  lf->bottom = 0;
+  Window_append(w, lf);
 
   return frame;
 }
