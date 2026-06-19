@@ -6,6 +6,7 @@
 #include "frame.h"
 #include "slider.h"
 #include "file_manager.h"
+#include "tabs.h"
 
 int ends_with(const char *str, const char *suffix)
 {
@@ -25,6 +26,9 @@ Window *FileExplorer_file_list(){
   Window_init(w, -1, -1, -1, -1, -1, -1);
   w->id = "file list";
   int j = 0;
+
+  Window_add_widget(w, 0, 0, j, -1, -1, 1, " 📁 /Users/jordicolomer", 232, 255);
+  j++;
 
   // favorites
   int start_j = 0;
@@ -89,7 +93,7 @@ Window *FileExplorer_file_list(){
   Window * fm_slider = slider_new(fm);
   fm_slider->left = fav_width;
   fm_slider->right = 0;
-  fm_slider->top = 0;
+  fm_slider->top = 1;
   fm_slider->bottom = 0;
   Window_append(w, fm_slider);
 
@@ -155,7 +159,7 @@ Window *FileExplorer_new(int left, int right, int top, int bottom, int width, in
 
   // Widget* Window_add_widget(Window* w, int left, int right, int top, int bottom, int width, int height, char * c, int fg, int bg){
   //  tabs
-  x_offset = 0;
+  /*x_offset = 0;
   widget_width = 14;
   Window_add_widget(w, x_offset, -1, j, -1, widget_width, 1, " jordicolomer x", 232, 255);
   x_offset += widget_width;
@@ -163,19 +167,26 @@ Window *FileExplorer_new(int left, int right, int top, int bottom, int width, in
   Window_add_widget(w, x_offset, 0, j, 1, -1, 1, " + ", 232, 255);
   x_offset += widget_width;
   // Window_add_widget(w, 0, j, width, 1, "", BLACK, WHITE_BG);
-  j++;
+  j++;*/
 
   // address bar
-  Window_add_widget(w, 0, 0, j, -1, -1, 1, " 📁 /Users/jordicolomer", 232, 255);
-  j++;
 
   // list files
-  Window * lf = FileExplorer_file_list();
+  /*Window * lf = FileExplorer_file_list();
   lf->left = 0;
   lf->right = 0;
   lf->top = j;
   lf->bottom = 0;
-  Window_append(w, lf);
+  Window_append(w, lf);*/
+
+  Window *tabs = Tab_new(FileExplorer_file_list);
+  tabs->top = j;
+  tabs->bottom = 0;
+  tabs->left = 0;
+  tabs->right = 0;
+  Window_append(w, tabs);
+  frame->focused = tabs;
+
 
   return frame;
 }
