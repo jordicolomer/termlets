@@ -112,11 +112,11 @@ Window *slider_new(Window *fm){
   Window *slider = malloc(sizeof *slider);
   //Window_init(slider, -1, 0, 0, 0, 2, -1);
   Window_init(slider, -1, -1, -1, -1, -1, -1);
-  slider->left = 0;
+  slider->left = -1;
   slider->right = 0;
   slider->top = 0;
   slider->bottom = 0;
-  //slider->width = 2;
+  slider->width = 2;
   slider->id = "slider";
   Window_append(fm_slider, slider);
   //Window_append(slider, fm);

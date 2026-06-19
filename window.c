@@ -219,17 +219,20 @@ Window *Window_find_widget(struct Window *this, int x, int y)
       Geometry parent_geo = current->parent->calculated;
       Geometry child_geo = current->calculated;
 
-      /* Check if child is completely outside parent's bounds */
+      // Check if child is completely outside parent's bounds
       if (child_geo.y >= parent_geo.y + parent_geo.height) {
-        skip = 1; /* below parent's bottom */
+        skip = 1; // below parent's bottom
       }
       if (child_geo.height == 1 && child_geo.y < parent_geo.y) {
-        skip = 1; /* single-line widget above parent's top */
+        skip = 1; // single-line widget above parent's top
       }
       if (child_geo.y + child_geo.height <= parent_geo.y) {
-        skip = 1; /* completely above parent's top */
+        skip = 1; // completely above parent's top
       }
     }
+
+    //if (strcmp(this->id, "slider") == 0) LOG_INFO("slider: %d", skip);
+    //LOG_INFO("wskip: %s %d", this->id, skip);
 
     if (!skip) {
       Window *found = Window_find_widget(current, x, y);

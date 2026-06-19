@@ -26,7 +26,7 @@ int ends_with(const char *str, const char *suffix)
 void item_clicked(Window *wg, int x, int y)
 {
     Window * self = wg->data;
-    char * dire = wg->data;
+    char * dire = wg->data2;
     FileExplorer_list_files(self, dire);
 }
 
@@ -78,6 +78,7 @@ Window *FileExplorer_list_files(Window * self, char * dire){
     char *full_path = NULL;
     len = asprintf(&full_path, "%s/%s", dire, entry->d_name);
     item->data2 = full_path;
+    //LOG_INFO("full_path: %s", full_path);
     // if (height < j) break;
     // mvwprintw(win, x++, 1, "%s %s", icon, entry->d_name);
   }
