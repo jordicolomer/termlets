@@ -7,6 +7,7 @@
 #include "slider.h"
 #include "file_manager.h"
 #include "tabs.h"
+#include "logger.h"
 
 int ends_with(const char *str, const char *suffix)
 {
@@ -19,6 +20,69 @@ int ends_with(const char *str, const char *suffix)
   }
 
   return strcmp(str + (len_str - len_suf), suffix) == 0;
+}
+
+
+void item_clicked(Window *wg, int x, int y)
+{
+    Window * self = wg->data;
+    char * dire = wg->data;
+    FileExplorer_list_files(self, dire);
+}
+
+/*typedef struct Item {
+    Window *file_list;
+    char * dire;
+    char str[20];
+} Item;*/
+
+Window *FileExplorer_list_files(Window * self, char * dire){
+  LOG_INFO("FileExplorer_list_files: %p %s", self, dire);
+  Window *fm = self->data;
+  int j = 0;
+  DIR *dir;
+  struct dirent *entry;
+
+  dir = opendir(dire); // current directory
+
+  if (dir == NULL)
+  {
+    perror("opendir");
+    return NULL;
+  }
+
+  // int x = 0;
+  while ((entry = readdir(dir)) != NULL)
+  {
+    char *icon = "📄";
+    if (entry->d_type == DT_DIR)
+    {
+      icon = "📁";
+    }
+    /*if (ends_with(entry->d_name, ".png"))
+    {
+      icon = "🖼️";
+    }*/
+    if (ends_with(entry->d_name, ".pdf"))
+    {
+      icon = "📖";
+    }
+    char *str = NULL;
+    // memory leak here
+    int len = asprintf(&str, "%s %s", icon, entry->d_name);
+    // Window_add_widget(w, fav_width, 0, j++, -1, -1, 1, str, 232, 255);
+    Window * item = Window_add_widget(fm, 0, 0, j++, -1, -1, 1, str, 232, 255);
+    item->on_mouse_down = item_clicked;
+    item->data = self;
+
+    char *full_path = NULL;
+    len = asprintf(&full_path, "%s/%s", dire, entry->d_name);
+    item->data2 = full_path;
+    // if (height < j) break;
+    // mvwprintw(win, x++, 1, "%s %s", icon, entry->d_name);
+  }
+
+  closedir(dir);
 }
 
 Window *FileExplorer_file_list(){
@@ -48,47 +112,10 @@ Window *FileExplorer_file_list(){
     Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, "", 232, 255);
     
   Window *fm = malloc(sizeof *fm);
+  w->data = fm;
   Window_init(fm, 0, 0, 0, 0, -1, -1);
 
-  j = 0;
-  DIR *dir;
-  struct dirent *entry;
-
-  dir = opendir("/Users/jordicolomer"); // current directory
-
-  if (dir == NULL)
-  {
-    perror("opendir");
-    return NULL;
-  }
-
-  // int x = 0;
-  while ((entry = readdir(dir)) != NULL)
-  {
-    char *icon = "📄";
-    if (entry->d_type == DT_DIR)
-    {
-      icon = "📁";
-    }
-    /*if (ends_with(entry->d_name, ".png"))
-    {
-      icon = "🖼️";
-    }*/
-    if (ends_with(entry->d_name, ".pdf"))
-    {
-      icon = "📖";
-    }
-    char *str = NULL;
-    // memory leak here
-    int len = asprintf(&str, "%s %s", icon, entry->d_name);
-    // Window_add_widget(w, fav_width, 0, j++, -1, -1, 1, str, 232, 255);
-    Window_add_widget(fm, 0, 0, j++, -1, -1, 1, str, 232, 255);
-    // if (height < j) break;
-    // mvwprintw(win, x++, 1, "%s %s", icon, entry->d_name);
-  }
-
-  closedir(dir);
-
+  FileExplorer_list_files(w, "/Users/jordicolomer");
 
   Window * fm_slider = slider_new(fm);
   fm_slider->left = fav_width;
@@ -102,13 +129,9 @@ Window *FileExplorer_file_list(){
 
 Window *FileExplorer_new(int left, int right, int top, int bottom, int width, int height)
 {
-  // Window* w = malloc(sizeof *w);
   Window *frame = malloc(sizeof *frame);
-  // Window_init(w, x, y, width, height);
   Window *w = Frame_init(frame, left, right, top, bottom, width, height, NULL, 0);
   // LOG_INFO("FileExplorer_new: %d %d %d %d %d", x, y, Window_get_absolute_x(w), Window_get_absolute_y(w), w->x);
-
-  // w->draw = FileExplorer_draw;
 
   int j = 0;
 
@@ -128,7 +151,6 @@ Window *FileExplorer_new(int left, int right, int top, int bottom, int width, in
   widget_width = 6;
   Window_add_widget(w, x_offset, 0, j, -1, -1, 1, " Help", 232, 253);
   x_offset += widget_width;
-  // Window_add_widget(w, 0, j, width, 1, "", BLACK, WHITE_BG);
   j++;
 
   // toolbar
@@ -154,30 +176,7 @@ Window *FileExplorer_new(int left, int right, int top, int bottom, int width, in
   widget_width = 10;
   Window_add_widget(w, x_offset, 0, j, -1, -1, 1, "❌ Delete", 232, 254);
   x_offset += widget_width;
-  // Window_add_widget(w, 0, j, width, 1, "", BLACK, WHITE_BG);
   j++;
-
-  // Widget* Window_add_widget(Window* w, int left, int right, int top, int bottom, int width, int height, char * c, int fg, int bg){
-  //  tabs
-  /*x_offset = 0;
-  widget_width = 14;
-  Window_add_widget(w, x_offset, -1, j, -1, widget_width, 1, " jordicolomer x", 232, 255);
-  x_offset += widget_width;
-  widget_width = 1;
-  Window_add_widget(w, x_offset, 0, j, 1, -1, 1, " + ", 232, 255);
-  x_offset += widget_width;
-  // Window_add_widget(w, 0, j, width, 1, "", BLACK, WHITE_BG);
-  j++;*/
-
-  // address bar
-
-  // list files
-  /*Window * lf = FileExplorer_file_list();
-  lf->left = 0;
-  lf->right = 0;
-  lf->top = j;
-  lf->bottom = 0;
-  Window_append(w, lf);*/
 
   Window *tabs = Tab_new(FileExplorer_file_list);
   tabs->top = j;
@@ -186,7 +185,6 @@ Window *FileExplorer_new(int left, int right, int top, int bottom, int width, in
   tabs->right = 0;
   Window_append(w, tabs);
   frame->focused = tabs;
-
 
   return frame;
 }
