@@ -1,4 +1,6 @@
 #include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 #include "tabs.h"
 
 void change_color_hover(Window *wg, int x, int y)
@@ -18,6 +20,7 @@ void change_color_normal(Window *wg, int x, int y)
 typedef struct Tabs {
     Window *tabs;
     int x_offset;
+    int idx;
     tab_create_callback callback;
 } Tabs;
 
@@ -25,6 +28,7 @@ typedef struct Tab {
     Tabs * parent;
     //Window *terminal;
     Window *child;
+    char str[20];
 } Tab;
 
 void tab_clicked(Window *wg, int x, int y)
@@ -44,14 +48,18 @@ void tabs_new_tab(Tabs *self){
 
     Window_append(self->tabs, child);
 
-    Window * tab = Window_add_widget(self->tabs, -1, -1, -1, -1, -1, -1, " ~ ", 232, 255);
+    Tab *mytab = malloc(sizeof *mytab);
+    snprintf(mytab->str, sizeof(mytab->str), " %d ", self->idx+1);
+    self->idx++;
+    Window * tab = Window_add_widget(self->tabs, -1, -1, -1, -1, -1, -1, mytab->str, 232, 255);
     tab->left = self->x_offset;
     tab->top = 0;
     tab->height = 1;
-    tab->width = 3;
+    tab->width = strlen(mytab->str)+1;
     tab->on_mouse_down = tab_clicked;
+    tab->on_hover = change_color_hover;
+    tab->undo_on_hover = change_color_normal;
 
-    Tab *mytab = malloc(sizeof *mytab);
     mytab->parent = self;
     //mytab->terminal = terminal;
     mytab->child = child;
@@ -83,6 +91,13 @@ Window *Tab_new(tab_create_callback callback){
     Tabs *mytab = malloc(sizeof *mytab);
     mytab->tabs = tabs;
     mytab->callback = callback;
+
+    Window * bg = Window_add_widget(tabs_bar, -1, -1, -1, -1, -1, -1, "   ", 232, 255);
+    bg->left = 0;
+    bg->top = 0;
+    bg->left = 0;
+    bg->right = 0;
+    bg->height = 1;
 
     Window * plus_button = Window_add_widget(tabs_bar, -1, -1, -1, -1, -1, -1, " + ", 232, 255);
     plus_button->left = mytab->x_offset;
