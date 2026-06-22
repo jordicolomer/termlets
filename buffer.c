@@ -167,11 +167,40 @@ void Buffer_print_raw(Buffer *buf, int y, int x, int width, char *s, int fg, int
     y_state = y;
     x_state = x;
   }
-  int terminal_width = calculate_width(s);
-  printf("%s", s);
-  for (int i = 0; i < width - terminal_width; i++)
+  // Calculate how many bytes to print to fit within width columns
+  const uint8_t *p = (const uint8_t *)s;
+  const uint8_t *start = p;
+  int current_width = 0;
+  int bytes_to_print = 0;
+
+  while (*p)
+  {
+    const uint8_t *prev_p = p;
+    uint32_t cp = utf8_decode(&p);
+    int w = cp_width(cp);
+
+    if (current_width + w <= width)
+    {
+      current_width += w;
+      bytes_to_print = p - start;
+    }
+    else
+    {
+      break;
+    }
+  }
+
+  // Print only the bytes that fit within width
+  if (bytes_to_print > 0)
+  {
+    printf("%.*s", bytes_to_print, s);
+  }
+
+  // Pad remaining space
+  for (int i = 0; i < width - current_width; i++)
     printf(" ");
-  x_state += terminal_width;
+
+  x_state += width;
 }
 
 void Buffer_print_raw_slow(Buffer *buf, int y, int x, int width, char *s, int fg, int bg)

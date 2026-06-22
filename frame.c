@@ -62,7 +62,7 @@ Window *Frame_init(Window *w, int left, int right, int top, int bottom, int widt
     fg = 255;
     bg = 234;
   }
-  Window *resize_grip = Window_add_widget(w, -1, 0, -1, 0, 1, 1, "⌟", fg, bg);
+  Window *resize_grip = Window_add_widget(w, -1, 0, -1, 0, 1, 1, "J", fg, bg);
   resize_grip->on_mouse_down = Widget_on_resize;
 
   return child;
