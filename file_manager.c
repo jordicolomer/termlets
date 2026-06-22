@@ -83,6 +83,10 @@ Window *FileExplorer_list_files(Window * self, char * dire){
   }
 
   closedir(dir);
+
+  // Clear remaining lines to remove previous list items
+  while (j <= 200)
+    Window_add_widget(fm, 0, 0, j++, -1, -1, 1, "", 232, 255);
 }
 
 Window *FileExplorer_file_list(){
