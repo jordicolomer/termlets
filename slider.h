@@ -30,5 +30,6 @@ void on_mouse_down_slider_grip(Window *wg, int x, int y);
 void Slider_set_top(struct Window *w, int top);
 void Slider_update_top(struct Window *w);
 Window *slider_new(Window *fm);
+void Slider_reset(Window *wg);
 
 #endif

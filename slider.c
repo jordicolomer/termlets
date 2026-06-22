@@ -6,6 +6,12 @@
 #include "buffer.h"
 #include "utils.h"
 
+void Slider_reset(Window *wg){
+  Window *slider_grip = ((Slider_data *)wg->data)->slider_grip;
+  //slider_grip->top = 0;
+  Slider_set_top(slider_grip, 0);
+}
+
 void update_height(Window *slider_grip, Window *fm){
   slider_grip->height = fm->calculated.height * fm->calculated.height / fm->virtual_height;
   if (slider_grip->height >= fm->calculated.height) slider_grip->hidden = 1;

@@ -34,6 +34,11 @@ Window *FileExplorer_list_files(Window * self, char * dire){
   LOG_INFO("FileExplorer_list_files: %p %s", self, dire);
   
   Window *fm = self->data;
+  Window *slider = self->data2;
+  if (slider != NULL)
+  {
+    Slider_reset(slider);
+  }
   fm->virtual_height = fm->height;
 
   // todo: clean properly
@@ -129,6 +134,7 @@ Window *FileExplorer_file_list(){
   fm_slider->top = 1;
   fm_slider->bottom = 0;
   Window_append(w, fm_slider);
+  w->data2 = fm_slider;
 
   return w;
 }
