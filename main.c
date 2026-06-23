@@ -379,10 +379,10 @@ void setup_crash_handler()
   signal(SIGFPE, crash_handler);
 }
 
-//int calculate_width(char *s);
+int calculate_width(char *s);
 int main()
 {
   //setup_crash_handler();
   start();
-  //calculate_width("⌟");
+  //calculate_width("~$ll Stack Developer – Data Analytics and Integration.docx");
 }

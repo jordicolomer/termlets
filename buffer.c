@@ -119,6 +119,8 @@ void Buffer_clear(Buffer *buf)
 int cp_width(int cp)
 {
   if (cp == 8991) return 1;
+  if (cp == 8212) return 1;
+  if (cp == 8211) return 1;
   int width = wcwidth(cp);
   if (width == -1)
     return 2;
@@ -134,7 +136,7 @@ int calculate_width(char *s)
   {
     uint32_t cp = utf8_decode(&p);
     int w = cp_width(cp);
-    printf("%d %d", cp, w);
+    //printf("%d %d\r\n", cp, w);
 
     total += w;
   }
