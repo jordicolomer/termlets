@@ -5,6 +5,7 @@
 #include "file_manager.h"
 #include "terminal.h"
 #include "vterm_terminal.h"
+#include "logger.h"
 
 int window_x = 5;
 int window_y = 3;
@@ -25,6 +26,7 @@ int x = 11;
 int unselectedTaskColor = 251;
 int selectedTaskColor = 15;
 
+
 void task_on_mouse_down(struct Window *w, int x, int y){
     if (selectedTask != NULL) selectedTask->bg = unselectedTaskColor;
 
@@ -34,6 +36,15 @@ void task_on_mouse_down(struct Window *w, int x, int y){
 
     w->bg = selectedTaskColor;
     selectedTask = w;
+}
+
+void cycle_task(){
+  //LOG_INFO("cycle_task %p", selectedTask);
+  if (selectedTask == NULL) return;
+  Window *task = selectedTask->next;
+  if (selectedTask->next == NULL) task = selectedTask->parent->head->next;
+  TaskBar_switch(task);
+  task_on_mouse_down(task, 0, 0);
 }
 
 Window * TaskBar_new_task(const char * name, Window *fm){

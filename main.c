@@ -56,7 +56,7 @@ void init()
 
 void repaint()
 {
-  LOG_INFO("repaint");
+  //LOG_INFO("repaint");
   //printf("\x1b[44m\x1b[37m");
   set_color256(232, 17);
   clear_screen();
@@ -89,7 +89,7 @@ void on_drag(int x, int y)
   // LOG_INFO("on_drag x: %d y: %d", x, y);
   if (draggingY != NULL)
   {
-    LOG_INFO("dragging");
+    //LOG_INFO("dragging");
     if (draggingX != NULL)
       draggingX->left = min(max(0, x - dragging_offset_x), draggingX->parent->width - draggingX->width);
     int parent_height = draggingY->parent->calculated.height;
@@ -211,6 +211,13 @@ int start()
 
     char c;
     read(STDIN_FILENO, &c, 1);
+    //LOG_INFO("read %d", c);
+
+    if (c == 11){
+      cycle_task();
+      repaint();
+      //break;
+    }
 
     if (c != 27){
       if (focused_cursor != NULL) {
