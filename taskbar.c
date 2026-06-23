@@ -66,11 +66,7 @@ void TaskBar_switch(Window *w){
   selectedTask = w;
 }
 
-void file_manager_mouse_down(struct Window *w, int x, int y){
-  Window *startMenu = w->data;
-  startMenu->hidden = 1;
-  open_menu = NULL;
-
+void file_manager_new(){
   Window *fm = FileExplorer_new(window_x, -1, window_y, -1, 80, 30);
   window_x += 10;
   window_y += 3;
@@ -83,6 +79,15 @@ void file_manager_mouse_down(struct Window *w, int x, int y){
   fm->data = task;
 }
 
+void file_manager_mouse_down(struct Window *w, int x, int y){
+  Window *startMenu = w->data;
+  startMenu->hidden = 1;
+  open_menu = NULL;
+
+  file_manager_new();
+}
+
+/*
 void terminal_mouse_down(struct Window *w, int x, int y){
   Window *startMenu = w->data;
   startMenu->hidden = 1;
@@ -100,12 +105,9 @@ void terminal_mouse_down(struct Window *w, int x, int y){
   fm->data = task;
 
 }
+*/
 
-void vterminal_mouse_down(struct Window *w, int x, int y){
-  Window *startMenu = w->data;
-  startMenu->hidden = 1;
-  open_menu = NULL;
-
+void vterminal_new(){
   Window *fm = VTermTerminal_new(window_x, -1, window_y, -1, 80, 30);
   window_x += 10;
   window_y += 3;
@@ -116,7 +118,14 @@ void vterminal_mouse_down(struct Window *w, int x, int y){
 
   Window *task = TaskBar_new_task("💻 Terminal", fm);
   fm->data = task;
+}
 
+void vterminal_mouse_down(struct Window *w, int x, int y){
+  Window *startMenu = w->data;
+  startMenu->hidden = 1;
+  open_menu = NULL;
+
+  vterminal_new();
 }
 
 void quit_mouse_down(struct Window *w, int x, int y){

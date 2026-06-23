@@ -213,10 +213,20 @@ int start()
     read(STDIN_FILENO, &c, 1);
     //LOG_INFO("read %d", c);
 
-    if (c == 11){
+    if (c == 11){ // Ctrl+K
       cycle_task();
       repaint();
-      //break;
+      continue;
+    }
+    if (c == 20){ // Ctrl+T
+      vterminal_new();
+      repaint();
+      continue;
+    }
+    if (c == 5){ // Ctrl+E
+      file_manager_new();
+      repaint();
+      continue;
     }
 
     if (c != 27){
