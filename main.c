@@ -379,10 +379,10 @@ void setup_crash_handler()
   signal(SIGFPE, crash_handler);
 }
 
+//int calculate_width(char *s);
 int main()
 {
   //setup_crash_handler();
   start();
-  // test_buffer();
-  // test_windows2();
+  //calculate_width("⌟");
 }
