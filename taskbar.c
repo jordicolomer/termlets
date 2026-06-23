@@ -38,7 +38,7 @@ void task_on_mouse_down(struct Window *w, int x, int y){
 
 Window * TaskBar_new_task(const char * name, Window *fm){
   if (selectedTask != NULL) selectedTask->bg = unselectedTaskColor;
-  Window *task = Window_add_widget(taskBar, x, -1, -1, 0, 9, 1, name, 0, selectedTaskColor);
+  Window *task = Window_add_widget(taskBar, x, -1, -1, 0, 11, 1, name, 0, selectedTaskColor);
   selectedTask = task;
 
   task->data = fm;
