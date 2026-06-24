@@ -563,6 +563,12 @@ void vterm_send_key(struct Window *wg, char c)
 {
     vterm_terminal_data *vtd = wg->data2;
 
+    /*if (c == 12){ // Ctrl+K
+      cycle_tabs();
+      return;
+    }*/
+
+
     /* just write to the PTY, the monitoring thread will handle reading the response */
     write(vtd->master, &c, 1);
 }

@@ -182,7 +182,7 @@ int start()
   while (1)
   {
     Window *focused_cursor = focused;
-    if (focused_cursor != NULL) while (focused_cursor->focused != NULL) focused_cursor = focused_cursor->focused;
+    if (focused_cursor != NULL) while (focused_cursor->send_key == NULL && focused_cursor->focused != NULL) focused_cursor = focused_cursor->focused;
 
     /* Check if background thread signaled a repaint */
     if (check_and_clear_repaint_flag()) {

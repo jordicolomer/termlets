@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "tabs.h"
+#include "logger.h"
 
 void change_color_hover(Window *wg, int x, int y)
 {
@@ -75,9 +76,37 @@ void tabs_plus_clicked(Window *wg, int x, int y)
     tabs_new_tab(mytab);
 }
 
+void tabs_send_key(struct Window *wg, char c)
+{
+    if (c == 12){ // Ctrl+L
+        Tabs *mytab = (Tabs *) wg->data;
+        //LOG_INFO("tabs_send_key %p", mytab);
+        tabs_new_tab(mytab);
+        return;
+    }
+
+    Window *focused_cursor = wg->focused;
+    if (focused_cursor != NULL) while (focused_cursor->send_key == NULL && focused_cursor->focused != NULL) focused_cursor = focused_cursor->focused;
+
+    if (focused_cursor != NULL && focused_cursor->send_key != NULL) {
+        focused_cursor->send_key(focused_cursor, c);
+    }
+
+}
+
+/*
+void tabs_send_sequence(struct Window *wg, const char *seq, int len)
+{
+
+}
+*/
+
 Window *Tab_new(tab_create_callback callback){
     Window *tabs = malloc(sizeof *tabs);
     Window_init(tabs, -1, -1, -1, -1, -1, -1);
+    tabs->send_key = tabs_send_key;
+    //tabs->send_sequence = tabs_send_sequence;
+
     tabs->id = "tabs";
 
     Window *tabs_bar = malloc(sizeof *tabs_bar);
@@ -90,6 +119,7 @@ Window *Tab_new(tab_create_callback callback){
 
     Tabs *mytab = malloc(sizeof *mytab);
     mytab->tabs = tabs;
+    tabs->data = mytab;
     mytab->callback = callback;
 
     Window * bg = Window_add_widget(tabs_bar, -1, -1, -1, -1, -1, -1, "   ", 232, 255);
