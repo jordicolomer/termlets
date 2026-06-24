@@ -211,7 +211,7 @@ int start()
 
     char c;
     read(STDIN_FILENO, &c, 1);
-    //LOG_INFO("read %d", c);
+    LOG_INFO("read %d", c);
 
     if (c == 11){ // Ctrl+K
       cycle_task();
@@ -233,6 +233,7 @@ int start()
       if (focused_cursor != NULL) {
         if (focused_cursor->send_key != NULL){
           focused_cursor->send_key(focused_cursor, c);
+          repaint();
           /* repaint will be triggered by PTY monitor thread */
         }
       }

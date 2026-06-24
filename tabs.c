@@ -18,25 +18,39 @@ void change_color_normal(Window *wg, int x, int y)
     wg->bg = 254;
 }
 
-typedef struct Tabs {
-    Window *tabs;
-    int x_offset;
-    int idx;
-    tab_create_callback callback;
-} Tabs;
+typedef struct Tabs Tabs;
+typedef struct Tab Tab;
 
 typedef struct Tab {
     Tabs * parent;
     //Window *terminal;
+    Window *tab_label;
     Window *child;
     char str[20];
+    Tab * next;
 } Tab;
+
+typedef struct Tabs {
+    struct Window win;
+    Window *tabs;
+    int x_offset;
+    int idx;
+    tab_create_callback callback;
+    Tab * selected_tab;
+    Tab * first;
+    Tab * last;
+} Tabs;
+
+void tab_select(Tab *tab){
+    tab->parent->tabs->focused = tab->child;
+    Window_bring_to_bottom(tab->child);
+    tab->parent->selected_tab = tab;
+}
 
 void tab_clicked(Window *wg, int x, int y)
 {
     Tab *tab = (Tab *) wg->data;
-    tab->parent->tabs->focused = tab->child;
-    Window_bring_to_bottom(tab->child);
+    tab_select(tab);
 }
 
 void tabs_new_tab(Tabs *self){
@@ -50,6 +64,10 @@ void tabs_new_tab(Tabs *self){
     Window_append(self->tabs, child);
 
     Tab *mytab = malloc(sizeof *mytab);
+    self->selected_tab = mytab;
+    if (self->first == NULL) self->first = mytab;
+    if (self->last != NULL) self->last->next = mytab;
+    self->last = mytab;
     snprintf(mytab->str, sizeof(mytab->str), " %d ", self->idx+1);
     self->idx++;
     Window * tab = Window_add_widget(self->tabs, -1, -1, -1, -1, -1, -1, mytab->str, 232, 255);
@@ -64,10 +82,18 @@ void tabs_new_tab(Tabs *self){
     mytab->parent = self;
     //mytab->terminal = terminal;
     mytab->child = child;
+    mytab->tab_label = tab;
     tab->data = mytab;
 
     self->x_offset += tab->width;
 
+}
+
+void tabs_cycle(Tabs *self){
+    Tab * current = self->selected_tab;
+    if (current->next != NULL) current = current->next;
+    else current = self->first;
+    tab_select(current);
 }
 
 void tabs_plus_clicked(Window *wg, int x, int y)
@@ -80,8 +106,12 @@ void tabs_send_key(struct Window *wg, char c)
 {
     if (c == 12){ // Ctrl+L
         Tabs *mytab = (Tabs *) wg->data;
-        //LOG_INFO("tabs_send_key %p", mytab);
         tabs_new_tab(mytab);
+        return;
+    }
+    if (c == 21){ // Ctrl+U
+        Tabs *mytab = (Tabs *) wg->data;
+        tabs_cycle(mytab);
         return;
     }
 
@@ -102,7 +132,9 @@ void tabs_send_sequence(struct Window *wg, const char *seq, int len)
 */
 
 Window *Tab_new(tab_create_callback callback){
-    Window *tabs = malloc(sizeof *tabs);
+    Tabs *mytab = malloc(sizeof *mytab);
+    //Window *tabs = malloc(sizeof *tabs);
+    Window *tabs = mytab;
     Window_init(tabs, -1, -1, -1, -1, -1, -1);
     tabs->send_key = tabs_send_key;
     //tabs->send_sequence = tabs_send_sequence;
@@ -117,7 +149,6 @@ Window *Tab_new(tab_create_callback callback){
     tabs_bar->height = 1;
     Window_append(tabs, tabs_bar);
 
-    Tabs *mytab = malloc(sizeof *mytab);
     mytab->tabs = tabs;
     tabs->data = mytab;
     mytab->callback = callback;

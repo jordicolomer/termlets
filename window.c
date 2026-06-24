@@ -370,3 +370,20 @@ Window *Window_add_widget(Window *w, int left, int right, int top, int bottom, i
 
   return wg;
 }
+
+/*void Window_add_label(Window *parent, Window *child, char *c, int fg, int bg)
+{
+  //Window *wg = malloc(sizeof *wg);
+  //Window_init(wg, -1, -1, -1, -1, -1, -1);
+  child->draw = Widget_draw;
+  child->parent = parent;
+  child->c = c;
+  child->id = c;
+  child->fg = fg;
+  child->bg = bg;
+
+  Window_append(parent, child);
+
+  parent->virtual_height = max(parent->virtual_height, 1);
+
+}*/
