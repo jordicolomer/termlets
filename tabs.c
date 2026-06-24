@@ -42,6 +42,8 @@ typedef struct Tabs {
 } Tabs;
 
 void tab_select(Tab *tab){
+    change_color_normal(tab->parent->selected_tab->tab_label, 0, 0);
+    change_color_hover(tab->tab_label, 0, 0);
     tab->parent->tabs->focused = tab->child;
     Window_bring_to_bottom(tab->child);
     tab->parent->selected_tab = tab;
@@ -54,6 +56,8 @@ void tab_clicked(Window *wg, int x, int y)
 }
 
 void tabs_new_tab(Tabs *self){
+    if (self->selected_tab != NULL) change_color_normal(self->selected_tab->tab_label, 0, 0);
+
     Window *child = self->callback();
     child->left = 0;
     child->right = 0;
@@ -87,6 +91,9 @@ void tabs_new_tab(Tabs *self){
 
     self->x_offset += tab->width;
 
+    change_color_hover(tab, 0, 0);
+
+    //tab_select(mytab);
 }
 
 void tabs_cycle(Tabs *self){
@@ -104,12 +111,12 @@ void tabs_plus_clicked(Window *wg, int x, int y)
 
 void tabs_send_key(struct Window *wg, char c)
 {
-    if (c == 12){ // Ctrl+L
+    if (c == 14){ // Ctrl+N
         Tabs *mytab = (Tabs *) wg->data;
         tabs_new_tab(mytab);
         return;
     }
-    if (c == 21){ // Ctrl+U
+    if (c == 12){ // Ctrl+L
         Tabs *mytab = (Tabs *) wg->data;
         tabs_cycle(mytab);
         return;
