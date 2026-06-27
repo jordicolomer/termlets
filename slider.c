@@ -162,3 +162,19 @@ Window *slider_new(Window *fm){
 
   return fm_slider;
 }
+
+void Slider_make_visible(Window *w, Window * wg){
+  if (w == NULL) return;
+  LOG_INFO("Slider_make_visible %p %p", w, wg);
+  Slider_data * slider_data = w->data;
+  Window *child = slider_data->child;
+
+  int efective_top = wg->top + child->shift;
+  int is_visible = 0 <= efective_top && efective_top <= child->calculated.height - 1;
+  if (is_visible) return;
+
+  LOG_INFO("Slider_make_visible2 %d %d", wg->top, child->height);
+  child->shift = -(max(0, wg->top - child->calculated.height/2));
+  //LOG_INFO("Slider_make_visible2 %p %d", slider_data->slider_grip, wg->top);
+  //Slider_set_top(slider_data->slider_grip, wg->top);
+}

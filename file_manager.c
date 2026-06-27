@@ -35,6 +35,7 @@ void FileExplorer_select_item(ExplorerWindow * self, Window * item){
   if (self->selected != NULL) self->selected->bg = 255;
   self->selected = item;
   item->bg = 27;
+  Slider_make_visible(self->slider, item);
 }
 
 void FileExplorer_list_files(ExplorerWindow * self, char * dire){
