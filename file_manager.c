@@ -111,14 +111,23 @@ void FileExplorer_send_key(Window * win, char c)
 {
     ExplorerWindow * self = win;
     if (c == 106){ // j
-        
         FileExplorer_select_item(self, self->selected->next);
         return;
     }
     if (c == 107){ // k
-        
         FileExplorer_select_item(self, self->selected->prev);
         return;
+    }
+    if (c == 117){ // u
+        Window * selected = self->selected;
+        for (int i=0;i<win->calculated.height && selected->next;i++) selected = selected->next;
+        FileExplorer_select_item(self, selected);
+        return;
+    }
+    if (c == 105){ // i
+        Window * selected = self->selected;
+        for (int i=0;i<win->calculated.height && selected->prev;i++) selected = selected->prev;
+        FileExplorer_select_item(self, selected);
     }
 
     Window *focused_cursor = win->focused;
