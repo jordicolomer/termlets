@@ -10,17 +10,48 @@
 
 // Editor Window
 
+void EditorWindow_make_cursor_visible(EditorWindow * self){
+    int height = self->win.calculated.height;
+    int diff = self->cursor_n - self->top_n;
+    while (diff > height - 1){
+        self->top_n++;
+        self->top = self->top->next;
+        diff = self->cursor_n - self->top_n;
+    }
+    while (diff < 0){
+        self->top_n--;
+        self->top = self->top->prev;
+        diff = self->cursor_n - self->top_n;
+    }
+}
+
+void EditorWindow_send_key(Window * win, char c)
+{
+    EditorWindow * self = win;
+    if (c == 106){ // j
+        self->cursor_n++;
+        EditorWindow_make_cursor_visible(self);
+        return;
+    }
+    if (c == 107){ // k
+        self->cursor_n--;
+        EditorWindow_make_cursor_visible(self);
+        return;
+    }
+}
+
 void EditorWindow_draw(struct Window *w, int hasFocus){
-    EditorWindow *editor = w;
+    EditorWindow *self = w;
     Geometry geo = w->calculated;
     int i = 0;
-    Node * current = editor->current;
+    Node * current = self->top;
     while(i < geo.height){
         if (current == NULL) break;
-        Buffer_print_raw(&main_buf, geo.y + i++, geo.x, geo.width, current->line, 15, 239);
+        int bg = 239;
+        if (self->top_n + i == self->cursor_n) bg = 53;
+        Buffer_print_raw(&main_buf, geo.y + i++, geo.x, geo.width, current->line, 15, bg);
         current = current->next;
     }
-
 }
 
 EditorWindow *EditorWindow_new_tab(){
@@ -38,6 +69,8 @@ EditorWindow *EditorWindow_new_tab(){
   fm_slider->bottom = 0;
   Window_append(w, fm_slider);
 
+  w->win.send_key = EditorWindow_send_key;
+
   return w;
 }
 
@@ -51,51 +84,51 @@ Node* create_node(const char *text) {
 
     new_node->line = strdup(text);  // copy string
     new_node->next = NULL;
+    new_node->prev = NULL;
 
     return new_node;
 }
 
-void append(Node **head, const char *text) {
+void append(EditorWindow * self, const char *text) {
     Node *new_node = create_node(text);
 
-    if (*head == NULL) {
-        *head = new_node;
-        return;
+    if (self->head == NULL) {
+        self->head = new_node;
+        //return;
     }
+    if (self->tail != NULL) self->tail->next = new_node;
+    new_node->prev = self->tail;
+    self->tail = new_node;
 
-    Node *temp = *head;
-    while (temp->next != NULL) {
-        temp = temp->next;
-    }
-    temp->next = new_node;
 }
 
 #define MAX_LINE 10240
 
-Node* load_file(const char *filename) {
+void load_file(EditorWindow * self, const char *filename) {
     FILE *file = fopen(filename, "r");
     if (!file) {
         perror("fopen failed");
-        return NULL;
+        return;
     }
 
-    Node *head = NULL;
+    //Node *head = NULL;
+    //Node *tail = NULL;
     char buffer[MAX_LINE];
 
     while (fgets(buffer, MAX_LINE, file)) {
         // Optional: remove newline
         buffer[strcspn(buffer, "\n")] = '\0';
 
-        append(&head, buffer);
+        append(self, buffer);
     }
 
     fclose(file);
-    return head;
+    //return head;
 }
 
 void EditorWindow_open_file(EditorWindow * editor_window, char * file_path){
-    editor_window->head = load_file(file_path);
-    editor_window->current = editor_window->head;
+    load_file(editor_window, file_path);
+    editor_window->top = editor_window->head;
     LOG_INFO("Editor_open_file %s", file_path);
 }
 

@@ -5,12 +5,17 @@
 typedef struct Node {
     char *line;
     struct Node *next;
+    struct Node *prev;
 } Node;
 
 typedef struct EditorWindow {
     struct Window win;
     Node *head;
-    Node *current;
+    Node *tail;
+    Node *top;
+    int top_n;
+    //Node *cursor;
+    int cursor_n;
 } EditorWindow;
 
 typedef struct EditorFrame {
