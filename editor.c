@@ -32,7 +32,7 @@ void EditorWindow_send_key(Window * win, char c)
     EditorWindow * self = win;
     if (c == 106){ // j
         self->cursor_n++;
-        self->cursor_n = min(self->cursor_n, self->n_lines);
+        self->cursor_n = min(self->cursor_n, self->n_lines-1);
         EditorWindow_make_cursor_visible(self);
         return;
     }
@@ -42,7 +42,18 @@ void EditorWindow_send_key(Window * win, char c)
         EditorWindow_make_cursor_visible(self);
         return;
     }
-}
+    if (c == 117){ // u
+        self->cursor_n += win->calculated.height;
+        self->cursor_n = min(self->cursor_n, self->n_lines-1);
+        EditorWindow_make_cursor_visible(self);
+        return;
+    }
+    if (c == 105){ // i
+        self->cursor_n -= win->calculated.height;
+        self->cursor_n = max(self->cursor_n, 0);
+        EditorWindow_make_cursor_visible(self);
+        return;
+    }}
 
 void EditorWindow_draw(struct Window *w, int hasFocus){
     EditorWindow *self = w;
