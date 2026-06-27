@@ -25,16 +25,17 @@ int ends_with(const char *str, const char *suffix)
 
 void item_clicked(Window *wg, int x, int y)
 {
-    Window * self = wg->data;
+    ExplorerWindow * self = wg->data;
     char * dire = wg->data2;
     FileExplorer_list_files(self, dire);
 }
 
-Window *FileExplorer_list_files(Window * self, char * dire){
+
+void FileExplorer_list_files(ExplorerWindow * self, char * dire){
   LOG_INFO("FileExplorer_list_files: %p %s", self, dire);
   
-  Window *fm = self->data;
-  Window *slider = self->data2;
+  Window *fm = self->fm;
+  Window *slider = self->slider;
   if (slider != NULL)
   {
     Slider_reset(slider);
@@ -54,7 +55,7 @@ Window *FileExplorer_list_files(Window * self, char * dire){
   if (dir == NULL)
   {
     perror("opendir");
-    return NULL;
+    return;
   }
 
   // int x = 0;
@@ -92,14 +93,15 @@ Window *FileExplorer_list_files(Window * self, char * dire){
   closedir(dir);
 
   // Clear remaining lines to remove previous list items
-  while (j <= self->calculated.height)
+  while (j <= self->win.calculated.height)
     Window_add_widget(fm, 0, 0, j++, -1, -1, 1, "", 232, 255);
 }
 
-Window *FileExplorer_file_list(){
-  Window *w = malloc(sizeof *w);
+
+ExplorerWindow *FileExplorer_file_list(){
+  ExplorerWindow *w = malloc(sizeof *w);
   Window_init(w, -1, -1, -1, -1, -1, -1);
-  w->id = "file list";
+  w->win.id = "file list";
   int j = 0;
 
   Window_add_widget(w, 0, 0, j, -1, -1, 1, " 📁 /Users/jordicolomer", 232, 255);
@@ -123,7 +125,8 @@ Window *FileExplorer_file_list(){
     Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, "", 232, 255);
     
   Window *fm = malloc(sizeof *fm);
-  w->data = fm;
+  w->win.data = fm;
+  w->fm = fm;
   Window_init(fm, 0, 0, 0, 0, -1, -1);
 
   FileExplorer_list_files(w, "/Users/jordicolomer");
@@ -134,7 +137,8 @@ Window *FileExplorer_file_list(){
   fm_slider->top = 1;
   fm_slider->bottom = 0;
   Window_append(w, fm_slider);
-  w->data2 = fm_slider;
+  w->win.data2 = fm_slider;
+  w->slider = fm_slider;
 
   return w;
 }
@@ -190,7 +194,7 @@ Window *FileExplorer_new(int left, int right, int top, int bottom, int width, in
   x_offset += widget_width;
   j++;
 
-  Window *tabs = Tab_new(FileExplorer_file_list);
+  Window *tabs = Tab_new((Window *(*)(void))FileExplorer_file_list);
   tabs->top = j;
   tabs->bottom = 0;
   tabs->left = 0;
