@@ -129,6 +129,10 @@ void FileExplorer_send_key(Window * win, char c)
         for (int i=0;i<win->calculated.height && selected->prev;i++) selected = selected->prev;
         FileExplorer_select_item(self, selected);
     }
+    if (c == 109){ // m
+        Window * selected = self->selected;
+        item_clicked(selected, 0, 0);
+    }
 
     Window *focused_cursor = win->focused;
     if (focused_cursor != NULL) while (focused_cursor->send_key == NULL && focused_cursor->focused != NULL) focused_cursor = focused_cursor->focused;
