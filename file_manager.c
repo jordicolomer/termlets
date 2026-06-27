@@ -39,6 +39,19 @@ void FileExplorer_select_item(ExplorerWindow * self, Window * item){
   Slider_show_grip(self->slider);
 }
 
+void remove_newlines(char *str) {
+    char *src = str;
+    char *dst = str;
+
+    while (*src) {
+        if (*src != '\n' && *src != '\r') {
+            *dst++ = *src;
+        }
+        src++;
+    }
+    *dst = '\0';
+}
+
 void FileExplorer_list_files(ExplorerWindow * self, char * dire){
   LOG_INFO("FileExplorer_list_files: %p %s", self, dire);
   self->selected = NULL;
@@ -85,6 +98,7 @@ void FileExplorer_list_files(ExplorerWindow * self, char * dire){
     }
     char *str = NULL;
     // memory leak here
+    remove_newlines(entry->d_name);
     int len = asprintf(&str, "%s %s", icon, entry->d_name);
     // Window_add_widget(w, fav_width, 0, j++, -1, -1, 1, str, 232, 255);
     Window * item = Window_add_widget(fm, 0, 0, j++, -1, -1, 1, str, 232, 255);
