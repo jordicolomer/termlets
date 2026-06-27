@@ -30,9 +30,16 @@ void item_clicked(Window *wg, int x, int y)
     FileExplorer_list_files(self, dire);
 }
 
+void FileExplorer_select_item(ExplorerWindow * self, Window * item){
+  if (item == NULL) return;
+  if (self->selected != NULL) self->selected->bg = 255;
+  self->selected = item;
+  item->bg = 27;
+}
 
 void FileExplorer_list_files(ExplorerWindow * self, char * dire){
   LOG_INFO("FileExplorer_list_files: %p %s", self, dire);
+  self->selected = NULL;
   
   Window *fm = self->fm;
   Window *slider = self->slider;
@@ -85,6 +92,8 @@ void FileExplorer_list_files(ExplorerWindow * self, char * dire){
     char *full_path = NULL;
     len = asprintf(&full_path, "%s/%s", dire, entry->d_name);
     item->data2 = full_path;
+
+    if (self->selected == NULL) FileExplorer_select_item(self, item);
     //LOG_INFO("full_path: %s", full_path);
     // if (height < j) break;
     // mvwprintw(win, x++, 1, "%s %s", icon, entry->d_name);
@@ -97,6 +106,28 @@ void FileExplorer_list_files(ExplorerWindow * self, char * dire){
     Window_add_widget(fm, 0, 0, j++, -1, -1, 1, "", 232, 255);
 }
 
+void FileExplorer_send_key(Window * win, char c)
+{
+    ExplorerWindow * self = win;
+    if (c == 106){ // j
+        
+        FileExplorer_select_item(self, self->selected->next);
+        return;
+    }
+    if (c == 107){ // k
+        
+        FileExplorer_select_item(self, self->selected->prev);
+        return;
+    }
+
+    Window *focused_cursor = win->focused;
+    if (focused_cursor != NULL) while (focused_cursor->send_key == NULL && focused_cursor->focused != NULL) focused_cursor = focused_cursor->focused;
+
+    if (focused_cursor != NULL && focused_cursor->send_key != NULL) {
+        focused_cursor->send_key(focused_cursor, c);
+    }
+
+}
 
 ExplorerWindow *FileExplorer_file_list(){
   ExplorerWindow *w = malloc(sizeof *w);
@@ -140,8 +171,11 @@ ExplorerWindow *FileExplorer_file_list(){
   w->win.data2 = fm_slider;
   w->slider = fm_slider;
 
+  w->win.send_key = FileExplorer_send_key;
+
   return w;
 }
+
 
 Window *FileExplorer_new(int left, int right, int top, int bottom, int width, int height)
 {

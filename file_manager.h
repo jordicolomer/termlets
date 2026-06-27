@@ -6,6 +6,8 @@ typedef struct ExplorerWindow {
     struct Window win;
     Window *fm;
     Window *slider;
+    //int selected;
+    Window *selected;
 } ExplorerWindow;
 
 
