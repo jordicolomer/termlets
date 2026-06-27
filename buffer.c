@@ -121,6 +121,7 @@ int cp_width(int cp)
   if (cp == 8991) return 1;
   if (cp == 8212) return 1;
   if (cp == 8211) return 1;
+  //if (cp == 128444) return 2;
   int width = wcwidth(cp);
   if (width == -1)
     return 2;
