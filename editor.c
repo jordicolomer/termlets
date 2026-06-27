@@ -7,18 +7,19 @@
 #include "logger.h"
 #include "string.h"
 #include "buffer.h"
+#include "utils.h"
 
 // Editor Window
 
 void EditorWindow_make_cursor_visible(EditorWindow * self){
     int height = self->win.calculated.height;
     int diff = self->cursor_n - self->top_n;
-    while (diff > height - 1){
+    while (diff > height - 1){ //  && self->top_n < self->n_lines
         self->top_n++;
         self->top = self->top->next;
         diff = self->cursor_n - self->top_n;
     }
-    while (diff < 0){
+    while (diff < 0){ //  && self->top_n > 0
         self->top_n--;
         self->top = self->top->prev;
         diff = self->cursor_n - self->top_n;
@@ -30,11 +31,13 @@ void EditorWindow_send_key(Window * win, char c)
     EditorWindow * self = win;
     if (c == 106){ // j
         self->cursor_n++;
+        self->cursor_n = min(self->cursor_n, self->n_lines);
         EditorWindow_make_cursor_visible(self);
         return;
     }
     if (c == 107){ // k
         self->cursor_n--;
+        self->cursor_n = max(self->cursor_n, 0);
         EditorWindow_make_cursor_visible(self);
         return;
     }
@@ -99,6 +102,7 @@ void append(EditorWindow * self, const char *text) {
     if (self->tail != NULL) self->tail->next = new_node;
     new_node->prev = self->tail;
     self->tail = new_node;
+    self->n_lines++;
 
 }
 

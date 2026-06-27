@@ -16,6 +16,7 @@ typedef struct EditorWindow {
     int top_n;
     //Node *cursor;
     int cursor_n;
+    int n_lines;
 } EditorWindow;
 
 typedef struct EditorFrame {
