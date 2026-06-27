@@ -18,28 +18,7 @@ void change_color_normal(Window *wg, int x, int y)
     wg->bg = 254;
 }
 
-typedef struct Tabs Tabs;
-typedef struct Tab Tab;
 
-typedef struct Tab {
-    Tabs * parent;
-    //Window *terminal;
-    Window *tab_label;
-    Window *child;
-    char str[20];
-    Tab * next;
-} Tab;
-
-typedef struct Tabs {
-    struct Window win;
-    Window *tabs;
-    int x_offset;
-    int idx;
-    tab_create_callback callback;
-    Tab * selected_tab;
-    Tab * first;
-    Tab * last;
-} Tabs;
 
 void tab_select(Tab *tab){
     change_color_normal(tab->parent->selected_tab->tab_label, 0, 0);
@@ -55,7 +34,7 @@ void tab_clicked(Window *wg, int x, int y)
     tab_select(tab);
 }
 
-void tabs_new_tab(Tabs *self){
+Window * tabs_new_tab(Tabs *self){
     if (self->selected_tab != NULL) change_color_normal(self->selected_tab->tab_label, 0, 0);
 
     Window *child = self->callback();
@@ -92,6 +71,8 @@ void tabs_new_tab(Tabs *self){
     self->x_offset += tab->width;
 
     change_color_hover(tab, 0, 0);
+
+    return child;
 
     //tab_select(mytab);
 }

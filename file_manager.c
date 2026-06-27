@@ -8,6 +8,7 @@
 #include "file_manager.h"
 #include "tabs.h"
 #include "logger.h"
+#include "editor.h"
 
 int ends_with(const char *str, const char *suffix)
 {
@@ -143,10 +144,19 @@ void FileExplorer_send_key(Window * win, char c)
         Window * selected = self->selected;
         for (int i=0;i<win->calculated.height && selected->prev;i++) selected = selected->prev;
         FileExplorer_select_item(self, selected);
+        return;
     }
     if (c == 109){ // m
         Window * selected = self->selected;
         item_clicked(selected, 0, 0);
+        return;
+    }
+    if (c == 111){ // o
+        Window * selected = self->selected;
+        //item_clicked(selected, 0, 0);
+        char * file_path = selected->data2;
+        Editor_last_open_file(file_path);
+        return;
     }
 
     Window *focused_cursor = win->focused;
