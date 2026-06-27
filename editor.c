@@ -17,7 +17,7 @@ void EditorWindow_draw(struct Window *w, int hasFocus){
     Node * current = editor->current;
     while(i < geo.height){
         if (current == NULL) break;
-        Buffer_print_raw(&main_buf, geo.y + i++, geo.x, geo.width, current->line, 250, 240);
+        Buffer_print_raw(&main_buf, geo.y + i++, geo.x, geo.width, current->line, 15, 239);
         current = current->next;
     }
 
