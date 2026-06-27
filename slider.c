@@ -175,6 +175,14 @@ void Slider_make_visible(Window *w, Window * wg){
 
   //LOG_INFO("Slider_make_visible2 %d %d", wg->top, child->height);
   child->shift = -(max(0, wg->top - child->calculated.height/2));
+  int min_shift = -(child->virtual_height - child->calculated.height);
+  child->shift = max(child->shift, min_shift);
   //LOG_INFO("Slider_make_visible2 %p %d", slider_data->slider_grip, wg->top);
   //Slider_set_top(slider_data->slider_grip, wg->top);
+}
+
+void Slider_show_grip(Window *w){
+  if (w == NULL) return;
+  Slider_data * slider_data = w->data;
+  slider_data->slider_grip->hidden = 0;
 }
