@@ -8,6 +8,7 @@
 #include "string.h"
 #include "buffer.h"
 #include "utils.h"
+#include "taskbar.h"
 
 // Editor Window
 
@@ -166,6 +167,9 @@ void Editor_open_file(EditorFrame * editor_frame, char * file_path){
 }
 
 void Editor_last_open_file(char * file_path){
-    if (last_frame == NULL) return;
+    if (last_frame == NULL){
+        file_editor_new();
+        return;
+    }
     Editor_open_file(last_frame, file_path);
 }
