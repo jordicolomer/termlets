@@ -2,8 +2,15 @@
 #define FILE_EDITOR_H
 #include "window.h"
 
+typedef struct Node {
+    char *line;
+    struct Node *next;
+} Node;
+
 typedef struct EditorWindow {
     struct Window win;
+    Node *head;
+    Node *current;
 } EditorWindow;
 
 typedef struct EditorFrame {
