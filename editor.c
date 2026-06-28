@@ -9,6 +9,7 @@
 #include "buffer.h"
 #include "utils.h"
 #include "taskbar.h"
+#include "lambda.h"
 
 // Editor Window
  
@@ -198,7 +199,28 @@ void EditorWindow_open_file(EditorWindow * editor_window, char * file_path){
 
 EditorFrame * last_frame;
 
-Window *Editor_menu(){
+Window *Editor_menu_windows(EditorFrame * self, struct Window *menuItem){
+    //LOG_INFO("Editor_menu_windows %p", self);
+    Window *menu = malloc(sizeof *menu);
+    Window_init(menu, -1, -1, -1, -1, -1, -1);
+    menu->left = menuItem->calculated.x - self->win.calculated.x;
+    menu->width = 20;
+    menu->top = menuItem->calculated.y - self->win.calculated.y + 1;
+    menu->height = 3;
+    Window_add_widget(menu, 0, 0, 0, -1, -1, 1, " Window1", 232, 253);
+    Window_add_widget(menu, 0, 0, 1, -1, -1, 1, " Window2", 232, 253);
+    Window_add_widget(menu, 0, 0, 2, -1, -1, 1, " Window3", 232, 253);
+
+    Window_append(self, menu);
+}
+
+void Editor_lambda(struct Window *w, int x, int y){
+  Window *(*fn)(EditorFrame *, struct Window *) = (Window *(*)(EditorFrame *, struct Window *))w->data;
+  Window * self = w->data2;
+  fn(self, w);
+}
+
+Window *Editor_menu(EditorFrame * self){
   Window *menu = malloc(sizeof *menu);
   Window_init(menu, -1, -1, -1, -1, -1, -1);
   menu->left = 0;
@@ -218,13 +240,16 @@ Window *Editor_menu(){
   Window_add_widget(menu, x_offset, -1, j, -1, widget_width, 1, " View", 232, 253);
   x_offset += widget_width;
   widget_width = 6;
-  Window_add_widget(menu, x_offset, 0, j, -1, -1, 1, " Help", 232, 253);
+  Window *window = Window_add_widget(menu, x_offset, 0, j, -1, -1, 1, " Window", 232, 253);
   x_offset += widget_width;
+  window->data = Editor_menu_windows;
+  window->data2 = self;
+  window->on_mouse_down = Editor_lambda;
 
   return menu;
 }
 
-Window *Editor_toolbar(){
+Window *Editor_toolbar(EditorFrame * self){
   Window *toolbar = malloc(sizeof *toolbar);
   Window_init(toolbar, -1, -1, -1, -1, -1, -1);
   toolbar->left = 0;
@@ -266,9 +291,9 @@ Window * Editor_new(int left, int right, int top, int bottom, int width, int hei
     //Window *frame = malloc(sizeof *frame);
     Window *w = Frame_init(frame, left, right, top, bottom, width, height, NULL, 0);
 
-    Window * menu = Editor_menu();
+    Window * menu = Editor_menu(editor_frame);
     Window_append(w, menu);
-    Window * toolbar = Editor_toolbar();
+    Window * toolbar = Editor_toolbar(editor_frame);
     Window_append(w, toolbar);
 
     Window *tabs = Tab_new((Window *(*)(void))EditorWindow_new_tab, 0);

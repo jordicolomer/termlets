@@ -71,46 +71,6 @@ void Window_bring_to_bottom(Window *this);
 
 /* widget.c */
 
-/*
-typedef struct Widget
-{
-  char *id;
-  // for now we copy from Window
-  struct Window *parent;
-  struct Window *head;
-  struct Window *tail;
-  struct Window *next;
-  struct Window *prev;
-  // int x;
-  // int y;
-  int left;
-  int right;
-  int top;
-  int bottom;
-  int width;
-  int height;
-  int virtual_height;
-  Geometry calculated;
-  // void (*draw)(struct Window*, int, int, int);
-  void (*draw)(struct Window *, int);
-  void (*on_mouse_down)(struct Widget *wg, int x, int y);
-  void (*on_hover)(struct Window *wg, int x, int y);
-  void (*undo_on_hover)(struct Window *wg, int x, int y);
-  void (*set_top)(struct Window *wg, int top);
-  void (*send_key)(struct Window *wg, char c);
-  void *data;
-  void *data2;
-  int hidden;
-  int shift;
-  // for now we copy from Window
-
-  char *c;
-  int fg;
-  int bg;
-  // int _fg;
-  // int _bg;
-} Widget;
-*/
 
 void Widget_draw(struct Window *wg, int hasFocus);
 Window *Window_add_widget(Window *w, int left, int right, int top, int bottom, int width, int height, char *c, int fg, int bg);
