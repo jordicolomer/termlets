@@ -215,60 +215,81 @@ ExplorerWindow *FileExplorer_file_list(){
   return w;
 }
 
+Window *FileExplorer_menu(){
+  Window *menu = malloc(sizeof *menu);
+  Window_init(menu, -1, -1, -1, -1, -1, -1);
+  menu->left = 0;
+  menu->right = 0;
+  menu->top = 0;
+  menu->height = 1;
+
+  int j = 0;
+  int x_offset = 0;
+  int widget_width = 6;
+  Window_add_widget(menu, x_offset, -1, j, -1, widget_width, 1, " File", 232, 253);
+  x_offset += widget_width;
+  widget_width = 6;
+  Window_add_widget(menu, x_offset, -1, j, -1, widget_width, 1, " Edit", 232, 253);
+  x_offset += widget_width;
+  widget_width = 6;
+  Window_add_widget(menu, x_offset, -1, j, -1, widget_width, 1, " View", 232, 253);
+  x_offset += widget_width;
+  widget_width = 6;
+  Window_add_widget(menu, x_offset, 0, j, -1, -1, 1, " Help", 232, 253);
+  x_offset += widget_width;
+
+  return menu;
+}
+
+Window *FileExplorer_toolbar(){
+  Window *toolbar = malloc(sizeof *toolbar);
+  Window_init(toolbar, -1, -1, -1, -1, -1, -1);
+  toolbar->left = 0;
+  toolbar->right = 0;
+  toolbar->top = 1;
+  toolbar->height = 1;
+
+  int x_offset = 0;
+  int widget_width = 12;
+  int j = 0;
+  Window_add_widget(toolbar, x_offset, -1, j, -1, widget_width, 1, " 📄 New File", 232, 254);
+  x_offset += widget_width;
+  widget_width = 12;
+  Window_add_widget(toolbar, x_offset, -1, j, -1, widget_width, 1, "📁 New Dir", 232, 254);
+  x_offset += widget_width;
+  widget_width = 8;
+  Window_add_widget(toolbar, x_offset, -1, j, -1, widget_width, 1, "📋 Copy", 232, 254);
+  x_offset += widget_width;
+  widget_width = 8;
+  Window_add_widget(toolbar, x_offset, -1, j, -1, widget_width, 1, "🔪 Cut", 232, 254);
+  x_offset += widget_width;
+  widget_width = 10;
+  Window_add_widget(toolbar, x_offset, -1, j, -1, widget_width, 1, "📌 Paste", 232, 254);
+  x_offset += widget_width;
+  widget_width = 10;
+  Window_add_widget(toolbar, x_offset, -1, j, -1, widget_width, 1, "🔤 Rename", 232, 254);
+  x_offset += widget_width;
+  widget_width = 10;
+  Window_add_widget(toolbar, x_offset, 0, j, -1, -1, 1, "❌ Delete", 232, 254);
+  x_offset += widget_width;
+  
+
+  return toolbar;
+}
 
 Window *FileExplorer_new(int left, int right, int top, int bottom, int width, int height)
 {
   Window *frame = malloc(sizeof *frame);
   Window *w = Frame_init(frame, left, right, top, bottom, width, height, NULL, 0);
-  // LOG_INFO("FileExplorer_new: %d %d %d %d %d", x, y, Window_get_absolute_x(w), Window_get_absolute_y(w), w->x);
 
-  int j = 0;
+  Window * menu = FileExplorer_menu();
+  Window_append(w, menu);
+  Window * toolbar = FileExplorer_toolbar();
+  Window_append(w, toolbar);
 
-  int widget_width;
-
-  // menubar
-  int x_offset = 0;
-  widget_width = 6;
-  Window_add_widget(w, x_offset, -1, j, -1, widget_width, 1, " File", 232, 253);
-  x_offset += widget_width;
-  widget_width = 6;
-  Window_add_widget(w, x_offset, -1, j, -1, widget_width, 1, " Edit", 232, 253);
-  x_offset += widget_width;
-  widget_width = 6;
-  Window_add_widget(w, x_offset, -1, j, -1, widget_width, 1, " View", 232, 253);
-  x_offset += widget_width;
-  widget_width = 6;
-  Window_add_widget(w, x_offset, 0, j, -1, -1, 1, " Help", 232, 253);
-  x_offset += widget_width;
-  j++;
-
-  // toolbar
-  x_offset = 0;
-  widget_width = 12;
-  Window_add_widget(w, x_offset, -1, j, -1, widget_width, 1, " 📄 New File", 232, 254);
-  x_offset += widget_width;
-  widget_width = 12;
-  Window_add_widget(w, x_offset, -1, j, -1, widget_width, 1, "📁 New Dir", 232, 254);
-  x_offset += widget_width;
-  widget_width = 8;
-  Window_add_widget(w, x_offset, -1, j, -1, widget_width, 1, "📋 Copy", 232, 254);
-  x_offset += widget_width;
-  widget_width = 8;
-  Window_add_widget(w, x_offset, -1, j, -1, widget_width, 1, "🔪 Cut", 232, 254);
-  x_offset += widget_width;
-  widget_width = 10;
-  Window_add_widget(w, x_offset, -1, j, -1, widget_width, 1, "📌 Paste", 232, 254);
-  x_offset += widget_width;
-  widget_width = 10;
-  Window_add_widget(w, x_offset, -1, j, -1, widget_width, 1, "🔤 Rename", 232, 254);
-  x_offset += widget_width;
-  widget_width = 10;
-  Window_add_widget(w, x_offset, 0, j, -1, -1, 1, "❌ Delete", 232, 254);
-  x_offset += widget_width;
-  j++;
 
   Window *tabs = Tab_new((Window *(*)(void))FileExplorer_file_list, 1);
-  tabs->top = j;
+  tabs->top = 2;
   tabs->bottom = 0;
   tabs->left = 0;
   tabs->right = 0;
