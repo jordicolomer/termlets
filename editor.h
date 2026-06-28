@@ -11,6 +11,7 @@ typedef struct Node {
 
 typedef struct EditorWindow {
     struct Window win;
+    Window *slider;
     Node *head;
     Node *tail;
     Node *top;

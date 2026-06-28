@@ -100,6 +100,7 @@ Window *EditorWindow_new_tab(){
     EditorWindow * editor = EditorWindow_new();
     Window *slider = slider_new(editor);
     Slider_show_grip(slider);
+    editor->slider = slider;
     return slider;
 }
 /*
@@ -192,6 +193,7 @@ void load_file(EditorWindow * self, const char *filename) {
 void EditorWindow_open_file(EditorWindow * editor_window, char * file_path){
     load_file(editor_window, file_path);
     editor_window->top = editor_window->head;
+    editor_window->slider->id = file_path;
     LOG_INFO("Editor_open_file %s", file_path);
 }
 
@@ -200,7 +202,6 @@ void EditorWindow_open_file(EditorWindow * editor_window, char * file_path){
 EditorFrame * last_frame;
 
 Window *Editor_menu_windows(EditorFrame * self, struct Window *menuItem){
-    //LOG_INFO("Editor_menu_windows %p", self);
     Window *menu = malloc(sizeof *menu);
     Window_init(menu, -1, -1, -1, -1, -1, -1);
     menu->left = menuItem->calculated.x - self->win.calculated.x;
@@ -210,12 +211,11 @@ Window *Editor_menu_windows(EditorFrame * self, struct Window *menuItem){
     int i = 0;
     int maxLen = 0;
     while (tab != NULL){
-        Window_add_widget(menu, 0, 0, i++, -1, -1, 1, tab->str, 232, 253);
-        maxLen = max(maxLen, strlen(tab->str));
+        char * tab_label = tab->child->id;
+        //char * tab_label = tab->str;
+        Window_add_widget(menu, 0, 0, i++, -1, -1, 1, tab_label, 232, 253);
+        maxLen = max(maxLen, strlen(tab_label));
         tab = tab->next;
-    //Window_add_widget(menu, 0, 0, 0, -1, -1, 1, " Window1", 232, 253);
-    //Window_add_widget(menu, 0, 0, 1, -1, -1, 1, " Window2", 232, 253);
-    //Window_add_widget(menu, 0, 0, 2, -1, -1, 1, " Window3", 232, 253);
     }
     menu->width = maxLen;
     menu->height = i;
