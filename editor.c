@@ -61,11 +61,14 @@ void EditorWindow_draw(struct Window *w, int hasFocus){
     int i = 0;
     Node * current = self->top;
     while(i < geo.height){
-        if (current == NULL) break;
+        //if (current == NULL) break;
         int bg = 239;
         if (self->top_n + i == self->cursor_n) bg = 53;
-        Buffer_print_raw(&main_buf, geo.y + i++, geo.x, geo.width, current->line, 15, bg);
-        current = current->next;
+
+        char * str = "";
+        if (current != NULL) str = current->line;
+        Buffer_print_raw(&main_buf, geo.y + i++, geo.x, geo.width, str, 15, bg);
+        if (current != NULL) current = current->next;
     }
 }
 
