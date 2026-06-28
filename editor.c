@@ -201,6 +201,19 @@ void EditorWindow_open_file(EditorWindow * editor_window, char * file_path){
 
 EditorFrame * last_frame;
 
+void Editor_change_color_hover(Window *wg, int x, int y)
+{
+    wg->fg = 232;
+    wg->bg = 27;
+}
+
+void Editor_change_color_normal(Window *wg, int x, int y)
+{
+    wg->fg = 232;
+    wg->bg = 195;
+}
+
+
 Window *Editor_menu_windows(EditorFrame * self, struct Window *menuItem){
     Window *menu = malloc(sizeof *menu);
     Window_init(menu, -1, -1, -1, -1, -1, -1);
@@ -209,14 +222,21 @@ Window *Editor_menu_windows(EditorFrame * self, struct Window *menuItem){
     Tabs * mytab = self->tabs->data;
     Tab * tab = mytab->first;
     int i = 0;
+    Window_add_widget(menu, 0, 0, i++, -1, -1, 1, "", 232, 195);
     int maxLen = 0;
     while (tab != NULL){
-        char * tab_label = tab->child->id;
-        //char * tab_label = tab->str;
-        Window_add_widget(menu, 0, 0, i++, -1, -1, 1, tab_label, 232, 253);
+        char * tab_label = NULL;
+        asprintf(&tab_label, "  %s  ", tab->child->id);
+        
+        Window * win = Window_add_widget(menu, 0, 0, i++, -1, -1, 1, tab_label, 232, 195);
+
+        win->on_hover = Editor_change_color_hover;
+        win->undo_on_hover = Editor_change_color_normal;
+
         maxLen = max(maxLen, strlen(tab_label));
         tab = tab->next;
     }
+    Window_add_widget(menu, 0, 0, i++, -1, -1, 1, "", 232, 195);
     menu->width = maxLen;
     menu->height = i;
 
