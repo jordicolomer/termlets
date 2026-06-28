@@ -61,7 +61,6 @@ void EditorWindow_draw(struct Window *w, int hasFocus){
     int i = 0;
     Node * current = self->top;
     while(i < geo.height){
-        //if (current == NULL) break;
         int bg = 239;
         if (self->top_n + i == self->cursor_n) bg = 53;
 
@@ -185,6 +184,9 @@ void Editor_last_open_file(char * file_path){
         file_editor_new();
         //return;
     }
-    LOG_INFO("Editor_last_open_file %p", last_frame);
+    //LOG_INFO("Editor_last_open_file %p", last_frame);
     Editor_open_file(last_frame, file_path);
+    //Window_bring_to_bottom(last_frame);
+    //root->focused = last_frame;
+    TaskBar_switch_frame(last_frame);
 }
