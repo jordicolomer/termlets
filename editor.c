@@ -53,7 +53,10 @@ void EditorWindow_send_key(Window * win, char c)
         self->cursor_n = max(self->cursor_n, 0);
         EditorWindow_make_cursor_visible(self);
         return;
-    }}
+    }
+}
+
+
 
 void EditorWindow_draw(struct Window *w, int hasFocus){
     EditorWindow *self = w;
@@ -90,7 +93,16 @@ EditorWindow *EditorWindow_new_tab(){
 
   return w;
 }
-
+#include <ctype.h>
+void replace_nonprintable(char *str)
+{
+    while (*str) {
+        if (!isprint((unsigned char)*str)) {
+            *str = '?';
+        }
+        str++;
+    }
+}
 
 Node* create_node(const char *text) {
     Node *new_node = malloc(sizeof(Node));
@@ -98,7 +110,7 @@ Node* create_node(const char *text) {
         perror("malloc failed");
         exit(1);
     }
-
+    replace_nonprintable(text);
     new_node->line = strdup(text);  // copy string
     new_node->next = NULL;
     new_node->prev = NULL;
