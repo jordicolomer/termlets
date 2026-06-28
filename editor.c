@@ -204,12 +204,21 @@ Window *Editor_menu_windows(EditorFrame * self, struct Window *menuItem){
     Window *menu = malloc(sizeof *menu);
     Window_init(menu, -1, -1, -1, -1, -1, -1);
     menu->left = menuItem->calculated.x - self->win.calculated.x;
-    menu->width = 20;
     menu->top = menuItem->calculated.y - self->win.calculated.y + 1;
-    menu->height = 3;
-    Window_add_widget(menu, 0, 0, 0, -1, -1, 1, " Window1", 232, 253);
-    Window_add_widget(menu, 0, 0, 1, -1, -1, 1, " Window2", 232, 253);
-    Window_add_widget(menu, 0, 0, 2, -1, -1, 1, " Window3", 232, 253);
+    Tabs * mytab = self->tabs->data;
+    Tab * tab = mytab->first;
+    int i = 0;
+    int maxLen = 0;
+    while (tab != NULL){
+        Window_add_widget(menu, 0, 0, i++, -1, -1, 1, tab->str, 232, 253);
+        maxLen = max(maxLen, strlen(tab->str));
+        tab = tab->next;
+    //Window_add_widget(menu, 0, 0, 0, -1, -1, 1, " Window1", 232, 253);
+    //Window_add_widget(menu, 0, 0, 1, -1, -1, 1, " Window2", 232, 253);
+    //Window_add_widget(menu, 0, 0, 2, -1, -1, 1, " Window3", 232, 253);
+    }
+    menu->width = maxLen;
+    menu->height = i;
 
     Window_append(self, menu);
 }

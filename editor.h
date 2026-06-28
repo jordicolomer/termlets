@@ -1,6 +1,7 @@
 #ifndef FILE_EDITOR_H
 #define FILE_EDITOR_H
 #include "window.h"
+#include "tabs.h"
 
 typedef struct Node {
     char *line;
