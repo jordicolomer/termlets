@@ -267,7 +267,7 @@ Window *FileExplorer_new(int left, int right, int top, int bottom, int width, in
   x_offset += widget_width;
   j++;
 
-  Window *tabs = Tab_new((Window *(*)(void))FileExplorer_file_list);
+  Window *tabs = Tab_new((Window *(*)(void))FileExplorer_file_list, 1);
   tabs->top = j;
   tabs->bottom = 0;
   tabs->left = 0;

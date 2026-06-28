@@ -158,7 +158,7 @@ Window * Editor_new(int left, int right, int top, int bottom, int width, int hei
     //Window *frame = malloc(sizeof *frame);
     Window *w = Frame_init(frame, left, right, top, bottom, width, height, NULL, 0);
 
-    Window *tabs = Tab_new((Window *(*)(void))EditorWindow_new_tab);
+    Window *tabs = Tab_new((Window *(*)(void))EditorWindow_new_tab, 0);
     editor_frame->tabs = tabs;
     tabs->top = 0;
     tabs->bottom = 0;
@@ -180,7 +180,8 @@ void Editor_open_file(EditorFrame * editor_frame, char * file_path){
 void Editor_last_open_file(char * file_path){
     if (last_frame == NULL){
         file_editor_new();
-        return;
+        //return;
     }
+    LOG_INFO("Editor_last_open_file %p", last_frame);
     Editor_open_file(last_frame, file_path);
 }

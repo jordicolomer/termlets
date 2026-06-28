@@ -29,7 +29,7 @@ typedef struct Tabs {
 } Tabs;
 
 
-Window *Tab_new(tab_create_callback callback);
+Window *Tab_new(tab_create_callback callback, int new_tab);
 Window * tabs_new_tab(Tabs *self);
 
 #endif

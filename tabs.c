@@ -119,7 +119,7 @@ void tabs_send_sequence(struct Window *wg, const char *seq, int len)
 }
 */
 
-Window *Tab_new(tab_create_callback callback){
+Window *Tab_new(tab_create_callback callback, int new_tab){
     Tabs *mytab = malloc(sizeof *mytab);
     //Window *tabs = malloc(sizeof *tabs);
     Window *tabs = mytab;
@@ -159,6 +159,6 @@ Window *Tab_new(tab_create_callback callback){
     plus_button->data = mytab;
     mytab->x_offset += plus_button->width;
 
-    tabs_new_tab(mytab);
+    if (new_tab) tabs_new_tab(mytab);
     return tabs;
 }
