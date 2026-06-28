@@ -225,14 +225,16 @@ Window *Editor_menu_windows(EditorFrame * self, struct Window *menuItem){
     Window_init(menu, -1, -1, -1, -1, -1, -1);
     menu->left = menuItem->calculated.x - self->win.calculated.x;
     menu->top = menuItem->calculated.y - self->win.calculated.y + 1;
-    Tabs * mytab = self->tabs->data;
-    Tab * tab = mytab->first;
+    Tabs * tabs = self->tabs->data;
+    Tab * tab = tabs->first;
     int i = 0;
     Window_add_widget(menu, 0, 0, i++, -1, -1, 1, "", 232, 195);
     int maxLen = 0;
     while (tab != NULL){
         char * tab_label = NULL;
-        asprintf(&tab_label, "  %s  ", tab->child->id);
+        char * selected_sign = " ";
+        if (tabs->selected_tab == tab) selected_sign = "*";
+        asprintf(&tab_label, " %s%s  ", selected_sign, tab->child->id);
         
         Window * win = Window_add_widget(menu, 0, 0, i++, -1, -1, 1, tab_label, 232, 195);
 
