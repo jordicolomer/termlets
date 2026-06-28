@@ -237,7 +237,8 @@ void Buffer_print(Buffer *buf, int y, int x, int width, char *s, int fg, int bg)
   while (*p)
   {
     uint32_t cp = utf8_decode(&p);
-    int w = wcwidth(cp);
+    //int w = wcwidth(cp);
+    int w = cp_width(cp);
     buf->buffer[y * buf->width + x] = cp;
     x += w;
     // printf("U+%04X %d\n", cp, w);
@@ -412,8 +413,10 @@ void Buffer_print_to_screen(Buffer *buf)
       {
         color_count += 1;
 
-        append_fmt(out, &pos, "\033[%d;%dm", fg, bg);
-
+        //append_fmt(out, &pos, "\033[%d;%dm", fg, bg);
+        append_fmt(out, &pos, "\033[38;5;%d;48;5;%dm", fg, bg);
+         
+        //LOG_INFO("append_fmt: %d %d", fg, bg);
         current_bg = bg;
         current_fg = fg;
       }
@@ -463,6 +466,10 @@ void Buffer_print_to_screen(Buffer *buf)
   // append_str(out, &pos, "\033[?2026l");
   //  ONE write
   write(STDOUT_FILENO, out, pos);
+
+  //log_file = fopen(filename, "w");
+  //fwrite(out, sizeof(char), pos, stdout);
+  LOG_INFO("%s\n", out);
 
   free(out);
 
