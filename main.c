@@ -110,18 +110,25 @@ void on_drag(int x, int y)
     Geometry rect = {0, 0, root->width, root->height};
     Window *wg = Window_find_widget(root, x, y);
     //LOG_INFO("Window_find_widget: %p id: %s", wg, wg->id);
+
+    if (hovering != NULL && hovering->undo_on_hover != NULL && hovering != wg){
+      hovering->undo_on_hover(hovering, x, y);
+      repaint();
+      hovering = NULL;
+    }
+
     if (wg != NULL && wg->on_hover != NULL)
     {
       hovering = wg;
       wg->on_hover(wg, x, y);
       repaint();
     }
-    else if (hovering != NULL && hovering->undo_on_hover != NULL)
+    /*else if (hovering != NULL && hovering->undo_on_hover != NULL)
     {
       hovering->undo_on_hover(hovering, x, y);
       repaint();
       hovering = NULL;
-    }
+    }*/
   }
 }
 
