@@ -213,6 +213,12 @@ void Editor_change_color_normal(Window *wg, int x, int y)
     wg->bg = 195;
 }
 
+void Editor_menu_windows_item(struct Window *w, int x, int y){
+    Tab * tab = w->data;
+    Window *menu = w->data2;
+    tab_select(tab);
+    Window_remove(menu);
+}
 
 Window *Editor_menu_windows(EditorFrame * self, struct Window *menuItem){
     Window *menu = malloc(sizeof *menu);
@@ -232,6 +238,9 @@ Window *Editor_menu_windows(EditorFrame * self, struct Window *menuItem){
 
         win->on_hover = Editor_change_color_hover;
         win->undo_on_hover = Editor_change_color_normal;
+        win->data = tab;
+        win->data2 = menu;
+        win->on_mouse_down = Editor_menu_windows_item;
 
         maxLen = max(maxLen, strlen(tab_label));
         tab = tab->next;

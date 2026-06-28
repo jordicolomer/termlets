@@ -123,12 +123,6 @@ void on_drag(int x, int y)
       wg->on_hover(wg, x, y);
       repaint();
     }
-    /*else if (hovering != NULL && hovering->undo_on_hover != NULL)
-    {
-      hovering->undo_on_hover(hovering, x, y);
-      repaint();
-      hovering = NULL;
-    }*/
   }
 }
 
