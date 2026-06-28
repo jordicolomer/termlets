@@ -11,20 +11,24 @@
 #include "taskbar.h"
 
 // Editor Window
-
-void EditorWindow_make_cursor_visible(EditorWindow * self){
-    int height = self->win.calculated.height;
-    int diff = self->cursor_n - self->top_n;
-    while (diff > height - 1){ //  && self->top_n < self->n_lines
+/*
+void EditorWindow_update_first_visible_line(EditorWindow * self, int first_visible_line){
+    while (self->top_n < first_visible_line){
         self->top_n++;
         self->top = self->top->next;
-        diff = self->cursor_n - self->top_n;
     }
-    while (diff < 0){ //  && self->top_n > 0
+    while (self->top_n > first_visible_line){
         self->top_n--;
         self->top = self->top->prev;
-        diff = self->cursor_n - self->top_n;
     }
+}
+*/
+ 
+void EditorWindow_make_cursor_visible(EditorWindow * self){
+    int height = self->win.calculated.height;
+    int diff = self->cursor_n + self->win.shift;
+    if (diff < 0) self->win.shift = -(self->cursor_n);
+    if (diff > height-1) self->win.shift = height - self->cursor_n-1;
 }
 
 void EditorWindow_send_key(Window * win, char c)
@@ -59,14 +63,22 @@ void EditorWindow_send_key(Window * win, char c)
 
 
 void EditorWindow_draw(struct Window *w, int hasFocus){
-    LOG_INFO("EditorWindow_draw");
+    //LOG_INFO("EditorWindow_draw");
+    //int first_visible_line = -w->shift;
     EditorWindow *self = w;
+    //self->cursor_n = first_visible_line;
+    //EditorWindow_make_cursor_visible(self);
+    //EditorWindow_update_first_visible_line(self, first_visible_line);
+
     Geometry geo = w->calculated;
     int i = 0;
-    Node * current = self->top;
+    //Node * current = self->top;
+    Node * current = self->head;
+    for(int i=0;i<-self->win.shift;i++) current = current->next;
+
     while(i < geo.height){
         int bg = 239;
-        if (self->top_n + i == self->cursor_n) bg = 53;
+        if (-self->win.shift + i == self->cursor_n) bg = 53;
 
         char * str = "";
         if (current != NULL) str = current->line;
