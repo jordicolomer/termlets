@@ -59,6 +59,7 @@ void EditorWindow_send_key(Window * win, char c)
 
 
 void EditorWindow_draw(struct Window *w, int hasFocus){
+    LOG_INFO("EditorWindow_draw");
     EditorWindow *self = w;
     Geometry geo = w->calculated;
     int i = 0;
@@ -74,7 +75,33 @@ void EditorWindow_draw(struct Window *w, int hasFocus){
     }
 }
 
-EditorWindow *EditorWindow_new_tab(){
+EditorWindow * latestEditorWindow;
+EditorWindow *EditorWindow_new(){
+    EditorWindow *self = malloc(sizeof *self);
+    Window_init(self, -1, -1, -1, -1, -1, -1);
+    self->win.top = 0;
+    self->win.bottom = 0;
+    self->win.left = 0;
+    self->win.right = 0;
+    self->win.id = "editor tab";
+
+    //Window *editor = (Window *) self;
+    self->win.draw = EditorWindow_draw;
+
+    self->win.send_key = EditorWindow_send_key;
+
+    latestEditorWindow = self;
+
+    return self;
+}
+
+Window *EditorWindow_new_tab(){
+    EditorWindow * editor = EditorWindow_new();
+    Window *slider = slider_new(editor);
+    return slider;
+}
+/*
+Window *EditorWindow_new_tab(){
   EditorWindow *w = malloc(sizeof *w);
   Window_init(w, -1, -1, -1, -1, -1, -1);
   w->win.id = "editor tab";
@@ -87,12 +114,14 @@ EditorWindow *EditorWindow_new_tab(){
   fm_slider->right = 0;
   fm_slider->top = 0;
   fm_slider->bottom = 0;
-  Window_append(w, fm_slider);
+  //Window_append(w, fm_slider);
 
   w->win.send_key = EditorWindow_send_key;
 
-  return w;
+  return fm_slider;
 }
+*/
+
 #include <ctype.h>
 void replace_nonprintable(char *str)
 {
@@ -128,7 +157,6 @@ void append(EditorWindow * self, const char *text) {
     if (self->tail != NULL) self->tail->next = new_node;
     new_node->prev = self->tail;
     self->tail = new_node;
-    self->n_lines++;
 
 }
 
@@ -150,9 +178,12 @@ void load_file(EditorWindow * self, const char *filename) {
         buffer[strcspn(buffer, "\n")] = '\0';
 
         append(self, buffer);
+        self->n_lines++;
     }
 
     fclose(file);
+
+    self->win.virtual_height = self->n_lines;
     //return head;
 }
 
@@ -187,8 +218,10 @@ Window * Editor_new(int left, int right, int top, int bottom, int width, int hei
 }
 
 void Editor_open_file(EditorFrame * editor_frame, char * file_path){
-    EditorWindow * editor_window = tabs_new_tab(editor_frame->tabs);
-    EditorWindow_open_file(editor_window, file_path);
+    Window * slider = tabs_new_tab(editor_frame->tabs);
+    //EditorWindow * editor_window = slider->focused;
+    //EditorWindow * editor_window = tabs_new_tab(editor_frame->tabs);
+    EditorWindow_open_file(latestEditorWindow, file_path);
 }
 
 void Editor_last_open_file(char * file_path){

@@ -400,7 +400,7 @@ void setup_crash_handler()
 int calculate_width(char *s);
 int main()
 {
-  //setup_crash_handler();
+  setup_crash_handler();
   start();
   //calculate_width("~$ll Stack Developer – Data Analytics and Integration.docx");
 }
