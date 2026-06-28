@@ -11,24 +11,12 @@
 #include "taskbar.h"
 
 // Editor Window
-/*
-void EditorWindow_update_first_visible_line(EditorWindow * self, int first_visible_line){
-    while (self->top_n < first_visible_line){
-        self->top_n++;
-        self->top = self->top->next;
-    }
-    while (self->top_n > first_visible_line){
-        self->top_n--;
-        self->top = self->top->prev;
-    }
-}
-*/
  
 void EditorWindow_make_cursor_visible(EditorWindow * self){
     int height = self->win.calculated.height;
     int diff = self->cursor_n + self->win.shift;
     if (diff < 0) self->win.shift = -(self->cursor_n);
-    if (diff > height-1) self->win.shift = height - self->cursor_n-1;
+    if (diff > height - 1) self->win.shift = height - 1 - self->cursor_n;
 }
 
 void EditorWindow_send_key(Window * win, char c)
@@ -110,6 +98,7 @@ EditorWindow *EditorWindow_new(){
 Window *EditorWindow_new_tab(){
     EditorWindow * editor = EditorWindow_new();
     Window *slider = slider_new(editor);
+    Slider_show_grip(slider);
     return slider;
 }
 /*
