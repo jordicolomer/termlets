@@ -210,7 +210,7 @@ void Editor_change_color_hover(Window *wg, int x, int y)
 void Editor_change_color_normal(Window *wg, int x, int y)
 {
     wg->fg = 232;
-    wg->bg = 195;
+    wg->bg = 15;
 }
 
 void Editor_menu_windows_item(struct Window *w, int x, int y){
@@ -228,7 +228,7 @@ Window *Editor_menu_windows(EditorFrame * self, struct Window *menuItem){
     Tabs * tabs = self->tabs->data;
     Tab * tab = tabs->first;
     int i = 0;
-    Window_add_widget(menu, 0, 0, i++, -1, -1, 1, "", 232, 195);
+    Window_add_widget(menu, 0, 0, i++, -1, -1, 1, "", 232, 15);
     int maxLen = 0;
     while (tab != NULL){
         char * tab_label = NULL;
@@ -236,7 +236,7 @@ Window *Editor_menu_windows(EditorFrame * self, struct Window *menuItem){
         if (tabs->selected_tab == tab) selected_sign = "*";
         asprintf(&tab_label, " %s%s  ", selected_sign, tab->child->id);
         
-        Window * win = Window_add_widget(menu, 0, 0, i++, -1, -1, 1, tab_label, 232, 195);
+        Window * win = Window_add_widget(menu, 0, 0, i++, -1, -1, 1, tab_label, 232, 15);
 
         win->on_hover = Editor_change_color_hover;
         win->undo_on_hover = Editor_change_color_normal;
@@ -247,7 +247,7 @@ Window *Editor_menu_windows(EditorFrame * self, struct Window *menuItem){
         maxLen = max(maxLen, strlen(tab_label));
         tab = tab->next;
     }
-    Window_add_widget(menu, 0, 0, i++, -1, -1, 1, "", 232, 195);
+    Window_add_widget(menu, 0, 0, i++, -1, -1, 1, "", 232, 15);
     menu->width = maxLen;
     menu->height = i;
 

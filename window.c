@@ -306,11 +306,12 @@ void Widget_draw(struct Window *current, int hasFocus)
 {
   //Widget *current = (Widget *)wg;
   Window_draw((Window *)current, hasFocus);
+  Geometry geo = current->calculated;
 #ifdef USE_BUFFER
-  Buffer_print(&main_buf, geo.y + wg_y, geo.x + wg_x, wg_width, current->c, current->fg, current->bg);
+  //Buffer_print(&main_buf, geo.y + wg_y, geo.x + wg_x, wg_width, current->c, current->fg, current->bg);
+  Buffer_print(&main_buf, geo.y, geo.x, geo.width, current->c, current->fg, current->bg);
 #else
 
-  Geometry geo = current->calculated;
   if (current->hidden == 1){
     //LOG_INFO("wg->hidden");
     return;

@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdint.h>
 
-// #define USE_BUFFER
+//#define USE_BUFFER
 
 
 typedef struct Buffer
@@ -22,6 +22,7 @@ void Buffer_clear(Buffer *buf);
 void Buffer_print_raw(Buffer *buf, int y, int x, int width, char *s, int fg, int bg);
 void Buffer_print(Buffer *buf, int y, int x, int width, char *s, int fg, int bg);
 void Buffer_reset();
+void Buffer_print_to_screen(Buffer *buf);
 
 extern Buffer main_buf;
 
