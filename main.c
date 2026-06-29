@@ -58,25 +58,27 @@ void repaint()
 {
   //LOG_INFO("repaint");
   //printf("\x1b[44m\x1b[37m");
-  set_color256(232, 17);
-  clear_screen();
-  hide_cursor();
 
   // redraw everything
 #ifdef USE_BUFFER
   Buffer_clear(&main_buf);
+#else
+  set_color256(232, 17);
+  clear_screen();
+  hide_cursor();
 #endif
 
   Geometry rect = {0, 0, root->width, root->height};
   root->calculated = rect;
   root->draw(root, 0);
   
-  //Reset all text attributes to terminal defaults.
-  fprintf(stdout, "\033[0m");
-  fflush(stdout);
 
 #ifdef USE_BUFFER
   Buffer_print_to_screen(&main_buf);
+#else
+  //Reset all text attributes to terminal defaults.
+  fprintf(stdout, "\033[0m");
+  fflush(stdout);
 #endif
   Buffer_reset();
 }

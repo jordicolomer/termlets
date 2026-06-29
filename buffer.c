@@ -105,6 +105,10 @@ void Buffer_init(Buffer *buf, int width, int height)
   buf->buffer = calloc(width * height, sizeof(uint32_t));
   buf->bg = calloc(width * height, sizeof(char));
   buf->fg = calloc(width * height, sizeof(char));
+
+  buf->buffer2 = calloc(width * height, sizeof(uint32_t));
+  buf->bg2 = calloc(width * height, sizeof(char));
+  buf->fg2 = calloc(width * height, sizeof(char));
 }
 
 void Buffer_clear(Buffer *buf)
@@ -359,6 +363,27 @@ static inline void append_fmt(char *out, size_t *pos, const char *fmt, ...)
     *pos += written;
 }
 
+void Buffer_copy_to_second_buffer(Buffer *buf)
+{
+  for (int y = 0; y < buf->height; y++)
+  {
+
+    for (int x = 0; x < buf->width; x++)
+    {
+
+      int idx = y * buf->width + x;
+
+      uint32_t cp = buf->buffer[idx];
+      int bg = (int) buf->bg[idx];
+      int fg = (int) buf->fg[idx];
+
+      buf->buffer2[idx] = cp;
+      buf->bg2[idx] = (char) bg;
+      buf->fg2[idx] = (char) fg;
+    }
+  }
+}
+
 void Buffer_print_to_screen(Buffer *buf)
 {
   int cursor_movement_count = 0;
@@ -395,23 +420,31 @@ void Buffer_print_to_screen(Buffer *buf)
       int idx = y * buf->width + x;
 
       uint32_t cp = buf->buffer[idx];
-
-      if (cp == 0)
-        continue;
+      if (cp == 0) cp = 32;
+        //continue;
 
       int bg = (int) buf->bg[idx];
       int fg = (int) buf->fg[idx];
+
+      uint32_t cp2 = buf->buffer2[idx];
+      if (cp2 == 0) cp2 = 32;
+      int bg2 = (int) buf->bg2[idx];
+      int fg2 = (int) buf->fg2[idx];
+      int skip = 0;
+      if (cp == cp2 && bg == bg2 && fg == fg2) skip = 1;
 
       // cursor movement only when needed
       if (x != terminal_x || y != terminal_y)
       {
         cursor_movement_count += 1;
 
-        append_fmt(out, &pos, "\033[%d;%dH", y + 1, x + 1);
-        LOG_INFO("append_fmt pos: %d %d", y, x);
+        if (! skip){
+          append_fmt(out, &pos, "\033[%d;%dH", y + 1, x + 1);
+          LOG_INFO("append_fmt pos: %d %d", y, x);
+          terminal_x = x;
+          terminal_y = y;
+        }
 
-        terminal_x = x;
-        terminal_y = y;
       }
 
       // color update only when changed
@@ -420,11 +453,13 @@ void Buffer_print_to_screen(Buffer *buf)
         color_count += 1;
 
         //append_fmt(out, &pos, "\033[%d;%dm", fg, bg);
+        if (! skip){
         append_fmt(out, &pos, "\033[38;5;%d;48;5;%dm", fg, bg);
          
         LOG_INFO("append_fmt color: %d %d", fg, bg);
         current_bg = bg;
         current_fg = fg;
+        }
       }
 
       // encode UTF-8
@@ -435,7 +470,7 @@ void Buffer_print_to_screen(Buffer *buf)
 
       if (len > 0)
       {
-        append_bytes(out,
+        if (! skip) append_bytes(out,
                      &pos,
                      (char *)utf8,
                      len);
@@ -457,7 +492,7 @@ void Buffer_print_to_screen(Buffer *buf)
       if (w > 1)
         x += w - 1;
 
-      terminal_x += w;
+      if (! skip) terminal_x += w;
     }
   }
 
@@ -490,6 +525,7 @@ void Buffer_print_to_screen(Buffer *buf)
 
   LOG_INFO("Execution time: %f ms size:%d cursor_movement_count:%d color_count:%d\n",
            cpu_time_used * 1000, pos, cursor_movement_count, color_count);
+  Buffer_copy_to_second_buffer(buf);
 }
 
 Buffer main_buf;

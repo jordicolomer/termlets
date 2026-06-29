@@ -14,6 +14,9 @@ typedef struct Buffer
   uint32_t *buffer;
   unsigned char *bg;
   unsigned char *fg;
+  uint32_t *buffer2;
+  unsigned char *bg2;
+  unsigned char *fg2;
 } Buffer;
 
 
