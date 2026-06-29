@@ -198,12 +198,15 @@ void Buffer_print_raw(Buffer *buf, int y, int x, int width, char *s, int fg, int
   // Print only the bytes that fit within width
   if (bytes_to_print > 0)
   {
-    printf("%.*s", bytes_to_print, s);
+    //printf("%.*s", bytes_to_print, s);
+    //LOG_INFO("Buffer_print_raw: %s", s);
+    write(STDOUT_FILENO, s, bytes_to_print);
   }
 
   // Pad remaining space
   for (int i = 0; i < width - current_width; i++)
-    printf(" ");
+    //printf(" ");
+    write(STDOUT_FILENO, " ", 1);
 
   x_state += width;
 }
@@ -224,7 +227,7 @@ void Buffer_print_raw_slow(Buffer *buf, int y, int x, int width, char *s, int fg
 
 void Buffer_print(Buffer *buf, int y, int x, int width, char *s, int fg, int bg)
 {
-  x -= 1;
+  //x -= 1;
   y -= 1;
   const uint8_t *p = (const uint8_t *)s;
 
@@ -239,6 +242,7 @@ void Buffer_print(Buffer *buf, int y, int x, int width, char *s, int fg, int bg)
     uint32_t cp = utf8_decode(&p);
     //int w = wcwidth(cp);
     int w = cp_width(cp);
+    //LOG_INFO("Buffer_print %d %d %d\n", cp, x, y);
     buf->buffer[y * buf->width + x] = cp;
     x += w;
     // printf("U+%04X %d\n", cp, w);
@@ -435,15 +439,17 @@ void Buffer_print_to_screen(Buffer *buf)
                      len);
       }
 
-      int w;
+      int w = cp_width(cp);
+      //LOG_INFO("Buffer_print_to_screen %d %d %d %d\n", cp, w, x, terminal_x);
+      /*int w;
 
       if (cp < 128)
         w = 1;
       else
-        w = wcwidth(cp);
+        w = cp_width(cp);
 
       if (w < 1)
-        w = 1;
+        w = 1;*/
 
       if (w > 1)
         x += w - 1;
@@ -469,7 +475,8 @@ void Buffer_print_to_screen(Buffer *buf)
 
   //log_file = fopen(filename, "w");
   //fwrite(out, sizeof(char), pos, stdout);
-  LOG_INFO("%s\n", out);
+  //out[pos] = 0;
+  //LOG_INFO("%s\n", out);
 
   free(out);
 
