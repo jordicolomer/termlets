@@ -115,7 +115,7 @@ void Buffer_clear(Buffer *buf)
 {
   int size = buf->width * buf->height;
 
-  memset(buf->buffer, 0, size);
+  memset(buf->buffer, 0, size*4);
   memset(buf->bg, 0, size);
   memset(buf->fg, 0, size);
 }
@@ -476,7 +476,8 @@ void Buffer_print_to_screen(Buffer *buf)
 
       int w = cp_width(cp);
       utf8[len] = 0;
-      //LOG_INFO("Buffer_print_to_screen %s %d %d %d %d\n", utf8, cp, w, x, y);
+      if (x == 27 && y == 31) 
+      LOG_INFO("Buffer_print_to_screen %s %d %d %d %d\n", utf8, cp, w, x, y);
       /*int w;
 
       if (cp < 128)
