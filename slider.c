@@ -101,7 +101,7 @@ void slider_grip_draw(struct Window *w, int hasFocus){
   if (w->hidden == 1) return;
   Geometry geo = w->calculated;
   for (int i=0;i<w->height;i++)
-    Buffer_print_raw(&main_buf, geo.y+i, geo.x, geo.width, "  ", 0, 250);
+    Buffer_print(&main_buf, geo.y+i, geo.x, geo.width, "  ", 0, 250);
 }
 
 void Slider_draw(struct Window *current, int hasFocus){

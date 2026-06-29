@@ -71,7 +71,7 @@ void EditorWindow_draw(struct Window *w, int hasFocus){
 
         char * str = "";
         if (current != NULL) str = current->line;
-        Buffer_print_raw(&main_buf, geo.y + i++, geo.x, geo.width, str, 15, bg);
+        Buffer_print(&main_buf, geo.y + i++, geo.x, geo.width, str, 15, bg);
         if (current != NULL) current = current->next;
     }
 }

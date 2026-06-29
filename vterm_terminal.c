@@ -439,7 +439,7 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
                     /* render this batch */
                     line_buf[buf_idx] = '\0';
                     int batch_width = col - batch_start;
-                    Buffer_print_raw(&main_buf, y, geo.x + batch_start, batch_width, line_buf, fg, bg);
+                    Buffer_print(&main_buf, y, geo.x + batch_start, batch_width, line_buf, fg, bg);
                 }
             }
         } else {
@@ -499,7 +499,7 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
                     /* render this batch */
                     line_buf[buf_idx] = '\0';
                     int batch_width = col - batch_start;
-                    Buffer_print_raw(&main_buf, y, geo.x + batch_start, batch_width, line_buf, fg, bg);
+                    Buffer_print(&main_buf, y, geo.x + batch_start, batch_width, line_buf, fg, bg);
                 }
             }
         }
@@ -554,7 +554,7 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
             }
 
             /* Render cursor with swapped colors (reverse video) */
-            Buffer_print_raw(&main_buf, cursor_y, cursor_x, cursor_width, cursor_char, bg, fg);
+            Buffer_print(&main_buf, cursor_y, cursor_x, cursor_width, cursor_char, bg, fg);
         }
     }
 }
