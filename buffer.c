@@ -235,8 +235,8 @@ void Buffer_print(Buffer *buf, int y, int x, int width, char *s, int fg, int bg)
   for (int i = 0; i < width; i++)
   {
     buf->buffer[y * buf->width + x + i] = ' ';
-    buf->fg[y * buf->width + x + i] = fg;
-    buf->bg[y * buf->width + x + i] = bg;
+    buf->fg[y * buf->width + x + i] = (char) fg;
+    buf->bg[y * buf->width + x + i] = (char) bg;
   }
   while (*p)
   {
@@ -399,8 +399,8 @@ void Buffer_print_to_screen(Buffer *buf)
       if (cp == 0)
         continue;
 
-      char bg = buf->bg[idx];
-      char fg = buf->fg[idx];
+      int bg = (int) buf->bg[idx];
+      int fg = (int) buf->fg[idx];
 
       // cursor movement only when needed
       if (x != terminal_x || y != terminal_y)
@@ -408,6 +408,7 @@ void Buffer_print_to_screen(Buffer *buf)
         cursor_movement_count += 1;
 
         append_fmt(out, &pos, "\033[%d;%dH", y + 1, x + 1);
+        LOG_INFO("append_fmt pos: %d %d", y, x);
 
         terminal_x = x;
         terminal_y = y;
@@ -421,7 +422,7 @@ void Buffer_print_to_screen(Buffer *buf)
         //append_fmt(out, &pos, "\033[%d;%dm", fg, bg);
         append_fmt(out, &pos, "\033[38;5;%d;48;5;%dm", fg, bg);
          
-        //LOG_INFO("append_fmt: %d %d", fg, bg);
+        LOG_INFO("append_fmt color: %d %d", fg, bg);
         current_bg = bg;
         current_fg = fg;
       }

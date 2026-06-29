@@ -12,8 +12,8 @@ typedef struct Buffer
   int width;
   int height;
   uint32_t *buffer;
-  char *bg;
-  char *fg;
+  unsigned char *bg;
+  unsigned char *fg;
 } Buffer;
 
 
