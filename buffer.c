@@ -242,18 +242,20 @@ void Buffer_print(Buffer *buf, int y, int x, int width, char *s, int fg, int bg)
     buf->fg[y * buf->width + x + i] = (char) fg;
     buf->bg[y * buf->width + x + i] = (char) bg;
   }
-  while (*p)
+  int idx = 0;
+  while (*p && idx < width)
   {
     uint32_t cp = utf8_decode(&p);
     //int w = wcwidth(cp);
     int w = cp_width(cp);
     //LOG_INFO("Buffer_print %d %d %d\n", cp, x, y);
-    buf->buffer[y * buf->width + x] = cp;
+    buf->buffer[y * buf->width + x + idx] = cp;
     // Mark continuation cells with -1 so they differ from regular spaces
     for (int i = 1; i < w; i++) {
-       buf->buffer[y * buf->width + x + i] = (uint32_t)-1;
+       buf->buffer[y * buf->width + x + idx + i] = (uint32_t)-1;
     }
-    x += w;
+    //x += w;
+    idx += w;
     // printf("U+%04X %d\n", cp, w);
   }
 }
