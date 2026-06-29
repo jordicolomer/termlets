@@ -121,6 +121,7 @@ int cp_width(int cp)
   if (cp == 8991) return 1;
   if (cp == 8212) return 1;
   if (cp == 8211) return 1;
+  if (cp == 9633) return 1;
   //if (cp == 128444) return 2;
   int width = wcwidth(cp);
   if (width == -1)
@@ -440,7 +441,8 @@ void Buffer_print_to_screen(Buffer *buf)
       }
 
       int w = cp_width(cp);
-      //LOG_INFO("Buffer_print_to_screen %d %d %d %d\n", cp, w, x, terminal_x);
+      utf8[len] = 0;
+      //LOG_INFO("Buffer_print_to_screen %s %d %d %d %d\n", utf8, cp, w, x, y);
       /*int w;
 
       if (cp < 128)
