@@ -249,6 +249,9 @@ void Buffer_print(Buffer *buf, int y, int x, int width, char *s, int fg, int bg)
     int w = cp_width(cp);
     //LOG_INFO("Buffer_print %d %d %d\n", cp, x, y);
     buf->buffer[y * buf->width + x] = cp;
+    /*for (int i = 1; i < w; i++) {
+       buf->buffer[y * buf->width + x + i] = 32;
+    }*/
     x += w;
     // printf("U+%04X %d\n", cp, w);
   }
@@ -430,20 +433,17 @@ void Buffer_print_to_screen(Buffer *buf)
       if (cp2 == 0) cp2 = 32;
       int bg2 = (int) buf->bg2[idx];
       int fg2 = (int) buf->fg2[idx];
-      int skip = 0;
-      if (cp == cp2 && bg == bg2 && fg == fg2) skip = 1;
+      if (cp == cp2 && bg == bg2 && fg == fg2) continue;
 
       // cursor movement only when needed
       if (x != terminal_x || y != terminal_y)
       {
         cursor_movement_count += 1;
 
-        if (! skip){
-          append_fmt(out, &pos, "\033[%d;%dH", y + 1, x + 1);
-          LOG_INFO("append_fmt pos: %d %d", y, x);
-          terminal_x = x;
-          terminal_y = y;
-        }
+        append_fmt(out, &pos, "\033[%d;%dH", y + 1, x + 1);
+        //LOG_INFO("append_fmt pos: %d %d", y, x);
+        terminal_x = x;
+        terminal_y = y;
 
       }
 
@@ -453,13 +453,11 @@ void Buffer_print_to_screen(Buffer *buf)
         color_count += 1;
 
         //append_fmt(out, &pos, "\033[%d;%dm", fg, bg);
-        if (! skip){
         append_fmt(out, &pos, "\033[38;5;%d;48;5;%dm", fg, bg);
          
-        LOG_INFO("append_fmt color: %d %d", fg, bg);
+        //LOG_INFO("append_fmt color: %d %d", fg, bg);
         current_bg = bg;
         current_fg = fg;
-        }
       }
 
       // encode UTF-8
@@ -470,7 +468,7 @@ void Buffer_print_to_screen(Buffer *buf)
 
       if (len > 0)
       {
-        if (! skip) append_bytes(out,
+        append_bytes(out,
                      &pos,
                      (char *)utf8,
                      len);
@@ -492,7 +490,7 @@ void Buffer_print_to_screen(Buffer *buf)
       if (w > 1)
         x += w - 1;
 
-      if (! skip) terminal_x += w;
+      terminal_x += w;
     }
   }
 
