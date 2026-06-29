@@ -249,9 +249,10 @@ void Buffer_print(Buffer *buf, int y, int x, int width, char *s, int fg, int bg)
     int w = cp_width(cp);
     //LOG_INFO("Buffer_print %d %d %d\n", cp, x, y);
     buf->buffer[y * buf->width + x] = cp;
-    /*for (int i = 1; i < w; i++) {
-       buf->buffer[y * buf->width + x + i] = 32;
-    }*/
+    // Mark continuation cells with -1 so they differ from regular spaces
+    for (int i = 1; i < w; i++) {
+       buf->buffer[y * buf->width + x + i] = (uint32_t)-1;
+    }
     x += w;
     // printf("U+%04X %d\n", cp, w);
   }
@@ -419,18 +420,30 @@ void Buffer_print_to_screen(Buffer *buf)
 
     for (int x = 0; x < buf->width; x++)
     {
+      // Skip cells already rendered as part of previous wide character
+      if (terminal_y == y && x < terminal_x) {
+        continue;
+      }
 
       int idx = y * buf->width + x;
 
       uint32_t cp = buf->buffer[idx];
+
+      // Skip wide character continuation cells in current buffer
+      if (cp == (uint32_t)-1)
+        continue;
+
       if (cp == 0) cp = 32;
-        //continue;
 
       int bg = (int) buf->bg[idx];
       int fg = (int) buf->fg[idx];
 
       uint32_t cp2 = buf->buffer2[idx];
+
+      // Convert 0 to space for comparison
       if (cp2 == 0) cp2 = 32;
+      // Keep -1 as -1 so it differs from space (32) and triggers re-rendering
+
       int bg2 = (int) buf->bg2[idx];
       int fg2 = (int) buf->fg2[idx];
       if (cp == cp2 && bg == bg2 && fg == fg2) continue;
@@ -476,8 +489,8 @@ void Buffer_print_to_screen(Buffer *buf)
 
       int w = cp_width(cp);
       utf8[len] = 0;
-      if (x == 27 && y == 31) 
-      LOG_INFO("Buffer_print_to_screen %s %d %d %d %d\n", utf8, cp, w, x, y);
+      //if (x == 27 && y == 31) 
+      //LOG_INFO("Buffer_print_to_screen %s %d %d %d %d\n", utf8, cp, w, x, y);
       /*int w;
 
       if (cp < 128)
@@ -488,8 +501,9 @@ void Buffer_print_to_screen(Buffer *buf)
       if (w < 1)
         w = 1;*/
 
-      if (w > 1)
-        x += w - 1;
+      // Don't modify loop variable - let the skip check at loop start handle it
+      // if (w > 1)
+      //   x += w - 1;
 
       terminal_x += w;
     }
