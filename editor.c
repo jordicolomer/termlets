@@ -66,12 +66,14 @@ void EditorWindow_draw(struct Window *w, int hasFocus){
     for(int i=0;i<-self->win.shift;i++) current = current->next;
 
     while(i < geo.height){
-        int bg = 239;
-        if (-self->win.shift + i == self->cursor_n) bg = 53;
+        int bg = 255;
+        if (-self->win.shift + i == self->cursor_n) bg = 27;
+        if (bg >= 232 + 4 && !hasFocus) bg -= 4;
+
 
         char * str = "";
         if (current != NULL) str = current->line;
-        Buffer_print(&main_buf, geo.y + i++, geo.x, geo.width, str, 15, bg);
+        Buffer_print(&main_buf, geo.y + i++, geo.x, geo.width, str, 16, bg);
         if (current != NULL) current = current->next;
     }
 }
