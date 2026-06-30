@@ -371,7 +371,7 @@ static inline void append_fmt(char *out, size_t *pos, const char *fmt, ...)
 
 void Buffer_copy_to_second_buffer(Buffer *buf)
 {
-  for (int y = 0; y < buf->height; y++)
+  /*for (int y = 0; y < buf->height; y++)
   {
 
     for (int x = 0; x < buf->width; x++)
@@ -387,7 +387,11 @@ void Buffer_copy_to_second_buffer(Buffer *buf)
       buf->bg2[idx] = (char) bg;
       buf->fg2[idx] = (char) fg;
     }
-  }
+  }*/
+  int size = buf->width * buf->height;
+  memcpy(buf->buffer2, buf->buffer, size * sizeof(uint32_t));
+  memcpy(buf->bg2, buf->bg, size * sizeof(char));
+  memcpy(buf->fg2, buf->fg, size * sizeof(char));
 }
 
 void Buffer_print_to_screen(Buffer *buf)
@@ -455,7 +459,8 @@ void Buffer_print_to_screen(Buffer *buf)
       {
         cursor_movement_count += 1;
 
-        append_fmt(out, &pos, "\033[%d;%dH", y + 1, x + 1);
+        //append_fmt(out, &pos, "\033[%d;%dH", y + 1, x + 1);
+        append_fmt(out, &pos, "\033[%d;%dH", y+1, x);
         //LOG_INFO("append_fmt pos: %d %d", y, x);
         terminal_x = x;
         terminal_y = y;
@@ -532,6 +537,7 @@ void Buffer_print_to_screen(Buffer *buf)
   //LOG_INFO("%s\n", out);
 
   free(out);
+  Buffer_copy_to_second_buffer(buf);
 
   clock_t end = clock();
 
@@ -540,7 +546,6 @@ void Buffer_print_to_screen(Buffer *buf)
 
   LOG_INFO("Execution time: %f ms size:%d cursor_movement_count:%d color_count:%d\n",
            cpu_time_used * 1000, pos, cursor_movement_count, color_count);
-  Buffer_copy_to_second_buffer(buf);
 }
 
 Buffer main_buf;

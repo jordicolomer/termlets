@@ -214,7 +214,7 @@ int start()
 
     char c;
     read(STDIN_FILENO, &c, 1);
-    LOG_INFO("read %d", c);
+    //LOG_INFO("read %d", c);
 
     if (c == 11){ // Ctrl+K
       cycle_task();
