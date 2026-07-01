@@ -242,15 +242,17 @@ Window *Editor_menu(EditorFrame *self)
     Window *menu = Menu_create_vertical(self);
 
     Window *file = Menu_create_horizontal(self);
-    Menu_add_element(file, "New", Editor_menu_new);
-    Menu_add_element(file, "Close", Editor_menu_close);
+    Menu_add_element(file, " 📄 New", Editor_menu_new);
+    Menu_add_element(file, " ❌ Close", Editor_menu_close);
+    Menu_add_element(file, "", NULL);
     Menu_add_submenu(menu, "File", file);
 
     Window *edit = Menu_create_horizontal(self);
-    Menu_add_element(edit, "Delete", Editor_menu_new);
-    Menu_add_element(edit, "Cut", Editor_menu_new);
-    Menu_add_element(edit, "Copy", Editor_menu_new);
-    Menu_add_element(edit, "Paste", Editor_menu_close);
+    Menu_add_element(edit, " ❌ Delete", Editor_menu_new);
+    Menu_add_element(edit, " 🔪 Cut", Editor_menu_new);
+    Menu_add_element(edit, " 📋 Copy", Editor_menu_new);
+    Menu_add_element(edit, " 📌 Paste", Editor_menu_close);
+    Menu_add_element(edit, "", NULL);
     Menu_add_submenu(menu, "Edit", edit);
 
     //Menu_add_element(menu, "Edit", Editor_menu_new);

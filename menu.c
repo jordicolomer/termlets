@@ -11,8 +11,8 @@ Menu *Menu_create_horizontal(Window *parent)
     Window_init(menu, -1, -1, -1, -1, -1, -1);
     menu->win.left = 0;
     menu->win.top = 0;
-    menu->win.width = 10;
-    menu->win.height = 5;
+    menu->win.width = 0;
+    menu->win.height = 0;
     menu->parent = parent;
     menu->horizontal = 1;
     menu->win.hidden = 1;
@@ -41,24 +41,6 @@ Menu *Menu_create_vertical(Window *parent)
     return menu;
 }
 
-Window *Menu_add_element(Menu *self, char *name, void *callback)
-{
-    int len = strlen(name);
-    Window * win = NULL;
-    if (self->horizontal == 1)
-    {
-        win = Window_add_widget(self, 0, -1, self->offset, -1, len, 1, name, 232, 253);
-        self->offset += 1;
-    }
-    else
-    {
-        self->offset += 1;
-        win = Window_add_widget(self, self->offset, -1, 0, -1, len, 1, name, 232, 253);
-        self->offset += len + 1;
-    }
-    return win;
-}
-
 void Menu_change_color_hover(Window *wg, int x, int y)
 {
     wg->fg = 232;
@@ -69,6 +51,30 @@ void Menu_change_color_normal(Window *wg, int x, int y)
 {
     wg->fg = 232;
     wg->bg = 15;
+}
+
+Window *Menu_add_element(Menu *self, char *name, void *callback)
+{
+    int len = strlen(name);
+    Window * win = NULL;
+    if (self->horizontal == 1)
+    {
+        win = Window_add_widget(self, 0, 0, self->offset, -1, -1, 1, name, 232, 15);
+        self->win.width = max(self->win.width, len+2);
+        self->win.height += 1;
+        self->offset += 1;
+        if (callback != NULL){
+            win->on_hover = Menu_change_color_hover;
+            win->undo_on_hover = Menu_change_color_normal;
+        }
+    }
+    else
+    {
+        self->offset += 1;
+        win = Window_add_widget(self, self->offset, -1, 0, -1, len, 1, name, 232, 255);
+        self->offset += len + 1;
+    }
+    return win;
 }
 
 void Menu_menu_windows_item(struct Window *w, int x, int y)
