@@ -32,7 +32,8 @@ Menu *Menu_create_horizontal(Window *parent)
     menu->win.left = 0;
     menu->win.right = 0;
     menu->win.top = 0;
-    menu->win.height = 1;
+    menu->win.bottom = 0;
+    //menu->win.height = 1;
     menu->parent = parent;
 
     // background
@@ -147,20 +148,15 @@ void Menu_add_windows(Menu *self, char *name, Tabs *tabs)
 void Menu_show_submenu(struct Window *w, int x, int y)
 {
     Menu *menu = w->data;
-    Window *win = w->data2;
-    Menu *self = w->data3;
     menu->win.hidden = 1 - menu->win.hidden;
-
-    // update coords
-    menu->win.left = win->calculated.x - self->parent->calculated.x;
-    menu->win.top = win->calculated.y - self->parent->calculated.y + 1;
 }
 
 void Menu_add_submenu(Menu *self, char *name, Menu *menu)
 {
     Window *win = Menu_add_element(self, name, NULL);
     win->data = menu;
-    win->data2 = win;
-    win->data3 = self;
     win->on_mouse_down = Menu_show_submenu;
+
+    menu->win.left = win->left;
+    menu->win.top = win->top + 1;
 }

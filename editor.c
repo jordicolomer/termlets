@@ -241,13 +241,13 @@ Window *Editor_menu(EditorFrame *self)
 {
     Window *menu = Menu_create_horizontal(self);
 
-    Window *file = Menu_create_vertical(self);
+    Window *file = Menu_create_vertical(menu);
     Menu_add_element(file, " 📄 New", Editor_menu_new);
     Menu_add_element(file, " ❌ Close", Editor_menu_close);
     Menu_add_element(file, "", NULL);
     Menu_add_submenu(menu, "File", file);
 
-    Window *edit = Menu_create_vertical(self);
+    Window *edit = Menu_create_vertical(menu);
     Menu_add_element(edit, " ❌ Delete", Editor_menu_new);
     Menu_add_element(edit, " 🔪 Cut", Editor_menu_new);
     Menu_add_element(edit, " 📋 Copy", Editor_menu_new);
@@ -314,10 +314,10 @@ Window *Editor_new(int left, int right, int top, int bottom, int width, int heig
     Window_append(w, tabs);
     frame->focused = tabs;
 
-    Window *menu = Editor_menu(editor_frame);
-    Window_append(w, menu);
     Window *toolbar = Editor_toolbar(editor_frame);
     Window_append(w, toolbar);
+    Window *menu = Editor_menu(editor_frame);
+    Window_append(w, menu);
 
     last_frame = frame;
 
