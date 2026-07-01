@@ -5,7 +5,7 @@
 #include "utils.h"
 #include "logger.h"
 
-Menu *Menu_create_vertical(Window *parent)
+Menu *Menu_create_vertical(Window *self, Window *parent)
 {
     Menu *menu = malloc(sizeof *menu);
     Window_init(menu, -1, -1, -1, -1, -1, -1);
@@ -14,7 +14,8 @@ Menu *Menu_create_vertical(Window *parent)
     menu->win.width = 0;
     menu->win.height = 0;
     menu->parent = parent;
-    menu->horizontal = 1;
+    menu->self = self;
+    menu->vertical = 1;
     menu->win.hidden = 1;
 
     Window_append(parent, menu);
@@ -54,11 +55,29 @@ void Menu_change_color_normal(Window *wg, int x, int y)
     wg->bg = 253;
 }
 
+void Menu_lambda(struct Window *w, int x, int y)
+{
+    Window *(*fn)(Window *, Tabs *, struct Window *) = (Window * (*)(Window *, Tabs *, struct Window *)) w->data;
+    Window *self = w->data2;
+    Window *tabs = w->data3;
+    fn(self, tabs, w);
+}
+
+void Menu_lambda1(struct Window *w, int x, int y)
+{
+    Window *menu = w->data3;
+    menu->hidden = 1;
+
+    Window *(*fn)(Window *) = (Window * (*)(Window *)) w->data;
+    Window *self = w->data2;
+    fn(self);
+}
+
 Window *Menu_add_element(Menu *self, char *name, void *callback)
 {
     int len = strlen(name);
     Window * win = NULL;
-    if (self->horizontal == 1)
+    if (self->vertical == 1)
     {
         win = Window_add_widget(self, 0, 0, self->offset, -1, -1, 1, name, 232, 253);
         self->win.width = max(self->win.width, len+2);
@@ -67,6 +86,11 @@ Window *Menu_add_element(Menu *self, char *name, void *callback)
         if (callback != NULL){
             win->on_hover = Menu_change_color_hover;
             win->undo_on_hover = Menu_change_color_normal;
+
+            win->data = callback;
+            win->data2 = self->self;
+            win->data3 = self;
+            win->on_mouse_down = Menu_lambda1;
         }
     }
     else
@@ -121,14 +145,6 @@ Window *Menu_menu_windows(Window *self, Tabs *tabs, struct Window *menuItem)
 
     Window_append(self, menu);
     //Menu * menu = Menu_create_vertical(self);
-}
-
-void Menu_lambda(struct Window *w, int x, int y)
-{
-    Window *(*fn)(Window *, Tabs *, struct Window *) = (Window * (*)(Window *, Tabs *, struct Window *)) w->data;
-    Window *self = w->data2;
-    Window *tabs = w->data3;
-    fn(self, tabs, w);
 }
 
 void Menu_add_windows(Menu *self, char *name, Tabs *tabs)
