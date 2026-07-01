@@ -5,7 +5,7 @@
 #include "utils.h"
 #include "logger.h"
 
-Menu *Menu_create_horizontal(Window *parent)
+Menu *Menu_create_vertical(Window *parent)
 {
     Menu *menu = malloc(sizeof *menu);
     Window_init(menu, -1, -1, -1, -1, -1, -1);
@@ -25,7 +25,7 @@ Menu *Menu_create_horizontal(Window *parent)
     return menu;
 }
 
-Menu *Menu_create_vertical(Window *parent)
+Menu *Menu_create_horizontal(Window *parent)
 {
     Menu *menu = malloc(sizeof *menu);
     Window_init(menu, -1, -1, -1, -1, -1, -1);
