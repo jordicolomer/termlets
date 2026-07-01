@@ -203,92 +203,46 @@ void EditorWindow_open_file(EditorWindow * editor_window, char * file_path){
 
 EditorFrame * last_frame;
 
-void Editor_change_color_hover(Window *wg, int x, int y)
-{
-    wg->fg = 232;
-    wg->bg = 27;
+
+
+Window *Editor_file(EditorFrame * self){
+    LOG_INFO("Editor_file %p", self);
 }
 
-void Editor_change_color_normal(Window *wg, int x, int y)
-{
-    wg->fg = 232;
-    wg->bg = 15;
-}
-
-void Editor_menu_windows_item(struct Window *w, int x, int y){
-    Tab * tab = w->data;
-    Window *menu = w->data2;
-    tab_select(tab);
-    Window_remove(menu);
-}
-
-Window *Editor_menu_windows(EditorFrame * self, Tabs * tabs, struct Window *menuItem){
-    Window *menu = malloc(sizeof *menu);
-    Window_init(menu, -1, -1, -1, -1, -1, -1);
-    menu->left = menuItem->calculated.x - self->win.calculated.x;
-    menu->top = menuItem->calculated.y - self->win.calculated.y + 1;
-    //Tabs * tabs = self->tabs->data;
-    Tab * tab = tabs->first;
-    int i = 0;
-    Window_add_widget(menu, 0, 0, i++, -1, -1, 1, "", 232, 15);
-    int maxLen = 0;
-    while (tab != NULL){
-        char * tab_label = NULL;
-        char * selected_sign = " ";
-        if (tabs->selected_tab == tab) selected_sign = "*";
-        asprintf(&tab_label, " %s%s  ", selected_sign, tab->child->id);
-        
-        Window * win = Window_add_widget(menu, 0, 0, i++, -1, -1, 1, tab_label, 232, 15);
-
-        win->on_hover = Editor_change_color_hover;
-        win->undo_on_hover = Editor_change_color_normal;
-        win->data = tab;
-        win->data2 = menu;
-        win->on_mouse_down = Editor_menu_windows_item;
-
-        maxLen = max(maxLen, strlen(tab_label));
-        tab = tab->next;
-    }
-    Window_add_widget(menu, 0, 0, i++, -1, -1, 1, "", 232, 15);
-    menu->width = maxLen;
-    menu->height = i;
-
-    Window_append(self, menu);
-}
-
-void Editor_lambda(struct Window *w, int x, int y){
-  Window *(*fn)(EditorFrame *, Tabs *, struct Window *) = (Window *(*)(EditorFrame *, Tabs *, struct Window *))w->data;
-  Window * self = w->data2;
-  Window * tabs = w->data3;
-  fn(self, tabs, w);
-}
-
+#include "menu.h"
 Window *Editor_menu(EditorFrame * self){
-  Window *menu = malloc(sizeof *menu);
-  Window_init(menu, -1, -1, -1, -1, -1, -1);
-  menu->left = 0;
-  menu->right = 0;
-  menu->top = 0;
-  menu->height = 1;
+    Window * menu = Menu_create_vertical(self);
+    Menu_add_element(menu, "File", Editor_file);
+    Menu_add_element(menu, "Edit", Editor_file);
+    Menu_add_element(menu, "View", Editor_file);
+    //Menu_add_element(menu, "Window", Editor_file);
+    Menu_add_windows(menu, "Window", self->tabs->data);
 
-  int j = 0;
-  int x_offset = 0;
-  int widget_width = 6;
-  Window_add_widget(menu, x_offset, -1, j, -1, widget_width, 1, " File", 232, 253);
-  x_offset += widget_width;
-  widget_width = 6;
-  Window_add_widget(menu, x_offset, -1, j, -1, widget_width, 1, " Edit", 232, 253);
-  x_offset += widget_width;
-  widget_width = 6;
-  Window_add_widget(menu, x_offset, -1, j, -1, widget_width, 1, " View", 232, 253);
-  x_offset += widget_width;
-  widget_width = 6;
-  Window *window = Window_add_widget(menu, x_offset, 0, j, -1, -1, 1, " Window", 232, 253);
-  x_offset += widget_width;
-  window->data = Editor_menu_windows;
-  window->data2 = self;
-  window->data3 = self->tabs->data;
-  window->on_mouse_down = Editor_lambda;
+    /*Window *menu = malloc(sizeof *menu);
+    Window_init(menu, -1, -1, -1, -1, -1, -1);
+    menu->left = 0;
+    menu->right = 0;
+    menu->top = 0;
+    menu->height = 1;
+
+    int j = 0;
+    int x_offset = 0;
+    int widget_width = 6;
+    Window_add_widget(menu, x_offset, -1, j, -1, widget_width, 1, " File", 232, 253);
+    x_offset += widget_width;
+    widget_width = 6;
+    Window_add_widget(menu, x_offset, -1, j, -1, widget_width, 1, " Edit", 232, 253);
+    x_offset += widget_width;
+    widget_width = 6;
+    Window_add_widget(menu, x_offset, -1, j, -1, widget_width, 1, " View", 232, 253);
+    x_offset += widget_width;
+    widget_width = 6;
+    Window *window = Window_add_widget(menu, x_offset, 0, j, -1, -1, 1, " Window", 232, 253);
+    x_offset += widget_width;
+    window->data = Editor_menu_windows;
+    window->data2 = self;
+    window->data3 = self->tabs->data;
+    window->on_mouse_down = Editor_lambda;*/
 
   return menu;
 }
