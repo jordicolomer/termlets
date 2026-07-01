@@ -91,10 +91,9 @@ Window *Menu_menu_windows(Window *self, Tabs *tabs, struct Window *menuItem)
     Window_init(menu, -1, -1, -1, -1, -1, -1);
     menu->left = menuItem->calculated.x - self->calculated.x;
     menu->top = menuItem->calculated.y - self->calculated.y + 1;
-    // Tabs * tabs = self->tabs->data;
     Tab *tab = tabs->first;
     int i = 0;
-    Window_add_widget(menu, 0, 0, i++, -1, -1, 1, "", 232, 15);
+    //Window_add_widget(menu, 0, 0, i++, -1, -1, 1, "", 232, 15);
     int maxLen = 0;
     while (tab != NULL)
     {
@@ -104,7 +103,7 @@ Window *Menu_menu_windows(Window *self, Tabs *tabs, struct Window *menuItem)
             selected_sign = "*";
         asprintf(&tab_label, " %s%s  ", selected_sign, tab->child->id);
 
-        Window *win = Window_add_widget(menu, 0, 0, i++, -1, -1, 1, tab_label, 232, 15);
+        Window *win = Window_add_widget(menu, 0, 0, i++, -1, -1, 1, tab_label, 232, 253);
 
         win->on_hover = Menu_change_color_hover;
         win->undo_on_hover = Menu_change_color_normal;
@@ -115,11 +114,12 @@ Window *Menu_menu_windows(Window *self, Tabs *tabs, struct Window *menuItem)
         maxLen = max(maxLen, strlen(tab_label));
         tab = tab->next;
     }
-    Window_add_widget(menu, 0, 0, i++, -1, -1, 1, "", 232, 15);
+    Window_add_widget(menu, 0, 0, i++, -1, -1, 1, "", 232, 253);
     menu->width = maxLen;
     menu->height = i;
 
     Window_append(self, menu);
+    //Menu * menu = Menu_create_vertical(self);
 }
 
 void Menu_lambda(struct Window *w, int x, int y)
