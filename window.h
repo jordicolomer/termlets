@@ -41,6 +41,7 @@ typedef struct Window
   void (*send_sequence)(struct Window *wg, const char *seq, int len);
   void *data;
   void *data2;
+  void *data3;
   int hidden;
   int shift;
   char *c;

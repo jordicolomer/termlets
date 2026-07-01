@@ -222,12 +222,12 @@ void Editor_menu_windows_item(struct Window *w, int x, int y){
     Window_remove(menu);
 }
 
-Window *Editor_menu_windows(EditorFrame * self, struct Window *menuItem){
+Window *Editor_menu_windows(EditorFrame * self, Tabs * tabs, struct Window *menuItem){
     Window *menu = malloc(sizeof *menu);
     Window_init(menu, -1, -1, -1, -1, -1, -1);
     menu->left = menuItem->calculated.x - self->win.calculated.x;
     menu->top = menuItem->calculated.y - self->win.calculated.y + 1;
-    Tabs * tabs = self->tabs->data;
+    //Tabs * tabs = self->tabs->data;
     Tab * tab = tabs->first;
     int i = 0;
     Window_add_widget(menu, 0, 0, i++, -1, -1, 1, "", 232, 15);
@@ -257,9 +257,10 @@ Window *Editor_menu_windows(EditorFrame * self, struct Window *menuItem){
 }
 
 void Editor_lambda(struct Window *w, int x, int y){
-  Window *(*fn)(EditorFrame *, struct Window *) = (Window *(*)(EditorFrame *, struct Window *))w->data;
+  Window *(*fn)(EditorFrame *, Tabs *, struct Window *) = (Window *(*)(EditorFrame *, Tabs *, struct Window *))w->data;
   Window * self = w->data2;
-  fn(self, w);
+  Window * tabs = w->data3;
+  fn(self, tabs, w);
 }
 
 Window *Editor_menu(EditorFrame * self){
@@ -286,6 +287,7 @@ Window *Editor_menu(EditorFrame * self){
   x_offset += widget_width;
   window->data = Editor_menu_windows;
   window->data2 = self;
+  window->data3 = self->tabs->data;
   window->on_mouse_down = Editor_lambda;
 
   return menu;
@@ -333,10 +335,6 @@ Window * Editor_new(int left, int right, int top, int bottom, int width, int hei
     //Window *frame = malloc(sizeof *frame);
     Window *w = Frame_init(frame, left, right, top, bottom, width, height, NULL, 0);
 
-    Window * menu = Editor_menu(editor_frame);
-    Window_append(w, menu);
-    Window * toolbar = Editor_toolbar(editor_frame);
-    Window_append(w, toolbar);
 
     Window *tabs = Tab_new((Window *(*)(void))EditorWindow_new_tab, 0);
     editor_frame->tabs = tabs;
@@ -346,6 +344,11 @@ Window * Editor_new(int left, int right, int top, int bottom, int width, int hei
     tabs->right = 0;
     Window_append(w, tabs);
     frame->focused = tabs;
+
+    Window * menu = Editor_menu(editor_frame);
+    Window_append(w, menu);
+    Window * toolbar = Editor_toolbar(editor_frame);
+    Window_append(w, toolbar);
 
     last_frame = frame;
 
