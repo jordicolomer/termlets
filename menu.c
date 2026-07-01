@@ -50,7 +50,7 @@ void Menu_change_color_hover(Window *wg, int x, int y)
 void Menu_change_color_normal(Window *wg, int x, int y)
 {
     wg->fg = 232;
-    wg->bg = 15;
+    wg->bg = 253;
 }
 
 Window *Menu_add_element(Menu *self, char *name, void *callback)
@@ -59,7 +59,7 @@ Window *Menu_add_element(Menu *self, char *name, void *callback)
     Window * win = NULL;
     if (self->horizontal == 1)
     {
-        win = Window_add_widget(self, 0, 0, self->offset, -1, -1, 1, name, 232, 15);
+        win = Window_add_widget(self, 0, 0, self->offset, -1, -1, 1, name, 232, 253);
         self->win.width = max(self->win.width, len+2);
         self->win.height += 1;
         self->offset += 1;
@@ -71,7 +71,7 @@ Window *Menu_add_element(Menu *self, char *name, void *callback)
     else
     {
         self->offset += 1;
-        win = Window_add_widget(self, self->offset, -1, 0, -1, len, 1, name, 232, 255);
+        win = Window_add_widget(self, self->offset, -1, 0, -1, len, 1, name, 232, 253);
         self->offset += len + 1;
     }
     return win;
