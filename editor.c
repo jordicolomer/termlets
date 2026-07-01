@@ -10,38 +10,46 @@
 #include "utils.h"
 #include "taskbar.h"
 #include "lambda.h"
+#include "menu.h"
 
 // Editor Window
- 
-void EditorWindow_make_cursor_visible(EditorWindow * self){
+
+void EditorWindow_make_cursor_visible(EditorWindow *self)
+{
     int height = self->win.calculated.height;
     int diff = self->cursor_n + self->win.shift;
-    if (diff < 0) self->win.shift = -(self->cursor_n);
-    if (diff > height - 1) self->win.shift = height - 1 - self->cursor_n;
+    if (diff < 0)
+        self->win.shift = -(self->cursor_n);
+    if (diff > height - 1)
+        self->win.shift = height - 1 - self->cursor_n;
 }
 
-void EditorWindow_send_key(Window * win, char c)
+void EditorWindow_send_key(Window *win, char c)
 {
-    EditorWindow * self = win;
-    if (c == 106){ // j
+    EditorWindow *self = win;
+    if (c == 106)
+    { // j
         self->cursor_n++;
-        self->cursor_n = min(self->cursor_n, self->n_lines-1);
+        self->cursor_n = min(self->cursor_n, self->n_lines - 1);
         EditorWindow_make_cursor_visible(self);
         return;
     }
-    if (c == 107){ // k
+    if (c == 107)
+    { // k
         self->cursor_n--;
         self->cursor_n = max(self->cursor_n, 0);
         EditorWindow_make_cursor_visible(self);
         return;
     }
-    if (c == 117){ // u
+    if (c == 117)
+    { // u
         self->cursor_n += win->calculated.height;
-        self->cursor_n = min(self->cursor_n, self->n_lines-1);
+        self->cursor_n = min(self->cursor_n, self->n_lines - 1);
         EditorWindow_make_cursor_visible(self);
         return;
     }
-    if (c == 105){ // i
+    if (c == 105)
+    { // i
         self->cursor_n -= win->calculated.height;
         self->cursor_n = max(self->cursor_n, 0);
         EditorWindow_make_cursor_visible(self);
@@ -49,37 +57,42 @@ void EditorWindow_send_key(Window * win, char c)
     }
 }
 
-
-
-void EditorWindow_draw(struct Window *w, int hasFocus){
-    //LOG_INFO("EditorWindow_draw");
-    //int first_visible_line = -w->shift;
+void EditorWindow_draw(struct Window *w, int hasFocus)
+{
+    // LOG_INFO("EditorWindow_draw");
+    // int first_visible_line = -w->shift;
     EditorWindow *self = w;
-    //self->cursor_n = first_visible_line;
-    //EditorWindow_make_cursor_visible(self);
-    //EditorWindow_update_first_visible_line(self, first_visible_line);
+    // self->cursor_n = first_visible_line;
+    // EditorWindow_make_cursor_visible(self);
+    // EditorWindow_update_first_visible_line(self, first_visible_line);
 
     Geometry geo = w->calculated;
     int i = 0;
-    //Node * current = self->top;
-    Node * current = self->head;
-    for(int i=0;i<-self->win.shift;i++) current = current->next;
+    // Node * current = self->top;
+    Node *current = self->head;
+    for (int i = 0; i < -self->win.shift; i++)
+        current = current->next;
 
-    while(i < geo.height){
+    while (i < geo.height)
+    {
         int bg = 255;
-        if (-self->win.shift + i == self->cursor_n) bg = 27;
-        if (bg >= 232 + 4 && !hasFocus) bg -= 4;
+        if (-self->win.shift + i == self->cursor_n)
+            bg = 27;
+        if (bg >= 232 + 4 && !hasFocus)
+            bg -= 4;
 
-
-        char * str = "";
-        if (current != NULL) str = current->line;
+        char *str = "";
+        if (current != NULL)
+            str = current->line;
         Buffer_print(&main_buf, geo.y + i++, geo.x, geo.width, str, 16, bg);
-        if (current != NULL) current = current->next;
+        if (current != NULL)
+            current = current->next;
     }
 }
 
-EditorWindow * latestEditorWindow;
-EditorWindow *EditorWindow_new(){
+EditorWindow *latestEditorWindow;
+EditorWindow *EditorWindow_new()
+{
     EditorWindow *self = malloc(sizeof *self);
     Window_init(self, -1, -1, -1, -1, -1, -1);
     self->win.top = 0;
@@ -88,7 +101,7 @@ EditorWindow *EditorWindow_new(){
     self->win.right = 0;
     self->win.id = "editor tab";
 
-    //Window *editor = (Window *) self;
+    // Window *editor = (Window *) self;
     self->win.draw = EditorWindow_draw;
 
     self->win.send_key = EditorWindow_send_key;
@@ -98,8 +111,9 @@ EditorWindow *EditorWindow_new(){
     return self;
 }
 
-Window *EditorWindow_new_tab(){
-    EditorWindow * editor = EditorWindow_new();
+Window *EditorWindow_new_tab()
+{
+    EditorWindow *editor = EditorWindow_new();
     Window *slider = slider_new(editor);
     Slider_show_grip(slider);
     editor->slider = slider;
@@ -130,55 +144,64 @@ Window *EditorWindow_new_tab(){
 #include <ctype.h>
 void replace_nonprintable(char *str)
 {
-    while (*str) {
-        if (!isprint((unsigned char)*str)) {
+    while (*str)
+    {
+        if (!isprint((unsigned char)*str))
+        {
             *str = '?';
         }
         str++;
     }
 }
 
-Node* create_node(const char *text) {
+Node *create_node(const char *text)
+{
     Node *new_node = malloc(sizeof(Node));
-    if (!new_node) {
+    if (!new_node)
+    {
         perror("malloc failed");
         exit(1);
     }
     replace_nonprintable(text);
-    new_node->line = strdup(text);  // copy string
+    new_node->line = strdup(text); // copy string
     new_node->next = NULL;
     new_node->prev = NULL;
 
     return new_node;
 }
 
-void append(EditorWindow * self, const char *text) {
+void append(EditorWindow *self, const char *text)
+{
     Node *new_node = create_node(text);
 
-    if (self->head == NULL) {
+    if (self->head == NULL)
+    {
         self->head = new_node;
-        //return;
+        // return;
     }
-    if (self->tail != NULL) self->tail->next = new_node;
+    if (self->tail != NULL)
+        self->tail->next = new_node;
     new_node->prev = self->tail;
     self->tail = new_node;
-
 }
 
 #define MAX_LINE 10240
 
-void load_file(EditorWindow * self, const char *filename) {
+void load_file(EditorWindow *self, const char *filename)
+{
     FILE *file = fopen(filename, "r");
-    if (!file) {
+    if (!file)
+    {
         perror("fopen failed");
         return;
     }
 
-    //Node *head = NULL;
-    //Node *tail = NULL;
+    // Node *head = NULL;
+    // Node *tail = NULL;
     char buffer[MAX_LINE];
 
-    while (fgets(buffer, MAX_LINE, file)) {
+    while (fgets(buffer, MAX_LINE, file))
+    {
         // Optional: remove newline
         buffer[strcspn(buffer, "\n")] = '\0';
 
@@ -189,10 +212,11 @@ void load_file(EditorWindow * self, const char *filename) {
     fclose(file);
 
     self->win.virtual_height = self->n_lines;
-    //return head;
+    // return head;
 }
 
-void EditorWindow_open_file(EditorWindow * editor_window, char * file_path){
+void EditorWindow_open_file(EditorWindow *editor_window, char *file_path)
+{
     load_file(editor_window, file_path);
     editor_window->top = editor_window->head;
     editor_window->slider->id = file_path;
@@ -201,96 +225,85 @@ void EditorWindow_open_file(EditorWindow * editor_window, char * file_path){
 
 // Editor Frame
 
-EditorFrame * last_frame;
+EditorFrame *last_frame;
 
-
-
-Window *Editor_file(EditorFrame * self){
-    LOG_INFO("Editor_file %p", self);
+Window *Editor_menu_new(EditorFrame *self)
+{
+    LOG_INFO("Editor_menu_new %p", self);
 }
 
-#include "menu.h"
-Window *Editor_menu(EditorFrame * self){
-    Window * menu = Menu_create_vertical(self);
-    Menu_add_element(menu, "File", Editor_file);
-    Menu_add_element(menu, "Edit", Editor_file);
-    Menu_add_element(menu, "View", Editor_file);
-    //Menu_add_element(menu, "Window", Editor_file);
+Window *Editor_menu_close(EditorFrame *self)
+{
+    LOG_INFO("Editor_menu_close %p", self);
+}
+
+Window *Editor_menu(EditorFrame *self)
+{
+    Window *menu = Menu_create_vertical(self);
+
+    Window *file = Menu_create_horizontal(self);
+    Menu_add_element(file, "New", Editor_menu_new);
+    Menu_add_element(file, "Close", Editor_menu_close);
+    Menu_add_submenu(menu, "File", file);
+
+    Window *edit = Menu_create_horizontal(self);
+    Menu_add_element(edit, "Delete", Editor_menu_new);
+    Menu_add_element(edit, "Cut", Editor_menu_new);
+    Menu_add_element(edit, "Copy", Editor_menu_new);
+    Menu_add_element(edit, "Paste", Editor_menu_close);
+    Menu_add_submenu(menu, "Edit", edit);
+
+    //Menu_add_element(menu, "Edit", Editor_menu_new);
+    Menu_add_element(menu, "View", Editor_menu_new);
     Menu_add_windows(menu, "Window", self->tabs->data);
 
-    /*Window *menu = malloc(sizeof *menu);
-    Window_init(menu, -1, -1, -1, -1, -1, -1);
-    menu->left = 0;
-    menu->right = 0;
-    menu->top = 0;
-    menu->height = 1;
+    return menu;
+}
 
-    int j = 0;
+Window *Editor_toolbar(EditorFrame *self)
+{
+    Window *toolbar = malloc(sizeof *toolbar);
+    Window_init(toolbar, -1, -1, -1, -1, -1, -1);
+    toolbar->left = 0;
+    toolbar->right = 0;
+    toolbar->top = 1;
+    toolbar->height = 1;
+
     int x_offset = 0;
-    int widget_width = 6;
-    Window_add_widget(menu, x_offset, -1, j, -1, widget_width, 1, " File", 232, 253);
+    int widget_width = 12;
+    int j = 0;
+    Window_add_widget(toolbar, x_offset, -1, j, -1, widget_width, 1, " 📄 New File", 232, 254);
     x_offset += widget_width;
-    widget_width = 6;
-    Window_add_widget(menu, x_offset, -1, j, -1, widget_width, 1, " Edit", 232, 253);
+    widget_width = 12;
+    Window_add_widget(toolbar, x_offset, -1, j, -1, widget_width, 1, "📁 New Dir", 232, 254);
     x_offset += widget_width;
-    widget_width = 6;
-    Window_add_widget(menu, x_offset, -1, j, -1, widget_width, 1, " View", 232, 253);
+    widget_width = 8;
+    Window_add_widget(toolbar, x_offset, -1, j, -1, widget_width, 1, "📋 Copy", 232, 254);
     x_offset += widget_width;
-    widget_width = 6;
-    Window *window = Window_add_widget(menu, x_offset, 0, j, -1, -1, 1, " Window", 232, 253);
+    widget_width = 8;
+    Window_add_widget(toolbar, x_offset, -1, j, -1, widget_width, 1, "🔪 Cut", 232, 254);
     x_offset += widget_width;
-    window->data = Editor_menu_windows;
-    window->data2 = self;
-    window->data3 = self->tabs->data;
-    window->on_mouse_down = Editor_lambda;*/
+    widget_width = 10;
+    Window_add_widget(toolbar, x_offset, -1, j, -1, widget_width, 1, "📌 Paste", 232, 254);
+    x_offset += widget_width;
+    widget_width = 10;
+    Window_add_widget(toolbar, x_offset, -1, j, -1, widget_width, 1, "🔤 Rename", 232, 254);
+    x_offset += widget_width;
+    widget_width = 10;
+    Window_add_widget(toolbar, x_offset, 0, j, -1, -1, 1, "❌ Delete", 232, 254);
+    x_offset += widget_width;
 
-  return menu;
+    return toolbar;
 }
 
-Window *Editor_toolbar(EditorFrame * self){
-  Window *toolbar = malloc(sizeof *toolbar);
-  Window_init(toolbar, -1, -1, -1, -1, -1, -1);
-  toolbar->left = 0;
-  toolbar->right = 0;
-  toolbar->top = 1;
-  toolbar->height = 1;
-
-  int x_offset = 0;
-  int widget_width = 12;
-  int j = 0;
-  Window_add_widget(toolbar, x_offset, -1, j, -1, widget_width, 1, " 📄 New File", 232, 254);
-  x_offset += widget_width;
-  widget_width = 12;
-  Window_add_widget(toolbar, x_offset, -1, j, -1, widget_width, 1, "📁 New Dir", 232, 254);
-  x_offset += widget_width;
-  widget_width = 8;
-  Window_add_widget(toolbar, x_offset, -1, j, -1, widget_width, 1, "📋 Copy", 232, 254);
-  x_offset += widget_width;
-  widget_width = 8;
-  Window_add_widget(toolbar, x_offset, -1, j, -1, widget_width, 1, "🔪 Cut", 232, 254);
-  x_offset += widget_width;
-  widget_width = 10;
-  Window_add_widget(toolbar, x_offset, -1, j, -1, widget_width, 1, "📌 Paste", 232, 254);
-  x_offset += widget_width;
-  widget_width = 10;
-  Window_add_widget(toolbar, x_offset, -1, j, -1, widget_width, 1, "🔤 Rename", 232, 254);
-  x_offset += widget_width;
-  widget_width = 10;
-  Window_add_widget(toolbar, x_offset, 0, j, -1, -1, 1, "❌ Delete", 232, 254);
-  x_offset += widget_width;
-  
-
-  return toolbar;
-}
-
-Window * Editor_new(int left, int right, int top, int bottom, int width, int height){
-    EditorFrame * editor_frame = malloc(sizeof *editor_frame);
+Window *Editor_new(int left, int right, int top, int bottom, int width, int height)
+{
+    EditorFrame *editor_frame = malloc(sizeof *editor_frame);
     Window *frame = editor_frame;
-    //Window *frame = malloc(sizeof *frame);
+    // Window *frame = malloc(sizeof *frame);
     Window *w = Frame_init(frame, left, right, top, bottom, width, height, NULL, 0);
 
-
-    Window *tabs = Tab_new((Window *(*)(void))EditorWindow_new_tab, 0);
+    Window *tabs = Tab_new((Window * (*)(void)) EditorWindow_new_tab, 0);
     editor_frame->tabs = tabs;
     tabs->top = 2;
     tabs->bottom = 0;
@@ -299,9 +312,9 @@ Window * Editor_new(int left, int right, int top, int bottom, int width, int hei
     Window_append(w, tabs);
     frame->focused = tabs;
 
-    Window * menu = Editor_menu(editor_frame);
+    Window *menu = Editor_menu(editor_frame);
     Window_append(w, menu);
-    Window * toolbar = Editor_toolbar(editor_frame);
+    Window *toolbar = Editor_toolbar(editor_frame);
     Window_append(w, toolbar);
 
     last_frame = frame;
@@ -309,21 +322,24 @@ Window * Editor_new(int left, int right, int top, int bottom, int width, int hei
     return frame;
 }
 
-void Editor_open_file(EditorFrame * editor_frame, char * file_path){
-    Window * slider = tabs_new_tab(editor_frame->tabs);
-    //EditorWindow * editor_window = slider->focused;
-    //EditorWindow * editor_window = tabs_new_tab(editor_frame->tabs);
+void Editor_open_file(EditorFrame *editor_frame, char *file_path)
+{
+    Window *slider = tabs_new_tab(editor_frame->tabs);
+    // EditorWindow * editor_window = slider->focused;
+    // EditorWindow * editor_window = tabs_new_tab(editor_frame->tabs);
     EditorWindow_open_file(latestEditorWindow, file_path);
 }
 
-void Editor_last_open_file(char * file_path){
-    if (last_frame == NULL){
+void Editor_last_open_file(char *file_path)
+{
+    if (last_frame == NULL)
+    {
         file_editor_new();
-        //return;
+        // return;
     }
-    //LOG_INFO("Editor_last_open_file %p", last_frame);
+    // LOG_INFO("Editor_last_open_file %p", last_frame);
     Editor_open_file(last_frame, file_path);
-    //Window_bring_to_bottom(last_frame);
-    //root->focused = last_frame;
+    // Window_bring_to_bottom(last_frame);
+    // root->focused = last_frame;
     TaskBar_switch_frame(last_frame);
 }

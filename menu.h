@@ -7,7 +7,8 @@ typedef struct Menu
 {
   Window win;
   Window * parent;
-  int x_offset;
+  int offset;
+  int horizontal;
 } Menu;
 
 Menu *Menu_create_horizontal(Window * parent);
