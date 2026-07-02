@@ -126,7 +126,7 @@ void Menu_move_to_button(Window *menu, Window *button)
     menu->top = button->calculated.y - self->calculated.y + 1;
 }
 
-Window *Menu_list_windows(Window *menu, Tabs *tabs, struct Window *window_menu_item, Menu *submenu)
+Window *Menu_list_windows(Tabs *tabs, struct Window *window_menu_item, Menu *submenu)
 {
     submenu->win.head = NULL;
     submenu->win.tail = NULL;
@@ -172,7 +172,7 @@ void Menu_add_windows(Menu *menu, char *name, Tabs *tabs, Window * self)
     menu->offset += len + 1;
 
     Menu *submenu = Menu_create_vertical(NULL, self);
-    window_menu_item->lambda = create_lambda(Menu_list_windows, 4, menu, tabs, window_menu_item, submenu);
+    window_menu_item->lambda = create_lambda(Menu_list_windows, 3, tabs, window_menu_item, submenu);
     window_menu_item->on_mouse_down = Execute_lambda;
 }
 
