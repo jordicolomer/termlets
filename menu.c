@@ -5,6 +5,20 @@
 #include "utils.h"
 #include "logger.h"
 #include "buffer.h"
+#include "lambda.h"
+
+void Execute_lambda(struct Window *w, int x, int y)
+{
+    invoke_lambda(w->lambda);
+}
+
+void Execute_lambda_and_close_parent(struct Window *w, int x, int y)
+{
+    Window *menu = w->parent;
+    menu->hidden = 1;
+    invoke_lambda(w->lambda);
+}
+
 
 Menu *Menu_create_vertical(Window *self, Window *parent)
 {
@@ -74,7 +88,7 @@ void Menu_lambda1(struct Window *w, int x, int y)
     fn(self);
 }
 
-Window *Menu_add_element(Menu *self, char *name, void *callback)
+Window *Menu_add_element(Menu *self, char *name, Lambda * lambda)
 {
     //int len = strlen(name);
     int len = calculate_width(name);
@@ -85,14 +99,12 @@ Window *Menu_add_element(Menu *self, char *name, void *callback)
         self->win.width = max(self->win.width, len+2);
         self->win.height += 1;
         self->offset += 1;
-        if (callback != NULL){
+        if (lambda != NULL){
             win->on_hover = Menu_change_color_hover;
             win->undo_on_hover = Menu_change_color_normal;
 
-            win->data = callback;
-            win->data2 = self->self;
-            win->data3 = self;
-            win->on_mouse_down = Menu_lambda1;
+            win->lambda = lambda;
+            win->on_mouse_down = Execute_lambda_and_close_parent;
         }
     }
     else
@@ -107,11 +119,6 @@ Window *Menu_add_element(Menu *self, char *name, void *callback)
     return win;
 }
 
-
-void Execute_lambda(struct Window *w, int x, int y)
-{
-    invoke_lambda(w->lambda);
-}
 
 void Menu_list_windows_item_selected(Tab *tab, Window *menu)
 {

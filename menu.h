@@ -14,7 +14,7 @@ typedef struct Menu
 
 Menu *Menu_create_horizontal(Window * parent);
 Menu *Menu_create_vertical(Window *self, Window * parent);
-Window * Menu_add_element(Menu * self, char * name, void * callback);
+Window *Menu_add_element(Menu *self, char *name, Lambda * lambda);
 void Menu_add_windows(Menu *menu, char *name, Tabs *tabs, Window * self);
 void Menu_add_submenu(Menu * self, char * name, Menu * menu);
 
