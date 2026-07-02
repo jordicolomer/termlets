@@ -258,7 +258,7 @@ Window *Editor_menu(EditorFrame *self)
     //Menu_add_element(menu, "Edit", Editor_menu_new);
     Menu_add_element(menu, "View", Editor_menu_new);
     Menu_add_windows(menu, "Window", self->tabs->data);
-    //Menu_add_windows2(menu, "Window2", self->tabs->data);
+    Menu_add_windows2(menu, "Window2", self->tabs->data);
 
     return menu;
 }

@@ -2,7 +2,7 @@
 #define WINDOW_H
 
 #define WINDOW_BAR_COLOR 20
-
+#include "lambda.h"
 
 typedef struct Geometry
 {
@@ -47,6 +47,7 @@ typedef struct Window
   char *c;
   int fg;
   int bg;
+  Lambda * lambda;
 } Window;
 
 void Window_set_top(struct Window *wg, int top);
