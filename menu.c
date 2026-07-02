@@ -4,6 +4,7 @@
 #include "menu.h"
 #include "utils.h"
 #include "logger.h"
+#include "buffer.h"
 
 Menu *Menu_create_vertical(Window *self, Window *parent)
 {
@@ -75,7 +76,8 @@ void Menu_lambda1(struct Window *w, int x, int y)
 
 Window *Menu_add_element(Menu *self, char *name, void *callback)
 {
-    int len = strlen(name);
+    //int len = strlen(name);
+    int len = calculate_width(name);
     Window * win = NULL;
     if (self->vertical == 1)
     {
@@ -117,6 +119,13 @@ void Menu_list_windows_item_selected(Tab *tab, Window *menu)
     menu->hidden = 1;
 }
 
+void Menu_move_to_button(Window *menu, Window *button)
+{
+    Window *self = menu->parent;
+    menu->left = button->calculated.x - self->calculated.x;
+    menu->top = button->calculated.y - self->calculated.y + 1;
+}
+
 Window *Menu_list_windows(Window *menu, Tabs *tabs, struct Window *window_menu_item, Menu *submenu, Window * self)
 {
     submenu->win.head = NULL;
@@ -146,8 +155,9 @@ Window *Menu_list_windows(Window *menu, Tabs *tabs, struct Window *window_menu_i
     Menu_add_element(submenu, "", NULL);
 
     //todo reuse Menu_add_submenu
-    submenu->win.left = window_menu_item->calculated.x - self->calculated.x;
-    submenu->win.top = window_menu_item->calculated.y - self->calculated.y + 1;
+    //submenu->win.left = window_menu_item->calculated.x - self->calculated.x;
+    //submenu->win.top = window_menu_item->calculated.y - self->calculated.y + 1;
+    Menu_move_to_button(submenu, window_menu_item);
 
     submenu->win.hidden = 1-submenu->win.hidden;
 }
@@ -172,9 +182,11 @@ void Menu_show_submenu(struct Window *w, int x, int y)
     menu->win.hidden = 1 - menu->win.hidden;
 
     Window *win = w->data2;
-    Menu *self = w->data3;
-    menu->win.left = win->calculated.x - self->parent->calculated.x;
-    menu->win.top = win->calculated.y - self->parent->calculated.y + 1;
+    //Menu *self = w->data3;
+    //menu->win.left = win->calculated.x - self->parent->calculated.x;
+    //menu->win.top = win->calculated.y - self->parent->calculated.y + 1;
+    Menu_move_to_button(menu, win);
+
 }
 
 void Menu_add_submenu(Menu *self, char *name, Menu *menu)
@@ -182,7 +194,7 @@ void Menu_add_submenu(Menu *self, char *name, Menu *menu)
     Window *win = Menu_add_element(self, name, NULL);
     win->data = menu;
     win->data2 = win;
-    win->data3 = self;
+    //win->data3 = self;
     win->on_mouse_down = Menu_show_submenu;
 
     //menu->win.left = win->left;

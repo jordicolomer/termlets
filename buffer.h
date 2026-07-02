@@ -26,6 +26,7 @@ void Buffer_print_raw(Buffer *buf, int y, int x, int width, char *s, int fg, int
 void Buffer_print(Buffer *buf, int y, int x, int width, char *s, int fg, int bg);
 void Buffer_reset();
 void Buffer_print_to_screen(Buffer *buf);
+int calculate_width(char *s);
 
 extern Buffer main_buf;
 

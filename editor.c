@@ -239,8 +239,6 @@ Window *Editor_menu(EditorFrame *self)
     Menu_add_element(view, "", NULL);
     Menu_add_submenu(menu, " View ", view);
 
-    //Menu_add_element(menu, "Edit", Editor_menu_new);
-    //Menu_add_element(menu, " View ", Editor_menu_new);
     Menu_add_windows(menu, " Window ", self->tabs->data, self);
 
     return menu;
@@ -256,45 +254,9 @@ Window *Editor_toolbar(EditorFrame *self)
     Menu_add_element(toolbar, " 📋 Copy ", Editor_menu_new);
     Menu_add_element(toolbar, " 📌 Paste ", Editor_menu_close);
 
-    toolbar->left = 0;
-    toolbar->right = 0;
     toolbar->top = 1;
-    toolbar->height = 1;
 
     return toolbar;
-
-    /*Window *toolbar = malloc(sizeof *toolbar);
-    Window_init(toolbar, -1, -1, -1, -1, -1, -1);
-    toolbar->left = 0;
-    toolbar->right = 0;
-    toolbar->top = 1;
-    toolbar->height = 1;
-
-    int x_offset = 0;
-    int widget_width = 12;
-    int j = 0;
-    Window_add_widget(toolbar, x_offset, -1, j, -1, widget_width, 1, " 📄 New File", 232, 254);
-    x_offset += widget_width;
-    widget_width = 12;
-    Window_add_widget(toolbar, x_offset, -1, j, -1, widget_width, 1, "📁 New Dir", 232, 254);
-    x_offset += widget_width;
-    widget_width = 8;
-    Window_add_widget(toolbar, x_offset, -1, j, -1, widget_width, 1, "📋 Copy", 232, 254);
-    x_offset += widget_width;
-    widget_width = 8;
-    Window_add_widget(toolbar, x_offset, -1, j, -1, widget_width, 1, "🔪 Cut", 232, 254);
-    x_offset += widget_width;
-    widget_width = 10;
-    Window_add_widget(toolbar, x_offset, -1, j, -1, widget_width, 1, "📌 Paste", 232, 254);
-    x_offset += widget_width;
-    widget_width = 10;
-    Window_add_widget(toolbar, x_offset, -1, j, -1, widget_width, 1, "🔤 Rename", 232, 254);
-    x_offset += widget_width;
-    widget_width = 10;
-    Window_add_widget(toolbar, x_offset, 0, j, -1, -1, 1, "❌ Delete", 232, 254);
-    x_offset += widget_width;
-
-    return toolbar;*/
 }
 
 Window *Editor_new(int left, int right, int top, int bottom, int width, int height)
