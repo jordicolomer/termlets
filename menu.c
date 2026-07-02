@@ -111,12 +111,14 @@ void Execute_lambda(struct Window *w, int x, int y)
 void Menu_list_windows_item_selected(Tab *tab, Window *menu)
 {
     tab_select(tab);
-    Window_remove(menu);
+    menu->hidden = 1;
 }
 
-Window *Menu_list_windows(Window *menu, Tabs *tabs, struct Window *window_menu_item)
+Window *Menu_list_windows(Window *menu, Tabs *tabs, struct Window *window_menu_item, Menu *submenu)
 {
-    Window *submenu = Menu_create_vertical(NULL, menu);
+    submenu->win.head = NULL;
+    submenu->win.tail = NULL;
+    submenu->offset = 0;
 
     Tab *tab = tabs->first;
     int i = 0;
@@ -139,9 +141,9 @@ Window *Menu_list_windows(Window *menu, Tabs *tabs, struct Window *window_menu_i
         tab = tab->next;
     }
     Menu_add_element(submenu, "", NULL);
-    submenu->left = window_menu_item->left;
-    submenu->top = window_menu_item->top + 1;
-    submenu->hidden = 0;
+    submenu->win.left = window_menu_item->left;
+    submenu->win.top = window_menu_item->top + 1;
+    submenu->win.hidden = 1-submenu->win.hidden;
 }
 
 void Menu_add_windows(Menu *menu, char *name, Tabs *tabs)
@@ -151,7 +153,8 @@ void Menu_add_windows(Menu *menu, char *name, Tabs *tabs)
     Window *window_menu_item = Window_add_widget(menu, menu->offset, -1, 0, -1, len, 1, name, 232, 253);
     menu->offset += len + 1;
 
-    window_menu_item->lambda = create_lambda(Menu_list_windows, 3, menu, tabs, window_menu_item);
+    Menu *submenu = Menu_create_vertical(NULL, menu);
+    window_menu_item->lambda = create_lambda(Menu_list_windows, 4, menu, tabs, window_menu_item, submenu);
     window_menu_item->on_mouse_down = Execute_lambda;
 }
 
