@@ -18,7 +18,7 @@ Menu *Menu_create_vertical(Window *self, Window *parent)
     menu->vertical = 1;
     menu->win.hidden = 1;
 
-    Window_append(parent, menu);
+    if (parent != NULL) Window_append(parent, menu);
 
     // background
     Window_add_widget(menu, 0, 0, 0, -1, -1, 1, "", 232, 253);
@@ -97,6 +97,8 @@ Window *Menu_add_element(Menu *self, char *name, void *callback)
     {
         self->offset += 1;
         win = Window_add_widget(self, self->offset, -1, 0, -1, len, 1, name, 232, 253);
+        win->on_hover = Menu_change_color_hover;
+        win->undo_on_hover = Menu_change_color_normal;
         self->offset += len + 1;
     }
     return win;

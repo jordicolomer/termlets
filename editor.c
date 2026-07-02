@@ -243,7 +243,22 @@ Window *Editor_menu(EditorFrame *self)
 
 Window *Editor_toolbar(EditorFrame *self)
 {
-    Window *toolbar = malloc(sizeof *toolbar);
+    Window *toolbar = Menu_create_horizontal(self);
+    Menu_add_element(toolbar, " 📄 New", Editor_menu_new);
+    Menu_add_element(toolbar, " ❌ Close", Editor_menu_close);
+    Menu_add_element(toolbar, " ❌ Delete", Editor_menu_new);
+    Menu_add_element(toolbar, " 🔪 Cut", Editor_menu_new);
+    Menu_add_element(toolbar, " 📋 Copy", Editor_menu_new);
+    Menu_add_element(toolbar, " 📌 Paste", Editor_menu_close);
+
+    toolbar->left = 0;
+    toolbar->right = 0;
+    toolbar->top = 1;
+    toolbar->height = 1;
+
+    return toolbar;
+
+    /*Window *toolbar = malloc(sizeof *toolbar);
     Window_init(toolbar, -1, -1, -1, -1, -1, -1);
     toolbar->left = 0;
     toolbar->right = 0;
@@ -274,7 +289,7 @@ Window *Editor_toolbar(EditorFrame *self)
     Window_add_widget(toolbar, x_offset, 0, j, -1, -1, 1, "❌ Delete", 232, 254);
     x_offset += widget_width;
 
-    return toolbar;
+    return toolbar;*/
 }
 
 Window *Editor_new(int left, int right, int top, int bottom, int width, int height)
