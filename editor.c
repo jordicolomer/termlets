@@ -224,7 +224,7 @@ Window *Editor_menu(EditorFrame *self)
     Menu_add_element(file, " 📄 New   Ctrl+N", Editor_menu_new);
     Menu_add_element(file, " ❌ Close Ctrl+W", Editor_menu_close);
     Menu_add_element(file, "", NULL);
-    Menu_add_submenu(menu, "File", file);
+    Menu_add_submenu(menu, " File ", file);
 
     Window *edit = Menu_create_vertical(self, self);
     Menu_add_element(edit, " ❌ Delete Backspace", Editor_menu_new);
@@ -232,11 +232,16 @@ Window *Editor_menu(EditorFrame *self)
     Menu_add_element(edit, " 📋 Copy   Ctrl+C", Editor_menu_new);
     Menu_add_element(edit, " 📌 Paste  Ctrl+V", Editor_menu_close);
     Menu_add_element(edit, "", NULL);
-    Menu_add_submenu(menu, "Edit", edit);
+    Menu_add_submenu(menu, " Edit ", edit);
+
+    Window *view = Menu_create_vertical(self, self);
+    Menu_add_element(view, " ⤶ Word wrap", Editor_menu_new);
+    Menu_add_element(view, "", NULL);
+    Menu_add_submenu(menu, " View ", view);
 
     //Menu_add_element(menu, "Edit", Editor_menu_new);
-    Menu_add_element(menu, "View", Editor_menu_new);
-    Menu_add_windows(menu, "Window", self->tabs->data, self);
+    //Menu_add_element(menu, " View ", Editor_menu_new);
+    Menu_add_windows(menu, " Window ", self->tabs->data, self);
 
     return menu;
 }
@@ -244,12 +249,12 @@ Window *Editor_menu(EditorFrame *self)
 Window *Editor_toolbar(EditorFrame *self)
 {
     Window *toolbar = Menu_create_horizontal(self);
-    Menu_add_element(toolbar, " 📄 New", Editor_menu_new);
-    Menu_add_element(toolbar, " ❌ Close", Editor_menu_close);
-    Menu_add_element(toolbar, " ❌ Delete", Editor_menu_new);
-    Menu_add_element(toolbar, " 🔪 Cut", Editor_menu_new);
-    Menu_add_element(toolbar, " 📋 Copy", Editor_menu_new);
-    Menu_add_element(toolbar, " 📌 Paste", Editor_menu_close);
+    Menu_add_element(toolbar, " 📄 New ", Editor_menu_new);
+    Menu_add_element(toolbar, " ❌ Close ", Editor_menu_close);
+    Menu_add_element(toolbar, " ❌ Delete ", Editor_menu_new);
+    Menu_add_element(toolbar, " 🔪 Cut ", Editor_menu_new);
+    Menu_add_element(toolbar, " 📋 Copy ", Editor_menu_new);
+    Menu_add_element(toolbar, " 📌 Paste ", Editor_menu_close);
 
     toolbar->left = 0;
     toolbar->right = 0;

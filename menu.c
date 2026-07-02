@@ -95,11 +95,12 @@ Window *Menu_add_element(Menu *self, char *name, void *callback)
     }
     else
     {
-        self->offset += 1;
+        //self->offset += 1;
         win = Window_add_widget(self, self->offset, -1, 0, -1, len, 1, name, 232, 253);
         win->on_hover = Menu_change_color_hover;
         win->undo_on_hover = Menu_change_color_normal;
-        self->offset += len + 1;
+        //self->offset += len + 1;
+        self->offset += len;
     }
     return win;
 }
@@ -156,6 +157,8 @@ void Menu_add_windows(Menu *menu, char *name, Tabs *tabs, Window * self)
     int len = strlen(name);
     menu->offset += 1;
     Window *window_menu_item = Window_add_widget(menu, menu->offset, -1, 0, -1, len, 1, name, 232, 253);
+    window_menu_item->on_hover = Menu_change_color_hover;
+    window_menu_item->undo_on_hover = Menu_change_color_normal;
     menu->offset += len + 1;
 
     Menu *submenu = Menu_create_vertical(NULL, self);
