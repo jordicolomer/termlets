@@ -218,15 +218,15 @@ Window *Editor_menu_close(EditorFrame *self)
 
 Window *Editor_menu(EditorFrame *self)
 {
-    Window *menu = Menu_create_horizontal(self);
+    Window *menu = Menu_create_horizontal();
 
-    Window *file = Menu_create_vertical(self, self);
+    Window *file = Menu_create_vertical(self);
     Menu_add_element(file, " 📄 New   Ctrl+N", create_lambda(Editor_menu_new, 1, self));
     Menu_add_element(file, " ❌ Close Ctrl+W", create_lambda(Editor_menu_new, 1, self));
     Menu_add_element(file, "", NULL);
     Menu_add_submenu(menu, " File ", file);
 
-    Window *edit = Menu_create_vertical(self, self);
+    Window *edit = Menu_create_vertical(self);
     Menu_add_element(edit, " ❌ Delete Backspace", create_lambda(Editor_menu_new, 1, self));
     Menu_add_element(edit, " 🔪 Cut    Ctrl+X", create_lambda(Editor_menu_new, 1, self));
     Menu_add_element(edit, " 📋 Copy   Ctrl+C", create_lambda(Editor_menu_new, 1, self));
@@ -234,7 +234,7 @@ Window *Editor_menu(EditorFrame *self)
     Menu_add_element(edit, "", NULL);
     Menu_add_submenu(menu, " Edit ", edit);
 
-    Window *view = Menu_create_vertical(self, self);
+    Window *view = Menu_create_vertical(self);
     Menu_add_element(view, " ⤶ Word wrap", create_lambda(Editor_menu_new, 1, self));
     Menu_add_element(view, "", NULL);
     Menu_add_submenu(menu, " View ", view);
@@ -246,7 +246,7 @@ Window *Editor_menu(EditorFrame *self)
 
 Window *Editor_toolbar(EditorFrame *self)
 {
-    Window *toolbar = Menu_create_horizontal(self);
+    Window *toolbar = Menu_create_horizontal();
     Menu_add_element(toolbar, " 📄 New ", create_lambda(Editor_menu_new, 1, self));
     Menu_add_element(toolbar, " ❌ Close ", create_lambda(Editor_menu_new, 1, self));
     Menu_add_element(toolbar, " ❌ Delete ", create_lambda(Editor_menu_new, 1, self));

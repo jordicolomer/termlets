@@ -20,7 +20,7 @@ void Execute_lambda_and_close_parent(struct Window *w, int x, int y)
 }
 
 
-Menu *Menu_create_vertical(Window *self, Window *parent)
+Menu *Menu_create_vertical(Window *parent)
 {
     Menu *menu = malloc(sizeof *menu);
     Window_init(menu, -1, -1, -1, -1, -1, -1);
@@ -28,12 +28,12 @@ Menu *Menu_create_vertical(Window *self, Window *parent)
     menu->win.top = 0;
     menu->win.width = 0;
     menu->win.height = 0;
-    menu->parent = parent;
-    menu->self = self;
+    //menu->parent = parent;
+    //menu->self = self;
     menu->vertical = 1;
     menu->win.hidden = 1;
 
-    if (parent != NULL) Window_append(parent, menu);
+    Window_append(parent, menu);
 
     // background
     Window_add_widget(menu, 0, 0, 0, -1, -1, 1, "", 232, 253);
@@ -41,7 +41,7 @@ Menu *Menu_create_vertical(Window *self, Window *parent)
     return menu;
 }
 
-Menu *Menu_create_horizontal(Window *parent)
+Menu *Menu_create_horizontal()
 {
     Menu *menu = malloc(sizeof *menu);
     Window_init(menu, -1, -1, -1, -1, -1, -1);
@@ -50,7 +50,7 @@ Menu *Menu_create_horizontal(Window *parent)
     menu->win.top = 0;
     //menu->win.bottom = 0;
     menu->win.height = 1;
-    menu->parent = parent;
+    //menu->parent = parent;
 
     // background
     Window_add_widget(menu, 0, 0, 0, -1, -1, 1, "", 232, 253);
@@ -179,7 +179,7 @@ void Menu_add_windows(Menu *menu, char *name, Tabs *tabs, Window * self)
     window_menu_item->undo_on_hover = Menu_change_color_normal;
     menu->offset += len + 1;
 
-    Menu *submenu = Menu_create_vertical(NULL, self);
+    Menu *submenu = Menu_create_vertical(self);
     window_menu_item->lambda = create_lambda(Menu_list_windows, 3, tabs, window_menu_item, submenu);
     window_menu_item->on_mouse_down = Execute_lambda;
 }
