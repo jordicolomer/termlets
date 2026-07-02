@@ -220,13 +220,13 @@ Window *Editor_menu(EditorFrame *self)
 {
     Window *menu = Menu_create_horizontal(self);
 
-    Window *file = Menu_create_vertical(self, menu);
+    Window *file = Menu_create_vertical(self, self);
     Menu_add_element(file, " 📄 New   Ctrl+N", Editor_menu_new);
     Menu_add_element(file, " ❌ Close Ctrl+W", Editor_menu_close);
     Menu_add_element(file, "", NULL);
     Menu_add_submenu(menu, "File", file);
 
-    Window *edit = Menu_create_vertical(self, menu);
+    Window *edit = Menu_create_vertical(self, self);
     Menu_add_element(edit, " ❌ Delete Backspace", Editor_menu_new);
     Menu_add_element(edit, " 🔪 Cut    Ctrl+X", Editor_menu_new);
     Menu_add_element(edit, " 📋 Copy   Ctrl+C", Editor_menu_new);
@@ -236,7 +236,7 @@ Window *Editor_menu(EditorFrame *self)
 
     //Menu_add_element(menu, "Edit", Editor_menu_new);
     Menu_add_element(menu, "View", Editor_menu_new);
-    Menu_add_windows(menu, "Window", self->tabs->data);
+    Menu_add_windows(menu, "Window", self->tabs->data, self);
 
     return menu;
 }
