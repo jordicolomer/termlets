@@ -119,27 +119,6 @@ Window *EditorWindow_new_tab()
     editor->slider = slider;
     return slider;
 }
-/*
-Window *EditorWindow_new_tab(){
-  EditorWindow *w = malloc(sizeof *w);
-  Window_init(w, -1, -1, -1, -1, -1, -1);
-  w->win.id = "editor tab";
-
-  Window *editor = (Window *) w;
-  editor->draw = EditorWindow_draw;
-
-  Window * fm_slider = slider_new(editor);
-  fm_slider->left = 0;
-  fm_slider->right = 0;
-  fm_slider->top = 0;
-  fm_slider->bottom = 0;
-  //Window_append(w, fm_slider);
-
-  w->win.send_key = EditorWindow_send_key;
-
-  return fm_slider;
-}
-*/
 
 #include <ctype.h>
 void replace_nonprintable(char *str)
@@ -257,8 +236,8 @@ Window *Editor_menu(EditorFrame *self)
 
     //Menu_add_element(menu, "Edit", Editor_menu_new);
     Menu_add_element(menu, "View", Editor_menu_new);
+    //Menu_add_windows(menu, "Window", self->tabs->data);
     Menu_add_windows(menu, "Window", self->tabs->data);
-    Menu_add_windows2(menu, "Window2", self->tabs->data);
 
     return menu;
 }
