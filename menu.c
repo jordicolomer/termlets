@@ -176,15 +176,9 @@ void Menu_add_windows(Menu *menu, char *name, Tabs *tabs, Window * self)
     window_menu_item->on_mouse_down = Execute_lambda;
 }
 
-void Menu_show_submenu(struct Window *w, int x, int y)
+void Menu_show_submenu(Menu *menu, Window *win)
 {
-    Menu *menu = w->data;
     menu->win.hidden = 1 - menu->win.hidden;
-
-    Window *win = w->data2;
-    //Menu *self = w->data3;
-    //menu->win.left = win->calculated.x - self->parent->calculated.x;
-    //menu->win.top = win->calculated.y - self->parent->calculated.y + 1;
     Menu_move_to_button(menu, win);
 
 }
@@ -192,11 +186,6 @@ void Menu_show_submenu(struct Window *w, int x, int y)
 void Menu_add_submenu(Menu *self, char *name, Menu *menu)
 {
     Window *win = Menu_add_element(self, name, NULL);
-    win->data = menu;
-    win->data2 = win;
-    //win->data3 = self;
-    win->on_mouse_down = Menu_show_submenu;
-
-    //menu->win.left = win->left;
-    //menu->win.top = win->top + 1;
+    win->lambda = create_lambda(Menu_show_submenu, 2, menu, win);
+    win->on_mouse_down = Execute_lambda;
 }
