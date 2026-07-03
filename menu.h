@@ -6,8 +6,8 @@
 typedef struct Menu
 {
   Window win;
-  Window * parent;
-  Window * self;
+  //Window * parent;
+  //Window * self;
   int offset;
   int vertical;
 } Menu;

@@ -53,8 +53,26 @@ void remove_newlines(char *str) {
     *dst = '\0';
 }
 
+const char *filename_from_path(const char *path)
+{
+    if (path == NULL || *path == '\0')
+        return path;
+
+    const char *slash1 = strrchr(path, '/');
+    const char *slash2 = strrchr(path, '\\');  // Windows paths
+
+    const char *last = slash1;
+    if (slash2 && (!last || slash2 > last))
+        last = slash2;
+
+    return last ? last + 1 : path;
+}
+
 void FileExplorer_list_files(ExplorerWindow * self, char * dire){
-  LOG_INFO("FileExplorer_list_files: %p %s", self, dire);
+  //self->win.id = make_string(filename_from_path(dire));
+  snprintf(self->win.id, 20, filename_from_path(dire));
+
+  LOG_INFO("FileExplorer_list_files: %p %s filename:%s", self, dire, self->win.id);
   self->selected = NULL;
   
   Window *fm = self->fm;
@@ -171,7 +189,10 @@ void FileExplorer_send_key(Window * win, char c)
 ExplorerWindow *FileExplorer_file_list(){
   ExplorerWindow *w = malloc(sizeof *w);
   Window_init(w, -1, -1, -1, -1, -1, -1);
-  w->win.id = "file list";
+  w->win.id = malloc(20);
+  snprintf(w->win.id, 20, "Hello world");
+  //strcpy(w->win.id, "file.txt");
+  //w->win.id = "file list";
   int j = 0;
 
   Window_add_widget(w, 0, 0, j, -1, -1, 1, " 📁 /Users/jordicolomer", 232, 255);
