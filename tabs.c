@@ -62,7 +62,7 @@ Window * tabs_new_tab(Tabs *self){
     tab->height = 1;
     //LOG_INFO("tabs_new_tab %s %d", label, strlen(label));
     //tab->width = strlen(label)+1;
-    tab->width = ID_LENGTH-1;
+    tab->width = ID_LENGTH-3; // there is a 4 byte 2 wide char + null so -3. todo fix this
     tab->on_mouse_down = tab_clicked;
     tab->on_hover = change_color_hover;
     tab->undo_on_hover = change_color_normal;

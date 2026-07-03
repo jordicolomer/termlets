@@ -87,9 +87,11 @@ char *make_string(const char *src)
 void FileExplorer_list_files(ExplorerWindow * self, char * dire){
   //self->win.id = make_string(filename_from_path(dire));
   char * filename = filename_from_path(dire);
-  snprintf(self->win.id, ID_LENGTH, filename);
+  // todo: this is a hack. do it properly
+  snprintf(self->win.id, ID_LENGTH, "📁");
+  snprintf(self->win.id+4, ID_LENGTH-4, filename);
   //snprintf(self->win.id, ID_LENGTH, "📁%s", filename);
-  if (strlen(filename) >= ID_LENGTH) {
+  if (strlen(filename) >= ID_LENGTH-4) {
     if (ID_LENGTH > 3) {
         self->win.id[ID_LENGTH - 1] = '\0';
         self->win.id[ID_LENGTH - 2] = '.';
