@@ -60,7 +60,9 @@ Window * tabs_new_tab(Tabs *self){
     tab->left = self->x_offset;
     tab->top = 0;
     tab->height = 1;
-    tab->width = strlen(label)+1;
+    //LOG_INFO("tabs_new_tab %s %d", label, strlen(label));
+    //tab->width = strlen(label)+1;
+    tab->width = ID_LENGTH-1;
     tab->on_mouse_down = tab_clicked;
     tab->on_hover = change_color_hover;
     tab->undo_on_hover = change_color_normal;
@@ -71,7 +73,7 @@ Window * tabs_new_tab(Tabs *self){
     mytab->tab_label = tab;
     tab->data = mytab;
 
-    self->x_offset += tab->width;
+    self->x_offset += tab->width + 1;
 
     change_color_hover(tab, 0, 0);
 

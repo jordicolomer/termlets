@@ -68,11 +68,39 @@ const char *filename_from_path(const char *path)
     return last ? last + 1 : path;
 }
 
+char *make_string(const char *src)
+{
+    size_t len = 0;
+    while (src[len] != '\0') len++;
+
+    char *copy = malloc(len + 1);
+    if (!copy) return NULL;
+
+    for (size_t i = 0; i <= len; i++) {
+        copy[i] = src[i];
+    }
+
+    return copy;
+}
+
+
 void FileExplorer_list_files(ExplorerWindow * self, char * dire){
   //self->win.id = make_string(filename_from_path(dire));
-  snprintf(self->win.id, 20, filename_from_path(dire));
+  char * filename = filename_from_path(dire);
+  snprintf(self->win.id, ID_LENGTH, filename);
+  if (strlen(filename) >= ID_LENGTH) {
+    if (ID_LENGTH > 3) {
+        self->win.id[ID_LENGTH - 1] = '\0';
+        self->win.id[ID_LENGTH - 2] = '.';
+        self->win.id[ID_LENGTH - 3] = '.';
+        self->win.id[ID_LENGTH - 4] = '.';
+    }
+  }
 
-  LOG_INFO("FileExplorer_list_files: %p %s filename:%s", self, dire, self->win.id);
+  if (self->path != NULL) free(self->path);
+  self->path = make_string(dire);
+
+  //LOG_INFO("FileExplorer_list_files: %p %s filename:%s", self, dire, self->win.id);
   self->selected = NULL;
   
   Window *fm = self->fm;
@@ -141,6 +169,47 @@ void FileExplorer_list_files(ExplorerWindow * self, char * dire){
     Window_add_widget(fm, 0, 0, j++, -1, -1, 1, "", 232, 255);
 }
 
+void get_parent(char *path)
+{
+    if (!path) return;
+
+    size_t len = strlen(path);
+    if (len == 0) return;
+
+    // Remove trailing slashes (except root "/")
+    while (len > 1 && (path[len - 1] == '/' || path[len - 1] == '\\')) {
+        path[--len] = '\0';
+    }
+
+    // Find last slash or backslash
+    char *last = strrchr(path, '/');
+    char *last_back = strrchr(path, '\\');
+
+    char *cut = last;
+    if (!cut || (last_back && last_back > last)) {
+        cut = last_back;
+    }
+
+    if (cut) {
+        // Handle root case like "/" or "C:\"
+        if (cut == path || (cut == path + 2 && path[1] == ':')) {
+            cut[1] = '\0';
+        } else {
+            *cut = '\0';
+        }
+    } else {
+        // No separator found → current directory becomes "."
+        strcpy(path, ".");
+    }
+}
+
+void Editor_up_one_level(ExplorerWindow * self){
+  char * s = make_string(self->path);
+  get_parent(s);
+  FileExplorer_list_files(self, s);
+  free(s);
+}
+
 void FileExplorer_send_key(Window * win, char c)
 {
     ExplorerWindow * self = win;
@@ -176,6 +245,10 @@ void FileExplorer_send_key(Window * win, char c)
         Editor_last_open_file(file_path);
         return;
     }
+    if (c == 47){ // /
+        Editor_up_one_level(self);
+        return;
+    }
 
     Window *focused_cursor = win->focused;
     if (focused_cursor != NULL) while (focused_cursor->send_key == NULL && focused_cursor->focused != NULL) focused_cursor = focused_cursor->focused;
@@ -189,8 +262,8 @@ void FileExplorer_send_key(Window * win, char c)
 ExplorerWindow *FileExplorer_file_list(){
   ExplorerWindow *w = malloc(sizeof *w);
   Window_init(w, -1, -1, -1, -1, -1, -1);
-  w->win.id = malloc(20);
-  snprintf(w->win.id, 20, "Hello world");
+  w->win.id = malloc(ID_LENGTH);
+  snprintf(w->win.id, ID_LENGTH, "Hello world");
   //strcpy(w->win.id, "file.txt");
   //w->win.id = "file list";
   int j = 0;

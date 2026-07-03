@@ -4,6 +4,8 @@
 #define WINDOW_BAR_COLOR 20
 #include "lambda.h"
 
+#define ID_LENGTH 15
+
 typedef struct Geometry
 {
   int x;

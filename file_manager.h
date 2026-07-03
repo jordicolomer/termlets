@@ -8,6 +8,7 @@ typedef struct ExplorerWindow {
     Window *slider;
     //int selected;
     Window *selected;
+    char * path;
 } ExplorerWindow;
 
 
