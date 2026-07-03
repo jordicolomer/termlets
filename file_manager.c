@@ -9,6 +9,7 @@
 #include "tabs.h"
 #include "logger.h"
 #include "editor.h"
+#include "buffer.h"
 
 int ends_with(const char *str, const char *suffix)
 {
@@ -85,19 +86,14 @@ char *make_string(const char *src)
 
 
 void FileExplorer_list_files(ExplorerWindow * self, char * dire){
-  //self->win.id = make_string(filename_from_path(dire));
   char * filename = filename_from_path(dire);
-  // todo: this is a hack. do it properly
-  snprintf(self->win.id, ID_LENGTH, "📁");
-  snprintf(self->win.id+4, ID_LENGTH-4, filename);
-  //snprintf(self->win.id, ID_LENGTH, "📁%s", filename);
-  if (strlen(filename) >= ID_LENGTH-4) {
-    if (ID_LENGTH > 3) {
-        self->win.id[ID_LENGTH - 1] = '\0';
-        self->win.id[ID_LENGTH - 2] = '.';
-        self->win.id[ID_LENGTH - 3] = '.';
-        self->win.id[ID_LENGTH - 4] = '.';
-    }
+  snprintf(self->win.id, ID_LENGTH*4, "📁%s", filename);
+  if (calculate_width(self->win.id) >= ID_LENGTH) {
+    char * end = char_at(self->win.id, ID_LENGTH-3);
+    end[0] = '.';
+    end[1] = '.';
+    end[2] = '.';
+    end[3] = '\0';
   }
 
   if (self->path != NULL) free(self->path);
@@ -265,8 +261,8 @@ void FileExplorer_send_key(Window * win, char c)
 ExplorerWindow *FileExplorer_file_list(){
   ExplorerWindow *w = malloc(sizeof *w);
   Window_init(w, -1, -1, -1, -1, -1, -1);
-  w->win.id = malloc(ID_LENGTH);
-  snprintf(w->win.id, ID_LENGTH, "Hello world");
+  w->win.id = malloc(ID_LENGTH*4);
+  snprintf(w->win.id, ID_LENGTH*4, "file list");
   //strcpy(w->win.id, "file.txt");
   //w->win.id = "file list";
   int j = 0;
