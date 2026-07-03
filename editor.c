@@ -117,6 +117,10 @@ Window *EditorWindow_new_tab()
     Window *slider = slider_new(editor);
     Slider_show_grip(slider);
     editor->slider = slider;
+
+    editor->win.id = malloc(ID_LENGTH*4);
+    slider->id = editor->win.id;
+
     return slider;
 }
 
@@ -168,6 +172,7 @@ void append(EditorWindow *self, const char *text)
 
 void load_file(EditorWindow *self, const char *filename)
 {
+    Window_set_id_from_path(self, filename);
     FILE *file = fopen(filename, "r");
     if (!file)
     {
