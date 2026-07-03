@@ -389,3 +389,29 @@ Window *Window_add_widget(Window *w, int left, int right, int top, int bottom, i
   parent->virtual_height = max(parent->virtual_height, 1);
 
 }*/
+const char *filename_from_path(const char *path)
+{
+    if (path == NULL || *path == '\0')
+        return path;
+
+    const char *slash1 = strrchr(path, '/');
+    const char *slash2 = strrchr(path, '\\');  // Windows paths
+
+    const char *last = slash1;
+    if (slash2 && (!last || slash2 > last))
+        last = slash2;
+
+    return last ? last + 1 : path;
+}
+
+void Window_set_id_from_path(Window *self, char * path){
+  char * filename = filename_from_path(path);
+  snprintf(self->id, ID_LENGTH*4, "📁%s", filename);
+  if (calculate_width(self->id) >= ID_LENGTH) {
+    char * end = char_at(self->id, ID_LENGTH-3);
+    end[0] = '.';
+    end[1] = '.';
+    end[2] = '.';
+    end[3] = '\0';
+  }
+}

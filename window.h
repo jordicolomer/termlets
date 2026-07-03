@@ -73,11 +73,14 @@ Window *Window_init(Window *w, int left, int right, int top, int bottom, int wid
 int Geometry_in_bounds(Geometry geo, int x, int y);
 Window *Window_find_widget(struct Window *this, int x, int y);
 void Window_bring_to_bottom(Window *this);
+void Window_set_id_from_path(Window *this, char * path);
 
 /* widget.c */
 
 
 void Widget_draw(struct Window *wg, int hasFocus);
 Window *Window_add_widget(Window *w, int left, int right, int top, int bottom, int width, int height, char *c, int fg, int bg);
+
+
 
 #endif

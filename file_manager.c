@@ -54,20 +54,7 @@ void remove_newlines(char *str) {
     *dst = '\0';
 }
 
-const char *filename_from_path(const char *path)
-{
-    if (path == NULL || *path == '\0')
-        return path;
 
-    const char *slash1 = strrchr(path, '/');
-    const char *slash2 = strrchr(path, '\\');  // Windows paths
-
-    const char *last = slash1;
-    if (slash2 && (!last || slash2 > last))
-        last = slash2;
-
-    return last ? last + 1 : path;
-}
 
 char *make_string(const char *src)
 {
@@ -86,15 +73,7 @@ char *make_string(const char *src)
 
 
 void FileExplorer_list_files(ExplorerWindow * self, char * dire){
-  char * filename = filename_from_path(dire);
-  snprintf(self->win.id, ID_LENGTH*4, "📁%s", filename);
-  if (calculate_width(self->win.id) >= ID_LENGTH) {
-    char * end = char_at(self->win.id, ID_LENGTH-3);
-    end[0] = '.';
-    end[1] = '.';
-    end[2] = '.';
-    end[3] = '\0';
-  }
+  Window_set_id_from_path(self, dire);
 
   if (self->path != NULL) free(self->path);
   self->path = make_string(dire);
