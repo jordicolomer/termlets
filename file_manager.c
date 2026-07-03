@@ -88,6 +88,7 @@ void FileExplorer_list_files(ExplorerWindow * self, char * dire){
   //self->win.id = make_string(filename_from_path(dire));
   char * filename = filename_from_path(dire);
   snprintf(self->win.id, ID_LENGTH, filename);
+  //snprintf(self->win.id, ID_LENGTH, "📁%s", filename);
   if (strlen(filename) >= ID_LENGTH) {
     if (ID_LENGTH > 3) {
         self->win.id[ID_LENGTH - 1] = '\0';
