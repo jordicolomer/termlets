@@ -25,15 +25,15 @@ void make_visible(Tab *tab){
     //Window * shiftable_tabs = label->parent;
     Window * shiftable_tabs = tab->parent->shiftable_tabs;
     if (shiftable_tabs->calculated.width == 0) return; // if we haven't drawn yet
-    LOG_INFO("make_visible %s label->left:%d shiftable_tabs->calculated.width:%d label->width:%d label->calculated.width:%d shiftable_tabs->shift_x:%d", shiftable_tabs->id, label->left, shiftable_tabs->calculated.width, label->width, label->calculated.width, shiftable_tabs->shift_x);
+    //LOG_INFO("make_visible %s label->left:%d shiftable_tabs->calculated.width:%d label->width:%d label->calculated.width:%d shiftable_tabs->shift_x:%d", shiftable_tabs->id, label->left, shiftable_tabs->calculated.width, label->width, label->calculated.width, shiftable_tabs->shift_x);
     if (label->left + shiftable_tabs->shift_x < 0){
         shiftable_tabs->shift_x = -label->left;
-        LOG_INFO("if1 shiftable_tabs->shift_x %d", shiftable_tabs->shift_x);
+        //LOG_INFO("if1 shiftable_tabs->shift_x %d", shiftable_tabs->shift_x);
         return;
     }
     if (shiftable_tabs->calculated.width < label->left + label->width + shiftable_tabs->shift_x){
         shiftable_tabs->shift_x = - (label->left - shiftable_tabs->calculated.width + label->width);
-        LOG_INFO("if2 shiftable_tabs->shift_x %d", shiftable_tabs->shift_x);
+        //LOG_INFO("if2 shiftable_tabs->shift_x %d", shiftable_tabs->shift_x);
     }
 }
 

@@ -174,7 +174,7 @@ Window * TaskBar_new(){
   start->on_mouse_down = start_mouse_down;
 
   Window *startMenu = malloc(sizeof *startMenu);
-  Window_init(startMenu, 0, -1, -1, 1, 10, 4);
+  Window_init(startMenu, 0, -1, -1, 1, 16, 4);
   startMenu->hidden = 1;
   Window_append(root, startMenu);
   startMenu->id = "menu";
