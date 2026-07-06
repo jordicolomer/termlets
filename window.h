@@ -47,6 +47,7 @@ typedef struct Window
   void *data3;
   int hidden;
   int shift;
+  int shift_x;
   char *c;
   int fg;
   int bg;

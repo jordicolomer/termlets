@@ -101,6 +101,7 @@ void Window_draw(struct Window *w, int hasFocus)
     // geo.width = w->left + w->width + w->right
 
     int left = current->left;
+    if (left != -1) left += w->shift_x;
     int right = current->right;
     int width = current->width;
 
@@ -124,6 +125,9 @@ void Window_draw(struct Window *w, int hasFocus)
     if (height == -1)
       height = geo.height - current->top - current->bottom;
 
+    if (left + width > geo.width){
+      width = geo.width - left;
+    }
     Geometry rect = {geo.x + left, geo.y + top, width, height};
     current->calculated = rect;
     //LOG_INFO("Window_draw loop %s %p orig css left:%d right:%d width:%d top:%d bottom:%d height:%d", current->id, current, current->left, current->right, current->width, current->top, current->bottom, current->height);
@@ -136,6 +140,10 @@ void Window_draw(struct Window *w, int hasFocus)
       skip = 1;
     // if (geo.height < bottom) skip = 1;
     if (height == 1 && top < 0)
+      skip = 1;
+    if (left < 0)
+      skip = 1;
+    if (geo.width < left)
       skip = 1;
     // if ((!(height == 1 && top < 0)) && top < geo.height)
     if (!skip)

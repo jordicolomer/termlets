@@ -3,6 +3,8 @@
 #include <string.h>
 #include "tabs.h"
 #include "logger.h"
+#include "buffer.h"
+
 
 void change_color_hover(Window *wg, int x, int y)
 {
@@ -18,7 +20,22 @@ void change_color_normal(Window *wg, int x, int y)
     wg->bg = 254;
 }
 
-
+void make_visible(Tab *tab){
+    Window * label = tab->tab_label;
+    //Window * shiftable_tabs = label->parent;
+    Window * shiftable_tabs = tab->parent->shiftable_tabs;
+    if (shiftable_tabs->calculated.width == 0) return; // if we haven't drawn yet
+    LOG_INFO("make_visible %s label->left:%d shiftable_tabs->calculated.width:%d label->width:%d label->calculated.width:%d shiftable_tabs->shift_x:%d", shiftable_tabs->id, label->left, shiftable_tabs->calculated.width, label->width, label->calculated.width, shiftable_tabs->shift_x);
+    if (label->left + shiftable_tabs->shift_x < 0){
+        shiftable_tabs->shift_x = -label->left;
+        LOG_INFO("if1 shiftable_tabs->shift_x %d", shiftable_tabs->shift_x);
+        return;
+    }
+    if (shiftable_tabs->calculated.width < label->left + label->width + shiftable_tabs->shift_x){
+        shiftable_tabs->shift_x = - (label->left - shiftable_tabs->calculated.width + label->width);
+        LOG_INFO("if2 shiftable_tabs->shift_x %d", shiftable_tabs->shift_x);
+    }
+}
 
 void tab_select(Tab *tab){
     change_color_normal(tab->parent->selected_tab->tab_label, 0, 0);
@@ -26,6 +43,7 @@ void tab_select(Tab *tab){
     tab->parent->tabs->focused = tab->child;
     Window_bring_to_bottom(tab->child);
     tab->parent->selected_tab = tab;
+    make_visible(tab);
 }
 
 void tab_clicked(Window *wg, int x, int y)
@@ -56,7 +74,7 @@ Window * tabs_new_tab(Tabs *self){
     //mytab->str = child->id;
     self->idx++;
     char * label = child->id;
-    Window * tab = Window_add_widget(self->tabs, -1, -1, -1, -1, -1, -1, label, 232, 255);
+    Window * tab = Window_add_widget(self->shiftable_tabs, -1, -1, -1, -1, -1, -1, label, 232, 255);
     tab->left = self->x_offset;
     tab->top = 0;
     tab->height = 1;
@@ -64,6 +82,7 @@ Window * tabs_new_tab(Tabs *self){
     //tab->width = strlen(label)+1;
     //tab->width = ID_LENGTH-3; // there is a 4 byte 2 wide char + null so -3. todo fix this
     tab->width = ID_LENGTH;
+    //tab->width = calculate_width(label)+1;
     tab->on_mouse_down = tab_clicked;
     tab->on_hover = change_color_hover;
     tab->undo_on_hover = change_color_normal;
@@ -77,6 +96,8 @@ Window * tabs_new_tab(Tabs *self){
     self->x_offset += tab->width + 1;
 
     change_color_hover(tab, 0, 0);
+
+    make_visible(mytab);
 
     return child;
 
@@ -136,6 +157,8 @@ Window *Tab_new(tab_create_callback callback, int new_tab){
     tabs->id = "tabs";
 
     Window *tabs_bar = malloc(sizeof *tabs_bar);
+    tabs_bar->id = "tabs_bar";
+    mytab->tabs_bar = tabs_bar;
     Window_init(tabs_bar, -1, -1, -1, -1, -1, -1);
     tabs_bar->left = 0;
     tabs_bar->right = 0;
@@ -164,6 +187,16 @@ Window *Tab_new(tab_create_callback callback, int new_tab){
     plus_button->on_mouse_down = tabs_plus_clicked;
     plus_button->data = mytab;
     mytab->x_offset += plus_button->width;
+
+    Window *shiftable_tabs = malloc(sizeof *shiftable_tabs);
+    shiftable_tabs->id = "shiftable_tabs";
+    mytab->shiftable_tabs = shiftable_tabs;
+    Window_init(shiftable_tabs, -1, -1, -1, -1, -1, -1);
+    shiftable_tabs->left = 3;
+    shiftable_tabs->right = 0;
+    shiftable_tabs->top = 0;
+    shiftable_tabs->height = 1;
+    Window_append(tabs_bar, shiftable_tabs);
 
     if (new_tab) tabs_new_tab(mytab);
     return tabs;

@@ -20,6 +20,8 @@ typedef struct Tab {
 typedef struct Tabs {
     struct Window win;
     Window *tabs;
+    Window *tabs_bar;
+    Window *shiftable_tabs;
     int x_offset;
     int idx;
     tab_create_callback callback;
