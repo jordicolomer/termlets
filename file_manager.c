@@ -241,6 +241,25 @@ void FileExplorer_send_key(Window * win, char c)
 
 }
 
+void Explorer_change_color_hover(Window *wg, int x, int y)
+{
+    wg->fg = 232;
+    wg->bg = 27;
+}
+
+void Explorer_change_color_normal(Window *wg, int x, int y)
+{
+    wg->fg = 232;
+    wg->bg = 255;
+}
+
+void FileExplorer_shortcut_set_target(ExplorerWindow * self, Window * shortcut, char * path){
+  shortcut->on_hover = Explorer_change_color_hover;
+  shortcut->undo_on_hover = Explorer_change_color_normal;
+  shortcut->lambda = create_lambda(FileExplorer_list_files, 2, self, path);
+  shortcut->on_mouse_down = Window_execute_lambda;
+}
+
 ExplorerWindow *FileExplorer_file_list(){
   ExplorerWindow *w = malloc(sizeof *w);
   Window_init(w, -1, -1, -1, -1, -1, -1);
@@ -257,16 +276,33 @@ ExplorerWindow *FileExplorer_file_list(){
   int start_j = 0;
   int fav_width = 22;
   Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, " Favorites", 255, 245);
-  Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, " 🏠 Home", 232, 254);
-  Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, " 📥 Downloads", 232, 254);
-  Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, " 📄 Documents", 232, 254);
-  Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, " 📷 Pictures", 232, 254);
-  Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, " 🎵 Music", 232, 254);
-  Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, " 🎬 Movies", 232, 254);
+  Window * shortcut = Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, " 🏠 Home", 232, 254);
+  FileExplorer_shortcut_set_target(w, shortcut, "/Users/jordicolomer");
+
+  shortcut = Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, " 📥 Downloads", 232, 254);
+  FileExplorer_shortcut_set_target(w, shortcut, "/Users/jordicolomer/Downloads");
+
+  shortcut = Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, " 📄 Documents", 232, 254);
+  FileExplorer_shortcut_set_target(w, shortcut, "/Users/jordicolomer/Documents");
+
+  shortcut = Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, " 📷 Pictures", 232, 254);
+  FileExplorer_shortcut_set_target(w, shortcut, "/Users/jordicolomer/Pictures");
+
+  shortcut = Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, " 🎵 Music", 232, 254);
+  FileExplorer_shortcut_set_target(w, shortcut, "/Users/jordicolomer/Music");
+
+  shortcut = Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, " 🎬 Movies", 232, 254);
+  FileExplorer_shortcut_set_target(w, shortcut, "/Users/jordicolomer/Movies");
+
   Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, "", 232, 254);
   Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, " Locations", 255, 245);
-  Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, " 💻 Root", 232, 254);
-  Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, " 👥 Users", 232, 254);
+
+  shortcut = Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, " 💻 Root", 232, 254);
+  FileExplorer_shortcut_set_target(w, shortcut, "/");
+
+  shortcut = Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, " 👥 Users", 232, 254);
+  FileExplorer_shortcut_set_target(w, shortcut, "/Users");
+
   while (j <= 200)
     Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, "", 232, 255);
     
@@ -291,69 +327,6 @@ ExplorerWindow *FileExplorer_file_list(){
   return w;
 }
 
-/*
-Window *FileExplorer_menu(){
-  Window *menu = malloc(sizeof *menu);
-  Window_init(menu, -1, -1, -1, -1, -1, -1);
-  menu->left = 0;
-  menu->right = 0;
-  menu->top = 0;
-  menu->height = 1;
-
-  int j = 0;
-  int x_offset = 0;
-  int widget_width = 6;
-  Window_add_widget(menu, x_offset, -1, j, -1, widget_width, 1, " File", 232, 253);
-  x_offset += widget_width;
-  widget_width = 6;
-  Window_add_widget(menu, x_offset, -1, j, -1, widget_width, 1, " Edit", 232, 253);
-  x_offset += widget_width;
-  widget_width = 6;
-  Window_add_widget(menu, x_offset, -1, j, -1, widget_width, 1, " View", 232, 253);
-  x_offset += widget_width;
-  widget_width = 6;
-  Window_add_widget(menu, x_offset, 0, j, -1, -1, 1, " Help", 232, 253);
-  x_offset += widget_width;
-
-  return menu;
-}
-
-Window *FileExplorer_toolbar(){
-  Window *toolbar = malloc(sizeof *toolbar);
-  Window_init(toolbar, -1, -1, -1, -1, -1, -1);
-  toolbar->left = 0;
-  toolbar->right = 0;
-  toolbar->top = 1;
-  toolbar->height = 1;
-
-  int x_offset = 0;
-  int widget_width = 12;
-  int j = 0;
-  Window_add_widget(toolbar, x_offset, -1, j, -1, widget_width, 1, " 📄 New File", 232, 254);
-  x_offset += widget_width;
-  widget_width = 12;
-  Window_add_widget(toolbar, x_offset, -1, j, -1, widget_width, 1, "📁 New Dir", 232, 254);
-  x_offset += widget_width;
-  widget_width = 8;
-  Window_add_widget(toolbar, x_offset, -1, j, -1, widget_width, 1, "📋 Copy", 232, 254);
-  x_offset += widget_width;
-  widget_width = 8;
-  Window_add_widget(toolbar, x_offset, -1, j, -1, widget_width, 1, "🔪 Cut", 232, 254);
-  x_offset += widget_width;
-  widget_width = 10;
-  Window_add_widget(toolbar, x_offset, -1, j, -1, widget_width, 1, "📌 Paste", 232, 254);
-  x_offset += widget_width;
-  widget_width = 10;
-  Window_add_widget(toolbar, x_offset, -1, j, -1, widget_width, 1, "🔤 Rename", 232, 254);
-  x_offset += widget_width;
-  widget_width = 10;
-  Window_add_widget(toolbar, x_offset, 0, j, -1, -1, 1, "❌ Delete", 232, 254);
-  x_offset += widget_width;
-  
-
-  return toolbar;
-}
-*/
 
 Window *FileExplorer_menu_new(ExplorerFrame *self)
 {

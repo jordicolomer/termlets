@@ -4,11 +4,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <dirent.h>
-
 #include "window.h"
 #include "logger.h"
 #include "buffer.h"
 #include "utils.h"
+#include "lambda.h"
 
 
 void Window_set_top(struct Window *wg, int top){
@@ -422,4 +422,9 @@ void Window_set_id_from_path(Window *self, char * path){
     end[2] = '.';
     end[3] = '\0';
   }
+}
+
+void Window_execute_lambda(struct Window *w, int x, int y)
+{
+    invoke_lambda(w->lambda);
 }

@@ -81,7 +81,7 @@ void Window_set_id_from_path(Window *this, char * path);
 
 void Widget_draw(struct Window *wg, int hasFocus);
 Window *Window_add_widget(Window *w, int left, int right, int top, int bottom, int width, int height, char *c, int fg, int bg);
-
+void Window_execute_lambda(struct Window *w, int x, int y);
 
 
 #endif
