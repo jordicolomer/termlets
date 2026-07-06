@@ -9,6 +9,7 @@ typedef struct ExplorerWindow {
     //int selected;
     Window *selected;
     char * path;
+    char path_label[1024];
 } ExplorerWindow;
 
 

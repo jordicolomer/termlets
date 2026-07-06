@@ -73,6 +73,7 @@ char *make_string(const char *src)
 
 
 void FileExplorer_list_files(ExplorerWindow * self, char * dire){
+  snprintf(self->path_label, 1024, " 📁 %s", dire);
   Window_set_id_from_path(self, dire);
 
   if (self->path != NULL) free(self->path);
@@ -246,7 +247,7 @@ ExplorerWindow *FileExplorer_file_list(){
   //w->win.id = "file list";
   int j = 0;
 
-  Window_add_widget(w, 0, 0, j, -1, -1, 1, " 📁 /Users/jordicolomer", 232, 255);
+  Window_add_widget(w, 0, 0, j, -1, -1, 1, w->path_label, 232, 255);
   j++;
 
   // favorites
