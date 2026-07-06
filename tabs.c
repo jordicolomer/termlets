@@ -192,7 +192,7 @@ Window *Tab_new(tab_create_callback callback, int new_tab){
     shiftable_tabs->id = "shiftable_tabs";
     mytab->shiftable_tabs = shiftable_tabs;
     Window_init(shiftable_tabs, -1, -1, -1, -1, -1, -1);
-    shiftable_tabs->left = 3;
+    shiftable_tabs->left = 2;
     shiftable_tabs->right = 0;
     shiftable_tabs->top = 0;
     shiftable_tabs->height = 1;

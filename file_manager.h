@@ -12,6 +12,10 @@ typedef struct ExplorerWindow {
     char path_label[1024];
 } ExplorerWindow;
 
+typedef struct ExplorerFrame {
+    struct Window win;
+    Window *tabs;
+} ExplorerFrame;
 
 Window *FileExplorer_new(int left, int right, int top, int bottom, int width, int height);
 void FileExplorer_list_files(ExplorerWindow * self, char * dire);

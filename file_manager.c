@@ -10,6 +10,7 @@
 #include "logger.h"
 #include "editor.h"
 #include "buffer.h"
+#include "menu.h"
 
 int ends_with(const char *str, const char *suffix)
 {
@@ -109,6 +110,8 @@ void FileExplorer_list_files(ExplorerWindow * self, char * dire){
   // int x = 0;
   while ((entry = readdir(dir)) != NULL)
   {
+    if (strcmp(entry->d_name, "..") == 0) continue;
+    if (strcmp(entry->d_name, ".") == 0) continue;
     char *icon = "📄";
     if (entry->d_type == DT_DIR)
     {
@@ -288,6 +291,7 @@ ExplorerWindow *FileExplorer_file_list(){
   return w;
 }
 
+/*
 Window *FileExplorer_menu(){
   Window *menu = malloc(sizeof *menu);
   Window_init(menu, -1, -1, -1, -1, -1, -1);
@@ -349,17 +353,66 @@ Window *FileExplorer_toolbar(){
 
   return toolbar;
 }
+*/
+
+Window *FileExplorer_menu_new(ExplorerFrame *self)
+{
+    LOG_INFO("FileExplorer_menu_new %p", self);
+}
+
+
+Window *FileExplorer_menu(ExplorerFrame *self)
+{
+    Window *menu = Menu_create_horizontal();
+
+    Window *file = Menu_create_vertical(self);
+    Menu_add_element(file, " 📄 New   Ctrl+N", create_lambda(FileExplorer_menu_new, 1, self));
+    Menu_add_element(file, " ❌ Close Ctrl+W", create_lambda(FileExplorer_menu_new, 1, self));
+    Menu_add_element(file, "", NULL);
+    Menu_add_submenu(menu, " File ", file);
+
+    Window *edit = Menu_create_vertical(self);
+    Menu_add_element(edit, " ❌ Delete Backspace", create_lambda(FileExplorer_menu_new, 1, self));
+    Menu_add_element(edit, " 🔪 Cut    Ctrl+X", create_lambda(FileExplorer_menu_new, 1, self));
+    Menu_add_element(edit, " 📋 Copy   Ctrl+C", create_lambda(FileExplorer_menu_new, 1, self));
+    Menu_add_element(edit, " 📌 Paste  Ctrl+V", create_lambda(FileExplorer_menu_new, 1, self));
+    Menu_add_element(edit, "", NULL);
+    Menu_add_submenu(menu, " Edit ", edit);
+
+    Window *view = Menu_create_vertical(self);
+    Menu_add_element(view, " ⤶ Word wrap", create_lambda(FileExplorer_menu_new, 1, self));
+    Menu_add_element(view, "", NULL);
+    Menu_add_submenu(menu, " View ", view);
+
+    Menu_add_windows(menu, " Window ", self->tabs->data, self);
+
+    return menu;
+}
+
+Window *FileExplorer_toolbar(ExplorerFrame *self)
+{
+    Window *toolbar = Menu_create_horizontal();
+    Menu_add_element(toolbar, " 📄 New ", create_lambda(FileExplorer_menu_new, 1, self));
+    Menu_add_element(toolbar, " ❌ Close ", create_lambda(FileExplorer_menu_new, 1, self));
+    Menu_add_element(toolbar, " ❌ Delete ", create_lambda(FileExplorer_menu_new, 1, self));
+    Menu_add_element(toolbar, " 🔪 Cut ", create_lambda(FileExplorer_menu_new, 1, self));
+    Menu_add_element(toolbar, " 📋 Copy ", create_lambda(FileExplorer_menu_new, 1, self));
+    Menu_add_element(toolbar, " 📌 Paste ", create_lambda(FileExplorer_menu_new, 1, self));
+
+    toolbar->top = 1;
+
+    return toolbar;
+}
 
 Window *FileExplorer_new(int left, int right, int top, int bottom, int width, int height)
 {
-  Window *frame = malloc(sizeof *frame);
+  ExplorerFrame *frame = malloc(sizeof *frame);
   Window *w = Frame_init(frame, left, right, top, bottom, width, height, NULL, 0);
 
-  Window * menu = FileExplorer_menu();
+  /*Window * menu = FileExplorer_menu();
   Window_append(w, menu);
   Window * toolbar = FileExplorer_toolbar();
-  Window_append(w, toolbar);
-
+  Window_append(w, toolbar);*/
 
   Window *tabs = Tab_new((Window *(*)(void))FileExplorer_file_list, 1);
   tabs->top = 2;
@@ -367,7 +420,13 @@ Window *FileExplorer_new(int left, int right, int top, int bottom, int width, in
   tabs->left = 0;
   tabs->right = 0;
   Window_append(w, tabs);
-  frame->focused = tabs;
+  frame->win.focused = tabs;
+  frame->tabs = tabs;
+
+  Window *toolbar = FileExplorer_toolbar(frame);
+  Window_append(w, toolbar);
+  Window *menu = FileExplorer_menu(frame);
+  Window_append(w, menu);
 
   return frame;
 }
