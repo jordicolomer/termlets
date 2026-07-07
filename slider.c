@@ -177,7 +177,7 @@ void Slider_make_visible(Window *w, Window * wg){
   child->shift = -(max(0, wg->top - child->calculated.height/2));
   int min_shift = -(child->virtual_height - child->calculated.height);
   child->shift = max(child->shift, min_shift);
-  //LOG_INFO("Slider_make_visible2 %p %d", slider_data->slider_grip, wg->top);
+  //LOG_INFO("Slider_make_visible2 %p %d %d", slider_data->slider_grip, wg->top, child->shift);
   //Slider_set_top(slider_data->slider_grip, wg->top);
 }
 

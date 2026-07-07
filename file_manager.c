@@ -39,9 +39,21 @@ void item_clicked(Window *wg, int x, int y)
 
 void FileExplorer_select_item(ExplorerWindow * self, Window * item){
   if (item == NULL) return;
-  if (self->selected != NULL) self->selected->bg = 255;
+  if (self->selected != NULL){
+    Window * current = self->selected->head;
+    while(current != NULL){
+      current->bg = 255;
+      current = current->next;
+    }
+  }
   self->selected = item;
-  item->bg = 27;
+  //item->bg = 27;
+  Window * current = item->head;
+  while(current != NULL){
+    current->bg = 27;
+    current = current->next;
+  }
+
   Slider_make_visible(self->slider, item);
   Slider_show_grip(self->slider);
 }
@@ -152,16 +164,18 @@ void FileExplorer_list_files(ExplorerWindow * self, char * dire){
     char *str = NULL;
     // memory leak here
 
-    char date[32];
+    char * date = malloc(32);
+    char * size = malloc(16);
+    /*char date[32];
     date[0] = 0;
     char size[16];
-    size[0] = 0;
+    size[0] = 0;*/
     struct stat st;
     if (stat(full_path, &st) == 0){
       struct tm *tm = localtime(&st.st_mtime);
-      strftime(date, sizeof(date), "%Y-%m-%d %H:%M:%S", tm);
+      strftime(date, 32, "%Y-%m-%d %H:%M:%S", tm);
 
-      human_size(st.st_size, size, sizeof(size));
+      human_size(st.st_size, size, 16);
 
     } else {
       perror("stat");
@@ -173,10 +187,25 @@ void FileExplorer_list_files(ExplorerWindow * self, char * dire){
     int filename_width = 20;
     //if (fm->calculated.width != 0) filename_width = fm->calculated.width - 48;
     //LOG_INFO("fm->calculated.width: %d", fm->calculated.width);
-    len = asprintf(&str, "%s %*s %s  %10s", icon, -filename_width, entry->d_name, date, size);
-    //int len = asprintf(&str, "%s %s", icon, entry->d_name);
+    //len = asprintf(&str, "%s %*s %s  %10s", icon, -filename_width, entry->d_name, date, size);
+    len = asprintf(&str, "%s %s", icon, entry->d_name);
     // Window_add_widget(w, fav_width, 0, j++, -1, -1, 1, str, 232, 255);
-    Window * item = Window_add_widget(fm, 0, 0, j, -1, -1, 1, str, 232, 255);
+
+    Window *file_item = malloc(sizeof *file_item);
+    Window_init(file_item, -1, -1, -1, -1, -1, -1);
+    file_item->left = 0;
+    file_item->right = 0;
+    file_item->top = j;
+    file_item->height = 1;
+    Window_append(fm, file_item);
+
+    Window * item = Window_add_widget(file_item, 0, -20, 0, -1, -1, 1, str, 232, 255);
+    
+    Window_add_widget(file_item, -33, 0, 0, -1, -1, 1, date, 232, 255);
+    Window_add_widget(file_item, -12, 0, 0, -1, -1, 1, size, 232, 255);
+    /*Window * item = Window_add_widget(file_item, 0, -20, 0, -1, -1, 1, str, 232, 255);
+    Window_add_widget(file_item, -20, -10, 0, -1, -1, 1, date, 232, 255);
+    Window_add_widget(file_item, -10, 0, 0, -1, -1, 1, size, 232, 255);*/
     //Window * date_item = Window_add_widget(fm, 0, 32, j, -1, -1, 1, date, 232, 255);
     j++;
 
@@ -187,7 +216,7 @@ void FileExplorer_list_files(ExplorerWindow * self, char * dire){
 
     item->data2 = full_path;
 
-    if (self->selected == NULL) FileExplorer_select_item(self, item);
+    if (self->selected == NULL) FileExplorer_select_item(self, file_item);
     //LOG_INFO("full_path: %s", full_path);
     // if (height < j) break;
     // mvwprintw(win, x++, 1, "%s %s", icon, entry->d_name);

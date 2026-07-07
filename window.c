@@ -40,6 +40,8 @@ void Window_append(Window *w, Window *new_w)
     w->head = new_w;
   }
 
+  w->virtual_height = max(w->virtual_height, new_w->top+new_w->height);
+
   w->tail = new_w;
 }
 
@@ -111,6 +113,12 @@ void Window_draw(struct Window *w, int hasFocus)
       right = geo.width - current->left - current->width;
     if (width == -1)
       width = geo.width - current->left - current->right;
+    if (left < -1){
+      left = geo.width + current->left;
+    }
+    if (right < -1){
+      right = geo.width + current->right;
+    }
 
     // geo.height = w->top + w->height + w->bottom
 
