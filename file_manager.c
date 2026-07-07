@@ -112,7 +112,7 @@ void FileExplorer_list_files(ExplorerWindow * self, char * dire){
   if (self->path != NULL) free(self->path);
   self->path = make_string(dire);
 
-  //LOG_INFO("FileExplorer_list_files: %p %s filename:%s", self, dire, self->win.id);
+  LOG_INFO("FileExplorer_list_files: %p %s filename:%s", self, dire, self->win.id);
   self->selected = NULL;
   
   Window *fm = self->fm;
@@ -178,6 +178,7 @@ void FileExplorer_list_files(ExplorerWindow * self, char * dire){
       human_size(st.st_size, size, 16);
 
     } else {
+      continue;
       perror("stat");
       printf("stat failed: %s\n", strerror(errno));
     }
