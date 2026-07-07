@@ -7,6 +7,7 @@
 #include "vterm_terminal.h"
 #include "logger.h"
 #include "editor.h"
+#include "chess.h"
 
 int window_x = 5;
 int window_y = 3;
@@ -115,6 +116,27 @@ void file_editor_mouse_down(struct Window *w, int x, int y){
   file_editor_new();
 }
 
+
+void chess_new(){
+  Window *fm = Chess_new(window_x, window_y);
+  window_x += 10;
+  window_y += 3;
+  fm->parent = root;
+  fm->id = "Chess";
+  focused = fm;
+  Window_append(root, fm);
+
+  Window *task = TaskBar_new_task("🏁 Chess", fm);
+  fm->data = task;
+}
+
+void chess_mouse_down(struct Window *w, int x, int y){
+  Window *startMenu = w->data;
+  startMenu->hidden = 1;
+  open_menu = NULL;
+
+  chess_new();
+}
 /*
 void terminal_mouse_down(struct Window *w, int x, int y){
   Window *startMenu = w->data;
@@ -174,17 +196,26 @@ Window * TaskBar_new(){
   start->on_mouse_down = start_mouse_down;
 
   Window *startMenu = malloc(sizeof *startMenu);
-  Window_init(startMenu, 0, -1, -1, 1, 16, 4);
+  Window_init(startMenu, 0, -1, -1, 1, 16, 5);
   startMenu->hidden = 1;
   Window_append(root, startMenu);
   startMenu->id = "menu";
   start->data = startMenu;
 
-  Window *file_editor = Window_add_widget(startMenu, 0, -1, 0, -1, 16, 1, "📝 Editor", 0, taskbar_color);
+  Window *chess = Window_add_widget(startMenu, 0, -1, 0, -1, 16, 1, "🏁 Chess", 0, taskbar_color);
+  chess->on_mouse_down = chess_mouse_down;
+  chess->data = startMenu;
+  //chess->on_mouse_down = Window_execute_lambda;
+  //chess->lambda = create_lambda(Chess_new, 0);
+
+  //file_editor->on_mouse_down = file_editor_mouse_down;
+  //file_editor->data = startMenu;
+
+  Window *file_editor = Window_add_widget(startMenu, 0, -1, 1, -1, 16, 1, "📝 Editor", 0, taskbar_color);
   file_editor->on_mouse_down = file_editor_mouse_down;
   file_editor->data = startMenu;
 
-  Window *file_manager = Window_add_widget(startMenu, 0, -1, 1, -1, 16, 1, "📁 File Manager", 0, taskbar_color);
+  Window *file_manager = Window_add_widget(startMenu, 0, -1, 2, -1, 16, 1, "📁 File Manager", 0, taskbar_color);
   file_manager->on_mouse_down = file_manager_mouse_down;
   file_manager->data = startMenu;
 
@@ -192,11 +223,11 @@ Window * TaskBar_new(){
   terminal->on_mouse_down = terminal_mouse_down;
   terminal->data = startMenu;*/
 
-  Window *vterminal = Window_add_widget(startMenu, 0, -1, 2, -1, 16, 1, "💻 Terminal", 0, taskbar_color);
+  Window *vterminal = Window_add_widget(startMenu, 0, -1, 3, -1, 16, 1, "💻 Terminal", 0, taskbar_color);
   vterminal->on_mouse_down = vterminal_mouse_down;
   vterminal->data = startMenu;
 
-  Window *quit = Window_add_widget(startMenu, 0, -1, 3, -1, 16, 1, "❌ Quit", 0, taskbar_color);
+  Window *quit = Window_add_widget(startMenu, 0, -1, 4, -1, 16, 1, "❌ Quit", 0, taskbar_color);
   quit->on_mouse_down = quit_mouse_down;
   quit->data = startMenu;
 

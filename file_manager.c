@@ -2,6 +2,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <dirent.h>
+#include <sys/stat.h>
+#include <time.h>
+#include <errno.h>
+
 #include "window.h"
 #include "frame.h"
 #include "slider.h"
@@ -112,6 +116,10 @@ void FileExplorer_list_files(ExplorerWindow * self, char * dire){
   {
     if (strcmp(entry->d_name, "..") == 0) continue;
     if (strcmp(entry->d_name, ".") == 0) continue;
+
+    char *full_path = NULL;
+    int len = asprintf(&full_path, "%s/%s", dire, entry->d_name);
+
     char *icon = "📄";
     if (entry->d_type == DT_DIR)
     {
@@ -127,15 +135,31 @@ void FileExplorer_list_files(ExplorerWindow * self, char * dire){
     }
     char *str = NULL;
     // memory leak here
+
+    char date[32];
+    date[0] = 0;
+    struct stat st;
+    if (stat(full_path, &st) == 0){
+      struct tm *tm = localtime(&st.st_mtime);
+      strftime(date, sizeof(date), "%Y-%m-%d %H:%M:%S", tm);
+    } else {
+      perror("stat");
+      printf("stat failed: %s\n", strerror(errno));
+    }
     remove_newlines(entry->d_name);
-    int len = asprintf(&str, "%s %s", icon, entry->d_name);
+
+    len = asprintf(&str, "%s %*s %s", icon, -30, entry->d_name, date);
+    //int len = asprintf(&str, "%s %s", icon, entry->d_name);
     // Window_add_widget(w, fav_width, 0, j++, -1, -1, 1, str, 232, 255);
-    Window * item = Window_add_widget(fm, 0, 0, j++, -1, -1, 1, str, 232, 255);
+    Window * item = Window_add_widget(fm, 0, 0, j, -1, -1, 1, str, 232, 255);
+    //Window * date_item = Window_add_widget(fm, 0, 32, j, -1, -1, 1, date, 232, 255);
+    j++;
+
+
+
     item->on_mouse_down = item_clicked;
     item->data = self;
 
-    char *full_path = NULL;
-    len = asprintf(&full_path, "%s/%s", dire, entry->d_name);
     item->data2 = full_path;
 
     if (self->selected == NULL) FileExplorer_select_item(self, item);
