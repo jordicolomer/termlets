@@ -75,7 +75,7 @@ void TaskBar_switch_frame(Window *w){
 }
 
 void file_manager_new(){
-  Window *fm = FileExplorer_new(window_x, -1, window_y, -1, 80, 30);
+  Window *fm = FileExplorer_new(window_x, -1, window_y, -1, 90, 30);
   window_x += 10;
   window_y += 3;
   fm->parent = root;

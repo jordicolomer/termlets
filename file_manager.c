@@ -76,6 +76,22 @@ char *make_string(const char *src)
     return copy;
 }
 
+void human_size(off_t size, char *buf, size_t buflen)
+{
+    const char *units[] = {"Bytes", "KB", "MB", "GB", "TB"};
+    int unit = 0;
+    double s = (double)size;
+
+    while (s >= 1024 && unit < 4) {
+        s /= 1024;
+        unit++;
+    }
+
+    if (unit == 0)
+        snprintf(buf, buflen, "%.0f %s", s, units[unit]);
+    else
+        snprintf(buf, buflen, "%.1f %s", s, units[unit]);
+}
 
 void FileExplorer_list_files(ExplorerWindow * self, char * dire){
   snprintf(self->path_label, 1024, " 📁 %s", dire);
@@ -138,17 +154,26 @@ void FileExplorer_list_files(ExplorerWindow * self, char * dire){
 
     char date[32];
     date[0] = 0;
+    char size[16];
+    size[0] = 0;
     struct stat st;
     if (stat(full_path, &st) == 0){
       struct tm *tm = localtime(&st.st_mtime);
       strftime(date, sizeof(date), "%Y-%m-%d %H:%M:%S", tm);
+
+      human_size(st.st_size, size, sizeof(size));
+
     } else {
       perror("stat");
       printf("stat failed: %s\n", strerror(errno));
     }
     remove_newlines(entry->d_name);
 
-    len = asprintf(&str, "%s %*s %s", icon, -30, entry->d_name, date);
+
+    int filename_width = 20;
+    //if (fm->calculated.width != 0) filename_width = fm->calculated.width - 48;
+    //LOG_INFO("fm->calculated.width: %d", fm->calculated.width);
+    len = asprintf(&str, "%s %*s %s  %10s", icon, -filename_width, entry->d_name, date, size);
     //int len = asprintf(&str, "%s %s", icon, entry->d_name);
     // Window_add_widget(w, fav_width, 0, j++, -1, -1, 1, str, 232, 255);
     Window * item = Window_add_widget(fm, 0, 0, j, -1, -1, 1, str, 232, 255);
