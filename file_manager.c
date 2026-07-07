@@ -211,10 +211,12 @@ void FileExplorer_list_files(ExplorerWindow * self, char * dire){
 
 
 
-    item->on_mouse_down = item_clicked;
     item->data = self;
-
     item->data2 = full_path;
+    item->on_mouse_down = item_clicked;
+
+    file_item->data = self;
+    file_item->data2 = full_path;
 
     if (self->selected == NULL) FileExplorer_select_item(self, file_item);
     //LOG_INFO("full_path: %s", full_path);
