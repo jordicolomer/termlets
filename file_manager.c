@@ -386,6 +386,11 @@ ExplorerWindow *FileExplorer_file_list(){
   while (j <= 200)
     Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, "", 232, 255);
     
+  // headers
+  Window_add_widget(w, fav_width, -33, 1, -1, -1, 1, " Name", 255, 242);
+  Window_add_widget(w, -33,       -12, 1, -1, -1, 1, " Date Modified", 255, 242);
+  Window_add_widget(w, -12,        0,  1, -1, -1, 1, " Size", 255, 242);
+  
   Window *fm = malloc(sizeof *fm);
   w->win.data = fm;
   w->fm = fm;
@@ -396,7 +401,7 @@ ExplorerWindow *FileExplorer_file_list(){
   Window * fm_slider = slider_new(fm);
   fm_slider->left = fav_width;
   fm_slider->right = 0;
-  fm_slider->top = 1;
+  fm_slider->top = 2;
   fm_slider->bottom = 0;
   Window_append(w, fm_slider);
   w->win.data2 = fm_slider;
