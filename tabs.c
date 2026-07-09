@@ -8,9 +8,15 @@
 
 void change_color_hover(Window *wg, int x, int y)
 {
+
     //LOG_INFO("change_color_hover");
     wg->fg = 236;
     wg->bg = 250;
+
+    Tab *tab = wg->data;
+    if (tab->parent->selected_tab == tab){
+        wg->bg = 33;
+    }
 }
 
 void change_color_normal(Window *wg, int x, int y)
@@ -18,6 +24,11 @@ void change_color_normal(Window *wg, int x, int y)
     //LOG_INFO("change_color_normal");
     wg->fg = 232;
     wg->bg = 254;
+
+    Tab *tab = wg->data;
+    if (tab->parent->selected_tab == tab){
+        wg->bg = 33;
+    }
 }
 
 void make_visible(Tab *tab){
@@ -38,12 +49,16 @@ void make_visible(Tab *tab){
 }
 
 void tab_select(Tab *tab){
-    change_color_normal(tab->parent->selected_tab->tab_label, 0, 0);
-    change_color_hover(tab->tab_label, 0, 0);
+    Window * prev = tab->parent->selected_tab->tab_label;
+    //change_color_normal(tab->parent->selected_tab->tab_label, 0, 0);
+    //change_color_hover(tab->tab_label, 0, 0);
     tab->parent->tabs->focused = tab->child;
     Window_bring_to_bottom(tab->child);
     tab->parent->selected_tab = tab;
     make_visible(tab);
+
+    change_color_normal(prev, 0, 0);
+    change_color_normal(tab->tab_label, 0, 0);
 }
 
 void tab_clicked(Window *wg, int x, int y)
@@ -53,7 +68,9 @@ void tab_clicked(Window *wg, int x, int y)
 }
 
 Window * tabs_new_tab(Tabs *self){
-    if (self->selected_tab != NULL) change_color_normal(self->selected_tab->tab_label, 0, 0);
+    Window * prev_tab_label = NULL;
+    if (self->selected_tab != NULL) prev_tab_label = self->selected_tab->tab_label;
+    //change_color_normal(self->selected_tab->tab_label, 0, 0);
 
     Window *child = self->callback();
     child->left = 0;
@@ -86,6 +103,7 @@ Window * tabs_new_tab(Tabs *self){
     tab->on_mouse_down = tab_clicked;
     tab->on_hover = change_color_hover;
     tab->undo_on_hover = change_color_normal;
+    tab->data = mytab;
 
     mytab->parent = self;
     //mytab->terminal = terminal;
@@ -96,6 +114,7 @@ Window * tabs_new_tab(Tabs *self){
     self->x_offset += tab->width + 1;
 
     change_color_hover(tab, 0, 0);
+    if (prev_tab_label != NULL) change_color_normal(prev_tab_label, 0, 0);
 
     make_visible(mytab);
 
