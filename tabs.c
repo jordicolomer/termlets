@@ -230,13 +230,14 @@ Window *Tab_new(tab_create_callback callback, int new_tab){
     plus_button->undo_on_hover = change_color_normal;
     plus_button->on_mouse_down = tabs_plus_clicked;
     plus_button->data = mytab;
-    mytab->x_offset += plus_button->width;
+    //mytab->x_offset += plus_button->width;
+    mytab->x_offset = 0;
 
     Window *shiftable_tabs = malloc(sizeof *shiftable_tabs);
     shiftable_tabs->id = "shiftable_tabs";
     mytab->shiftable_tabs = shiftable_tabs;
     Window_init(shiftable_tabs, -1, -1, -1, -1, -1, -1);
-    shiftable_tabs->left = 2;
+    shiftable_tabs->left = plus_button->width;
     shiftable_tabs->right = 0;
     shiftable_tabs->top = 0;
     shiftable_tabs->height = 1;
