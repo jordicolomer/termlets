@@ -113,7 +113,7 @@ Window * tabs_new_tab(Tabs *self){
     mytab->tab_label = tab;
     tab->data = mytab;
 
-    self->x_offset += tab->width + 1;
+    self->x_offset += tab->width;
 
     change_color_hover(tab, 0, 0);
     if (prev_tab_label != NULL) change_color_normal(prev_tab_label, 0, 0);
