@@ -380,6 +380,8 @@ ExplorerWindow *FileExplorer_file_list(){
   //w->win.id = "file list";
   int j = 0;
 
+  w->sort_by = -1;
+
   Window_add_widget(w, 0, 0, j, -1, -1, 1, w->path_label, 232, 255);
   j++;
 
@@ -482,6 +484,9 @@ Window *FileExplorer_menu_new(ExplorerFrame *self)
     LOG_INFO("FileExplorer_menu_new %p", self);
 }
 
+void FileExplorer_sort_by(ExplorerFrame *self, int sort_by){
+  FileExplorer_sort(self->tabs->focused, sort_by);
+}
 
 Window *FileExplorer_menu(ExplorerFrame *self)
 {
@@ -502,7 +507,10 @@ Window *FileExplorer_menu(ExplorerFrame *self)
     Menu_add_submenu(menu, " Edit ", edit);
 
     Window *view = Menu_create_vertical(self);
-    Menu_add_element(view, " ⤶ Word wrap", create_lambda(FileExplorer_menu_new, 1, self));
+    //Menu_add_element(view, " ⤶ Word wrap", create_lambda(FileExplorer_menu_new, 1, self));
+    Menu_add_element(view, " ↓ Sort By Name",          create_lambda(FileExplorer_sort_by, 2, self, SORT_BY_PATH));
+    Menu_add_element(view, " ↓ Sort By Date Modified", create_lambda(FileExplorer_sort_by, 2, self, SORT_BY_DATE));
+    Menu_add_element(view, " ↓ Sort By Size",          create_lambda(FileExplorer_sort_by, 2, self, SORT_BY_SIZE));
     Menu_add_element(view, "", NULL);
     Menu_add_submenu(menu, " View ", view);
 
