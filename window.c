@@ -83,11 +83,18 @@ void Window_remove(Window *w)
 }
 
 
+void Window_fill(struct Window *w){
+  Geometry geo = w->calculated;
+  int fg = w->fg;
+  int bg = w->bg;
+  for (int i=0;i<geo.height;i++) Buffer_print(&main_buf, geo.y+i, geo.x, geo.width, "", fg, bg);
+}
 
 // void Window_draw(struct Window* w, int bias_x, int bias_y, int hasFocus){
 void Window_draw(struct Window *w, int hasFocus)
 {
-  Geometry geo = w->calculated;
+  if (w->fill == 1) Window_fill(w);
+    Geometry geo = w->calculated;
     if (w->hidden == 1){
         return;
     }

@@ -53,6 +53,7 @@ typedef struct Window
   char *c;
   int fg;
   int bg;
+  int fill;
   Lambda * lambda;
 } Window;
 

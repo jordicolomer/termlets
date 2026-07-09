@@ -258,8 +258,8 @@ void FileExplorer_list_files(ExplorerWindow * self, char * dire){
   //sort_list(fm);
 
   // Clear remaining lines to remove previous list items
-  while (j <= self->win.calculated.height)
-    Window_add_widget(fm, 0, 0, j++, -1, -1, 1, "", 232, 255);
+  //while (j <= self->win.calculated.height)
+  //  Window_add_widget(fm, 0, 0, j++, -1, -1, 1, "", 232, 255);
 }
 
 void get_parent(char *path)
@@ -555,6 +555,8 @@ Window *FileExplorer_new(int left, int right, int top, int bottom, int width, in
 {
   ExplorerFrame *frame = malloc(sizeof *frame);
   Window *w = Frame_init(frame, left, right, top, bottom, width, height, NULL, 0);
+  w->bg = 15;
+  w->fill = 1;
 
   /*Window * menu = FileExplorer_menu();
   Window_append(w, menu);
