@@ -108,7 +108,7 @@ void human_size(off_t size, char *buf, size_t buflen)
 // sort
 #include "sort.h"
 void sort_list(Window * fm, int sort_by, int reversed){
-  Window * sorted = mergeSort(fm->head, sort_by, 0);
+  Window * sorted = mergeSort(fm->head, sort_by, reversed);
   fm->head = sorted;
   int top = 0;
   while (sorted != NULL){
@@ -119,7 +119,11 @@ void sort_list(Window * fm, int sort_by, int reversed){
 }
 
 void FileExplorer_sort(ExplorerWindow * self, int sort_by){
-  sort_list(self->fm, sort_by, 0);
+  if (self->sort_by == sort_by){
+    self->reversed[sort_by] = 1 - self->reversed[sort_by];
+  }
+  self->sort_by = sort_by;
+  sort_list(self->fm, sort_by, self->reversed[sort_by]);
 }
 // end sort
 
