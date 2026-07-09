@@ -492,6 +492,9 @@ ExplorerWindow *FileExplorer_file_list(){
   w->win.scroll_wheel_up = FileExplorer_scroll_wheel_up;
   w->win.scroll_wheel_down = FileExplorer_scroll_wheel_down;
 
+  w->win.bg = 15;
+  w->win.fill = 1;
+
   return w;
 }
 
@@ -555,8 +558,6 @@ Window *FileExplorer_new(int left, int right, int top, int bottom, int width, in
 {
   ExplorerFrame *frame = malloc(sizeof *frame);
   Window *w = Frame_init(frame, left, right, top, bottom, width, height, NULL, 0);
-  w->bg = 15;
-  w->fill = 1;
 
   /*Window * menu = FileExplorer_menu();
   Window_append(w, menu);

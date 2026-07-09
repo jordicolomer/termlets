@@ -87,6 +87,7 @@ void Window_fill(struct Window *w){
   Geometry geo = w->calculated;
   int fg = w->fg;
   int bg = w->bg;
+  //LOG_INFO("Window_fill w:%d", geo.height);
   for (int i=0;i<geo.height;i++) Buffer_print(&main_buf, geo.y+i, geo.x, geo.width, "", fg, bg);
 }
 
