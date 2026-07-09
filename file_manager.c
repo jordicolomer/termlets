@@ -303,6 +303,20 @@ void Editor_up_one_level(ExplorerWindow * self){
   free(s);
 }
 
+void FileExplorer_send_sequence(struct Window *win, const char *seq, int len){
+  LOG_INFO("FileExplorer_send_sequence: %s", seq);
+}
+
+void FileExplorer_scroll_wheel_down(struct Window *w){
+  ExplorerWindow * self = w;
+  Slider_scroll_down(self->slider);
+}
+
+void FileExplorer_scroll_wheel_up(struct Window *w){
+  ExplorerWindow * self = w;
+  Slider_scroll_up(self->slider);
+}
+
 void FileExplorer_send_key(Window * win, char c)
 {
     ExplorerWindow * self = win;
@@ -474,6 +488,9 @@ ExplorerWindow *FileExplorer_file_list(){
   w->slider = fm_slider;
 
   w->win.send_key = FileExplorer_send_key;
+  w->win.send_sequence = FileExplorer_send_sequence;
+  w->win.scroll_wheel_up = FileExplorer_scroll_wheel_up;
+  w->win.scroll_wheel_down = FileExplorer_scroll_wheel_down;
 
   return w;
 }

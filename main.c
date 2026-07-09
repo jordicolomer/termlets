@@ -294,11 +294,14 @@ int start()
 
       seq[i] = 0;
 
+      //LOG_INFO("seq: %s", seq);
+
       int btn, x, y;
       char type;
 
       if (sscanf(seq, "[<%d;%d;%d%c", &btn, &x, &y, &type) == 4)
       {
+        LOG_INFO("mouse event %s %d %d %d %c", seq, btn, x, y, type);
         /* mouse event */
         if (y == 1)
           continue;
@@ -308,7 +311,20 @@ int start()
           dragging = 1;
           on_mouse_down(x, y);
         }
-
+        if (dragging == 0 && btn == 64 && type == 'M')
+        { // scroll wheel down 
+          if (focused_cursor != NULL && focused_cursor->scroll_wheel_up != NULL){
+            focused_cursor->scroll_wheel_up(focused_cursor);
+            repaint();
+          }
+        }
+        if (dragging == 0 && btn == 65 && type == 'M')
+        { // scroll wheel down 
+          if (focused_cursor != NULL && focused_cursor->scroll_wheel_down != NULL){
+            focused_cursor->scroll_wheel_down(focused_cursor);
+            repaint();
+          }
+        }
         if (type == 'm')
         { // release
           dragging = 0;
@@ -321,6 +337,7 @@ int start()
       }
       else
       {
+        //LOG_INFO("not a mouse event");
         /* not a mouse event, probably arrow keys or other keyboard sequence */
         if (focused_cursor != NULL && focused_cursor->send_sequence != NULL)
         {

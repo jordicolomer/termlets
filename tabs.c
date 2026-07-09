@@ -139,6 +139,27 @@ void tabs_send_key(struct Window *wg, char c)
 
 }
 
+void tabs_scroll_wheel_up(struct Window *wg)
+{
+    Window *focused_cursor = wg->focused;
+    if (focused_cursor != NULL) while (focused_cursor->scroll_wheel_up == NULL && focused_cursor->focused != NULL) focused_cursor = focused_cursor->focused;
+
+    if (focused_cursor != NULL && focused_cursor->scroll_wheel_up != NULL) {
+        focused_cursor->scroll_wheel_up(focused_cursor);
+    }
+}
+
+void tabs_scroll_wheel_down(struct Window *wg)
+{
+    Window *focused_cursor = wg->focused;
+    if (focused_cursor != NULL) while (focused_cursor->scroll_wheel_down == NULL && focused_cursor->focused != NULL) focused_cursor = focused_cursor->focused;
+
+    if (focused_cursor != NULL && focused_cursor->scroll_wheel_down != NULL) {
+        focused_cursor->scroll_wheel_down(focused_cursor);
+    }
+}
+
+
 /*
 void tabs_send_sequence(struct Window *wg, const char *seq, int len)
 {
@@ -153,6 +174,8 @@ Window *Tab_new(tab_create_callback callback, int new_tab){
     Window_init(tabs, -1, -1, -1, -1, -1, -1);
     tabs->send_key = tabs_send_key;
     //tabs->send_sequence = tabs_send_sequence;
+    tabs->scroll_wheel_up = tabs_scroll_wheel_up;
+    tabs->scroll_wheel_down = tabs_scroll_wheel_down;
 
     tabs->id = "tabs";
 

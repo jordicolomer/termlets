@@ -186,3 +186,21 @@ void Slider_show_grip(Window *w){
   Slider_data * slider_data = w->data;
   slider_data->slider_grip->hidden = 0;
 }
+
+void Slider_scroll_up(struct Window *w){
+  if (w == NULL) return;
+  Slider_data * slider_data = w->data;
+  Window *child = slider_data->child;
+  child->shift = min(0, child->shift+1);
+  Slider_show_grip(w);
+}
+
+void Slider_scroll_down(struct Window *w){
+  if (w == NULL) return;
+  Slider_data * slider_data = w->data;
+  Window *child = slider_data->child;
+  child->shift--;
+  int min_shift = -(child->virtual_height - child->calculated.height);
+  child->shift = max(child->shift, min_shift);
+  Slider_show_grip(w);
+}
