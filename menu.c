@@ -115,6 +115,10 @@ Window *Menu_add_element(Menu *self, char *name, Lambda * lambda)
         win->undo_on_hover = Menu_change_color_normal;
         //self->offset += len + 1;
         self->offset += len;
+        if (lambda != NULL){
+            win->lambda = lambda;
+            win->on_mouse_down = Execute_lambda;
+        }
     }
     return win;
 }

@@ -214,7 +214,7 @@ int start()
 
     char c;
     read(STDIN_FILENO, &c, 1);
-    LOG_INFO("read %d", c);
+    //LOG_INFO("read %d", c);
 
     if (c == 11){ // Ctrl+K
       cycle_task();
@@ -301,7 +301,7 @@ int start()
 
       if (sscanf(seq, "[<%d;%d;%d%c", &btn, &x, &y, &type) == 4)
       {
-        LOG_INFO("mouse event %s %d %d %d %c", seq, btn, x, y, type);
+        //LOG_INFO("mouse event %s %d %d %d %c", seq, btn, x, y, type);
         /* mouse event */
         if (y == 1)
           continue;

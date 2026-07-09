@@ -296,7 +296,7 @@ void get_parent(char *path)
     }
 }
 
-void Editor_up_one_level(ExplorerWindow * self){
+void FileExplorer_up_one_level(ExplorerWindow * self){
   char * s = make_string(self->path);
   get_parent(s);
   FileExplorer_list_files(self, s);
@@ -353,7 +353,7 @@ void FileExplorer_send_key(Window * win, char c)
         return;
     }
     if (c == 47){ // /
-        Editor_up_one_level(self);
+        FileExplorer_up_one_level(self);
         return;
     }
 
@@ -508,6 +508,10 @@ void FileExplorer_sort_by(ExplorerFrame *self, int sort_by){
   FileExplorer_sort(self->tabs->focused, sort_by);
 }
 
+void ExplorerFrame_up_one_level(ExplorerFrame *self){
+  FileExplorer_up_one_level(self->tabs->focused);
+}
+
 Window *FileExplorer_menu(ExplorerFrame *self)
 {
     Window *menu = Menu_create_horizontal();
@@ -542,6 +546,7 @@ Window *FileExplorer_menu(ExplorerFrame *self)
 Window *FileExplorer_toolbar(ExplorerFrame *self)
 {
     Window *toolbar = Menu_create_horizontal();
+    Menu_add_element(toolbar, " 🔼 Up ", create_lambda(ExplorerFrame_up_one_level, 1, self));
     Menu_add_element(toolbar, " 📄 New ", create_lambda(FileExplorer_menu_new, 1, self));
     Menu_add_element(toolbar, " ❌ Close ", create_lambda(FileExplorer_menu_new, 1, self));
     Menu_add_element(toolbar, " ❌ Delete ", create_lambda(FileExplorer_menu_new, 1, self));
