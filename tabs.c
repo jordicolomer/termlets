@@ -5,6 +5,8 @@
 #include "logger.h"
 #include "buffer.h"
 
+//#define SELECTED_COLOR 33
+#define SELECTED_COLOR 153
 
 void change_color_hover(Window *wg, int x, int y)
 {
@@ -15,7 +17,7 @@ void change_color_hover(Window *wg, int x, int y)
 
     Tab *tab = wg->data;
     if (tab->parent->selected_tab == tab){
-        wg->bg = 33;
+        wg->bg = SELECTED_COLOR;
     }
 }
 
@@ -27,7 +29,7 @@ void change_color_normal(Window *wg, int x, int y)
 
     Tab *tab = wg->data;
     if (tab->parent->selected_tab == tab){
-        wg->bg = 33;
+        wg->bg = SELECTED_COLOR;
     }
 }
 
