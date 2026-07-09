@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <dirent.h>
-#include <sys/stat.h>
 #include <time.h>
 #include <errno.h>
 
@@ -105,6 +104,25 @@ void human_size(off_t size, char *buf, size_t buflen)
         snprintf(buf, buflen, "%.1f %s", s, units[unit]);
 }
 
+
+// sort
+#include "sort.h"
+void sort_list(Window * fm, int sort_by, int reversed){
+  Window * sorted = mergeSort(fm->head, sort_by, 0);
+  fm->head = sorted;
+  int top = 0;
+  while (sorted != NULL){
+    sorted->top = top++;
+    fm->tail = sorted;
+    sorted = sorted->next;
+  }
+}
+
+void FileExplorer_sort(ExplorerWindow * self, int sort_by){
+  sort_list(self->fm, sort_by, 0);
+}
+// end sort
+
 void FileExplorer_list_files(ExplorerWindow * self, char * dire){
   snprintf(self->path_label, 1024, " 📁 %s", dire);
   Window_set_id_from_path(self, dire);
@@ -171,17 +189,22 @@ void FileExplorer_list_files(ExplorerWindow * self, char * dire){
     char size[16];
     size[0] = 0;*/
     struct stat st;
+    FileItemWindow *file_item = malloc(sizeof *file_item);
+    file_item->path = full_path;
     if (stat(full_path, &st) == 0){
       struct tm *tm = localtime(&st.st_mtime);
       strftime(date, 32, "%Y-%m-%d %H:%M:%S", tm);
 
       human_size(st.st_size, size, 16);
 
-    } else {
-      continue;
+      file_item->size = st.st_size;
+      file_item->date = st.st_mtime;
+
+    } /*else {
+      //continue;
       perror("stat");
       printf("stat failed: %s\n", strerror(errno));
-    }
+    }*/
     remove_newlines(entry->d_name);
 
 
@@ -192,12 +215,11 @@ void FileExplorer_list_files(ExplorerWindow * self, char * dire){
     len = asprintf(&str, "%s %s", icon, entry->d_name);
     // Window_add_widget(w, fav_width, 0, j++, -1, -1, 1, str, 232, 255);
 
-    Window *file_item = malloc(sizeof *file_item);
     Window_init(file_item, -1, -1, -1, -1, -1, -1);
-    file_item->left = 0;
-    file_item->right = 0;
-    file_item->top = j;
-    file_item->height = 1;
+    file_item->win.left = 0;
+    file_item->win.right = 0;
+    file_item->win.top = j;
+    file_item->win.height = 1;
     Window_append(fm, file_item);
 
     Window * item = Window_add_widget(file_item, 0, -20, 0, -1, -1, 1, str, 232, 255);
@@ -216,16 +238,17 @@ void FileExplorer_list_files(ExplorerWindow * self, char * dire){
     item->data2 = full_path;
     item->on_mouse_down = item_clicked;
 
-    file_item->data = self;
-    file_item->data2 = full_path;
+    file_item->win.data = self;
+    file_item->win.data2 = full_path;
 
     if (self->selected == NULL) FileExplorer_select_item(self, file_item);
     //LOG_INFO("full_path: %s", full_path);
     // if (height < j) break;
     // mvwprintw(win, x++, 1, "%s %s", icon, entry->d_name);
   }
-
   closedir(dir);
+
+  //sort_list(fm);
 
   // Clear remaining lines to remove previous list items
   while (j <= self->win.calculated.height)
@@ -386,12 +409,19 @@ ExplorerWindow *FileExplorer_file_list(){
 
   while (j <= 200)
     Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, "", 232, 255);
-    
+
   // headers
-  Window_add_widget(w, fav_width, -33, 1, -1, -1, 1, " Name", 255, 242);
-  Window_add_widget(w, -33,       -12, 1, -1, -1, 1, " Date Modified", 255, 242);
-  Window_add_widget(w, -12,        0,  1, -1, -1, 1, " Size", 255, 242);
-  
+  Window * name_col = Window_add_widget(w, fav_width, -33, 1, -1, -1, 1, " Name", 255, 242);
+  //name->lambda = create_lambda(sort_list, 1, fm);
+  name_col->lambda = create_lambda(FileExplorer_sort, 2, w, SORT_BY_PATH);
+  name_col->on_mouse_down = Window_execute_lambda;
+  Window * date_col = Window_add_widget(w, -33,       -12, 1, -1, -1, 1, " Date Modified", 255, 242);
+  date_col->lambda = create_lambda(FileExplorer_sort, 2, w, SORT_BY_DATE);
+  date_col->on_mouse_down = Window_execute_lambda;
+  Window * size_col = Window_add_widget(w, -12,        0,  1, -1, -1, 1, " Size", 255, 242);
+  size_col->lambda = create_lambda(FileExplorer_sort, 2, w, SORT_BY_SIZE);
+  size_col->on_mouse_down = Window_execute_lambda;
+      
   Window *fm = malloc(sizeof *fm);
   w->win.data = fm;
   w->fm = fm;
