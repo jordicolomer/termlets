@@ -13,6 +13,7 @@ typedef struct ExplorerWindow {
     char path_label[1024];
     int sort_by;
     int reversed[3];
+    Window * sort_marker[6];
 } ExplorerWindow;
 
 typedef struct ExplorerFrame {

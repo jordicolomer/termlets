@@ -124,6 +124,9 @@ void FileExplorer_sort(ExplorerWindow * self, int sort_by){
   }
   self->sort_by = sort_by;
   sort_list(self->fm, sort_by, self->reversed[sort_by]);
+  for(int i =0;i<6;i++) self->sort_marker[i]->hidden = 1;
+  int idx = sort_by*2+self->reversed[sort_by];
+  self->sort_marker[idx]->hidden = 0;
 }
 // end sort
 
@@ -415,16 +418,42 @@ ExplorerWindow *FileExplorer_file_list(){
     Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, "", 232, 255);
 
   // headers
-  Window * name_col = Window_add_widget(w, fav_width, -33, 1, -1, -1, 1, " Name", 255, 242);
+  Window * name_col = Window_add_widget(w, fav_width, -33, 1, -1, -1, 1, "   Name", 255, 242);
   //name->lambda = create_lambda(sort_list, 1, fm);
   name_col->lambda = create_lambda(FileExplorer_sort, 2, w, SORT_BY_PATH);
   name_col->on_mouse_down = Window_execute_lambda;
-  Window * date_col = Window_add_widget(w, -33,       -12, 1, -1, -1, 1, " Date Modified", 255, 242);
+  Window * date_col = Window_add_widget(w, -34,       -12, 1, -1, -1, 1, "┃Date Modified", 255, 242);
   date_col->lambda = create_lambda(FileExplorer_sort, 2, w, SORT_BY_DATE);
   date_col->on_mouse_down = Window_execute_lambda;
-  Window * size_col = Window_add_widget(w, -12,        0,  1, -1, -1, 1, " Size", 255, 242);
+  Window * size_col = Window_add_widget(w, -13,        0,  1, -1, -1, 1, "┃Size", 255, 242);
   size_col->lambda = create_lambda(FileExplorer_sort, 2, w, SORT_BY_SIZE);
   size_col->on_mouse_down = Window_execute_lambda;
+
+  // markers
+  Window * name_sort_marker = Window_add_widget(w, -35, -1, 1, -1, 1, 1, "▲", 255, 242);
+  name_sort_marker->hidden = 1;
+  w->sort_marker[0] = name_sort_marker;
+
+  Window * name_sort_marker_inv = Window_add_widget(w, -35, -1, 1, -1, 1, 1, "▼", 255, 242);
+  name_sort_marker_inv->hidden = 1;
+  w->sort_marker[1] = name_sort_marker_inv;
+
+  Window * date_sort_marker = Window_add_widget(w, -14, -1, 1, -1, 1, 1, "▲", 255, 242);
+  date_sort_marker->hidden = 1;
+  w->sort_marker[2] = date_sort_marker;
+
+  Window * date_sort_marker_inv = Window_add_widget(w, -14, -1, 1, -1, 1, 1, "▼", 255, 242);
+  date_sort_marker_inv->hidden = 1;
+  w->sort_marker[3] = date_sort_marker_inv;
+
+  // todo: this -2 should me -1
+  Window * size_sort_marker = Window_add_widget(w, -2, -1, 1, -1, 1, 1, "▲", 255, 242);
+  size_sort_marker->hidden = 1;
+  w->sort_marker[4] = size_sort_marker;
+
+  Window * size_sort_marker_inv = Window_add_widget(w, -2, -1, 1, -1, 1, 1, "▼", 255, 242);
+  size_sort_marker_inv->hidden = 1;
+  w->sort_marker[5] = size_sort_marker_inv;
       
   Window *fm = malloc(sizeof *fm);
   w->win.data = fm;
