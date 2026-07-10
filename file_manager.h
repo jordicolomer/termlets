@@ -26,6 +26,7 @@ typedef struct FileItemWindow {
     char * path;
     off_t size;
     time_t date;
+    int is_dir;
 } FileItemWindow;
 
 Window *FileExplorer_new(int left, int right, int top, int bottom, int width, int height);

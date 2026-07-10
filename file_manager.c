@@ -53,9 +53,14 @@ void item_clicked(Window *wg, int x, int y)
 {
     ExplorerWindow * self = wg->data;
     FileItemWindow *file_item = wg->data2;
-    FileExplorer_select_item(self, file_item);
+    if (self->selected == file_item){
+      if (file_item->is_dir){
+        FileExplorer_list_files(self, file_item->path);
+      }
+    } else {
+      FileExplorer_select_item(self, file_item);
+    }
     
-    //FileExplorer_list_files(self, dire);
 }
 
 void remove_newlines(char *str) {
@@ -174,10 +179,12 @@ void FileExplorer_list_files(ExplorerWindow * self, char * dire){
     char *full_path = NULL;
     int len = asprintf(&full_path, "%s/%s", dire, entry->d_name);
 
+    FileItemWindow *file_item = malloc(sizeof *file_item);
     char *icon = "📄";
     if (entry->d_type == DT_DIR)
     {
       icon = "📁";
+      file_item->is_dir = 1;
     }
     /*if (ends_with(entry->d_name, ".png"))
     {
@@ -197,7 +204,6 @@ void FileExplorer_list_files(ExplorerWindow * self, char * dire){
     char size[16];
     size[0] = 0;*/
     struct stat st;
-    FileItemWindow *file_item = malloc(sizeof *file_item);
     file_item->path = full_path;
     if (stat(full_path, &st) == 0){
       struct tm *tm = localtime(&st.st_mtime);
