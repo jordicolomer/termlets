@@ -434,40 +434,41 @@ ExplorerWindow *FileExplorer_file_list(){
     Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, "", 232, 255);
 
   // headers
-  Window * name_col = Window_add_widget(w, fav_width, -33, 1, -1, -1, 1, "   Name", 255, 242);
+  int bg = 244;
+  Window * name_col = Window_add_widget(w, fav_width, -33, 1, -1, -1, 1, "   Name", 255, bg);
   //name->lambda = create_lambda(sort_list, 1, fm);
   name_col->lambda = create_lambda(FileExplorer_sort, 2, w, SORT_BY_PATH);
   name_col->on_mouse_down = Window_execute_lambda;
-  Window * date_col = Window_add_widget(w, -34,       -12, 1, -1, -1, 1, "┃Date Modified", 255, 242);
+  Window * date_col = Window_add_widget(w, -34,       -12, 1, -1, -1, 1, "┃Date Modified", 255, bg);
   date_col->lambda = create_lambda(FileExplorer_sort, 2, w, SORT_BY_DATE);
   date_col->on_mouse_down = Window_execute_lambda;
-  Window * size_col = Window_add_widget(w, -13,        0,  1, -1, -1, 1, "┃Size", 255, 242);
+  Window * size_col = Window_add_widget(w, -13,        0,  1, -1, -1, 1, "┃Size", 255, bg);
   size_col->lambda = create_lambda(FileExplorer_sort, 2, w, SORT_BY_SIZE);
   size_col->on_mouse_down = Window_execute_lambda;
 
   // markers
-  Window * name_sort_marker = Window_add_widget(w, -35, -1, 1, -1, 1, 1, "▲", 255, 242);
+  Window * name_sort_marker = Window_add_widget(w, -35, -1, 1, -1, 1, 1, "▲", 255, bg);
   name_sort_marker->hidden = 1;
   w->sort_marker[0] = name_sort_marker;
 
-  Window * name_sort_marker_inv = Window_add_widget(w, -35, -1, 1, -1, 1, 1, "▼", 255, 242);
+  Window * name_sort_marker_inv = Window_add_widget(w, -35, -1, 1, -1, 1, 1, "▼", 255, bg);
   name_sort_marker_inv->hidden = 1;
   w->sort_marker[1] = name_sort_marker_inv;
 
-  Window * date_sort_marker = Window_add_widget(w, -14, -1, 1, -1, 1, 1, "▲", 255, 242);
+  Window * date_sort_marker = Window_add_widget(w, -14, -1, 1, -1, 1, 1, "▲", 255, bg);
   date_sort_marker->hidden = 1;
   w->sort_marker[2] = date_sort_marker;
 
-  Window * date_sort_marker_inv = Window_add_widget(w, -14, -1, 1, -1, 1, 1, "▼", 255, 242);
+  Window * date_sort_marker_inv = Window_add_widget(w, -14, -1, 1, -1, 1, 1, "▼", 255, bg);
   date_sort_marker_inv->hidden = 1;
   w->sort_marker[3] = date_sort_marker_inv;
 
   // todo: this -2 should me -1
-  Window * size_sort_marker = Window_add_widget(w, -2, -1, 1, -1, 1, 1, "▲", 255, 242);
+  Window * size_sort_marker = Window_add_widget(w, -2, -1, 1, -1, 1, 1, "▲", 255, bg);
   size_sort_marker->hidden = 1;
   w->sort_marker[4] = size_sort_marker;
 
-  Window * size_sort_marker_inv = Window_add_widget(w, -2, -1, 1, -1, 1, 1, "▼", 255, 242);
+  Window * size_sort_marker_inv = Window_add_widget(w, -2, -1, 1, -1, 1, 1, "▼", 255, bg);
   size_sort_marker_inv->hidden = 1;
   w->sort_marker[5] = size_sort_marker_inv;
       
@@ -517,16 +518,21 @@ Window *FileExplorer_menu(ExplorerFrame *self)
     Window *menu = Menu_create_horizontal();
 
     Window *file = Menu_create_vertical(self);
-    Menu_add_element(file, " 📄 New   Ctrl+N", create_lambda(FileExplorer_menu_new, 1, self));
-    Menu_add_element(file, " ❌ Close Ctrl+W", create_lambda(FileExplorer_menu_new, 1, self));
+    Menu_add_element(file, " 📄 New File   Ctrl+N", create_lambda(FileExplorer_menu_new, 1, self));
+    Menu_add_element(file, " 📄 New Folder Ctrl+N", create_lambda(FileExplorer_menu_new, 1, self));
+    Menu_add_element(file, " 📄 New Window Ctrl+N", create_lambda(FileExplorer_menu_new, 1, self));
+    Menu_add_element(file, " 📄 New Tab    Ctrl+N", create_lambda(FileExplorer_menu_new, 1, self));
+    Menu_add_element(file, " ❌ Close Tab  Ctrl+W", create_lambda(FileExplorer_menu_new, 1, self));
     Menu_add_element(file, "", NULL);
     Menu_add_submenu(menu, " File ", file);
 
     Window *edit = Menu_create_vertical(self);
-    Menu_add_element(edit, " ❌ Delete Backspace", create_lambda(FileExplorer_menu_new, 1, self));
-    Menu_add_element(edit, " 🔪 Cut    Ctrl+X", create_lambda(FileExplorer_menu_new, 1, self));
-    Menu_add_element(edit, " 📋 Copy   Ctrl+C", create_lambda(FileExplorer_menu_new, 1, self));
-    Menu_add_element(edit, " 📌 Paste  Ctrl+V", create_lambda(FileExplorer_menu_new, 1, self));
+    Menu_add_element(edit, " 📋 Copy Name Ctrl+C", create_lambda(FileExplorer_menu_new, 1, self));
+    Menu_add_element(edit, " 📋 Copy Path Ctrl+C", create_lambda(FileExplorer_menu_new, 1, self));
+    Menu_add_element(edit, " ❌ Delete    Backspace", create_lambda(FileExplorer_menu_new, 1, self));
+    Menu_add_element(edit, " 🔪 Cut       Ctrl+X", create_lambda(FileExplorer_menu_new, 1, self));
+    Menu_add_element(edit, " 📋 Copy      Ctrl+C", create_lambda(FileExplorer_menu_new, 1, self));
+    Menu_add_element(edit, " 📌 Paste     Ctrl+V", create_lambda(FileExplorer_menu_new, 1, self));
     Menu_add_element(edit, "", NULL);
     Menu_add_submenu(menu, " Edit ", edit);
 
@@ -546,13 +552,15 @@ Window *FileExplorer_menu(ExplorerFrame *self)
 Window *FileExplorer_toolbar(ExplorerFrame *self)
 {
     Window *toolbar = Menu_create_horizontal();
-    Menu_add_element(toolbar, " 🔼 Up ", create_lambda(ExplorerFrame_up_one_level, 1, self));
-    Menu_add_element(toolbar, " 📄 New ", create_lambda(FileExplorer_menu_new, 1, self));
-    Menu_add_element(toolbar, " ❌ Close ", create_lambda(FileExplorer_menu_new, 1, self));
+    //Menu_add_element(toolbar, " 📄 New ", create_lambda(FileExplorer_menu_new, 1, self));
+    //Menu_add_element(toolbar, " ❌ Close ", create_lambda(FileExplorer_menu_new, 1, self));
     Menu_add_element(toolbar, " ❌ Delete ", create_lambda(FileExplorer_menu_new, 1, self));
     Menu_add_element(toolbar, " 🔪 Cut ", create_lambda(FileExplorer_menu_new, 1, self));
     Menu_add_element(toolbar, " 📋 Copy ", create_lambda(FileExplorer_menu_new, 1, self));
     Menu_add_element(toolbar, " 📌 Paste ", create_lambda(FileExplorer_menu_new, 1, self));
+    Menu_add_element(toolbar, " 🔼 Up ", create_lambda(ExplorerFrame_up_one_level, 1, self));
+    Menu_add_element(toolbar, " 📝 Edit ", create_lambda(ExplorerFrame_up_one_level, 1, self));
+    Menu_add_element(toolbar, " 💻 Terminal ", create_lambda(ExplorerFrame_up_one_level, 1, self));
 
     toolbar->top = 1;
 
