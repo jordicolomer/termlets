@@ -535,7 +535,7 @@ Window *FileExplorer_menu(ExplorerFrame *self)
     Menu_add_element(file, "    New Window Ctrl+N", create_lambda(file_manager_new, 0));
     Menu_add_element(file, " ❌ Close Window Ctrl+N", create_lambda(Frame_close, 1, self));
     Menu_add_element(file, "", NULL);
-    Menu_add_element(file, "    New Tab    Ctrl+N", create_lambda(FileExplorer_menu_new, 1, self));
+    Menu_add_element(file, "    New Tab    Ctrl+N", create_lambda(tabs_new_tab, 1, self->tabs));
     Menu_add_element(file, " ❌ Close Tab  Ctrl+W", create_lambda(FileExplorer_menu_new, 1, self));
     Menu_add_element(file, "", NULL);
     Menu_add_element(file, " 📄 New File   Ctrl+N", create_lambda(FileExplorer_menu_new, 1, self));
