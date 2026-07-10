@@ -268,6 +268,7 @@ void FileExplorer_list_files(ExplorerWindow * self, char * dire){
   int sort_by = self->sort_by;
   self->sort_by = -1;
   FileExplorer_sort(self, sort_by);
+  FileExplorer_select_item(self, fm->head);
 
   // Clear remaining lines to remove previous list items
   //while (j <= self->win.calculated.height)
