@@ -14,6 +14,7 @@
 #include "editor.h"
 #include "buffer.h"
 #include "menu.h"
+#include "taskbar.h"
 
 int ends_with(const char *str, const char *suffix)
 {
@@ -531,7 +532,8 @@ Window *FileExplorer_menu(ExplorerFrame *self)
     Window *menu = Menu_create_horizontal();
 
     Window *file = Menu_create_vertical(self);
-    Menu_add_element(file, "    New Window Ctrl+N", create_lambda(FileExplorer_menu_new, 1, self));
+    Menu_add_element(file, "    New Window Ctrl+N", create_lambda(file_manager_new, 0));
+    Menu_add_element(file, " ❌ Close Window Ctrl+N", create_lambda(file_manager_new, 0));
     Menu_add_element(file, "", NULL);
     Menu_add_element(file, "    New Tab    Ctrl+N", create_lambda(FileExplorer_menu_new, 1, self));
     Menu_add_element(file, " ❌ Close Tab  Ctrl+W", create_lambda(FileExplorer_menu_new, 1, self));
