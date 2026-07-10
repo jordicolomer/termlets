@@ -331,6 +331,10 @@ void FileExplorer_copy_path(ExplorerWindow * self){
   clipboard_copy(self->selected->path);
 }
 
+void FileExplorer_edit(ExplorerWindow * self){
+  Editor_last_open_file(self->selected->path);
+}
+
 void FileExplorer_send_sequence(struct Window *win, const char *seq, int len){
   LOG_INFO("FileExplorer_send_sequence: %s", seq);
 }
@@ -600,7 +604,7 @@ Window *FileExplorer_toolbar(ExplorerFrame *self)
     Menu_add_element(toolbar, " 📝 Rename ", create_lambda(FileExplorer_menu_new, 1, self));
     //Menu_add_element(toolbar, " 🔼 Up ", create_lambda(ExplorerFrame_up_one_level, 1, self));
     Menu_add_element(toolbar, " 🔼 Up ", create_lambda(ExplorerFrame_on_selected, 2, self, FileExplorer_up_one_level));
-    Menu_add_element(toolbar, " 📝 Edit ", create_lambda(FileExplorer_menu_new, 1, self));
+    Menu_add_element(toolbar, " 📝 Edit ", create_lambda(ExplorerFrame_on_selected, 2, self, FileExplorer_edit));
     Menu_add_element(toolbar, " 💻 Terminal ", create_lambda(FileExplorer_menu_new, 1, self));
 
     toolbar->top = 1;
