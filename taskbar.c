@@ -227,7 +227,7 @@ Window * TaskBar_new(){
   vterminal->on_mouse_down = vterminal_mouse_down;
   vterminal->data = startMenu;
 
-  Window *quit = Window_add_widget(startMenu, 0, -1, 4, -1, 16, 1, "❌ Quit", 0, taskbar_color);
+  Window *quit = Window_add_widget(startMenu, 0, -1, 4, -1, 16, 1, "⏻  Quit", 0, taskbar_color);
   quit->on_mouse_down = quit_mouse_down;
   quit->data = startMenu;
 
