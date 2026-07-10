@@ -15,6 +15,7 @@
 #include "buffer.h"
 #include "menu.h"
 #include "taskbar.h"
+#include "clipboard.h"
 
 int ends_with(const char *str, const char *suffix)
 {
@@ -32,7 +33,7 @@ int ends_with(const char *str, const char *suffix)
 void FileExplorer_select_item(ExplorerWindow * self, Window * item){
   if (item == NULL) return;
   if (self->selected != NULL){
-    Window * current = self->selected->head;
+    Window * current = self->selected->win.head;
     while(current != NULL){
       current->bg = 255;
       current = current->next;
@@ -207,6 +208,7 @@ void FileExplorer_list_files(ExplorerWindow * self, char * dire){
     size[0] = 0;*/
     struct stat st;
     file_item->path = full_path;
+    file_item->name = make_string(entry->d_name);
     if (stat(full_path, &st) == 0){
       struct tm *tm = localtime(&st.st_mtime);
       strftime(date, 32, "%Y-%m-%d %H:%M:%S", tm);
@@ -317,6 +319,18 @@ void FileExplorer_up_one_level(ExplorerWindow * self){
   free(s);
 }
 
+void FileExplorer_copy_name(ExplorerWindow * self){
+  clipboard_copy(self->selected->name);
+}
+
+void FileExplorer_copy_directory(ExplorerWindow * self){
+  clipboard_copy(self->path);
+}
+
+void FileExplorer_copy_path(ExplorerWindow * self){
+  clipboard_copy(self->selected->path);
+}
+
 void FileExplorer_send_sequence(struct Window *win, const char *seq, int len){
   LOG_INFO("FileExplorer_send_sequence: %s", seq);
 }
@@ -335,11 +349,11 @@ void FileExplorer_send_key(Window * win, char c)
 {
     ExplorerWindow * self = win;
     if (c == 106){ // j
-        FileExplorer_select_item(self, self->selected->next);
+        FileExplorer_select_item(self, self->selected->win.next);
         return;
     }
     if (c == 107){ // k
-        FileExplorer_select_item(self, self->selected->prev);
+        FileExplorer_select_item(self, self->selected->win.prev);
         return;
     }
     if (c == 117){ // u
@@ -523,8 +537,13 @@ void FileExplorer_sort_by(ExplorerFrame *self, int sort_by){
   FileExplorer_sort(self->tabs->focused, sort_by);
 }
 
-void ExplorerFrame_up_one_level(ExplorerFrame *self){
+/*void ExplorerFrame_up_one_level(ExplorerFrame *self){
   FileExplorer_up_one_level(self->tabs->focused);
+}*/
+
+void ExplorerFrame_on_selected(ExplorerFrame *self, void fn()){
+  //FileExplorer_up_one_level(self->tabs->focused);
+  fn(self->tabs->focused);
 }
 
 Window *FileExplorer_menu(ExplorerFrame *self)
@@ -550,9 +569,9 @@ Window *FileExplorer_menu(ExplorerFrame *self)
     Menu_add_element(edit, " ❌ Delete         Backspace", create_lambda(FileExplorer_menu_new, 1, self));
     Menu_add_element(edit, " 📝 Rename         Ctrl+R", create_lambda(FileExplorer_menu_new, 1, self));
     Menu_add_element(edit, "", NULL);
-    Menu_add_element(edit, " 📋 Copy Name      Ctrl+C", create_lambda(FileExplorer_menu_new, 1, self));
-    Menu_add_element(edit, " 📋 Copy Directory Ctrl+C", create_lambda(FileExplorer_menu_new, 1, self));
-    Menu_add_element(edit, " 📋 Copy Path      Ctrl+C", create_lambda(FileExplorer_menu_new, 1, self));
+    Menu_add_element(edit, " 📋 Copy Name      Ctrl+C", create_lambda(ExplorerFrame_on_selected, 2, self, FileExplorer_copy_name));
+    Menu_add_element(edit, " 📋 Copy Directory Ctrl+C", create_lambda(ExplorerFrame_on_selected, 2, self, FileExplorer_copy_directory));
+    Menu_add_element(edit, " 📋 Copy Path      Ctrl+C", create_lambda(ExplorerFrame_on_selected, 2, self, FileExplorer_copy_path));
     Menu_add_element(edit, "", NULL);
     Menu_add_submenu(menu, " Edit ", edit);
 
@@ -579,9 +598,10 @@ Window *FileExplorer_toolbar(ExplorerFrame *self)
     Menu_add_element(toolbar, " 📋 Copy ", create_lambda(FileExplorer_menu_new, 1, self));
     Menu_add_element(toolbar, " 📌 Paste ", create_lambda(FileExplorer_menu_new, 1, self));
     Menu_add_element(toolbar, " 📝 Rename ", create_lambda(FileExplorer_menu_new, 1, self));
-    Menu_add_element(toolbar, " 🔼 Up ", create_lambda(ExplorerFrame_up_one_level, 1, self));
-    Menu_add_element(toolbar, " 📝 Edit ", create_lambda(ExplorerFrame_up_one_level, 1, self));
-    Menu_add_element(toolbar, " 💻 Terminal ", create_lambda(ExplorerFrame_up_one_level, 1, self));
+    //Menu_add_element(toolbar, " 🔼 Up ", create_lambda(ExplorerFrame_up_one_level, 1, self));
+    Menu_add_element(toolbar, " 🔼 Up ", create_lambda(ExplorerFrame_on_selected, 2, self, FileExplorer_up_one_level));
+    Menu_add_element(toolbar, " 📝 Edit ", create_lambda(FileExplorer_menu_new, 1, self));
+    Menu_add_element(toolbar, " 💻 Terminal ", create_lambda(FileExplorer_menu_new, 1, self));
 
     toolbar->top = 1;
 
