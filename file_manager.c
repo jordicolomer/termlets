@@ -125,6 +125,7 @@ void sort_list(Window * fm, int sort_by, int reversed){
 }
 
 void FileExplorer_sort(ExplorerWindow * self, int sort_by){
+  if (sort_by == -1) return;
   if (self->sort_by == sort_by){
     self->reversed[sort_by] = 1 - self->reversed[sort_by];
   }
@@ -264,6 +265,9 @@ void FileExplorer_list_files(ExplorerWindow * self, char * dire){
   closedir(dir);
 
   //sort_list(fm);
+  int sort_by = self->sort_by;
+  self->sort_by = -1;
+  FileExplorer_sort(self, sort_by);
 
   // Clear remaining lines to remove previous list items
   //while (j <= self->win.calculated.height)
