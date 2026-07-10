@@ -3,6 +3,7 @@
 
 #include "window.h"
 
+void Frame_close(struct Window *w);
 void on_mouse_down_window_bar(Window *wg, int x, int y);
 void Window_add_window_bar(struct Window *w);
 void Widget_on_resize(Window *wg, int x, int y);

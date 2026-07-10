@@ -3,6 +3,11 @@
 #include "logger.h"
 #include "taskbar.h"
 
+void Frame_close(struct Window *w){
+  // todo: free stuff
+  Window_remove(w);
+}
+
 void on_mouse_down_window_bar(Window *wg, int x, int y)
 {
   LOG_INFO("on_mouse_down_window_bar");
@@ -18,7 +23,8 @@ void on_mouse_down_window_bar(Window *wg, int x, int y)
 void on_mouse_down_close(Window *wg, int x, int y)
 {
   LOG_INFO("on_mouse_down_close");
-  Window_remove(wg->parent);
+  //Window_remove(wg->parent);
+  Frame_close(wg->parent);
   focused = NULL;
 }
 
