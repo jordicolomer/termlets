@@ -526,11 +526,13 @@ Window *FileExplorer_menu(ExplorerFrame *self)
     Window *menu = Menu_create_horizontal();
 
     Window *file = Menu_create_vertical(self);
-    Menu_add_element(file, " 📄 New File   Ctrl+N", create_lambda(FileExplorer_menu_new, 1, self));
-    Menu_add_element(file, " 📁 New Folder Ctrl+N", create_lambda(FileExplorer_menu_new, 1, self));
     Menu_add_element(file, "    New Window Ctrl+N", create_lambda(FileExplorer_menu_new, 1, self));
+    Menu_add_element(file, "", NULL);
     Menu_add_element(file, "    New Tab    Ctrl+N", create_lambda(FileExplorer_menu_new, 1, self));
     Menu_add_element(file, " ❌ Close Tab  Ctrl+W", create_lambda(FileExplorer_menu_new, 1, self));
+    Menu_add_element(file, "", NULL);
+    Menu_add_element(file, " 📄 New File   Ctrl+N", create_lambda(FileExplorer_menu_new, 1, self));
+    Menu_add_element(file, " 📁 New Folder Ctrl+N", create_lambda(FileExplorer_menu_new, 1, self));
     Menu_add_element(file, "", NULL);
     Menu_add_submenu(menu, " File ", file);
 
