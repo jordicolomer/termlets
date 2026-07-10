@@ -4,9 +4,9 @@
 #include "tabs.h"
 #include "logger.h"
 #include "buffer.h"
+#include "common.h"
 
 //#define SELECTED_COLOR 33
-#define SELECTED_COLOR 153
 
 void change_color_hover(Window *wg, int x, int y)
 {

@@ -8,6 +8,7 @@
 #include "logger.h"
 #include "editor.h"
 #include "chess.h"
+#include "common.h"
 
 int window_x = 5;
 int window_y = 3;
@@ -26,7 +27,7 @@ Window *taskBar;
 Window *selectedTask = NULL;
 int x = 11;
 int unselectedTaskColor = 251;
-int selectedTaskColor = 15;
+int selectedTaskColor = SELECTED_COLOR;
 
 
 void task_on_mouse_down(struct Window *w, int x, int y){
