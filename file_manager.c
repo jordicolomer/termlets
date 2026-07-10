@@ -28,14 +28,6 @@ int ends_with(const char *str, const char *suffix)
   return strcmp(str + (len_str - len_suf), suffix) == 0;
 }
 
-
-void item_clicked(Window *wg, int x, int y)
-{
-    ExplorerWindow * self = wg->data;
-    char * dire = wg->data2;
-    FileExplorer_list_files(self, dire);
-}
-
 void FileExplorer_select_item(ExplorerWindow * self, Window * item){
   if (item == NULL) return;
   if (self->selected != NULL){
@@ -55,6 +47,15 @@ void FileExplorer_select_item(ExplorerWindow * self, Window * item){
 
   Slider_make_visible(self->slider, item);
   Slider_show_grip(self->slider);
+}
+
+void item_clicked(Window *wg, int x, int y)
+{
+    ExplorerWindow * self = wg->data;
+    FileItemWindow *file_item = wg->data2;
+    FileExplorer_select_item(self, file_item);
+    
+    //FileExplorer_list_files(self, dire);
 }
 
 void remove_newlines(char *str) {
@@ -242,7 +243,8 @@ void FileExplorer_list_files(ExplorerWindow * self, char * dire){
 
 
     item->data = self;
-    item->data2 = full_path;
+    //item->data2 = full_path;
+    item->data2 = file_item;
     item->on_mouse_down = item_clicked;
 
     file_item->win.data = self;
@@ -531,6 +533,7 @@ Window *FileExplorer_menu(ExplorerFrame *self)
     Menu_add_element(edit, " 📋 Copy           Ctrl+C", create_lambda(FileExplorer_menu_new, 1, self));
     Menu_add_element(edit, " 📌 Paste          Ctrl+V", create_lambda(FileExplorer_menu_new, 1, self));
     Menu_add_element(edit, " ❌ Delete         Backspace", create_lambda(FileExplorer_menu_new, 1, self));
+    Menu_add_element(edit, " 📝 Rename         Ctrl+R", create_lambda(FileExplorer_menu_new, 1, self));
     Menu_add_element(edit, "", NULL);
     Menu_add_element(edit, " 📋 Copy Name      Ctrl+C", create_lambda(FileExplorer_menu_new, 1, self));
     Menu_add_element(edit, " 📋 Copy Directory Ctrl+C", create_lambda(FileExplorer_menu_new, 1, self));
@@ -560,6 +563,7 @@ Window *FileExplorer_toolbar(ExplorerFrame *self)
     Menu_add_element(toolbar, " 🔪 Cut ", create_lambda(FileExplorer_menu_new, 1, self));
     Menu_add_element(toolbar, " 📋 Copy ", create_lambda(FileExplorer_menu_new, 1, self));
     Menu_add_element(toolbar, " 📌 Paste ", create_lambda(FileExplorer_menu_new, 1, self));
+    Menu_add_element(toolbar, " 📝 Rename ", create_lambda(FileExplorer_menu_new, 1, self));
     Menu_add_element(toolbar, " 🔼 Up ", create_lambda(ExplorerFrame_up_one_level, 1, self));
     Menu_add_element(toolbar, " 📝 Edit ", create_lambda(ExplorerFrame_up_one_level, 1, self));
     Menu_add_element(toolbar, " 💻 Terminal ", create_lambda(ExplorerFrame_up_one_level, 1, self));
