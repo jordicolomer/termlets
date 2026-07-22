@@ -8,7 +8,7 @@ LDFLAGS := -L/opt/homebrew/opt/libvterm/lib -lvterm -lpthread
 TARGET := main
 
 # Source and object files
-SRC := main.c logger.c buffer.c ansi_term.c window.c frame.c file_manager.c slider.c taskbar.c terminal.c utils.c vterm_terminal.c ansi256.c tabs.c editor.c menu.c lambda.c chess.c sort.c clipboard.c
+SRC := main.c logger.c buffer.c ansi_term.c window.c frame.c file_manager.c slider.c taskbar.c terminal.c utils.c vterm_terminal.c ansi256.c tabs.c editor.c menu.c lambda.c chess.c sort.c clipboard.c dialog.c
 OBJ := $(SRC:.c=.o)
 
 # Default target

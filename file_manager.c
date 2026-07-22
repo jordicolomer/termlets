@@ -16,6 +16,7 @@
 #include "menu.h"
 #include "taskbar.h"
 #include "clipboard.h"
+#include "dialog.h"
 
 int ends_with(const char *str, const char *suffix)
 {
@@ -539,6 +540,19 @@ ExplorerWindow *FileExplorer_file_list(){
   return w;
 }
 
+Window *FileExplorer_menu_delete_execute(ExplorerFrame *self, char * path)
+{
+  LOG_INFO("FileExplorer_menu_delete_execute %p %d", self, path);
+}
+
+Window *FileExplorer_menu_delete(ExplorerFrame *self)
+{
+    LOG_INFO("FileExplorer_menu_delete %p", self);
+    open_dialog(
+      self,
+      "Are you sure?",
+      create_lambda(FileExplorer_menu_delete_execute, 2, self, "random path"));
+}
 
 Window *FileExplorer_menu_new(ExplorerFrame *self)
 {
@@ -605,7 +619,7 @@ Window *FileExplorer_toolbar(ExplorerFrame *self)
     Window *toolbar = Menu_create_horizontal();
     //Menu_add_element(toolbar, " 📄 New ", create_lambda(FileExplorer_menu_new, 1, self));
     //Menu_add_element(toolbar, " ❌ Close ", create_lambda(FileExplorer_menu_new, 1, self));
-    Menu_add_element(toolbar, " ❌ Delete ", create_lambda(FileExplorer_menu_new, 1, self));
+    Menu_add_element(toolbar, " ❌ Delete ", create_lambda(FileExplorer_menu_delete, 1, self));
     Menu_add_element(toolbar, " 🔪 Cut ", create_lambda(FileExplorer_menu_new, 1, self));
     Menu_add_element(toolbar, " 📋 Copy ", create_lambda(FileExplorer_menu_new, 1, self));
     Menu_add_element(toolbar, " 📌 Paste ", create_lambda(FileExplorer_menu_new, 1, self));
