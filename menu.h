@@ -10,6 +10,8 @@ typedef struct Menu
   //Window * self;
   int offset;
   int vertical;
+  int auto_expand;
+  struct Menu * submenu;
 } Menu;
 
 Menu *Menu_create_horizontal();

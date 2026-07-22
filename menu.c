@@ -12,11 +12,18 @@ void Execute_lambda(struct Window *w, int x, int y)
     invoke_lambda(w->lambda);
 }
 
+Menu * auto_expand;
+
 void Execute_lambda_and_close_parent(struct Window *w, int x, int y)
 {
-    Window *menu = w->parent;
-    menu->hidden = 1;
+    Window *submenu = w->parent;
+    Menu *menu = submenu->parent;
+    //LOG_INFO("Execute_lambda_and_close_parent: %s %p", menu->win.id, menu);
+    //menu->auto_expand = 0;
+    //Window *menu = w->parent;
+    submenu->hidden = 1;
     invoke_lambda(w->lambda);
+    auto_expand = NULL;
 }
 
 
@@ -65,11 +72,28 @@ void Menu_move_to_button(Window *menu, Window *button)
     menu->top = button->calculated.y - self->calculated.y + 1;
 }
 
-
 Menu * last_opened_submenu = NULL;
+
+void Menu_close_last_opened_submenu()
+{
+    if (last_opened_submenu != NULL) last_opened_submenu->win.hidden = 1;
+}
+
+void Menu_toggle_auto_expand(Menu *self)
+{
+    //self->auto_expand = 1 - self->auto_expand;
+    if (auto_expand == NULL){
+        auto_expand = self;
+    } else {
+        auto_expand = NULL;
+        Menu_close_last_opened_submenu();
+    }
+    //if (self->auto_expand == 0) 
+}
 
 void Menu_show_submenu(Menu *menu, Window *win)
 {
+    Menu_close_last_opened_submenu();
     last_opened_submenu = menu;
     menu->win.hidden = 0;
     Menu_move_to_button(menu, win);
@@ -85,8 +109,11 @@ void Menu_change_color_hover_and_open(Window *w, int x, int y)
 {
     w->fg = 232;
     w->bg = 27;
-    if (last_opened_submenu != NULL) last_opened_submenu->win.hidden = 1;
-    invoke_lambda(w->lambda);
+    Menu * self = w;
+    Menu * parent = w->parent;
+    if (auto_expand == parent){
+        Menu_show_submenu(self->submenu, w);
+    }
 }
 
 void Menu_change_color_hover(Window *w, int x, int y)
@@ -219,6 +246,8 @@ void Menu_add_windows(Menu *menu, char *name, Tabs *tabs, Window * self)
 void Menu_add_submenu(Menu *self, char *name, Menu *menu)
 {
     Window *win = Menu_add_element(self, name, NULL);
-    win->lambda = create_lambda(Menu_show_submenu, 2, menu, win);
+    self->submenu = menu;
+    //win->lambda = create_lambda(Menu_show_submenu, 2, menu, win);
+    win->lambda = create_lambda(Menu_toggle_auto_expand, 1, self);
     win->on_mouse_down = Execute_lambda;
 }
