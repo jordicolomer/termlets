@@ -121,7 +121,7 @@ void Menu_change_color_hover_and_open(Window *w, int x, int y)
     Menu * self = w;
     Menu * parent = w->parent;
     if (auto_expand == parent){
-        Menu_show_submenu(self->submenu, w);
+        Menu_show_submenu(w->data, w);
     }
 }
 
@@ -140,7 +140,7 @@ void Menu_change_color_normal(Window *w, int x, int y)
     w->bg = 253;
 }
 
-void Menu_lambda(struct Window *w, int x, int y)
+/*void Menu_lambda(struct Window *w, int x, int y)
 {
     Window *(*fn)(Window *, Tabs *, struct Window *) = (Window * (*)(Window *, Tabs *, struct Window *)) w->data;
     Window *self = w->data2;
@@ -156,7 +156,7 @@ void Menu_lambda1(struct Window *w, int x, int y)
     Window *(*fn)(Window *) = (Window * (*)(Window *)) w->data;
     Window *self = w->data2;
     fn(self);
-}
+}*/
 
 Window *Menu_add_element(Menu *self, char *name, Lambda * lambda)
 {
@@ -255,7 +255,8 @@ void Menu_add_windows(Menu *menu, char *name, Tabs *tabs, Window * self)
 void Menu_add_submenu(Menu *self, char *name, Menu *menu)
 {
     Window *win = Menu_add_element(self, name, NULL);
-    self->submenu = menu;
+    //self->submenu = menu;
+    win->data = menu;
     //win->lambda = create_lambda(Menu_show_submenu, 2, menu, win);
     win->lambda = create_lambda(Menu_toggle_auto_expand, 1, self);
     win->on_mouse_down = Execute_lambda;
