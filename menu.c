@@ -31,6 +31,11 @@ Menu *Menu_create_vertical(Window *parent)
 {
     Menu *menu = malloc(sizeof *menu);
     Window_init(menu, -1, -1, -1, -1, -1, -1);
+    //menu->auto_expand = 0;
+    menu->offset = 0;
+    menu->submenu = NULL;
+    menu->vertical = 0;
+
     menu->win.left = 0;
     menu->win.top = 0;
     menu->win.width = 0;
@@ -51,6 +56,10 @@ Menu *Menu_create_vertical(Window *parent)
 Menu *Menu_create_horizontal()
 {
     Menu *menu = malloc(sizeof *menu);
+    //menu->auto_expand = 0;
+    menu->offset = 0;
+    menu->submenu = NULL;
+    menu->vertical = 0;
     Window_init(menu, -1, -1, -1, -1, -1, -1);
     menu->win.left = 0;
     menu->win.right = 0;
