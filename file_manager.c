@@ -458,6 +458,9 @@ ExplorerWindow *FileExplorer_file_list(){
   shortcut = Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, " 🎬 Movies", 232, 254);
   FileExplorer_shortcut_set_target(w, shortcut, "/Users/jordicolomer/Movies");
 
+  shortcut = Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, " 📦 Dropbox", 232, 254);
+  FileExplorer_shortcut_set_target(w, shortcut, "/Users/jordicolomer/Dropbox");
+
   Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, "", 232, 254);
   Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, " Locations", 255, 245);
 

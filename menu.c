@@ -58,16 +58,50 @@ Menu *Menu_create_horizontal()
     return menu;
 }
 
-void Menu_change_color_hover(Window *wg, int x, int y)
+void Menu_move_to_button(Window *menu, Window *button)
 {
-    wg->fg = 232;
-    wg->bg = 27;
+    Window *self = menu->parent;
+    menu->left = button->calculated.x - self->calculated.x;
+    menu->top = button->calculated.y - self->calculated.y + 1;
 }
 
-void Menu_change_color_normal(Window *wg, int x, int y)
+
+Menu * last_opened_submenu = NULL;
+
+void Menu_show_submenu(Menu *menu, Window *win)
 {
-    wg->fg = 232;
-    wg->bg = 253;
+    last_opened_submenu = menu;
+    menu->win.hidden = 0;
+    Menu_move_to_button(menu, win);
+}
+
+void Menu_toggle_submenu(Menu *menu, Window *win)
+{
+    menu->win.hidden = 1 - menu->win.hidden;
+    Menu_move_to_button(menu, win);
+}
+
+void Menu_change_color_hover_and_open(Window *w, int x, int y)
+{
+    w->fg = 232;
+    w->bg = 27;
+    if (last_opened_submenu != NULL) last_opened_submenu->win.hidden = 1;
+    invoke_lambda(w->lambda);
+}
+
+void Menu_change_color_hover(Window *w, int x, int y)
+{
+    w->fg = 232;
+    w->bg = 27;
+    //Menu menu = (Menu) wg;
+    //invoke_lambda(w->lambda);
+    //menu.
+}
+
+void Menu_change_color_normal(Window *w, int x, int y)
+{
+    w->fg = 232;
+    w->bg = 253;
 }
 
 void Menu_lambda(struct Window *w, int x, int y)
@@ -102,6 +136,9 @@ Window *Menu_add_element(Menu *self, char *name, Lambda * lambda)
         if (lambda != NULL){
             win->on_hover = Menu_change_color_hover;
             win->undo_on_hover = Menu_change_color_normal;
+            /*if (self->vertical == 1){
+                win->on_hover = Menu_change_color_hover_and_open;
+            }*/
 
             win->lambda = lambda;
             win->on_mouse_down = Execute_lambda_and_close_parent;
@@ -111,7 +148,8 @@ Window *Menu_add_element(Menu *self, char *name, Lambda * lambda)
     {
         //self->offset += 1;
         win = Window_add_widget(self, self->offset, -1, 0, -1, len, 1, name, 232, 253);
-        win->on_hover = Menu_change_color_hover;
+        //win->on_hover = Menu_change_color_hover;
+        win->on_hover = Menu_change_color_hover_and_open;
         win->undo_on_hover = Menu_change_color_normal;
         //self->offset += len + 1;
         self->offset += len;
@@ -130,18 +168,8 @@ void Menu_list_windows_item_selected(Tab *tab, Window *menu)
     menu->hidden = 1;
 }
 
-void Menu_move_to_button(Window *menu, Window *button)
-{
-    Window *self = menu->parent;
-    menu->left = button->calculated.x - self->calculated.x;
-    menu->top = button->calculated.y - self->calculated.y + 1;
-}
 
-void Menu_show_submenu(Menu *menu, Window *win)
-{
-    menu->win.hidden = 1 - menu->win.hidden;
-    Menu_move_to_button(menu, win);
-}
+
 
 Window *Menu_list_windows(Tabs *tabs, struct Window *window_menu_item, Menu *submenu)
 {
