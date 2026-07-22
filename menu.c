@@ -202,13 +202,15 @@ void Menu_list_windows_item_selected(Tab *tab, Window *menu)
 {
     tab_select(tab);
     menu->hidden = 1;
+    auto_expand = NULL;
 }
 
 
-
-
-Window *Menu_list_windows(Tabs *tabs, struct Window *window_menu_item, Menu *submenu)
+Window *Menu_list_windows(Menu * menu, Tabs *tabs, struct Window *window_menu_item, Menu *submenu)
 {
+    Menu_toggle_auto_expand(menu);
+    if (menu != auto_expand) return NULL;
+
     submenu->win.head = NULL;
     submenu->win.tail = NULL;
     submenu->offset = 0;
@@ -243,13 +245,17 @@ void Menu_add_windows(Menu *menu, char *name, Tabs *tabs, Window * self)
     int len = strlen(name);
     menu->offset += 1;
     Window *window_menu_item = Window_add_widget(menu, menu->offset, -1, 0, -1, len, 1, name, 232, 253);
-    window_menu_item->on_hover = Menu_change_color_hover;
+    //window_menu_item->on_hover = Menu_change_color_hover;
+    window_menu_item->on_hover = Menu_change_color_hover_and_open;
     window_menu_item->undo_on_hover = Menu_change_color_normal;
     menu->offset += len + 1;
 
     Menu *submenu = Menu_create_vertical(self);
-    window_menu_item->lambda = create_lambda(Menu_list_windows, 3, tabs, window_menu_item, submenu);
+    window_menu_item->lambda = create_lambda(Menu_list_windows, 4, menu, tabs, window_menu_item, submenu);
+    //window_menu_item->lambda = create_lambda(Menu_toggle_auto_expand, 1, menu);
     window_menu_item->on_mouse_down = Execute_lambda;
+
+    window_menu_item->data = submenu;
 }
 
 void Menu_add_submenu(Menu *self, char *name, Menu *menu)
