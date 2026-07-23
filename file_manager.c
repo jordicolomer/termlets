@@ -140,12 +140,19 @@ void FileExplorer_sort(ExplorerWindow * self, int sort_by){
 }
 // end sort
 
+void FileExplorer_refresh(ExplorerWindow * self){
+  LOG_INFO("FileExplorer_refresh %p %s", self, self->path);
+  FileExplorer_list_files(self, self->path);
+}
+
 void FileExplorer_list_files(ExplorerWindow * self, char * dire){
   snprintf(self->path_label, 1024, " 📁 %s", dire);
   Window_set_id_from_path(self, dire);
 
-  if (self->path != NULL) free(self->path);
-  self->path = make_string(dire);
+  if (self->path != dire){
+    if (self->path != NULL) free(self->path);
+    self->path = make_string(dire);
+  }
 
   LOG_INFO("FileExplorer_list_files: %p %s filename:%s", self, dire, self->win.id);
   self->selected = NULL;
@@ -542,16 +549,21 @@ ExplorerWindow *FileExplorer_file_list(){
 
 Window *FileExplorer_menu_delete_execute(ExplorerFrame *self, char * path)
 {
-  LOG_INFO("FileExplorer_menu_delete_execute %p %d", self, path);
+  LOG_INFO("FileExplorer_menu_delete_execute %p %s", self, path);
+  remove(path);
+  ExplorerWindow * ew = self->tabs->focused;
+  FileExplorer_refresh(ew);
 }
 
 Window *FileExplorer_menu_delete(ExplorerFrame *self)
 {
+    ExplorerWindow * ew = self->tabs->focused;
+    char * path = ew->selected->path;
     LOG_INFO("FileExplorer_menu_delete %p", self);
     open_dialog(
       self,
       "Are you sure?",
-      create_lambda(FileExplorer_menu_delete_execute, 2, self, "random path"));
+      create_lambda(FileExplorer_menu_delete_execute, 2, self, path));
 }
 
 Window *FileExplorer_menu_new(ExplorerFrame *self)
