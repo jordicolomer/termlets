@@ -17,6 +17,7 @@
 #include "taskbar.h"
 #include "clipboard.h"
 #include "dialog.h"
+#include "file_operations.h"
 
 int ends_with(const char *str, const char *suffix)
 {
@@ -547,23 +548,85 @@ ExplorerWindow *FileExplorer_file_list(){
   return w;
 }
 
-Window *FileExplorer_menu_delete_execute(ExplorerFrame *self, char * path)
+Window *ExplorerFrame_refresh(ExplorerFrame *self)
 {
-  LOG_INFO("FileExplorer_menu_delete_execute %p %s", self, path);
-  remove(path);
   ExplorerWindow * ew = self->tabs->focused;
   FileExplorer_refresh(ew);
 }
 
+Window *FileExplorer_menu_delete_execute(ExplorerFrame *self, char * path)
+{
+  LOG_INFO("FileExplorer_menu_delete_execute %p %s", self, path);
+  remove(path);
+  ExplorerFrame_refresh(self);
+}
+
 Window *FileExplorer_menu_delete(ExplorerFrame *self)
 {
-    ExplorerWindow * ew = self->tabs->focused;
-    char * path = ew->selected->path;
-    LOG_INFO("FileExplorer_menu_delete %p", self);
-    open_dialog(
-      self,
-      "Are you sure?",
-      create_lambda(FileExplorer_menu_delete_execute, 2, self, path));
+  ExplorerWindow * ew = self->tabs->focused;
+  char * path = ew->selected->path;
+  LOG_INFO("FileExplorer_menu_delete %p", self);
+  open_dialog(
+    self,
+    "Are you sure?",
+    create_lambda(FileExplorer_menu_delete_execute, 2, self, path));
+}
+
+char * paste_path = NULL;
+char * paste_name = NULL;
+int paste_operation = 0;
+
+/*void string_set(char * target, char * origin){
+  if (target == origin) return;
+
+  if (target != NULL) free(target);
+  target = make_string(origin);
+}*/
+void string_set(char **target, const char *origin)
+{
+    if (*target == origin)
+        return;
+
+    free(*target);          // free(NULL) is safe
+    *target = make_string(origin);
+}
+
+Window *FileExplorer_menu_cut(ExplorerFrame *self)
+{
+  ExplorerWindow * ew = self->tabs->focused;
+  string_set(&paste_path, ew->selected->path);
+  string_set(&paste_name, ew->selected->name);
+  paste_operation = 1;
+}
+
+Window *FileExplorer_menu_copy(ExplorerFrame *self)
+{
+  ExplorerWindow * ew = self->tabs->focused;
+  string_set(&paste_path, ew->selected->path);
+  string_set(&paste_name, ew->selected->name);
+  paste_operation = 2;
+}
+
+Window *FileExplorer_menu_paste(ExplorerFrame *self)
+{
+  ExplorerWindow * ew = self->tabs->focused;
+  char * destination = ew->path;
+  if (paste_operation == 1){ // cut
+    char * dst = NULL;
+    asprintf(&dst, "%s/%s", destination, paste_name);
+    //LOG_INFO("FileExplorer_menu_paste cut %s %s %s", paste_path, dst, paste_name);
+    rename(paste_path, dst);
+    free(dst);
+    ExplorerFrame_refresh(self);
+  }
+  if (paste_operation == 2){ // copy
+    char * dst = NULL;
+    asprintf(&dst, "%s/%s", destination, paste_name);
+    //LOG_INFO("FileExplorer_menu_paste copy %s %s %s", paste_path, dst, paste_name);
+    copy_file(paste_path, dst);
+    free(dst);
+    ExplorerFrame_refresh(self);
+  }
 }
 
 Window *FileExplorer_menu_new(ExplorerFrame *self)
@@ -601,10 +664,10 @@ Window *FileExplorer_menu(ExplorerFrame *self)
     Menu_add_submenu(menu, " File ", file);
 
     Window *edit = Menu_create_vertical(self);
-    Menu_add_element(edit, " 🔪 Cut            Ctrl+X", create_lambda(FileExplorer_menu_new, 1, self));
-    Menu_add_element(edit, " 📋 Copy           Ctrl+C", create_lambda(FileExplorer_menu_new, 1, self));
-    Menu_add_element(edit, " 📌 Paste          Ctrl+V", create_lambda(FileExplorer_menu_new, 1, self));
-    Menu_add_element(edit, " ❌ Delete         Backspace", create_lambda(FileExplorer_menu_new, 1, self));
+    Menu_add_element(edit, " 🔪 Cut            Ctrl+X", create_lambda(FileExplorer_menu_cut, 1, self));
+    Menu_add_element(edit, " 📋 Copy           Ctrl+C", create_lambda(FileExplorer_menu_copy, 1, self));
+    Menu_add_element(edit, " 📌 Paste          Ctrl+V", create_lambda(FileExplorer_menu_paste, 1, self));
+    Menu_add_element(edit, " ❌ Delete         Backspace", create_lambda(FileExplorer_menu_delete, 1, self));
     Menu_add_element(edit, " 📝 Rename         Ctrl+R", create_lambda(FileExplorer_menu_new, 1, self));
     Menu_add_element(edit, "", NULL);
     Menu_add_element(edit, " 📋 Copy Name      Ctrl+C", create_lambda(ExplorerFrame_on_selected, 2, self, FileExplorer_copy_name));
@@ -632,9 +695,9 @@ Window *FileExplorer_toolbar(ExplorerFrame *self)
     //Menu_add_element(toolbar, " 📄 New ", create_lambda(FileExplorer_menu_new, 1, self));
     //Menu_add_element(toolbar, " ❌ Close ", create_lambda(FileExplorer_menu_new, 1, self));
     Menu_add_element(toolbar, " ❌ Delete ", create_lambda(FileExplorer_menu_delete, 1, self));
-    Menu_add_element(toolbar, " 🔪 Cut ", create_lambda(FileExplorer_menu_new, 1, self));
-    Menu_add_element(toolbar, " 📋 Copy ", create_lambda(FileExplorer_menu_new, 1, self));
-    Menu_add_element(toolbar, " 📌 Paste ", create_lambda(FileExplorer_menu_new, 1, self));
+    Menu_add_element(toolbar, " 🔪 Cut ", create_lambda(FileExplorer_menu_cut, 1, self));
+    Menu_add_element(toolbar, " 📋 Copy ", create_lambda(FileExplorer_menu_copy, 1, self));
+    Menu_add_element(toolbar, " 📌 Paste ", create_lambda(FileExplorer_menu_paste, 1, self));
     Menu_add_element(toolbar, " 📝 Rename ", create_lambda(FileExplorer_menu_new, 1, self));
     //Menu_add_element(toolbar, " 🔼 Up ", create_lambda(ExplorerFrame_up_one_level, 1, self));
     Menu_add_element(toolbar, " 🔼 Up ", create_lambda(ExplorerFrame_on_selected, 2, self, FileExplorer_up_one_level));
