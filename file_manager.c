@@ -667,40 +667,24 @@ Window *FileExplorer_menu_copy(ExplorerFrame *self)
 
 Window *FileExplorer_menu_paste(ExplorerFrame *self)
 {
-  LOG_INFO("cut1");
   if (paste_source == NULL) return NULL;
   if (paste_source->fm == NULL) return NULL;
   ExplorerWindow * ew = self->tabs->focused;
-  LOG_INFO("cut2");
   char * destination = ew->path;
-  if (paste_operation == 1){ // cut
-  LOG_INFO("cut3");
-    //LOG_INFO("FileExplorer_menu_paste cut %s %s %s", paste_path, dst, paste_name);
-    /*rename(paste_path, dst);
-    free(dst);
-    ExplorerFrame_refresh(self);*/
-    FileItemWindow * current = paste_source->fm->head;
-    while (current != NULL){
-      if (current->is_selected == 1){
-        //remove(current->path);
-        char * dst = NULL;
-        asprintf(&dst, "%s/%s", destination, current->name);
-        LOG_INFO("FileExplorer_menu_paste cut %s %s", current->path, dst);
-        rename(current->path, dst);
-        free(dst);
-      }
-      current = current->win.next;
+  FileItemWindow * current = paste_source->fm->head;
+  
+  while (current != NULL){
+    if (current->is_selected == 1){
+      char * dst = NULL;
+      asprintf(&dst, "%s/%s", destination, current->name);
+      LOG_INFO("FileExplorer_menu_paste cut %s %s", current->path, dst);
+      if (paste_operation == 1) rename(current->path, dst);
+      if (paste_operation == 2) copy_file(current->path, dst);
+      free(dst);
     }
-    
+    current = current->win.next;
   }
-  if (paste_operation == 2){ // copy
-    /*char * dst = NULL;
-    asprintf(&dst, "%s/%s", destination, paste_name);
-    //LOG_INFO("FileExplorer_menu_paste copy %s %s %s", paste_path, dst, paste_name);
-    copy_file(paste_path, dst);
-    free(dst);
-    ExplorerFrame_refresh(self);*/
-  }
+  
   FileExplorer_refresh(ew);
   FileExplorer_refresh(paste_source);
 }
