@@ -10,6 +10,7 @@ typedef struct FileItemWindow {
     off_t size;
     time_t date;
     int is_dir;
+    int is_selected;
 } FileItemWindow;
 
 typedef struct ExplorerWindow {
@@ -17,7 +18,7 @@ typedef struct ExplorerWindow {
     Window *fm;
     Window *slider;
     //int selected;
-    FileItemWindow *selected;
+    FileItemWindow *selected; // todo: remove this
     char * path;
     char path_label[1024];
     int sort_by;

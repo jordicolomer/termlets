@@ -32,29 +32,67 @@ int ends_with(const char *str, const char *suffix)
   return strcmp(str + (len_str - len_suf), suffix) == 0;
 }
 
-void FileExplorer_select_item(ExplorerWindow * self, Window * item){
+
+void FileExplorer_bg_set_item(Window * item, int bg){
   if (item == NULL) return;
-  if (self->selected != NULL){
-    Window * current = self->selected->win.head;
-    while(current != NULL){
-      current->bg = 255;
-      current = current->next;
-    }
-  }
-  self->selected = item;
-  //item->bg = 27;
   Window * current = item->head;
   while(current != NULL){
-    current->bg = 27;
+    current->bg = bg;
     current = current->next;
   }
+}
 
+void FileExplorer_paint_selection_item(FileItemWindow * item){
+  if (item == NULL) return;
+  if (item->is_selected == 0) FileExplorer_bg_set_item(item, 255);
+  if (item->is_selected == 1) FileExplorer_bg_set_item(item, 27);
+}
+
+void FileExplorer_unselect_item(FileItemWindow * item){
+  if (item == NULL) return;
+  if (item->is_selected == 0) return;
+  item->is_selected = 0;
+  FileExplorer_paint_selection_item(item);
+}
+
+void FileExplorer_select_item(FileItemWindow * item){
+  if (item == NULL) return;
+  if (item->is_selected == 1) return;
+  item->is_selected = 1;
+  FileExplorer_paint_selection_item(item);
+}
+
+void FileExplorer_toggle_selection_item(FileItemWindow * item){
+  if (item == NULL) return;
+  item->is_selected = 1-item->is_selected;
+  FileExplorer_paint_selection_item(item);
+}
+
+void FileExplorer_unselect_all(ExplorerWindow * self){
+  if (self->fm == NULL) return;
+  FileItemWindow * item = self->fm->head;
+  while (item != NULL){
+    FileExplorer_unselect_item(item);
+    item = item->win.next;
+  }
+}
+
+void FileExplorer_select_single_item(ExplorerWindow * self, Window * item){
+  LOG_INFO("FileExplorer_select_single_item %p %p", self, item);
+  if (item == NULL) return;
+  //FileExplorer_unselect_item(self->selected);
+  FileExplorer_unselect_all(self);
+  
+  self->selected = item;
+  //item->bg = 27;
+  FileExplorer_select_item(item);
   Slider_make_visible(self->slider, item);
   Slider_show_grip(self->slider);
 }
 
 void item_clicked(Window *wg, int x, int y)
 {
+  LOG_INFO("item_clicked %p %d %d", wg, x, y);
     ExplorerWindow * self = wg->data;
     FileItemWindow *file_item = wg->data2;
     if (self->selected == file_item){
@@ -62,8 +100,26 @@ void item_clicked(Window *wg, int x, int y)
         FileExplorer_list_files(self, file_item->path);
       }
     } else {
-      FileExplorer_select_item(self, file_item);
+      FileExplorer_select_single_item(self, file_item);
     }
+    
+}
+
+void command_item_clicked(Window *wg, int x, int y)
+{
+  LOG_INFO("command_item_clicked %p %d %d", wg, x, y);
+    ExplorerWindow * self = wg->data;
+    FileItemWindow *file_item = wg->data2;
+    
+    //FileExplorer_select_item(file_item);
+    FileExplorer_toggle_selection_item(file_item);
+    /*if (self->selected == file_item){
+      if (file_item->is_dir){
+        FileExplorer_list_files(self, file_item->path);
+      }
+    } else {
+      FileExplorer_select_single_item(self, file_item);
+    }*/
     
 }
 
@@ -265,11 +321,12 @@ void FileExplorer_list_files(ExplorerWindow * self, char * dire){
     //item->data2 = full_path;
     item->data2 = file_item;
     item->on_mouse_down = item_clicked;
+    item->on_command_mouse_down = command_item_clicked;
 
     file_item->win.data = self;
     file_item->win.data2 = full_path;
 
-    if (self->selected == NULL) FileExplorer_select_item(self, file_item);
+    if (self->selected == NULL) FileExplorer_select_single_item(self, file_item);
     //LOG_INFO("full_path: %s", full_path);
     // if (height < j) break;
     // mvwprintw(win, x++, 1, "%s %s", icon, entry->d_name);
@@ -280,7 +337,7 @@ void FileExplorer_list_files(ExplorerWindow * self, char * dire){
   int sort_by = self->sort_by;
   self->sort_by = -1;
   FileExplorer_sort(self, sort_by);
-  FileExplorer_select_item(self, fm->head);
+  FileExplorer_select_single_item(self, fm->head);
 
   // Clear remaining lines to remove previous list items
   //while (j <= self->win.calculated.height)
@@ -367,23 +424,23 @@ void FileExplorer_send_key(Window * win, char c)
 {
     ExplorerWindow * self = win;
     if (c == 106){ // j
-        FileExplorer_select_item(self, self->selected->win.next);
+        FileExplorer_select_single_item(self, self->selected->win.next);
         return;
     }
     if (c == 107){ // k
-        FileExplorer_select_item(self, self->selected->win.prev);
+        FileExplorer_select_single_item(self, self->selected->win.prev);
         return;
     }
     if (c == 117){ // u
         Window * selected = self->selected;
         for (int i=0;i<win->calculated.height && selected->next;i++) selected = selected->next;
-        FileExplorer_select_item(self, selected);
+        FileExplorer_select_single_item(self, selected);
         return;
     }
     if (c == 105){ // i
         Window * selected = self->selected;
         for (int i=0;i<win->calculated.height && selected->prev;i++) selected = selected->prev;
-        FileExplorer_select_item(self, selected);
+        FileExplorer_select_single_item(self, selected);
         return;
     }
     if (c == 109){ // m

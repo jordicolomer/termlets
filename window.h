@@ -37,6 +37,7 @@ typedef struct Window
   // void (*draw)(struct Window*, int, int, int);
   void (*draw)(struct Window *, int);
   void (*on_mouse_down)(struct Window *wg, int x, int y);
+  void (*on_command_mouse_down)(struct Window *wg, int x, int y);
   void (*on_hover)(struct Window *wg, int x, int y);
   void (*undo_on_hover)(struct Window *wg, int x, int y);
   void (*set_top)(struct Window *wg, int top);

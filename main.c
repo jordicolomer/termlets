@@ -128,6 +128,19 @@ void on_drag(int x, int y)
   }
 }
 
+void on_command_mouse_down(int x, int y)
+{
+  Window *wg = Window_find_widget(root, x, y);
+  if (wg != NULL)
+  {
+    if (wg->on_command_mouse_down != NULL)
+    {
+      wg->on_command_mouse_down(wg, x, y);
+    }
+  }
+  repaint();
+}
+
 void on_mouse_down(int x, int y)
 {
   LOG_INFO("on_mouse_down: %d %d", x, y);
@@ -301,7 +314,7 @@ int start()
 
       if (sscanf(seq, "[<%d;%d;%d%c", &btn, &x, &y, &type) == 4)
       {
-        //LOG_INFO("mouse event %s %d %d %d %c", seq, btn, x, y, type);
+        //LOG_INFO("mouse event seq:%s btn:%d x:%d y:%d type:%c", seq, btn, x, y, type);
         /* mouse event */
         if (y == 1)
           continue;
@@ -310,6 +323,11 @@ int start()
         { // click
           dragging = 1;
           on_mouse_down(x, y);
+        }
+        if (/*dragging == 0 && */btn == 8 && type == 'M')
+        { // click
+          //dragging = 1;
+          on_command_mouse_down(x, y);
         }
         if (dragging == 0 && btn == 64 && type == 'M')
         { // scroll wheel down 

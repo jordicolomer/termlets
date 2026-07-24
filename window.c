@@ -192,6 +192,8 @@ Window *Window_init(Window *w, int left, int right, int top, int bottom, int wid
   // w->draw = draw;
   w->draw = Window_draw;
   w->set_top = Window_set_top;
+  w->on_mouse_down = NULL;
+  w->on_command_mouse_down = NULL;
   w->send_key = NULL;
   w->on_hover = NULL;
   w->undo_on_hover = NULL;
