@@ -82,7 +82,7 @@ void FileExplorer_select_single_item(ExplorerWindow * self, Window * item){
   if (item == NULL) return;
   //FileExplorer_unselect_item(self->selected);
   FileExplorer_unselect_all(self);
-  
+
   self->selected = item;
   //item->bg = 27;
   FileExplorer_select_item(item);
@@ -111,16 +111,7 @@ void command_item_clicked(Window *wg, int x, int y)
     ExplorerWindow * self = wg->data;
     FileItemWindow *file_item = wg->data2;
     
-    //FileExplorer_select_item(file_item);
     FileExplorer_toggle_selection_item(file_item);
-    /*if (self->selected == file_item){
-      if (file_item->is_dir){
-        FileExplorer_list_files(self, file_item->path);
-      }
-    } else {
-      FileExplorer_select_single_item(self, file_item);
-    }*/
-    
 }
 
 void remove_newlines(char *str) {
@@ -611,10 +602,17 @@ Window *ExplorerFrame_refresh(ExplorerFrame *self)
   FileExplorer_refresh(ew);
 }
 
-Window *FileExplorer_menu_delete_execute(ExplorerFrame *self, char * path)
+Window *FileExplorer_menu_delete_execute(ExplorerFrame *self, ExplorerWindow * ew)
 {
-  LOG_INFO("FileExplorer_menu_delete_execute %p %s", self, path);
-  remove(path);
+  LOG_INFO("FileExplorer_menu_delete_execute %p %p", self, ew);
+  
+  FileItemWindow * current = ew->fm->head;
+  while (current != NULL){
+    if (current->is_selected){
+      remove(current->path);
+    }
+    current = current->win.next;
+  }
   ExplorerFrame_refresh(self);
 }
 
@@ -626,7 +624,7 @@ Window *FileExplorer_menu_delete(ExplorerFrame *self)
   open_dialog(
     self,
     "Are you sure?",
-    create_lambda(FileExplorer_menu_delete_execute, 2, self, path));
+    create_lambda(FileExplorer_menu_delete_execute, 2, self, ew));
 }
 
 char * paste_path = NULL;
