@@ -198,7 +198,7 @@ void FileExplorer_list_files(ExplorerWindow * self, char * dire){
   Window_set_id_from_path(self, dire);
 
   if (self->path != dire){
-    if (self->path != NULL) free(self->path);
+    //if (self->path != NULL) free(self->path);
     self->path = make_string(dire);
   }
 
@@ -672,7 +672,7 @@ Window *FileExplorer_menu_paste(ExplorerFrame *self)
   ExplorerWindow * ew = self->tabs->focused;
   char * destination = ew->path;
   FileItemWindow * current = paste_source->fm->head;
-  
+
   while (current != NULL){
     if (current->is_selected == 1){
       char * dst = NULL;
