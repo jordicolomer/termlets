@@ -475,7 +475,7 @@ void FileExplorer_send_key(Window * win, char c)
     }
     if (c == 109){ // m
         Window * selected = self->selected;
-        item_clicked(selected, 0, 0);
+        item_clicked(selected->head, 0, 0);
         return;
     }
     if (c == 111){ // o
