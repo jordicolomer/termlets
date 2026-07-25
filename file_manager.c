@@ -430,9 +430,6 @@ Window *ExplorerWindow_rename(ExplorerWindow *self)
   line_edit->win.height = selected->win.height;
 
   self->win.focused = line_edit;
-  //line_edit->win.top = 3;
-  //LOG_INFO("assert %p %p", selected->win.parent, ew->fm);
-  //LOG_INFO("FileExplorer_menu_rename %p %d %d %d %d %d %d %s", self, label->left, label->right, label->top, label->bottom, label->width, label->height, label->c);
 
   Window_append(self->fm, line_edit);
 }
