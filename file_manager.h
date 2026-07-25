@@ -18,7 +18,7 @@ typedef struct ExplorerWindow {
     Window *fm;
     Window *slider;
     //int selected;
-    FileItemWindow *selected; // todo: remove this
+    FileItemWindow *selected;
     char * path;
     char path_label[1024];
     int sort_by;
