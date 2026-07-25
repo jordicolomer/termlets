@@ -250,7 +250,8 @@ void FileExplorer_list_files(ExplorerWindow * self, char * dire){
     }
     if (ends_with(entry->d_name, ".png"))
     {
-      icon = "🏞";
+      //icon = "🏞";
+      icon = "📷";
     }
     if (ends_with(entry->d_name, ".pdf"))
     {
