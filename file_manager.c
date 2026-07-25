@@ -414,9 +414,41 @@ void FileExplorer_scroll_wheel_up(struct Window *w){
   Slider_scroll_up(self->slider);
 }
 
+Window *ExplorerWindow_rename(ExplorerWindow *self)
+{
+  FileItemWindow * selected = self->selected;
+  if (selected == NULL) return NULL;
+
+  // create line edit and copy geometry from label
+  LineEditorWindow * line_edit = LineEditorWindow_new(selected->name);
+  Window * label = selected->win.head;
+  line_edit->win.left = selected->win.left+3; // don't include icon
+  line_edit->win.right = selected->win.right;
+  line_edit->win.top = selected->win.top;
+  line_edit->win.bottom = selected->win.bottom;
+  line_edit->win.width = selected->win.width;
+  line_edit->win.height = selected->win.height;
+
+  self->win.focused = line_edit;
+  //line_edit->win.top = 3;
+  //LOG_INFO("assert %p %p", selected->win.parent, ew->fm);
+  //LOG_INFO("FileExplorer_menu_rename %p %d %d %d %d %d %d %s", self, label->left, label->right, label->top, label->bottom, label->width, label->height, label->c);
+
+  Window_append(self->fm, line_edit);
+}
+
 void FileExplorer_send_key(Window * win, char c)
 {
     ExplorerWindow * self = win;
+
+    Window *focused_cursor = win->focused;
+    if (focused_cursor != NULL) while (focused_cursor->send_key == NULL && focused_cursor->focused != NULL) focused_cursor = focused_cursor->focused;
+
+    if (focused_cursor != NULL && focused_cursor->send_key != NULL) {
+        focused_cursor->send_key(focused_cursor, c);
+        return;
+    }
+
     if (c == 106){ // j
         FileExplorer_select_single_item(self, self->selected->win.next);
         return;
@@ -453,13 +485,11 @@ void FileExplorer_send_key(Window * win, char c)
         FileExplorer_up_one_level(self);
         return;
     }
-
-    Window *focused_cursor = win->focused;
-    if (focused_cursor != NULL) while (focused_cursor->send_key == NULL && focused_cursor->focused != NULL) focused_cursor = focused_cursor->focused;
-
-    if (focused_cursor != NULL && focused_cursor->send_key != NULL) {
-        focused_cursor->send_key(focused_cursor, c);
+    if (c == 'r'){ // r
+        ExplorerWindow_rename(self);
+        return;
     }
+
 
 }
 
@@ -710,27 +740,13 @@ void ExplorerFrame_on_selected(ExplorerFrame *self, void fn()){
   fn(self->tabs->focused);
 }
 
+
+
 Window *FileExplorer_menu_rename(ExplorerFrame *self)
 {
   LOG_INFO("FileExplorer_menu_rename %p", self);
   ExplorerWindow * ew = self->tabs->focused;
-  FileItemWindow * selected = ew->selected;
-  if (selected == NULL) return NULL;
-
-  // create line edit and copy geometry from label
-  LineEditorWindow * line_edit = LineEditorWindow_new(selected->name);
-  Window * label = selected->win.head;
-  line_edit->win.left = selected->win.left+3; // don't include icon
-  line_edit->win.right = selected->win.right;
-  line_edit->win.top = selected->win.top;
-  line_edit->win.bottom = selected->win.bottom;
-  line_edit->win.width = selected->win.width;
-  line_edit->win.height = selected->win.height;
-  //line_edit->win.top = 3;
-  //LOG_INFO("assert %p %p", selected->win.parent, ew->fm);
-  //LOG_INFO("FileExplorer_menu_rename %p %d %d %d %d %d %d %s", self, label->left, label->right, label->top, label->bottom, label->width, label->height, label->c);
-
-  Window_append(ew->fm, line_edit);
+  ExplorerWindow_rename(ew);
 }
 
 Window *FileExplorer_menu(ExplorerFrame *self)
