@@ -14,6 +14,16 @@
 
 // Editor Window
 
+void EditorWindow_scroll_wheel_down(struct Window *w){
+  EditorWindow * self = w;
+  Slider_scroll_down(self->slider);
+}
+
+void EditorWindow_scroll_wheel_up(struct Window *w){
+  EditorWindow * self = w;
+  Slider_scroll_up(self->slider);
+}
+
 void EditorWindow_make_cursor_visible(EditorWindow *self)
 {
     int height = self->win.calculated.height;
@@ -105,6 +115,9 @@ EditorWindow *EditorWindow_new()
     self->win.draw = EditorWindow_draw;
 
     self->win.send_key = EditorWindow_send_key;
+
+    self->win.scroll_wheel_up = EditorWindow_scroll_wheel_up;
+    self->win.scroll_wheel_down = EditorWindow_scroll_wheel_down;
 
     latestEditorWindow = self;
 
