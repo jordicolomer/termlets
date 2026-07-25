@@ -54,6 +54,15 @@ typedef struct vterm_terminal_data {
     VTermScreenCallbacks callbacks;
 } vterm_terminal_data;
 
+void VTermTerminal_scroll_wheel_down(struct Window *w){
+  TerminalWindow * self = w;
+  Slider_scroll_down(self->slider);
+}
+
+void VTermTerminal_scroll_wheel_up(struct Window *w){
+  TerminalWindow * self = w;
+  Slider_scroll_up(self->slider);
+}
 
 char* get_shell_cwd_mac_native(pid_t pid)
 {
@@ -681,6 +690,8 @@ TerminalWindow *VTermTerminal_window(int initial_rows, int initial_cols)
     terminal->win.send_sequence = vterm_send_sequence;
 
     terminal->win.draw = VTermTerminal_draw;
+    terminal->win.scroll_wheel_up = VTermTerminal_scroll_wheel_up;
+    terminal->win.scroll_wheel_down = VTermTerminal_scroll_wheel_down;
 
     vterm_terminal_data *vtd = malloc(sizeof *vtd);
     terminal->win.data2 = vtd;
