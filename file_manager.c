@@ -414,10 +414,22 @@ void FileExplorer_scroll_wheel_up(struct Window *w){
   Slider_scroll_up(self->slider);
 }
 
-Window *ExplorerWindow_rename_complete(ExplorerWindow *self, LineEditorWindow * line_edit)
+Window *ExplorerWindow_rename_complete(ExplorerWindow *self, LineEditorWindow * line_edit, char * origin)
 {
+  //rename();
+  char * target = NULL;
+  
+  char * parent = make_string(origin);
+  get_parent(parent);
+  asprintf(&target, "%s/%s", parent, line_edit->buffer);
+  free(parent);
+  //LOG_INFO("ExplorerWindow_rename_complete: %s %s", origin, target);
+  rename(origin, target);
+  free(target);
+
   Window_remove(line_edit);
   self->win.focused = NULL;
+  FileExplorer_refresh(self);
 }
 
 Window *ExplorerWindow_rename(ExplorerWindow *self)
@@ -434,7 +446,7 @@ Window *ExplorerWindow_rename(ExplorerWindow *self)
   line_edit->win.bottom = selected->win.bottom;
   line_edit->win.width = selected->win.width;
   line_edit->win.height = selected->win.height;
-  line_edit->win.lambda = create_lambda(ExplorerWindow_rename_complete, 2, self, line_edit);
+  line_edit->win.lambda = create_lambda(ExplorerWindow_rename_complete, 3, self, line_edit, selected->path);
 
   self->win.focused = line_edit;
 
