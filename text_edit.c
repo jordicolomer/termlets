@@ -102,13 +102,13 @@ LineEditorWindow * LineEditorWindow_new(char * c){
     self->win.bottom = 0;
     self->win.left = 0;
     self->win.right = 0;
-    self->win.bg = 255;
+    self->win.bg = 27;
     self->win.c = &self->buffer;
     self->win.id = "line editor";
     self->win.send_key = LineEditorWindow_send_key;
     self->win.send_sequence = LineEditorWindow_send_sequence;
-    self->cursor = 0;
-    snprintf(self->buffer, sizeof(self->buffer), "edit: %s", c);
+    snprintf(self->buffer, sizeof(self->buffer), "%s", c);
+    self->cursor = strlen(self->buffer);
 
     return self;
 }
