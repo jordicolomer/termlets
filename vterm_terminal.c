@@ -7,6 +7,8 @@
 #include <sys/ioctl.h>
 #include <pthread.h>
 #include <vterm.h>
+#include <libproc.h>
+
 #include "vterm_terminal.h"
 #include "window.h"
 #include "frame.h"
@@ -50,6 +52,29 @@ typedef struct vterm_terminal_data {
     ScrollbackList scrollback;
     VTermScreenCallbacks callbacks;
 } vterm_terminal_data;
+
+
+char* get_shell_cwd_mac_native(pid_t pid)
+{
+    struct proc_vnodepathinfo vpi;
+
+    int ret = proc_pidinfo(pid, PROC_PIDVNODEPATHINFO, 0, &vpi, sizeof(vpi));
+    if (ret <= 0) {
+        return NULL;
+    }
+
+    // pvi_cdir is the current working directory
+    if (vpi.pvi_cdir.vip_path[0] != '\0') {
+        return strdup(vpi.pvi_cdir.vip_path);
+    }
+
+    return NULL;
+}
+
+void update_tab_label(TerminalWindow * terminal){
+    char * cwd = get_shell_cwd_mac_native(terminal->pid);
+    Window_set_id_from_path(terminal->slider, "💻", cwd);
+}
 
 /* Forward declarations */
 int VTermTerminal_get_virtual_height(struct Window *wg);
@@ -116,6 +141,8 @@ void VTermTerminal_update(vterm_terminal_data *vtd)
 
         /* feed data to libvterm */
         vterm_input_write(vtd->vt, buf, n);
+
+        //update_tab_label(vtd->terminal);
     }
 }
 
@@ -558,33 +585,9 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
             Buffer_print(&main_buf, cursor_y, cursor_x, cursor_width, cursor_char, bg, fg);
         }
     }
+    update_tab_label(wg);
 }
 
-#include <stdio.h>
-#include <libproc.h>
-#include <string.h>
-
-char* get_shell_cwd_mac_native(pid_t pid)
-{
-    struct proc_vnodepathinfo vpi;
-
-    int ret = proc_pidinfo(pid, PROC_PIDVNODEPATHINFO, 0, &vpi, sizeof(vpi));
-    if (ret <= 0) {
-        return NULL;
-    }
-
-    // pvi_cdir is the current working directory
-    if (vpi.pvi_cdir.vip_path[0] != '\0') {
-        return strdup(vpi.pvi_cdir.vip_path);
-    }
-
-    return NULL;
-}
-
-void update_tab_label(TerminalWindow * terminal){
-    char * cwd = get_shell_cwd_mac_native(terminal->pid);
-    Window_set_id_from_path(terminal->slider, "💻", cwd);
-}
 
 void vterm_send_key(struct Window *wg, char c)
 {
@@ -598,8 +601,8 @@ void vterm_send_key(struct Window *wg, char c)
 
     /* just write to the PTY, the monitoring thread will handle reading the response */
     write(vtd->master, &c, 1);
-    TerminalWindow * terminal = wg;
-    update_tab_label(terminal);
+    //TerminalWindow * terminal = wg;
+    //update_tab_label(terminal);
 }
 
 void vterm_send_sequence(struct Window *wg, const char *seq, int len)
