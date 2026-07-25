@@ -396,16 +396,15 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
     int last_visible_line = first_visible_line + geo.height - 1;
     //LOG_INFO("VTermTerminal_draw %d", terminal->shift);
 
+    ScrollbackLine *line = vtd->scrollback.head;
+    for (int i = 0; i < first_visible_line && line != NULL; i++) {
+        line = line->next;
+    }
+
     /* render visible rows */
     for (int viewport_row = 0; viewport_row < geo.height; viewport_row++) {
         //LOG_INFO("for %d", viewport_row);
         int virtual_line = first_visible_line + viewport_row;
-
-        /* skip if outside virtual content bounds */
-        /*if (virtual_line < 0 || virtual_line >= virtual_height) {
-            LOG_INFO("continue");
-            continue;
-        }*/
 
         int y = geo.y + viewport_row;
 
@@ -413,10 +412,6 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
         if (virtual_line < vtd->scrollback.count) {
             //LOG_INFO("scrollback line");
             /* this is a scrollback line - find it in the linked list */
-            ScrollbackLine *line = vtd->scrollback.head;
-            for (int i = 0; i < virtual_line && line != NULL; i++) {
-                line = line->next;
-            }
 
             if (line) {
                 /* render scrollback line with color batching */
@@ -541,6 +536,7 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
                 }
             }
         }
+        if (line != NULL) line = line->next;
     }
 
     /* Render cursor if this terminal has focus */
