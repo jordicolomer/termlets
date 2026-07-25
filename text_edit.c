@@ -40,7 +40,7 @@ void insert_char(char *buffer, size_t pos, char c,
 void LineEditorWindow_send_key(Window * win, char c){
     LineEditorWindow *self = win;
     int len = strlen(self->buffer);
-    LOG_INFO("LineEditorWindow_send_key: %c %d", c, len);
+    LOG_INFO("LineEditorWindow_send_key: %c %d", c, c);
     if (c == 8) { // Control+H
         if (self->cursor > 0){
             delete_char(self->buffer, self->cursor-1, len);
@@ -58,6 +58,25 @@ void LineEditorWindow_send_key(Window * win, char c){
         if (self->cursor < len){
             self->cursor++;
         }
+        return;
+    }
+    if (c == 6) { // Ctrl+F
+        if (self->cursor < len){
+            self->cursor++;
+        }
+        return;
+    }
+    if (c == 19) { // Ctrl+S
+        self->cursor = 0;
+        return;
+    }
+    if (c == 7) { // Ctrl+G
+        self->cursor = len;
+        return;
+    }
+    if (c == 13) { // Ctrl+M
+        //self->cursor = len;
+        if (win->lambda != NULL) invoke_lambda(win->lambda);
         return;
     }
     insert_char(self->buffer, self->cursor, c, len, sizeof(self->buffer));
