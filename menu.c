@@ -66,6 +66,8 @@ Menu *Menu_create_horizontal()
     menu->win.top = 0;
     //menu->win.bottom = 0;
     menu->win.height = 1;
+    //menu->win.bg = 76;
+    //menu->win.fill = 1;
     //menu->parent = parent;
 
     // background

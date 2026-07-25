@@ -190,6 +190,7 @@ void tabs_send_sequence(struct Window *wg, const char *seq, int len)
 
 Window *Tab_new(tab_create_callback callback, int new_tab){
     Tabs *mytab = malloc(sizeof *mytab);
+    
     //Window *tabs = malloc(sizeof *tabs);
     Window *tabs = mytab;
     Window_init(tabs, -1, -1, -1, -1, -1, -1);
@@ -234,6 +235,8 @@ Window *Tab_new(tab_create_callback callback, int new_tab){
     mytab->x_offset = 0;
 
     Window *shiftable_tabs = malloc(sizeof *shiftable_tabs);
+    shiftable_tabs->fill = 1;
+    shiftable_tabs->bg = 253;
     shiftable_tabs->id = "shiftable_tabs";
     mytab->shiftable_tabs = shiftable_tabs;
     Window_init(shiftable_tabs, -1, -1, -1, -1, -1, -1);
