@@ -431,6 +431,7 @@ const char *filename_from_path(const char *path)
 }
 
 void Window_set_id_from_path(Window *self, char * path){
+  if (path == NULL) return;
   char * filename = filename_from_path(path);
   snprintf(self->id, ID_LENGTH*4, "📁 %s", filename);
   if (calculate_width(self->id) >= ID_LENGTH) {

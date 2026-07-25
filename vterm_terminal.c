@@ -7,6 +7,7 @@
 #include <sys/ioctl.h>
 #include <pthread.h>
 #include <vterm.h>
+#include "vterm_terminal.h"
 #include "window.h"
 #include "frame.h"
 #include "buffer.h"
@@ -637,18 +638,39 @@ static int cb_sb_pushline(int cols, const VTermScreenCell *cells, void *user)
     return 1;
 }
 
-Window *VTermTerminal_window(int initial_rows, int initial_cols)
-{
-    Window *terminal = malloc(sizeof *terminal);
-    Window_init(terminal, 0, 0, 0, 0, -1, -1);
-    terminal->id = "vterm terminal window";
-    terminal->send_key = vterm_send_key;
-    terminal->send_sequence = vterm_send_sequence;
+#include <stdio.h>
+#include <libproc.h>
+#include <string.h>
 
-    terminal->draw = VTermTerminal_draw;
+char* get_shell_cwd_mac_native(pid_t pid)
+{
+    struct proc_vnodepathinfo vpi;
+
+    int ret = proc_pidinfo(pid, PROC_PIDVNODEPATHINFO, 0, &vpi, sizeof(vpi));
+    if (ret <= 0) {
+        return NULL;
+    }
+
+    // pvi_cdir is the current working directory
+    if (vpi.pvi_cdir.vip_path[0] != '\0') {
+        return strdup(vpi.pvi_cdir.vip_path);
+    }
+
+    return NULL;
+}
+
+TerminalWindow *VTermTerminal_window(int initial_rows, int initial_cols)
+{
+    TerminalWindow *terminal = malloc(sizeof *terminal);
+    Window_init(terminal, 0, 0, 0, 0, -1, -1);
+    terminal->win.id = "vterm terminal window";
+    terminal->win.send_key = vterm_send_key;
+    terminal->win.send_sequence = vterm_send_sequence;
+
+    terminal->win.draw = VTermTerminal_draw;
 
     vterm_terminal_data *vtd = malloc(sizeof *vtd);
-    terminal->data2 = vtd;
+    terminal->win.data2 = vtd;
     //frame->data2 = vtd;
 
     /* initialize libvterm */
@@ -686,6 +708,8 @@ Window *VTermTerminal_window(int initial_rows, int initial_cols)
         exit(1);
     }
 
+    terminal->cwd = get_shell_cwd_mac_native(pid);
+
     vtd->terminal = terminal;
 
     /* register this terminal for background monitoring */
@@ -700,14 +724,17 @@ Window *VTermTerminal_window(int initial_rows, int initial_cols)
 
 
 Window *VTermTerminal_callback(){
-    Window *terminal = VTermTerminal_window(24, 80);
+    TerminalWindow *terminal = VTermTerminal_window(24, 80);
     Window *slider = slider_new(terminal);
+    //slider->id = terminal->cwd;
+    slider->id = malloc(1024);
+    Window_set_id_from_path(slider, terminal->cwd);
     return slider;
 }
 
 Window *VTermTerminal_new(int left, int right, int top, int bottom, int width, int height)
 {
-    Window *frame = malloc(sizeof *frame);
+    TerminalFrame *frame = malloc(sizeof *frame);
     Window *w = Frame_init(frame, left, right, top, bottom, width, height, NULL, 1);
     //frame->send_key = vterm_send_key;
     //frame->send_sequence = vterm_send_sequence;
@@ -740,12 +767,13 @@ Window *VTermTerminal_new(int left, int right, int top, int bottom, int width, i
 
     // tabs
     Window *tabs = Tab_new(VTermTerminal_callback, 1);
+    frame->tabs = tabs;
     tabs->top = 1;
     tabs->bottom = 0;
     tabs->left = 0;
     tabs->right = 0;
     Window_append(w, tabs);
-    frame->focused = tabs;
+    frame->win.focused = tabs;
 
     return frame;
 }
