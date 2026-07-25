@@ -560,6 +560,32 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
     }
 }
 
+#include <stdio.h>
+#include <libproc.h>
+#include <string.h>
+
+char* get_shell_cwd_mac_native(pid_t pid)
+{
+    struct proc_vnodepathinfo vpi;
+
+    int ret = proc_pidinfo(pid, PROC_PIDVNODEPATHINFO, 0, &vpi, sizeof(vpi));
+    if (ret <= 0) {
+        return NULL;
+    }
+
+    // pvi_cdir is the current working directory
+    if (vpi.pvi_cdir.vip_path[0] != '\0') {
+        return strdup(vpi.pvi_cdir.vip_path);
+    }
+
+    return NULL;
+}
+
+void update_tab_label(TerminalWindow * terminal){
+    char * cwd = get_shell_cwd_mac_native(terminal->pid);
+    Window_set_id_from_path(terminal->slider, cwd);
+}
+
 void vterm_send_key(struct Window *wg, char c)
 {
     vterm_terminal_data *vtd = wg->data2;
@@ -572,6 +598,8 @@ void vterm_send_key(struct Window *wg, char c)
 
     /* just write to the PTY, the monitoring thread will handle reading the response */
     write(vtd->master, &c, 1);
+    TerminalWindow * terminal = wg;
+    update_tab_label(terminal);
 }
 
 void vterm_send_sequence(struct Window *wg, const char *seq, int len)
@@ -638,26 +666,7 @@ static int cb_sb_pushline(int cols, const VTermScreenCell *cells, void *user)
     return 1;
 }
 
-#include <stdio.h>
-#include <libproc.h>
-#include <string.h>
 
-char* get_shell_cwd_mac_native(pid_t pid)
-{
-    struct proc_vnodepathinfo vpi;
-
-    int ret = proc_pidinfo(pid, PROC_PIDVNODEPATHINFO, 0, &vpi, sizeof(vpi));
-    if (ret <= 0) {
-        return NULL;
-    }
-
-    // pvi_cdir is the current working directory
-    if (vpi.pvi_cdir.vip_path[0] != '\0') {
-        return strdup(vpi.pvi_cdir.vip_path);
-    }
-
-    return NULL;
-}
 
 TerminalWindow *VTermTerminal_window(int initial_rows, int initial_cols)
 {
@@ -708,6 +717,7 @@ TerminalWindow *VTermTerminal_window(int initial_rows, int initial_cols)
         exit(1);
     }
 
+    terminal->pid = pid;
     terminal->cwd = get_shell_cwd_mac_native(pid);
 
     vtd->terminal = terminal;
@@ -726,6 +736,7 @@ TerminalWindow *VTermTerminal_window(int initial_rows, int initial_cols)
 Window *VTermTerminal_callback(){
     TerminalWindow *terminal = VTermTerminal_window(24, 80);
     Window *slider = slider_new(terminal);
+    terminal->slider = slider;
     //slider->id = terminal->cwd;
     slider->id = malloc(1024);
     Window_set_id_from_path(slider, terminal->cwd);

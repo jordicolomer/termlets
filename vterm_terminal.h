@@ -5,6 +5,8 @@
 typedef struct TerminalWindow {
     struct Window win;
     char * cwd;
+    Window * slider;
+    pid_t pid;
 } TerminalWindow;
 
 typedef struct TerminalFrame {
