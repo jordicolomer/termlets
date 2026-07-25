@@ -134,6 +134,11 @@ int cp_width(int cp)
   if (cp == 128316) return 2;
   if (cp == 128230) return 2;
   if (cp == 9211) return 1;
+  //if (cp == 128444) return 2;
+  if (cp == 128248) return 2;
+  if (cp == 127966) return 2;
+  //if (cp == 65279) return 0;
+  //if (cp = 0x1F5BC) return 2;
 
   if (9812 <= cp && cp <= 9823) return 1; // chess pieces
   //if (cp == 128221) return 2;

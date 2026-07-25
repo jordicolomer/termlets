@@ -248,10 +248,10 @@ void FileExplorer_list_files(ExplorerWindow * self, char * dire){
       icon = "📁";
       file_item->is_dir = 1;
     }
-    /*if (ends_with(entry->d_name, ".png"))
+    if (ends_with(entry->d_name, ".png"))
     {
-      icon = "🖼️";
-    }*/
+      icon = "🏞";
+    }
     if (ends_with(entry->d_name, ".pdf"))
     {
       icon = "📖";
@@ -815,10 +815,10 @@ Window *FileExplorer_toolbar(ExplorerFrame *self)
     Menu_add_element(toolbar, " 🔪 Cut ", create_lambda(FileExplorer_menu_cut, 1, self));
     Menu_add_element(toolbar, " 📋 Copy ", create_lambda(FileExplorer_menu_copy, 1, self));
     Menu_add_element(toolbar, " 📌 Paste ", create_lambda(FileExplorer_menu_paste, 1, self));
-    Menu_add_element(toolbar, " 📝 Rename ", create_lambda(FileExplorer_menu_rename, 1, self));
+    Menu_add_element(toolbar, " 🔤 Rename ", create_lambda(FileExplorer_menu_rename, 1, self));
     Menu_add_element(toolbar, " 🔄 Refresh ", create_lambda(ExplorerFrame_refresh, 1, self));
     //Menu_add_element(toolbar, " 🔼 Up ", create_lambda(ExplorerFrame_up_one_level, 1, self));
-    Menu_add_element(toolbar, " 🔼 Up ", create_lambda(ExplorerFrame_on_selected, 2, self, FileExplorer_up_one_level));
+    Menu_add_element(toolbar, " 🔝 Up ", create_lambda(ExplorerFrame_on_selected, 2, self, FileExplorer_up_one_level));
     Menu_add_element(toolbar, " 📝 Edit ", create_lambda(ExplorerFrame_on_selected, 2, self, FileExplorer_edit));
     Menu_add_element(toolbar, " 💻 Terminal ", create_lambda(ExplorerFrame_on_selected, 2, self, FileExplorer_terminal));
 
