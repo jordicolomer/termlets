@@ -198,7 +198,7 @@ void FileExplorer_refresh(ExplorerWindow * self){
 
 void FileExplorer_list_files(ExplorerWindow * self, char * dire){
   snprintf(self->path_label, 1024, " 📁 %s", dire);
-  Window_set_id_from_path(self, dire);
+  Window_set_id_from_path(self, "📁", dire);
 
   if (self->path != dire){
     //if (self->path != NULL) free(self->path);

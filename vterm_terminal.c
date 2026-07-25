@@ -583,7 +583,7 @@ char* get_shell_cwd_mac_native(pid_t pid)
 
 void update_tab_label(TerminalWindow * terminal){
     char * cwd = get_shell_cwd_mac_native(terminal->pid);
-    Window_set_id_from_path(terminal->slider, cwd);
+    Window_set_id_from_path(terminal->slider, "💻", cwd);
 }
 
 void vterm_send_key(struct Window *wg, char c)
@@ -718,7 +718,7 @@ TerminalWindow *VTermTerminal_window(int initial_rows, int initial_cols)
     }
 
     terminal->pid = pid;
-    terminal->cwd = get_shell_cwd_mac_native(pid);
+    //terminal->cwd = get_shell_cwd_mac_native(pid);
 
     vtd->terminal = terminal;
 
@@ -739,7 +739,8 @@ Window *VTermTerminal_callback(){
     terminal->slider = slider;
     //slider->id = terminal->cwd;
     slider->id = malloc(1024);
-    Window_set_id_from_path(slider, terminal->cwd);
+    //Window_set_id_from_path(slider, terminal->cwd);
+    update_tab_label(terminal);
     return slider;
 }
 

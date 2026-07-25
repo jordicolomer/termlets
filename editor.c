@@ -172,7 +172,7 @@ void append(EditorWindow *self, const char *text)
 
 void load_file(EditorWindow *self, const char *filename)
 {
-    Window_set_id_from_path(self, filename);
+    Window_set_id_from_path(self, "📝", filename);
     FILE *file = fopen(filename, "r");
     if (!file)
     {
