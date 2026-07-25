@@ -16,6 +16,7 @@
 #include "logger.h"
 #include "slider.h"
 #include "tabs.h"
+#include "menu.h"
 
 /* Global state for PTY monitoring thread */
 static pthread_t pty_monitor_thread;
@@ -747,6 +748,70 @@ Window *VTermTerminal_callback(){
     return slider;
 }
 
+Window *VTermTerminal_new_tab(TerminalFrame *self)
+{
+
+}
+
+Window *VTermTerminal_menu(TerminalFrame *self)
+{
+    Window *menu = Menu_create_horizontal();
+
+    Window *file = Menu_create_vertical(self);
+    Menu_add_element(file, " 📄 New File   Ctrl+N", create_lambda(VTermTerminal_new_tab, 1, self));
+    Menu_add_element(file, " 📁 New Folder Ctrl+N", create_lambda(VTermTerminal_new_tab, 1, self));
+    Menu_add_element(file, "    New Window Ctrl+N", create_lambda(VTermTerminal_new_tab, 0));
+    Menu_add_element(file, "    New Tab    Ctrl+N", create_lambda(VTermTerminal_new_tab, 0));
+    Menu_add_element(file, "", NULL);
+    Menu_add_element(file, " ❌ Close Window Ctrl+N", create_lambda(VTermTerminal_new_tab, 0));
+    Menu_add_element(file, " ❌ Close Tab  Ctrl+W", create_lambda(VTermTerminal_new_tab, 0));
+    Menu_add_element(file, "", NULL);
+    Menu_add_submenu(menu, " File ", file);
+
+    Window *edit = Menu_create_vertical(self);
+    Menu_add_element(edit, " 🔪 Cut            Ctrl+X", create_lambda(VTermTerminal_new_tab, 0));
+    Menu_add_element(edit, " 📋 Copy           Ctrl+C", create_lambda(VTermTerminal_new_tab, 0));
+    Menu_add_element(edit, " 📌 Paste          Ctrl+V", create_lambda(VTermTerminal_new_tab, 0));
+    Menu_add_element(edit, " ❌ Delete         Backspace", create_lambda(VTermTerminal_new_tab, 0));
+    Menu_add_element(edit, " 📝 Rename         Ctrl+R", create_lambda(VTermTerminal_new_tab, 0));
+    Menu_add_element(edit, "", NULL);
+    Menu_add_element(edit, " 📋 Copy Name      Ctrl+C", create_lambda(VTermTerminal_new_tab, 0));
+    Menu_add_element(edit, " 📋 Copy Directory Ctrl+C", create_lambda(VTermTerminal_new_tab, 0));
+    Menu_add_element(edit, " 📋 Copy Path      Ctrl+C", create_lambda(VTermTerminal_new_tab, 0));
+    Menu_add_element(edit, "", NULL);
+    Menu_add_submenu(menu, " Edit ", edit);
+
+    Window *view = Menu_create_vertical(self);
+    //Menu_add_element(view, " ⤶ Word wrap", create_lambda(FileExplorer_menu_new, 1, self));
+    Menu_add_element(view, " ↓ Sort By Name",          create_lambda(VTermTerminal_new_tab, 0));
+    Menu_add_element(view, " ↓ Sort By Date Modified", create_lambda(VTermTerminal_new_tab, 0));
+    Menu_add_element(view, " ↓ Sort By Size",          create_lambda(VTermTerminal_new_tab, 0));
+    Menu_add_element(view, "", NULL);
+    Menu_add_submenu(menu, " View ", view);
+
+    Menu_add_windows(menu, " Tabs ", self->tabs->data, self);
+
+    return menu;
+}
+
+Window *VTermTerminal_toolbar(TerminalFrame *self)
+{
+    Window *toolbar = Menu_create_horizontal();
+    Menu_add_element(toolbar, " + New Tab ", create_lambda(VTermTerminal_new_tab, 0));
+    Menu_add_element(toolbar, " 🔪 Cut ", create_lambda(VTermTerminal_new_tab, 0));
+    Menu_add_element(toolbar, " 📋 Copy ", create_lambda(VTermTerminal_new_tab, 0));
+    Menu_add_element(toolbar, " 📌 Paste ", create_lambda(VTermTerminal_new_tab, 0));
+    //Menu_add_element(toolbar, " 📝 Rename ", create_lambda(VTermTerminal_new_tab, 0));
+    //Menu_add_element(toolbar, " 🔄 Refresh ", create_lambda(VTermTerminal_new_tab, 0));
+    //Menu_add_element(toolbar, " 🔼 Up ", create_lambda(VTermTerminal_new_tab, 0));
+    //Menu_add_element(toolbar, " 📝 Edit ", create_lambda(VTermTerminal_new_tab, 0));
+    //Menu_add_element(toolbar, " 💻 Terminal ", create_lambda(VTermTerminal_new_tab, 0));
+
+    toolbar->top = 1;
+
+    return toolbar;
+}
+
 Window *VTermTerminal_new(int left, int right, int top, int bottom, int width, int height)
 {
     TerminalFrame *frame = malloc(sizeof *frame);
@@ -754,41 +819,20 @@ Window *VTermTerminal_new(int left, int right, int top, int bottom, int width, i
     //frame->send_key = vterm_send_key;
     //frame->send_sequence = vterm_send_sequence;
 
-    /* toolbar */
-    int j = 0;
-    int x_offset = 0;
-    int widget_width = 12;
-    Window_add_widget(w, x_offset, -1, j, -1, widget_width, 1, " 📄 New File", 232, 254);
-    x_offset += widget_width;
-    widget_width = 12;
-    Window_add_widget(w, x_offset, -1, j, -1, widget_width, 1, "📁 New Dir", 232, 254);
-    x_offset += widget_width;
-    widget_width = 8;
-    Window_add_widget(w, x_offset, -1, j, -1, widget_width, 1, "📋 Copy", 232, 254);
-    x_offset += widget_width;
-    widget_width = 8;
-    Window_add_widget(w, x_offset, -1, j, -1, widget_width, 1, "🔪 Cut", 232, 254);
-    x_offset += widget_width;
-    widget_width = 10;
-    Window_add_widget(w, x_offset, -1, j, -1, widget_width, 1, "📌 Paste", 232, 254);
-    x_offset += widget_width;
-    widget_width = 10;
-    Window_add_widget(w, x_offset, -1, j, -1, widget_width, 1, "🔤 Rename", 232, 254);
-    x_offset += widget_width;
-    widget_width = 10;
-    Window_add_widget(w, x_offset, 0, j, -1, -1, 1, "❌ Delete", 232, 254);
-    x_offset += widget_width;
-    j++;
-
     // tabs
     Window *tabs = Tab_new(VTermTerminal_callback, 1);
     frame->tabs = tabs;
-    tabs->top = 1;
+    tabs->top = 2;
     tabs->bottom = 0;
     tabs->left = 0;
     tabs->right = 0;
     Window_append(w, tabs);
     frame->win.focused = tabs;
+
+    Window *toolbar = VTermTerminal_toolbar(frame);
+    Window_append(w, toolbar);
+    Window *menu = VTermTerminal_menu(frame);
+    Window_append(w, menu);
 
     return frame;
 }
