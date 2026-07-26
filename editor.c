@@ -68,6 +68,14 @@ void EditorWindow_insert(EditorWindow *self, char c){
     self->cursor_x++;
 }
 
+void EditorWindow_delete(EditorWindow *self){
+    if (self->cursor_x == 0) return;
+    Node * node = EditorWindow_get_line_number(self, self->cursor_n);
+    delete_char(node->line, self->cursor_x-1, node->length);
+    node->length--;
+    self->cursor_x--;
+}
+
 void EditorWindow_send_key(Window *win, char c)
 {
     EditorWindow *self = win;
@@ -78,6 +86,11 @@ void EditorWindow_send_key(Window *win, char c)
     }
     if (self->edit_mode == 1){
         EditorWindow_insert(self, c);
+        return;
+    }
+    if (c == 8) // Backspace
+    {
+        EditorWindow_delete(self);
         return;
     }
     if (c == 's')
