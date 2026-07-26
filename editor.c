@@ -213,6 +213,45 @@ void EditorWindow_paste(EditorWindow *self){
     free(cb);
 }
 
+void EditorWindow_delete_region(EditorWindow *self){
+    if (self->selection_n == -1) return;
+    // get range
+    int i1 = self->cursor_n;
+    int j1 = self->cursor_x;
+    int i2 = self->selection_n;
+    int j2 = self->selection_x;
+    if (self->selection_n < self->cursor_n || 
+       (self->selection_n == self->cursor_n && self->selection_x < self->cursor_x)){
+        i1 = self->selection_n;
+        j1 = self->selection_x;
+        i2 = self->cursor_n;
+        j2 = self->cursor_x;
+    }
+    
+    Node * node1 = EditorWindow_get_line_number(self, i1);
+    Node * node2 = EditorWindow_get_line_number(self, i2);
+    char * tail = node2->line + j2;
+    node1->line[j1] = 0;
+    node1->length = j1;
+    Node_append(node1, tail);
+
+    node1->next = node2->next;
+    if (node2->next == NULL){
+        self->tail = node1;
+    } else {
+        node2->next->prev = node1;
+    }
+
+    self->cursor_n = i1;
+    self->cursor_x = j1;
+
+    self->selection_n = -1;
+}
+
+void EditorWindow_cut(EditorWindow *self){
+    EditorWindow_delete_region(self);
+}
+
 void EditorWindow_send_key(Window *win, char c)
 {
     EditorWindow *self = win;
@@ -308,6 +347,11 @@ void EditorWindow_send_key(Window *win, char c)
     if (c == 'v')
     {
         EditorWindow_paste(self);
+        return;
+    }
+    if (c == 'x')
+    {
+        EditorWindow_cut(self);
         return;
     }
 }
