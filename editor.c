@@ -12,6 +12,7 @@
 #include "lambda.h"
 #include "menu.h"
 #include "text_edit.h"
+#include "clipboard.h"
 
 // Editor Window
 
@@ -74,6 +75,64 @@ void EditorWindow_delete(EditorWindow *self){
     delete_char(node->line, self->cursor_x-1, node->length);
     node->length--;
     self->cursor_x--;
+}
+
+void EditorWindow_copy(EditorWindow *self){
+    if (self->selection_n == -1) return;
+    // get range
+    int i1 = self->cursor_n;
+    int j1 = self->cursor_x;
+    int i2 = self->selection_n;
+    int j2 = self->selection_x;
+    if (self->selection_n < self->cursor_n || 
+       (self->selection_n == self->cursor_n && self->selection_x < self->cursor_x)){
+        i1 = self->selection_n;
+        j1 = self->selection_x;
+        i2 = self->cursor_n;
+        j2 = self->cursor_x;
+    }
+
+    // calculate size
+    int size = 1;
+    Node * first_line = EditorWindow_get_line_number(self, i1);
+    Node * node = first_line;
+    for(int i=0;i<i2-i1+1;i++){
+        size += node->length + 1;
+        node = node->next;
+    }
+
+    // create buffer and copy data
+    char * buffer = malloc(size);
+    char * buffer_cursor = buffer;
+    node = first_line;
+    for(int i=0;i<i2-i1+1;i++){
+        if (i == 0){ // first item
+            if (i == i2-i1){ // first and last item
+                memcpy(buffer_cursor, node->line+j1, j2-j1);
+                buffer_cursor += j2-j1;
+            } else { // first item only
+                memcpy(buffer_cursor, node->line+j1, node->length-j1);
+                buffer_cursor += node->length-j1;
+                *buffer_cursor = '\n';
+                buffer_cursor++;
+            }
+        } else if (i == i2-i1){ // last item
+            memcpy(buffer_cursor, node->line, j2);
+            buffer_cursor += j2;
+        } else { // rest
+            memcpy(buffer_cursor, node->line, node->length);
+            buffer_cursor += node->length;
+            *buffer_cursor = '\n';
+            buffer_cursor++;
+        }
+        node = node->next;
+    }
+    *buffer_cursor = '\0';
+
+    clipboard_copy(buffer);
+    free(buffer);
+
+    self->selection_n = -1;
 }
 
 void EditorWindow_send_key(Window *win, char c)
@@ -165,7 +224,7 @@ void EditorWindow_send_key(Window *win, char c)
     }
     if (c == 'c')
     {
-        self->selection_n = -1;
+        EditorWindow_copy(self);
         return;
     }
 }
@@ -245,7 +304,7 @@ void EditorWindow_draw(struct Window *w, int hasFocus)
         }
         
         if (-self->win.shift + i == self->cursor_n){ // show cursor
-            bg = 27;
+            bg = 248;
             if (self->edit_mode == 1) bg = 3;
             Buffer_print(&main_buf, geo.y + i, geo.x+self->cursor_x, 1, str+self->cursor_x, 16, bg);
         }
