@@ -181,12 +181,15 @@ void tabs_scroll_wheel_down(struct Window *wg)
 }
 
 
-/*
+
 void tabs_send_sequence(struct Window *wg, const char *seq, int len)
 {
-
+    if (strcmp(seq, "\x1b[Z") == 0) { // Shift+Tab
+        Tabs *mytab = (Tabs *) wg->data;
+        tabs_cycle(mytab);
+    }
 }
-*/
+
 
 Window *Tab_new(tab_create_callback callback, int new_tab){
     Tabs *mytab = malloc(sizeof *mytab);
@@ -195,7 +198,7 @@ Window *Tab_new(tab_create_callback callback, int new_tab){
     Window *tabs = mytab;
     Window_init(tabs, -1, -1, -1, -1, -1, -1);
     tabs->send_key = tabs_send_key;
-    //tabs->send_sequence = tabs_send_sequence;
+    tabs->send_sequence = tabs_send_sequence;
     tabs->scroll_wheel_up = tabs_scroll_wheel_up;
     tabs->scroll_wheel_down = tabs_scroll_wheel_down;
 

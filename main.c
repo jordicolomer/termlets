@@ -229,7 +229,8 @@ int start()
     read(STDIN_FILENO, &c, 1);
     //LOG_INFO("read %d", c);
 
-    if (c == 11){ // Ctrl+K
+    //if (c == 11){ // Ctrl+K
+    if (c == '\t'){ // tab
       cycle_task();
       repaint();
       continue;
@@ -307,10 +308,11 @@ int start()
 
       seq[i] = 0;
 
-      //LOG_INFO("seq: %s", seq);
+      LOG_INFO("seq: %s", seq);
 
       int btn, x, y;
       char type;
+
 
       if (sscanf(seq, "[<%d;%d;%d%c", &btn, &x, &y, &type) == 4)
       {
@@ -355,7 +357,6 @@ int start()
       }
       else
       {
-        //LOG_INFO("not a mouse event");
         /* not a mouse event, probably arrow keys or other keyboard sequence */
         if (focused_cursor != NULL && focused_cursor->send_sequence != NULL)
         {
