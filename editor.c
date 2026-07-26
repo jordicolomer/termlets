@@ -157,6 +157,12 @@ void EditorWindow_send_key(Window *win, char c)
         EditorWindow_make_cursor_visible(self);
         return;
     }
+    if (c == 'p')
+    {
+        self->selection_n = self->cursor_n;
+        self->selection_x = self->cursor_x;
+        return;
+    }
 }
 
 
@@ -175,7 +181,8 @@ void EditorWindow_draw(struct Window *w, int hasFocus)
     /*Node *current = self->head;
     for (int i = 0; i < -self->win.shift; i++)
         current = current->next;*/
-    Node *current = EditorWindow_get_line_number(self, -self->win.shift);
+    int top_line = -self->win.shift;
+    Node *current = EditorWindow_get_line_number(self, top_line);
 
     while (i < geo.height)
     {
@@ -186,8 +193,43 @@ void EditorWindow_draw(struct Window *w, int hasFocus)
         char *str = "";
         if (current != NULL)
             str = current->line;
+        
+        // if in between selection, show blue bg
+        if (self->cursor_n < top_line+i && top_line+i < self->selection_n) bg = 27;
+        if (self->selection_n < top_line+i && top_line+i < self->cursor_n) bg = 27;
+
         Buffer_print(&main_buf, geo.y + i, geo.x, geo.width, str, 16, bg);
-        if (-self->win.shift + i == self->cursor_n){
+
+        if (self->selection_n == top_line+i){ // selection in line
+            int idx1 = min(self->cursor_x, self->selection_x);
+            int idx2 = max(self->cursor_x, self->selection_x);
+            if (self->selection_n < self->cursor_n){
+                idx1 = self->selection_x;
+                idx2 = current->length;
+            }
+            if (self->cursor_n < self->selection_n){
+                idx1 = 0;
+                idx2 = self->selection_x;
+            }
+            int diff = idx2 - idx1;
+            Buffer_print(&main_buf, geo.y + i, geo.x+idx1, diff, str+idx1, 16, 27);
+        }
+        if (self->cursor_n == top_line+i){ // selection in line
+            int idx1 = min(self->cursor_x, self->selection_x);
+            int idx2 = max(self->cursor_x, self->selection_x);
+            if (self->selection_n < self->cursor_n){
+                idx1 = 0;
+                idx2 = self->cursor_x;
+            }
+            if (self->cursor_n < self->selection_n){
+                idx1 = self->cursor_x;
+                idx2 = current->length;
+            }
+            int diff = idx2 - idx1;
+            Buffer_print(&main_buf, geo.y + i, geo.x+idx1, diff, str+idx1, 16, 27);
+        }
+        
+        if (-self->win.shift + i == self->cursor_n){ // show cursor
             bg = 27;
             if (self->edit_mode == 1) bg = 3;
             Buffer_print(&main_buf, geo.y + i, geo.x+self->cursor_x, 1, str+self->cursor_x, 16, bg);
@@ -212,6 +254,8 @@ EditorWindow *EditorWindow_new()
     self->cursor_n = 0;
     self->cursor_x = 0;
     self->edit_mode = 0;
+    self->selection_n = 0;
+    self->selection_x = 0;
 
     // Window *editor = (Window *) self;
     self->win.draw = EditorWindow_draw;
