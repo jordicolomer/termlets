@@ -11,6 +11,7 @@
 #include "taskbar.h"
 #include "lambda.h"
 #include "menu.h"
+#include "text_edit.h"
 
 // Editor Window
 
@@ -44,9 +45,41 @@ Node * EditorWindow_get_line_number(EditorWindow *self, int number){
     return current;
 }
 
+void double_capacity(Node *node)
+{
+    size_t new_capacity = node->capacity * 2;
+
+    char *new_line = realloc(node->line, new_capacity);
+    if (new_line == NULL) {
+        return; // or handle allocation failure
+    }
+
+    node->line = new_line;
+    node->capacity = new_capacity;
+}
+
+void EditorWindow_insert(EditorWindow *self, char c){
+    Node * node = EditorWindow_get_line_number(self, self->cursor_n);
+    if (node->capacity <= node->length+1){
+        double_capacity(node);
+    }
+    insert_char(node->line, self->cursor_x, c, node->length, node->capacity);
+    node->length++;
+    self->cursor_x++;
+}
+
 void EditorWindow_send_key(Window *win, char c)
 {
     EditorWindow *self = win;
+    if (c == ';')
+    {
+        self->edit_mode = 1 - self->edit_mode;
+        return;
+    }
+    if (self->edit_mode == 1){
+        EditorWindow_insert(self, c);
+        return;
+    }
     if (c == 's')
     {
         self->cursor_x = 0;
@@ -142,7 +175,9 @@ void EditorWindow_draw(struct Window *w, int hasFocus)
             str = current->line;
         Buffer_print(&main_buf, geo.y + i, geo.x, geo.width, str, 16, bg);
         if (-self->win.shift + i == self->cursor_n){
-            Buffer_print(&main_buf, geo.y + i, geo.x+self->cursor_x, 1, str+self->cursor_x, 16, 27);
+            bg = 27;
+            if (self->edit_mode == 1) bg = 3;
+            Buffer_print(&main_buf, geo.y + i, geo.x+self->cursor_x, 1, str+self->cursor_x, 16, bg);
         }
         i++;
         if (current != NULL)
@@ -163,6 +198,7 @@ EditorWindow *EditorWindow_new()
     self->top_n = 0;
     self->cursor_n = 0;
     self->cursor_x = 0;
+    self->edit_mode = 0;
 
     // Window *editor = (Window *) self;
     self->win.draw = EditorWindow_draw;
@@ -213,6 +249,8 @@ Node *create_node(const char *text)
     }
     replace_nonprintable(text);
     new_node->line = strdup(text); // copy string
+    new_node->length = strlen(text);
+    new_node->capacity = new_node->length + 1;
     new_node->next = NULL;
     new_node->prev = NULL;
 

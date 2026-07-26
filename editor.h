@@ -7,6 +7,8 @@ typedef struct Node {
     char *line;
     struct Node *next;
     struct Node *prev;
+    size_t length;   // characters, excluding '\0'
+    size_t capacity; // allocated bytes
 } Node;
 
 typedef struct EditorWindow {
@@ -20,6 +22,7 @@ typedef struct EditorWindow {
     int cursor_n; // what line has the cursor
     int cursor_x; // what column has the cursor
     int n_lines; // total number of lines
+    int edit_mode;
 } EditorWindow;
 
 typedef struct EditorFrame {
