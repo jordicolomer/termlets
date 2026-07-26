@@ -14,11 +14,12 @@ typedef struct EditorWindow {
     Window *slider;
     Node *head;
     Node *tail;
-    Node *top;
-    int top_n;
+    Node *top; // pointer to top_n. todo: remove this
+    int top_n; // what line is shown as first line
     //Node *cursor;
-    int cursor_n;
-    int n_lines;
+    int cursor_n; // what line has the cursor
+    int cursor_x; // what column has the cursor
+    int n_lines; // total number of lines
 } EditorWindow;
 
 typedef struct EditorFrame {

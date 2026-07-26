@@ -86,15 +86,17 @@ void EditorWindow_draw(struct Window *w, int hasFocus)
     while (i < geo.height)
     {
         int bg = 255;
-        if (-self->win.shift + i == self->cursor_n)
-            bg = 27;
         if (bg >= 232 + 4 && !hasFocus)
             bg -= 4;
 
         char *str = "";
         if (current != NULL)
             str = current->line;
-        Buffer_print(&main_buf, geo.y + i++, geo.x, geo.width, str, 16, bg);
+        Buffer_print(&main_buf, geo.y + i, geo.x, geo.width, str, 16, bg);
+        if (-self->win.shift + i == self->cursor_n){
+            Buffer_print(&main_buf, geo.y + i, geo.x+self->cursor_x, 1, str+self->cursor_x, 16, 27);
+        }
+        i++;
         if (current != NULL)
             current = current->next;
     }
@@ -110,6 +112,9 @@ EditorWindow *EditorWindow_new()
     self->win.left = 0;
     self->win.right = 0;
     self->win.id = "editor tab";
+    self->top_n = 0;
+    self->cursor_n = 0;
+    self->cursor_x = 0;
 
     // Window *editor = (Window *) self;
     self->win.draw = EditorWindow_draw;
