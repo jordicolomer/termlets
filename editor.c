@@ -201,6 +201,7 @@ void EditorWindow_paste(EditorWindow *self){
         line = end + 1;
         i += 1;
     }
+    self->cursor_x = current->length;
     Node_append(current, tail);
     free(tail);
     
