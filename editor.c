@@ -34,38 +34,85 @@ void EditorWindow_make_cursor_visible(EditorWindow *self)
         self->win.shift = height - 1 - self->cursor_n;
 }
 
+Node * EditorWindow_get_line_number(EditorWindow *self, int number){
+    // todo: make this efficient
+    Node *current = self->head;
+    for (int i = 0; i < number; i++){
+        if (current == NULL) return current;
+        current = current->next;
+    }
+    return current;
+}
+
 void EditorWindow_send_key(Window *win, char c)
 {
     EditorWindow *self = win;
-    if (c == 106)
-    { // j
+    if (c == 's')
+    {
+        self->cursor_x = 0;
+        return;
+    }
+    if (c == 'd')
+    {
+        self->cursor_x = max(self->cursor_x - 1, 0);
+        return;
+    }
+    if (c == 'f')
+    {
+        Node * node = EditorWindow_get_line_number(self, self->cursor_n);
+        int mx = strlen(node->line);
+        self->cursor_x = min(self->cursor_x + 1, mx);
+        return;
+    }
+    if (c == 'g')
+    {
+        Node * node = EditorWindow_get_line_number(self, self->cursor_n);
+        int mx = strlen(node->line);
+        self->cursor_x = mx;
+        return;
+    }
+    if (c == 'j')
+    {
         self->cursor_n++;
         self->cursor_n = min(self->cursor_n, self->n_lines - 1);
         EditorWindow_make_cursor_visible(self);
         return;
     }
-    if (c == 107)
-    { // k
+    if (c == 'h')
+    {
+        self->cursor_n = self->n_lines - 1;
+        EditorWindow_make_cursor_visible(self);
+        return;
+    }
+    if (c == 'k')
+    {
         self->cursor_n--;
         self->cursor_n = max(self->cursor_n, 0);
         EditorWindow_make_cursor_visible(self);
         return;
     }
-    if (c == 117)
-    { // u
+    if (c == 'l')
+    {
+        self->cursor_n = 0;
+        EditorWindow_make_cursor_visible(self);
+        return;
+    }
+    if (c == 'u')
+    {
         self->cursor_n += win->calculated.height;
         self->cursor_n = min(self->cursor_n, self->n_lines - 1);
         EditorWindow_make_cursor_visible(self);
         return;
     }
-    if (c == 105)
-    { // i
+    if (c == 'i')
+    {
         self->cursor_n -= win->calculated.height;
         self->cursor_n = max(self->cursor_n, 0);
         EditorWindow_make_cursor_visible(self);
         return;
     }
 }
+
 
 void EditorWindow_draw(struct Window *w, int hasFocus)
 {
@@ -79,9 +126,10 @@ void EditorWindow_draw(struct Window *w, int hasFocus)
     Geometry geo = w->calculated;
     int i = 0;
     // Node * current = self->top;
-    Node *current = self->head;
+    /*Node *current = self->head;
     for (int i = 0; i < -self->win.shift; i++)
-        current = current->next;
+        current = current->next;*/
+    Node *current = EditorWindow_get_line_number(self, -self->win.shift);
 
     while (i < geo.height)
     {
@@ -220,7 +268,7 @@ void load_file(EditorWindow *self, const char *filename)
 void EditorWindow_open_file(EditorWindow *editor_window, char *file_path)
 {
     load_file(editor_window, file_path);
-    editor_window->top = editor_window->head;
+    //editor_window->top = editor_window->head;
     editor_window->slider->id = file_path;
     LOG_INFO("Editor_open_file %s", file_path);
 }

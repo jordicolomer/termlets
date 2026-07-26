@@ -14,7 +14,7 @@ typedef struct EditorWindow {
     Window *slider;
     Node *head;
     Node *tail;
-    Node *top; // pointer to top_n. todo: remove this
+    //Node *top; // pointer to top_n. todo: remove this
     int top_n; // what line is shown as first line
     //Node *cursor;
     int cursor_n; // what line has the cursor
