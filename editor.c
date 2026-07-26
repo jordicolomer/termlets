@@ -135,37 +135,79 @@ void EditorWindow_copy(EditorWindow *self){
     self->selection_n = -1;
 }
 
+void Node_append(Node *node, char *text)
+{
+    if (!node || !text || *text == '\0')
+        return;
+
+    size_t text_len = strlen(text);
+
+    // Check if we need to grow the buffer
+    if (node->length + text_len + 1 > node->capacity)
+    {
+        // Double the capacity or allocate enough for the new text
+        size_t new_capacity = node->capacity * 2;
+        if (new_capacity < node->length + text_len + 1)
+            new_capacity = node->length + text_len + 1 + 16; // small extra padding
+
+        char *new_line = realloc(node->line, new_capacity);
+        if (!new_line)
+            return; // allocation failed
+
+        node->line = new_line;
+        node->capacity = new_capacity;
+    }
+
+    // Append the text
+    memcpy(node->line + node->length, text, text_len);
+    node->length += text_len;
+    node->line[node->length] = '\0';
+}
+
 void EditorWindow_paste(EditorWindow *self){
-    Node * first_line = EditorWindow_get_line_number(self, self->cursor_n);
-    Node * next_line = first_line->next;
+    Node * current = EditorWindow_get_line_number(self, self->cursor_n);
+    Node * next_line = current->next;
     char * cb = clipboard_paste_apple();
 
+    char * tail = strdup(current->line + self->cursor_x);
+    current->line[self->cursor_x] = '\0';
+    current->length = self->cursor_x;
+
     char *line = cb;
-    //Node *new_node = NULL;
-    while (line != NULL && *line != '\0') {
+    int i = 0;
+    while (line != NULL/* && *line != '\0'*/) {
         char *end = strchr(line, '\n');
 
         if (end != NULL) {
             *end = '\0';  // temporarily terminate this line
         }
 
-        //printf("LINE: '%s'\n", line);
-        Node *new_node = new_node = malloc(sizeof(Node));
-        new_node->line = strdup(line);
-        new_node->length = strlen(line);
-        new_node->capacity = new_node->length+1;
-        first_line->next = new_node;
-        new_node->prev = first_line;
-        first_line = new_node;
+        if (i == 0){ // first line
+            Node_append(current, line);
+        } else {
+            Node *new_node = malloc(sizeof(Node));
+            new_node->line = strdup(line);
+            new_node->length = strlen(line);
+            new_node->capacity = new_node->length+1;
+            current->next = new_node;
+            new_node->prev = current;
+            current = new_node;
+        }
 
-
-        if (end == NULL)
+        if (end == NULL || *line == '\0'){
             break;
+        }
 
         line = end + 1;
+        i += 1;
     }
-    first_line->next = next_line;
-    next_line->prev = first_line;
+    Node_append(current, tail);
+    free(tail);
+    
+    current->next = next_line;
+    next_line->prev = current;
+
+    self->cursor_n += i;
 
     free(cb);
 }
