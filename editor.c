@@ -135,6 +135,41 @@ void EditorWindow_copy(EditorWindow *self){
     self->selection_n = -1;
 }
 
+void EditorWindow_paste(EditorWindow *self){
+    Node * first_line = EditorWindow_get_line_number(self, self->cursor_n);
+    Node * next_line = first_line->next;
+    char * cb = clipboard_paste_apple();
+
+    char *line = cb;
+    //Node *new_node = NULL;
+    while (line != NULL && *line != '\0') {
+        char *end = strchr(line, '\n');
+
+        if (end != NULL) {
+            *end = '\0';  // temporarily terminate this line
+        }
+
+        //printf("LINE: '%s'\n", line);
+        Node *new_node = new_node = malloc(sizeof(Node));
+        new_node->line = strdup(line);
+        new_node->length = strlen(line);
+        new_node->capacity = new_node->length+1;
+        first_line->next = new_node;
+        new_node->prev = first_line;
+        first_line = new_node;
+
+
+        if (end == NULL)
+            break;
+
+        line = end + 1;
+    }
+    first_line->next = next_line;
+    next_line->prev = first_line;
+
+    free(cb);
+}
+
 void EditorWindow_send_key(Window *win, char c)
 {
     EditorWindow *self = win;
@@ -225,6 +260,11 @@ void EditorWindow_send_key(Window *win, char c)
     if (c == 'c')
     {
         EditorWindow_copy(self);
+        return;
+    }
+    if (c == 'v')
+    {
+        EditorWindow_paste(self);
         return;
     }
 }
