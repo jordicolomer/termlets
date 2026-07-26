@@ -163,6 +163,11 @@ void EditorWindow_send_key(Window *win, char c)
         self->selection_x = self->cursor_x;
         return;
     }
+    if (c == 'c')
+    {
+        self->selection_n = -1;
+        return;
+    }
 }
 
 
@@ -195,38 +200,48 @@ void EditorWindow_draw(struct Window *w, int hasFocus)
             str = current->line;
         
         // if in between selection, show blue bg
-        if (self->cursor_n < top_line+i && top_line+i < self->selection_n) bg = 27;
-        if (self->selection_n < top_line+i && top_line+i < self->cursor_n) bg = 27;
+        if (self->selection_n != -1){
+            if (self->cursor_n < top_line+i && top_line+i < self->selection_n) bg = 27;
+            if (self->selection_n < top_line+i && top_line+i < self->cursor_n) bg = 27;
+        }
 
         Buffer_print(&main_buf, geo.y + i, geo.x, geo.width, str, 16, bg);
 
-        if (self->selection_n == top_line+i){ // selection in line
-            int idx1 = min(self->cursor_x, self->selection_x);
-            int idx2 = max(self->cursor_x, self->selection_x);
-            if (self->selection_n < self->cursor_n){
-                idx1 = self->selection_x;
-                idx2 = current->length;
+        if (self->selection_n != -1){
+            if (self->selection_n == top_line+i){ // line with selection
+                // generic case (both markers in same line)
+                int idx1 = min(self->cursor_x, self->selection_x);
+                int idx2 = max(self->cursor_x, self->selection_x);
+                // if selection marker above
+                if (self->selection_n < self->cursor_n){
+                    idx1 = self->selection_x;
+                    idx2 = current->length;
+                }
+                // if selection marker below
+                if (self->cursor_n < self->selection_n){
+                    idx1 = 0;
+                    idx2 = self->selection_x;
+                }
+                int diff = idx2 - idx1;
+                Buffer_print(&main_buf, geo.y + i, geo.x+idx1, diff, str+idx1, 16, 27);
             }
-            if (self->cursor_n < self->selection_n){
-                idx1 = 0;
-                idx2 = self->selection_x;
+            if (self->cursor_n == top_line+i){ // line with cursor
+                // generic case (both markers in same line)
+                int idx1 = min(self->cursor_x, self->selection_x);
+                int idx2 = max(self->cursor_x, self->selection_x);
+                // if cursor above
+                if (self->selection_n < self->cursor_n){
+                    idx1 = 0;
+                    idx2 = self->cursor_x;
+                }
+                // if cursor below
+                if (self->cursor_n < self->selection_n){
+                    idx1 = self->cursor_x;
+                    idx2 = current->length;
+                }
+                int diff = idx2 - idx1;
+                Buffer_print(&main_buf, geo.y + i, geo.x+idx1, diff, str+idx1, 16, 27);
             }
-            int diff = idx2 - idx1;
-            Buffer_print(&main_buf, geo.y + i, geo.x+idx1, diff, str+idx1, 16, 27);
-        }
-        if (self->cursor_n == top_line+i){ // selection in line
-            int idx1 = min(self->cursor_x, self->selection_x);
-            int idx2 = max(self->cursor_x, self->selection_x);
-            if (self->selection_n < self->cursor_n){
-                idx1 = 0;
-                idx2 = self->cursor_x;
-            }
-            if (self->cursor_n < self->selection_n){
-                idx1 = self->cursor_x;
-                idx2 = current->length;
-            }
-            int diff = idx2 - idx1;
-            Buffer_print(&main_buf, geo.y + i, geo.x+idx1, diff, str+idx1, 16, 27);
         }
         
         if (-self->win.shift + i == self->cursor_n){ // show cursor
@@ -254,7 +269,7 @@ EditorWindow *EditorWindow_new()
     self->cursor_n = 0;
     self->cursor_x = 0;
     self->edit_mode = 0;
-    self->selection_n = 0;
+    self->selection_n = -1;
     self->selection_x = 0;
 
     // Window *editor = (Window *) self;
