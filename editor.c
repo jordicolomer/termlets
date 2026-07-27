@@ -319,6 +319,103 @@ void EditorWindow_fix_cursor_x(EditorWindow *self){
     }
 }
 
+
+#include <ctype.h>
+void replace_nonprintable(char *str)
+{
+    while (*str)
+    {
+        if (!isprint((unsigned char)*str))
+        {
+            *str = '?';
+        }
+        str++;
+    }
+}
+
+Node *create_node(const char *text)
+{
+    Node *new_node = malloc(sizeof(Node));
+    if (!new_node)
+    {
+        perror("malloc failed");
+        exit(1);
+    }
+    replace_nonprintable(text);
+    new_node->line = strdup(text); // copy string
+    new_node->length = strlen(text);
+    new_node->capacity = new_node->length + 1;
+    new_node->next = NULL;
+    new_node->prev = NULL;
+
+    return new_node;
+}
+
+void append(EditorWindow *self, const char *text)
+{
+    Node *new_node = create_node(text);
+
+    if (self->head == NULL)
+    {
+        self->head = new_node;
+        // return;
+    }
+    if (self->tail != NULL)
+        self->tail->next = new_node;
+    new_node->prev = self->tail;
+    self->tail = new_node;
+}
+
+#define MAX_LINE 10240
+
+void load_file(EditorWindow *self, const char *filename)
+{
+    Window_set_id_from_path(self, "📝", filename);
+    FILE *file = fopen(filename, "r");
+    if (!file)
+    {
+        perror("fopen failed");
+        return;
+    }
+
+    char buffer[MAX_LINE];
+
+    while (fgets(buffer, MAX_LINE, file))
+    {
+        // Optional: remove newline
+        buffer[strcspn(buffer, "\n")] = '\0';
+
+        append(self, buffer);
+        self->n_lines++;
+    }
+    if (self->n_lines == 0){
+        append(self, "");
+        self->n_lines++;
+    }
+
+    fclose(file);
+
+    self->win.virtual_height = self->n_lines;
+}
+
+void EditorWindow_open_file(EditorWindow *editor_window, char *file_path)
+{
+    load_file(editor_window, file_path);
+    editor_window->slider->id = file_path;
+    editor_window->file_path = strdup(file_path);
+}
+
+void EditorWindow_reload(EditorWindow *editor_window)
+{
+    editor_window->head = NULL;
+    editor_window->tail = NULL;
+    editor_window->cursor_n = 0;
+    editor_window->cursor_x = 0;
+    editor_window->n_lines = 0;
+    editor_window->selection_n = -1;
+    EditorWindow_open_file(editor_window, editor_window->file_path);
+}
+
 void EditorWindow_send_key(Window *win, char c)
 {
     EditorWindow *self = win;
@@ -434,6 +531,11 @@ void EditorWindow_send_key(Window *win, char c)
     if (c == 'w')
     {
         EditorWindow_save(self);
+        return;
+    }
+    if (c == 'r')
+    {
+        EditorWindow_reload(self);
         return;
     }
 }
@@ -566,99 +668,20 @@ Window *EditorWindow_new_tab()
     return slider;
 }
 
-#include <ctype.h>
-void replace_nonprintable(char *str)
-{
-    while (*str)
-    {
-        if (!isprint((unsigned char)*str))
-        {
-            *str = '?';
-        }
-        str++;
-    }
-}
-
-Node *create_node(const char *text)
-{
-    Node *new_node = malloc(sizeof(Node));
-    if (!new_node)
-    {
-        perror("malloc failed");
-        exit(1);
-    }
-    replace_nonprintable(text);
-    new_node->line = strdup(text); // copy string
-    new_node->length = strlen(text);
-    new_node->capacity = new_node->length + 1;
-    new_node->next = NULL;
-    new_node->prev = NULL;
-
-    return new_node;
-}
-
-void append(EditorWindow *self, const char *text)
-{
-    Node *new_node = create_node(text);
-
-    if (self->head == NULL)
-    {
-        self->head = new_node;
-        // return;
-    }
-    if (self->tail != NULL)
-        self->tail->next = new_node;
-    new_node->prev = self->tail;
-    self->tail = new_node;
-}
-
-#define MAX_LINE 10240
-
-void load_file(EditorWindow *self, const char *filename)
-{
-    Window_set_id_from_path(self, "📝", filename);
-    FILE *file = fopen(filename, "r");
-    if (!file)
-    {
-        perror("fopen failed");
-        return;
-    }
-
-    // Node *head = NULL;
-    // Node *tail = NULL;
-    char buffer[MAX_LINE];
-
-    while (fgets(buffer, MAX_LINE, file))
-    {
-        // Optional: remove newline
-        buffer[strcspn(buffer, "\n")] = '\0';
-
-        append(self, buffer);
-        self->n_lines++;
-    }
-    if (self->n_lines == 0){
-        append(self, "");
-        self->n_lines++;
-    }
-
-    fclose(file);
-
-    self->win.virtual_height = self->n_lines;
-    // return head;
-}
-
-void EditorWindow_open_file(EditorWindow *editor_window, char *file_path)
-{
-    load_file(editor_window, file_path);
-    //editor_window->top = editor_window->head;
-    editor_window->slider->id = file_path;
-    //LOG_INFO("Editor_open_file %s", file_path);
-    editor_window->file_path = strdup(file_path);
-}
 
 // Editor Frame
 
 EditorFrame *last_frame;
+
+EditorWindow *Editor_get_focused_window(EditorFrame *self){
+    Tab * tab = self->tabs->selected_tab;
+    return tab->child->head;
+}
+
+void Editor_on_selected(EditorFrame *self, void fn()){
+    EditorWindow * editor = Editor_get_focused_window(self);
+    fn(editor);
+}
 
 Window *Editor_menu_new(EditorFrame *self)
 {
@@ -675,8 +698,9 @@ Window *Editor_menu(EditorFrame *self)
     Window *menu = Menu_create_horizontal();
 
     Window *file = Menu_create_vertical(self);
-    Menu_add_element(file, " 📄 New   Ctrl+N", create_lambda(Editor_menu_new, 1, self));
-    Menu_add_element(file, " ❌ Close Ctrl+W", create_lambda(Editor_menu_new, 1, self));
+    Menu_add_element(file, " 📄 New    Ctrl+N", create_lambda(Editor_menu_new, 1, self));
+    Menu_add_element(file, " 🔄 Reload Ctrl+R", create_lambda(Editor_on_selected, 2, self, EditorWindow_reload));
+    Menu_add_element(file, " ❌ Close  Ctrl+W", create_lambda(Editor_menu_new, 1, self));
     Menu_add_element(file, "", NULL);
     Menu_add_submenu(menu, " File ", file);
 
@@ -741,6 +765,7 @@ Window *Editor_new(int left, int right, int top, int bottom, int width, int heig
 
 void Editor_open_file(EditorFrame *editor_frame, char *file_path)
 {
+    // if file already been opened, give focus
     Tab * tab = editor_frame->tabs->first;
     while(tab != NULL){
         EditorWindow * child = tab->child->head;
@@ -751,6 +776,7 @@ void Editor_open_file(EditorFrame *editor_frame, char *file_path)
         tab = tab->next;
     }
 
+    // otherwise load new file
     Window *slider = tabs_new_tab(editor_frame->tabs);
     EditorWindow_open_file(latestEditorWindow, file_path);
 }
