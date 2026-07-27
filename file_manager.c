@@ -532,7 +532,7 @@ void FileExplorer_send_key(Window * win, char c)
         item_clicked(selected->head, 0, 0);
         return;
     }
-    if (c == 111){ // o
+    if (c == 'e'){
         Window * selected = self->selected;
         //item_clicked(selected, 0, 0);
         char * file_path = selected->data2;

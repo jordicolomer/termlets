@@ -260,10 +260,39 @@ void EditorWindow_save(EditorWindow *self){
 
     Node *current = self->head;
     while(current != NULL){
+        //LOG_INFO("EditorWindow_save %s", current->line);
         fputs(current->line, file);
         current = current->next;
         if (current != NULL) fputc('\n', file);
     }
+    fclose(file);
+}
+
+void EditorWindow_newline(EditorWindow *self){
+    Node * node = EditorWindow_get_line_number(self, self->cursor_n);
+    Node * next = node->next;
+
+    Node *new_node = malloc(sizeof(Node));
+    if (!new_node)
+    {
+        perror("malloc failed");
+        return;
+    }
+    node->next = new_node;
+
+    new_node->line = strdup(node->line + self->cursor_x);
+    new_node->length = strlen(new_node->line);
+    new_node->capacity = new_node->length + 1;
+    new_node->next = next;
+    new_node->prev = node;
+
+    if (next == NULL) self->tail = new_node;
+    else next->prev = new_node;
+
+    node->line[self->cursor_x] = '\0';
+    node->length = self->cursor_x;
+
+    self->n_lines++;
 }
 
 void EditorWindow_fix_cursor_x(EditorWindow *self){
@@ -288,6 +317,11 @@ void EditorWindow_send_key(Window *win, char c)
     if (c == 8) // Backspace
     {
         EditorWindow_delete(self);
+        return;
+    }
+    if (c == 13) // Carriage Return (Enter)
+    {
+        EditorWindow_newline(self);
         return;
     }
     if (c == 's')
