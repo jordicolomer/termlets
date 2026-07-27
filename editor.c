@@ -131,8 +131,6 @@ void EditorWindow_copy(EditorWindow *self){
 
     clipboard_copy(buffer);
     free(buffer);
-
-    self->selection_n = -1;
 }
 
 void Node_append(Node *node, char *text)
@@ -249,7 +247,15 @@ void EditorWindow_delete_region(EditorWindow *self){
 }
 
 void EditorWindow_cut(EditorWindow *self){
+    EditorWindow_copy(self);
     EditorWindow_delete_region(self);
+}
+
+void EditorWindow_fix_cursor_x(EditorWindow *self){
+    Node * node = EditorWindow_get_line_number(self, self->cursor_n);
+    if (node->length < self->cursor_x){
+        self->cursor_x = node->length;
+    }
 }
 
 void EditorWindow_send_key(Window *win, char c)
@@ -297,12 +303,14 @@ void EditorWindow_send_key(Window *win, char c)
     {
         self->cursor_n++;
         self->cursor_n = min(self->cursor_n, self->n_lines - 1);
+        EditorWindow_fix_cursor_x(self);
         EditorWindow_make_cursor_visible(self);
         return;
     }
     if (c == 'h')
     {
         self->cursor_n = self->n_lines - 1;
+        EditorWindow_fix_cursor_x(self);
         EditorWindow_make_cursor_visible(self);
         return;
     }
@@ -310,12 +318,14 @@ void EditorWindow_send_key(Window *win, char c)
     {
         self->cursor_n--;
         self->cursor_n = max(self->cursor_n, 0);
+        EditorWindow_fix_cursor_x(self);
         EditorWindow_make_cursor_visible(self);
         return;
     }
     if (c == 'l')
     {
         self->cursor_n = 0;
+        EditorWindow_fix_cursor_x(self);
         EditorWindow_make_cursor_visible(self);
         return;
     }
@@ -342,6 +352,7 @@ void EditorWindow_send_key(Window *win, char c)
     if (c == 'c')
     {
         EditorWindow_copy(self);
+        self->selection_n = -1;
         return;
     }
     if (c == 'v')

@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <sys/stat.h>
 
 int copy_file(const char *src, const char *dst)
 {
@@ -27,4 +28,10 @@ int copy_file(const char *src, const char *dst)
     fclose(out);
 
     return ferror(in) ? -1 : 0;
+}
+
+int file_exists(const char *path)
+{
+    struct stat st;
+    return stat(path, &st) == 0;
 }

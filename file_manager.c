@@ -4,6 +4,11 @@
 #include <dirent.h>
 #include <time.h>
 #include <errno.h>
+#include <limits.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/stat.h>
 
 #include "window.h"
 #include "frame.h"
@@ -19,6 +24,7 @@
 #include "dialog.h"
 #include "file_operations.h"
 #include "text_edit.h"
+#include "mystring.h"
 
 int ends_with(const char *str, const char *suffix)
 {
@@ -378,6 +384,41 @@ void FileExplorer_up_one_level(ExplorerWindow * self){
   get_parent(s);
   FileExplorer_list_files(self, s);
   free(s);
+}
+
+void FileExplorer_new_file(ExplorerWindow * self){
+  // find free filename
+  char path[PATH_MAX];
+  int n = 1;
+  while (1)
+  {
+      if (n == 1)
+      {
+          snprintf(path, sizeof(path), "%s/new file.txt", self->path);
+      }
+      else
+      {
+          snprintf(path, sizeof(path), "%s/new file %d.txt", self->path, n);
+      }
+
+      if (!file_exists(path))
+      {
+          //printf("Available filename: %s\n", path);
+          break;
+      }
+      n++;
+  }
+
+
+  // create file
+  FILE *file = fopen(path, "w");
+  if (file == NULL) {
+      perror("fopen");
+      return;
+  }
+  fclose(file);
+
+  FileExplorer_refresh(self);
 }
 
 void FileExplorer_copy_name(ExplorerWindow * self){
@@ -771,7 +812,7 @@ Window *FileExplorer_menu(ExplorerFrame *self)
     Window *menu = Menu_create_horizontal();
 
     Window *file = Menu_create_vertical(self);
-    Menu_add_element(file, " 📄 New File   Ctrl+N", create_lambda(FileExplorer_menu_new, 1, self));
+    Menu_add_element(file, " 📄 New File   Ctrl+N", create_lambda(ExplorerFrame_on_selected, 2, self, FileExplorer_new_file));
     Menu_add_element(file, " 📁 New Folder Ctrl+N", create_lambda(FileExplorer_menu_new, 1, self));
     Menu_add_element(file, "    New Window Ctrl+N", create_lambda(file_manager_new, 0));
     Menu_add_element(file, "    New Tab    Ctrl+N", create_lambda(tabs_new_tab, 1, self->tabs));
