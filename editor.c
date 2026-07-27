@@ -251,6 +251,21 @@ void EditorWindow_cut(EditorWindow *self){
     EditorWindow_delete_region(self);
 }
 
+void EditorWindow_save(EditorWindow *self){
+    FILE *file = fopen(self->file_path, "w");
+    if (file == NULL) {
+        perror("fopen");
+        return;
+    }
+
+    Node *current = self->head;
+    while(current != NULL){
+        fputs(current->line, file);
+        current = current->next;
+        if (current != NULL) fputc('\n', file);
+    }
+}
+
 void EditorWindow_fix_cursor_x(EditorWindow *self){
     Node * node = EditorWindow_get_line_number(self, self->cursor_n);
     if (node->length < self->cursor_x){
@@ -363,6 +378,11 @@ void EditorWindow_send_key(Window *win, char c)
     if (c == 'x')
     {
         EditorWindow_cut(self);
+        return;
+    }
+    if (c == 'w')
+    {
+        EditorWindow_save(self);
         return;
     }
 }
@@ -577,7 +597,8 @@ void EditorWindow_open_file(EditorWindow *editor_window, char *file_path)
     load_file(editor_window, file_path);
     //editor_window->top = editor_window->head;
     editor_window->slider->id = file_path;
-    LOG_INFO("Editor_open_file %s", file_path);
+    //LOG_INFO("Editor_open_file %s", file_path);
+    editor_window->file_path = strdup(file_path);
 }
 
 // Editor Frame

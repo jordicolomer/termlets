@@ -25,6 +25,7 @@ typedef struct EditorWindow {
     int edit_mode;
     int selection_n; // what line has the selection marker. -1 means no marker
     int selection_x; // what column has the selection marker
+    char * file_path;
 } EditorWindow;
 
 typedef struct EditorFrame {
