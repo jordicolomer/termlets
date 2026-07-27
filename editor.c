@@ -327,10 +327,6 @@ void EditorWindow_send_key(Window *win, char c)
         self->edit_mode = 1 - self->edit_mode;
         return;
     }
-    if (self->edit_mode == 1){
-        EditorWindow_insert(self, c);
-        return;
-    }
     if (c == 8) // Backspace
     {
         EditorWindow_delete(self);
@@ -339,6 +335,10 @@ void EditorWindow_send_key(Window *win, char c)
     if (c == 13) // Carriage Return (Enter)
     {
         EditorWindow_newline(self);
+        return;
+    }
+    if (self->edit_mode == 1){
+        EditorWindow_insert(self, c);
         return;
     }
     if (c == 's')
@@ -634,6 +634,10 @@ void load_file(EditorWindow *self, const char *filename)
         buffer[strcspn(buffer, "\n")] = '\0';
 
         append(self, buffer);
+        self->n_lines++;
+    }
+    if (self->n_lines == 0){
+        append(self, "");
         self->n_lines++;
     }
 
