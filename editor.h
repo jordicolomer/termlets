@@ -30,7 +30,7 @@ typedef struct EditorWindow {
 
 typedef struct EditorFrame {
     struct Window win;
-    Window *tabs;
+    Tabs *tabs;
 } EditorFrame;
 
 Window *Editor_new(int left, int right, int top, int bottom, int width, int height);

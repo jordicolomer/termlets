@@ -693,7 +693,7 @@ Window *Editor_menu(EditorFrame *self)
     Menu_add_element(view, "", NULL);
     Menu_add_submenu(menu, " View ", view);
 
-    Menu_add_windows(menu, " Window ", self->tabs->data, self);
+    Menu_add_windows(menu, " Window ", self->tabs->win.data, self);
 
     return menu;
 }
@@ -741,9 +741,17 @@ Window *Editor_new(int left, int right, int top, int bottom, int width, int heig
 
 void Editor_open_file(EditorFrame *editor_frame, char *file_path)
 {
+    Tab * tab = editor_frame->tabs->first;
+    while(tab != NULL){
+        EditorWindow * child = tab->child->head;
+        if (strcmp(file_path, child->file_path) == 0) {
+            tab_select(tab);
+            return;
+        }
+        tab = tab->next;
+    }
+
     Window *slider = tabs_new_tab(editor_frame->tabs);
-    // EditorWindow * editor_window = slider->focused;
-    // EditorWindow * editor_window = tabs_new_tab(editor_frame->tabs);
     EditorWindow_open_file(latestEditorWindow, file_path);
 }
 
