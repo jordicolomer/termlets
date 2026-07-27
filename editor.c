@@ -69,12 +69,56 @@ void EditorWindow_insert(EditorWindow *self, char c){
     self->cursor_x++;
 }
 
+void Node_append(Node *node, char *text)
+{
+    if (!node || !text || *text == '\0')
+        return;
+
+    size_t text_len = strlen(text);
+
+    // Check if we need to grow the buffer
+    if (node->length + text_len + 1 > node->capacity)
+    {
+        // Double the capacity or allocate enough for the new text
+        size_t new_capacity = node->capacity * 2;
+        if (new_capacity < node->length + text_len + 1)
+            new_capacity = node->length + text_len + 1 + 16; // small extra padding
+
+        char *new_line = realloc(node->line, new_capacity);
+        if (!new_line)
+            return; // allocation failed
+
+        node->line = new_line;
+        node->capacity = new_capacity;
+    }
+
+    // Append the text
+    memcpy(node->line + node->length, text, text_len);
+    node->length += text_len;
+    node->line[node->length] = '\0';
+}
+
 void EditorWindow_delete(EditorWindow *self){
-    if (self->cursor_x == 0) return;
-    Node * node = EditorWindow_get_line_number(self, self->cursor_n);
-    delete_char(node->line, self->cursor_x-1, node->length);
-    node->length--;
-    self->cursor_x--;
+    if (self->cursor_x == 0){
+        if (self->cursor_n != 0){
+            Node * node = EditorWindow_get_line_number(self, self->cursor_n);
+            Node * next = node->next;
+            Node * prev = node->prev;
+            self->cursor_x = prev->length;
+            self->cursor_n--;
+            self->n_lines--;
+            Node_append(prev, node->line);
+            prev->next = next;
+            if (next == NULL) self->tail = next;
+            else next->prev = prev;
+        }
+        return;
+    } else {
+        Node * node = EditorWindow_get_line_number(self, self->cursor_n);
+        delete_char(node->line, self->cursor_x-1, node->length);
+        node->length--;
+        self->cursor_x--;
+    }
 }
 
 void EditorWindow_copy(EditorWindow *self){
@@ -131,35 +175,6 @@ void EditorWindow_copy(EditorWindow *self){
 
     clipboard_copy(buffer);
     free(buffer);
-}
-
-void Node_append(Node *node, char *text)
-{
-    if (!node || !text || *text == '\0')
-        return;
-
-    size_t text_len = strlen(text);
-
-    // Check if we need to grow the buffer
-    if (node->length + text_len + 1 > node->capacity)
-    {
-        // Double the capacity or allocate enough for the new text
-        size_t new_capacity = node->capacity * 2;
-        if (new_capacity < node->length + text_len + 1)
-            new_capacity = node->length + text_len + 1 + 16; // small extra padding
-
-        char *new_line = realloc(node->line, new_capacity);
-        if (!new_line)
-            return; // allocation failed
-
-        node->line = new_line;
-        node->capacity = new_capacity;
-    }
-
-    // Append the text
-    memcpy(node->line + node->length, text, text_len);
-    node->length += text_len;
-    node->line[node->length] = '\0';
 }
 
 void EditorWindow_paste(EditorWindow *self){
@@ -293,6 +308,8 @@ void EditorWindow_newline(EditorWindow *self){
     node->length = self->cursor_x;
 
     self->n_lines++;
+    self->cursor_n++;
+    self->cursor_x = 0;
 }
 
 void EditorWindow_fix_cursor_x(EditorWindow *self){
