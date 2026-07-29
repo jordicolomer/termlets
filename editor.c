@@ -565,7 +565,9 @@ void EditorWindow_draw(struct Window *w, int hasFocus)
 
     while (i < geo.height)
     {
+        // background color
         int bg = 255;
+        //bg = 236;
         if (bg >= 232 + 4 && !hasFocus)
             bg -= 4;
 
@@ -633,6 +635,8 @@ void EditorWindow_draw(struct Window *w, int hasFocus)
         lexer_init(&lexer, str);
         while(lexer_next(&lexer, &token)){
             int width = token.end - token.start;
+            int maxWidth = geo.width - token.start;
+            width = min(width, maxWidth);
             Buffer_set_fg(&main_buf, geo.y + i, geo.x+token.start, width, token.color);
         }
 

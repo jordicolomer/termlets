@@ -10,6 +10,8 @@ typedef enum {
     // Identifiers and literals
     TOK_COMMENT,
     TOK_IDENTIFIER,
+    TOK_FUNCTION,
+    TOK_BRACKET,
     TOK_NUMBER,          // integer or float
     TOK_STRING_LITERAL,
     TOK_CHAR_LITERAL
@@ -17,7 +19,9 @@ typedef enum {
 
 typedef enum {
     LEX_NORMAL,
+    LEX_IDENTIFIER,
     LEX_SLASH,
+    LEX_SLASH_SLASH,
     LEX_SLASH_STAR,
     LEX_SLASH_STAR_STAR
 } LexerState;
