@@ -13,6 +13,7 @@
 #include "menu.h"
 #include "text_edit.h"
 #include "clipboard.h"
+#include "lexer.h"
 
 // Editor Window
 
@@ -625,6 +626,16 @@ void EditorWindow_draw(struct Window *w, int hasFocus)
             //Buffer_print(&main_buf, geo.y + i, geo.x+self->cursor_x, 1, str+self->cursor_x, 16, bg);
             Buffer_set_bg(&main_buf, geo.y + i, geo.x+self->cursor_x, 1, bg);
         }
+
+        // syntax highlighter
+        Lexer lexer;
+        Token token;
+        lexer_init(&lexer, str);
+        while(lexer_next(&lexer, &token)){
+            int width = token.end - token.start;
+            Buffer_set_fg(&main_buf, geo.y + i, geo.x+token.start, width, token.color);
+        }
+
         i++;
         if (current != NULL)
             current = current->next;
