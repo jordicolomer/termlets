@@ -99,6 +99,7 @@ void Node_append(Node *node, char *text)
 }
 
 void EditorWindow_delete(EditorWindow *self){
+    // delete a character
     if (self->cursor_x == 0){
         if (self->cursor_n != 0){
             Node * node = EditorWindow_get_line_number(self, self->cursor_n);
@@ -205,6 +206,7 @@ void EditorWindow_paste(EditorWindow *self){
             current->next = new_node;
             new_node->prev = current;
             current = new_node;
+            self->n_lines++;
         }
 
         if (end == NULL || *line == '\0'){
@@ -259,6 +261,7 @@ void EditorWindow_delete_region(EditorWindow *self){
     self->cursor_x = j1;
 
     self->selection_n = -1;
+    self->n_lines -= i2-i1;
 }
 
 void EditorWindow_cut(EditorWindow *self){
@@ -619,7 +622,8 @@ void EditorWindow_draw(struct Window *w, int hasFocus)
         if (-self->win.shift + i == self->cursor_n){ // show cursor
             bg = 248;
             if (self->edit_mode == 1) bg = 3;
-            Buffer_print(&main_buf, geo.y + i, geo.x+self->cursor_x, 1, str+self->cursor_x, 16, bg);
+            //Buffer_print(&main_buf, geo.y + i, geo.x+self->cursor_x, 1, str+self->cursor_x, 16, bg);
+            Buffer_set_bg(&main_buf, geo.y + i, geo.x+self->cursor_x, 1, bg);
         }
         i++;
         if (current != NULL)
