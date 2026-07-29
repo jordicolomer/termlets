@@ -593,7 +593,8 @@ void EditorWindow_draw(struct Window *w, int hasFocus)
                     idx2 = self->selection_x;
                 }
                 int diff = idx2 - idx1;
-                Buffer_print(&main_buf, geo.y + i, geo.x+idx1, diff, str+idx1, 16, 27);
+                //Buffer_print(&main_buf, geo.y + i, geo.x+idx1, diff, str+idx1, 16, 27);
+                Buffer_set_bg(&main_buf, geo.y + i, geo.x+idx1, diff, 27);
             }
             if (self->cursor_n == top_line+i){ // line with cursor
                 // generic case (both markers in same line)
@@ -610,7 +611,8 @@ void EditorWindow_draw(struct Window *w, int hasFocus)
                     idx2 = current->length;
                 }
                 int diff = idx2 - idx1;
-                Buffer_print(&main_buf, geo.y + i, geo.x+idx1, diff, str+idx1, 16, 27);
+                //Buffer_print(&main_buf, geo.y + i, geo.x+idx1, diff, str+idx1, 16, 27);
+                Buffer_set_bg(&main_buf, geo.y + i, geo.x+idx1, diff, 27);
             }
         }
         

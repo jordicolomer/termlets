@@ -293,6 +293,25 @@ void Buffer_print(Buffer *buf, int y, int x, int width, char *s, int fg, int bg)
     // printf("U+%04X %d\n", cp, w);
   }
 }
+
+void Buffer_set_fg(Buffer *buf, int y, int x, int width, int fg)
+{
+  y -= 1;
+  for (int i = 0; i < width; i++)
+  {
+    buf->fg[y * buf->width + x + i] = (char) fg;
+  }
+}
+
+void Buffer_set_bg(Buffer *buf, int y, int x, int width, int bg)
+{
+  y -= 1;
+  for (int i = 0; i < width; i++)
+  {
+    buf->bg[y * buf->width + x + i] = (char) bg;
+  }
+}
+
 void Buffer_print_to_screen_old(Buffer *buf)
 {
   clock_t start = clock();
