@@ -402,11 +402,32 @@ void load_file(EditorWindow *self, const char *filename)
     self->win.virtual_height = self->n_lines;
 }
 
+void EditorWindow_run_lexer(EditorWindow *self){
+    /*
+    * Run the lexer on all lines and save the lexer state on each line
+    * so that we can run the lexer on a random line as if we processed each line before it
+    */
+    Node * current = self->head;
+    int lastLexerState = 0;
+    while (current != NULL){
+        current->lexerState = lastLexerState;
+        Lexer lexer;
+        Token token;
+        token.start = 0;
+        lexer_init(&lexer, current->line);
+        lexer.state = lastLexerState;
+        while(lexer_next(&lexer, &token)){}
+        lastLexerState = lexer.state;
+        current = current->next;
+    }
+}
+
 void EditorWindow_open_file(EditorWindow *editor_window, char *file_path)
 {
     load_file(editor_window, file_path);
     editor_window->slider->id = file_path;
     editor_window->file_path = strdup(file_path);
+    EditorWindow_run_lexer(editor_window);
 }
 
 void EditorWindow_reload(EditorWindow *editor_window)
@@ -633,6 +654,7 @@ void EditorWindow_draw(struct Window *w, int hasFocus)
         Lexer lexer;
         Token token;
         lexer_init(&lexer, str);
+        lexer.state = current->lexerState;
         while(lexer_next(&lexer, &token)){
             int width = token.end - token.start;
             int maxWidth = geo.width - token.start;

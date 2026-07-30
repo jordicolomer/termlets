@@ -9,6 +9,7 @@ typedef struct Node {
     struct Node *prev;
     size_t length;   // characters, excluding '\0'
     size_t capacity; // allocated bytes
+    int lexerState; // used for syntax highlighting
 } Node;
 
 typedef struct EditorWindow {

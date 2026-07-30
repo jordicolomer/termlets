@@ -16,7 +16,7 @@ int isnumber(char c){
     return '0' <= c && c <= '9';
 }
 
-static const char *keywords[] = {
+/*static const char *keywords[] = {
     "if",
     "else",
     "while",
@@ -24,21 +24,114 @@ static const char *keywords[] = {
     "return",
     "switch",
     "",   // sentinel
+};*/
+
+static const char *keywords[] = {
+    /* Control flow */
+    "if",
+    "else",
+    "switch",
+    "case",
+    "default",
+    "while",
+    "do",
+    "for",
+
+    /* Jump statements */
+    "return",
+    "break",
+    "continue",
+    "goto",
+
+    /* Operators / special keywords */
+    "sizeof",
+    "_Alignof",
+    "_Generic",
+
+    /* C11 / C23 */
+    "static_assert",
+    "alignas",
+    "alignof",
+    "noreturn",
+    "thread_local",
+
+    "",   // sentinel
 };
 
-static const char *types[] = {
+/*static const char *types[] = {
     "int",
     "const",
     "char",
     "long",
     "short",
     "void",
+    "size_t",
+    "",   // sentinel
+};*/
+
+static const char *types[] = {
+    /* Fundamental types */
+    "void",
+    "char",
+    "short",
+    "int",
+    "long",
+    "float",
+    "double",
+    "signed",
+    "unsigned",
+    "_Bool",
+    "_Complex",
+    "_Imaginary",
+
+    /* Common typedefs */
+    "size_t",
+    "ptrdiff_t",
+    "intptr_t",
+    "uintptr_t",
+    "int8_t",
+    "int16_t",
+    "int32_t",
+    "int64_t",
+    "uint8_t",
+    "uint16_t",
+    "uint32_t",
+    "uint64_t",
+    "FILE",
+    "time_t",
+    "clock_t",
+    "wchar_t",
+    "bool",
+
+    /* Type modifiers / qualifiers */
+    "const",
+    "volatile",
+    "restrict",
+    "_Atomic",
+
+    /* Storage class */
+    "auto",
+    "register",
+    "static",
+    "extern",
+    "typedef",
+    "_Thread_local",
+
+    /* Function specifiers */
+    "inline",
+    "_Noreturn",
+
+    /* User-defined types */
+    "struct",
+    "union",
+    "enum",
+
     "",   // sentinel
 };
 
 int in_list(const char *c, int len, const char *kw[])
 {
-    for (int i = 0; keywords[i][0] != '\0'; i++) {
+    for (int i = 0; kw[i][0] != '\0'; i++) {
         if ((int)strlen(kw[i]) == len &&
             memcmp(c, kw[i], len) == 0) {
             return 1;
@@ -83,7 +176,7 @@ int lexer_next(Lexer* l, Token* out_token){
                     out_token->end = l->pos;
                     out_token->color = 94; // brown
                     emit = 1;
-                    l->state = LEX_NORMAL;
+                    l->state = LEX_BEGIN;
                 }
                 break;
             case LEX_BEGIN:
@@ -134,6 +227,7 @@ int lexer_next(Lexer* l, Token* out_token){
                     out_token->color = 28; // green
                     emit = 1;
                     l->state = LEX_NORMAL;
+                    l->pos--; // reprocess character that ended the literal
                 }
                 break;
             case LEX_IDENTIFIER:
@@ -165,9 +259,12 @@ int lexer_next(Lexer* l, Token* out_token){
                     l->state = LEX_SLASH_STAR;
                     out_token->start = l->pos-1;
                 }
-                if (c == '/'){
+                else if (c == '/'){
                     l->state = LEX_SLASH_SLASH;
-                    out_token->start = l->pos-2;
+                    out_token->start = l->pos-1;
+                } else {
+                    l->state = LEX_NORMAL;
+                    l->pos--; // reprocess
                 }
                 break;
             case LEX_SLASH_SLASH:
@@ -180,6 +277,12 @@ int lexer_next(Lexer* l, Token* out_token){
                 }
                 break;
             case LEX_SLASH_STAR:
+                if (c == '\0'){
+                    out_token->type = TOK_COMMENT;
+                    out_token->end = l->pos;
+                    out_token->color = 28; // green                    
+                    emit = 1;
+                }
                 if (c == '*'){
                     l->state = LEX_SLASH_STAR_STAR;
                 }
@@ -192,6 +295,10 @@ int lexer_next(Lexer* l, Token* out_token){
                     
                     emit = 1;
                     l->state = LEX_NORMAL;
+                }else if (c == '*'){
+                    l->state = LEX_SLASH_STAR_STAR;
+                } else {
+                    l->state = LEX_SLASH_STAR;
                 }
                 break;
         }
