@@ -152,6 +152,10 @@ int is_type(const char *c, int len)
 }
 
 int lexer_next(Lexer* l, Token* out_token){
+    if (l->finished) {
+        return 0;
+    }
+
     int emit = 0;
     while (1) {
         char c = l->source[l->pos];
@@ -176,6 +180,7 @@ int lexer_next(Lexer* l, Token* out_token){
                     out_token->end = l->pos;
                     out_token->color = 94; // brown
                     emit = 1;
+                    l->finished = 1;
                     l->state = LEX_BEGIN;
                 }
                 break;
@@ -273,6 +278,7 @@ int lexer_next(Lexer* l, Token* out_token){
                     out_token->end = l->pos;
                     out_token->color = 28; // green
                     emit = 1;
+                    l->finished = 1;
                     l->state = LEX_NORMAL;
                 }
                 break;
@@ -280,8 +286,9 @@ int lexer_next(Lexer* l, Token* out_token){
                 if (c == '\0'){
                     out_token->type = TOK_COMMENT;
                     out_token->end = l->pos;
-                    out_token->color = 28; // green                    
+                    out_token->color = 28; // green
                     emit = 1;
+                    l->finished = 1;
                 }
                 if (c == '*'){
                     l->state = LEX_SLASH_STAR_STAR;
