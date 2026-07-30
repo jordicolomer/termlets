@@ -60,6 +60,26 @@ void double_capacity(Node *node)
     node->capacity = new_capacity;
 }
 
+void update_lexer_state(Node * current){
+    /*
+    * Run the lexer on all lines and save the lexer state on each line
+    * so that we can run the lexer on a random line as if we processed each line before it
+    */
+    int lastLexerState = current->lexerState;
+    while (current != NULL){
+        //if (lastLexerState != -1)
+        current->lexerState = lastLexerState;
+        Lexer lexer;
+        Token token;
+        token.start = 0;
+        lexer_init(&lexer, current->line);
+        lexer.state = lastLexerState;
+        while(lexer_next(&lexer, &token)){}
+        lastLexerState = lexer.state;
+        current = current->next;
+    }
+}
+
 void EditorWindow_insert(EditorWindow *self, char c){
     Node * node = EditorWindow_get_line_number(self, self->cursor_n);
     if (node->capacity <= node->length+1){
@@ -68,6 +88,7 @@ void EditorWindow_insert(EditorWindow *self, char c){
     insert_char(node->line, self->cursor_x, c, node->length, node->capacity);
     node->length++;
     self->cursor_x++;
+    update_lexer_state(self->head);
 }
 
 void Node_append(Node *node, char *text)
@@ -121,6 +142,7 @@ void EditorWindow_delete(EditorWindow *self){
         node->length--;
         self->cursor_x--;
     }
+    update_lexer_state(self->head);
 }
 
 void EditorWindow_copy(EditorWindow *self){
@@ -204,6 +226,7 @@ void EditorWindow_paste(EditorWindow *self){
             new_node->line = strdup(line);
             new_node->length = strlen(line);
             new_node->capacity = new_node->length+1;
+            new_node->lexerState = 0;
             current->next = new_node;
             new_node->prev = current;
             current = new_node;
@@ -304,6 +327,7 @@ void EditorWindow_newline(EditorWindow *self){
     new_node->capacity = new_node->length + 1;
     new_node->next = next;
     new_node->prev = node;
+    new_node->lexerState = 0;
 
     if (next == NULL) self->tail = new_node;
     else next->prev = new_node;
@@ -351,6 +375,7 @@ Node *create_node(const char *text)
     new_node->capacity = new_node->length + 1;
     new_node->next = NULL;
     new_node->prev = NULL;
+    new_node->lexerState = 0;
 
     return new_node;
 }
@@ -403,23 +428,7 @@ void load_file(EditorWindow *self, const char *filename)
 }
 
 void EditorWindow_run_lexer(EditorWindow *self){
-    /*
-    * Run the lexer on all lines and save the lexer state on each line
-    * so that we can run the lexer on a random line as if we processed each line before it
-    */
-    Node * current = self->head;
-    int lastLexerState = 0;
-    while (current != NULL){
-        current->lexerState = lastLexerState;
-        Lexer lexer;
-        Token token;
-        token.start = 0;
-        lexer_init(&lexer, current->line);
-        lexer.state = lastLexerState;
-        while(lexer_next(&lexer, &token)){}
-        lastLexerState = lexer.state;
-        current = current->next;
-    }
+   update_lexer_state(self->head);
 }
 
 void EditorWindow_open_file(EditorWindow *editor_window, char *file_path)
