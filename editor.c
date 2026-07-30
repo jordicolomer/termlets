@@ -255,6 +255,8 @@ void EditorWindow_paste(EditorWindow *self){
     self->cursor_n += i;
 
     free(cb);
+
+    update_lexer_state(current, 1);
 }
 
 void EditorWindow_delete_region(EditorWindow *self){
@@ -291,6 +293,8 @@ void EditorWindow_delete_region(EditorWindow *self){
 
     self->selection_n = -1;
     self->n_lines -= i2-i1;
+
+    update_lexer_state(node1, 1);
 }
 
 void EditorWindow_cut(EditorWindow *self){
