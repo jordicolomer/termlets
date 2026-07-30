@@ -156,6 +156,12 @@ int lexer_next(Lexer* l, Token* out_token){
         return 0;
     }
 
+    // If starting in a multi-line state, initialize the token
+    if (l->state == LEX_SLASH_STAR || l->state == LEX_SLASH_STAR_STAR) {
+        out_token->type = TOK_COMMENT;
+        out_token->start = 0;
+    }
+
     int emit = 0;
     while (1) {
         char c = l->source[l->pos];

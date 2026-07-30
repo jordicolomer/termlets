@@ -89,6 +89,7 @@ void EditorWindow_insert(EditorWindow *self, char c){
     node->length++;
     self->cursor_x++;
     update_lexer_state(self->head);
+    //update_lexer_state(node);
 }
 
 void Node_append(Node *node, char *text)
@@ -134,6 +135,7 @@ void EditorWindow_delete(EditorWindow *self){
             prev->next = next;
             if (next == NULL) self->tail = next;
             else next->prev = prev;
+            //update_lexer_state(node);
         }
         return;
     } else {
@@ -141,6 +143,7 @@ void EditorWindow_delete(EditorWindow *self){
         delete_char(node->line, self->cursor_x-1, node->length);
         node->length--;
         self->cursor_x--;
+        //update_lexer_state(node);
     }
     update_lexer_state(self->head);
 }
@@ -669,7 +672,7 @@ void EditorWindow_draw(struct Window *w, int hasFocus)
             int maxWidth = geo.width - token.start;
             width = min(width, maxWidth);
             Buffer_set_fg(&main_buf, geo.y + i, geo.x+token.start, width, token.color);
-            LOG_INFO("lexer_next %d %d %d", token.start, token.end, token.color);
+            //LOG_INFO("lexer_next %d %d %d", token.start, token.end, token.color);
         }
 
         i++;
