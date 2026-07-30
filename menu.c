@@ -102,18 +102,36 @@ void Menu_toggle_auto_expand(Menu *self)
     //if (self->auto_expand == 0) 
 }
 
+void Menu_mark_selected(Window *win){
+    Window * current = win->head;
+    int selected = win->int_data;
+    if (selected == 0) return;
+    int i = 0;
+    while(current != NULL){
+        if (selected == i) {
+            if (current->c != NULL)
+                //memcpy(&current->c[1], "✔", 3);
+                current->c[1] = 'x';
+        }
+        current = current->next;
+        i++;
+    }
+}
+
 void Menu_show_submenu(Menu *menu, Window *win)
 {
     Menu_close_last_opened_submenu();
     last_opened_submenu = menu;
     menu->win.hidden = 0;
     Menu_move_to_button(menu, win);
+    Menu_mark_selected(menu);
 }
 
 void Menu_toggle_submenu(Menu *menu, Window *win)
 {
     menu->win.hidden = 1 - menu->win.hidden;
     Menu_move_to_button(menu, win);
+    Menu_mark_selected(menu);
 }
 
 void Menu_change_color_hover_and_open(Window *w, int x, int y)

@@ -758,6 +758,21 @@ Window *Editor_menu_close(EditorFrame *self)
     LOG_INFO("Editor_menu_close %p", self);
 }
 
+enum Language {
+    LANG_UNSELECT,
+    LANG_NONE,
+    LANG_C,
+    LANG_CPP,
+    LANG_JAVA,
+    LANG_JS,
+    LANG_TS,
+    LANG_PY
+};
+
+Window *Editor_select_language(EditorFrame *self, int lang){
+
+}
+
 Window *Editor_menu(EditorFrame *self)
 {
     Window *menu = Menu_create_horizontal();
@@ -782,6 +797,18 @@ Window *Editor_menu(EditorFrame *self)
     Menu_add_element(view, "", NULL);
     Menu_add_submenu(menu, " View ", view);
 
+    Window *syntax = Menu_create_vertical(self);
+    Menu_add_element(syntax, strdup("   None"), create_lambda(Editor_menu_new, 1, self));
+    Menu_add_element(syntax, strdup("   🔧 C"), create_lambda(Editor_menu_new, 1, self));
+    Menu_add_element(syntax, strdup("   💠 C++"), create_lambda(Editor_menu_new, 1, self));
+    Menu_add_element(syntax, strdup("   ☕ Java"), create_lambda(Editor_menu_new, 1, self));
+    Menu_add_element(syntax, strdup("   📜 JavaScript"), create_lambda(Editor_menu_new, 1, self));
+    Menu_add_element(syntax, strdup("   📝 TypeScript"), create_lambda(Editor_menu_new, 1, self));
+    Menu_add_element(syntax, strdup("   🐍 Python"), create_lambda(Editor_menu_new, 1, self));
+    Menu_add_element(syntax, "", NULL);
+    Menu_add_submenu(menu, " Sytnax ", syntax);
+    syntax->int_data = LANG_C; // this will select C
+
     Menu_add_windows(menu, " Window ", self->tabs->win.data, self);
 
     return menu;
@@ -791,8 +818,9 @@ Window *Editor_toolbar(EditorFrame *self)
 {
     Window *toolbar = Menu_create_horizontal();
     Menu_add_element(toolbar, " 📄 New ", create_lambda(Editor_menu_new, 1, self));
-    Menu_add_element(toolbar, " ❌ Close ", create_lambda(Editor_menu_new, 1, self));
-    Menu_add_element(toolbar, " ❌ Delete ", create_lambda(Editor_menu_new, 1, self));
+    Menu_add_element(toolbar, " 🔄 Undo ", create_lambda(Editor_menu_new, 1, self));
+    //Menu_add_element(toolbar, " ❌ Close ", create_lambda(Editor_menu_new, 1, self));
+    //Menu_add_element(toolbar, " ❌ Delete ", create_lambda(Editor_menu_new, 1, self));
     Menu_add_element(toolbar, " 🔪 Cut ", create_lambda(Editor_menu_new, 1, self));
     Menu_add_element(toolbar, " 📋 Copy ", create_lambda(Editor_menu_new, 1, self));
     Menu_add_element(toolbar, " 📌 Paste ", create_lambda(Editor_menu_new, 1, self));

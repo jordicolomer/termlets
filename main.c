@@ -308,7 +308,7 @@ int start()
 
       seq[i] = 0;
 
-      LOG_INFO("seq: %s", seq);
+      //LOG_INFO("seq: %s", seq);
 
       int btn, x, y;
       char type;
