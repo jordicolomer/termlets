@@ -8,7 +8,10 @@ typedef enum {
     TOK_EOF,
 
     // Identifiers and literals
+    TOK_PREPROC,
     TOK_COMMENT,
+    TOK_LITERAL_STRING,
+    TOK_LITERAL_STRING_ESCAPE,
     TOK_IDENTIFIER,
     TOK_FUNCTION,
     TOK_BRACKET,
@@ -18,7 +21,11 @@ typedef enum {
 } TokenType;
 
 typedef enum {
+    LEX_BEGIN,
+    LEX_BEGIN_HASH,
     LEX_NORMAL,
+    LEX_LITERAL_STRING,
+    LEX_LITERAL_STRING_ESCAPE,
     LEX_IDENTIFIER,
     LEX_SLASH,
     LEX_SLASH_SLASH,

@@ -638,6 +638,7 @@ void EditorWindow_draw(struct Window *w, int hasFocus)
             int maxWidth = geo.width - token.start;
             width = min(width, maxWidth);
             Buffer_set_fg(&main_buf, geo.y + i, geo.x+token.start, width, token.color);
+            LOG_INFO("lexer_next %d %d %d", token.start, token.end, token.color);
         }
 
         i++;

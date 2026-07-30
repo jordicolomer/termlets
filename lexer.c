@@ -4,56 +4,9 @@
 void lexer_init(Lexer* l, const char* source){
     l->source = source;
     l->pos = 0;
-    l->state = 0;
+    l->state = LEX_BEGIN;
     l->finished = 0;
 }
-
-/*
-TOK_COMMENT
-244
-Dark Gray
-Subtle, doesn't distract
-
-TOK_KEYWORD
-170
-Purple / Magenta
-Classic for keywords
-
-TOK_IDENTIFIER
-252
-Light Gray
-Neutral / default
-
-TOK_NUMBER
-81
-Bright Cyan
-Stands out nicely
-
-TOK_STRING_LITERAL
-114
-Light Green
-Easy on the eyes
-
-TOK_CHAR_LITERAL
-114
-Light Green
-Same as string
-
-TOK_OPERATOR
-207
-Bright Pink/Magenta
-Good visibility
-
-TOK_PUNCTUATION
-242
-Gray
-Subtle
-
-TOK_UNKNOWN / Error
-196
-Bright Red
-Error highlighting
-*/
 
 int isalpha(char c){
     return 'a' <= c && c <= 'z' || 'A' <= c && c <= 'Z';
@@ -111,9 +64,43 @@ int lexer_next(Lexer* l, Token* out_token){
         char c = l->source[l->pos];
 
         switch (l->state) {
+            case LEX_LITERAL_STRING_ESCAPE:
+                l->state = LEX_LITERAL_STRING;
+                break;
+            case LEX_LITERAL_STRING:
+                if (c == '\\'){
+                    l->state = LEX_LITERAL_STRING_ESCAPE;
+                }
+                if (c == '"'){
+                    out_token->end = l->pos;
+                    out_token->color = 125; // red
+                    emit = 1;
+                    l->state = LEX_NORMAL;
+                }
+                break;
+            case LEX_BEGIN_HASH:
+                if (c == '\0'){
+                    out_token->end = l->pos;
+                    out_token->color = 94; // brown
+                    emit = 1;
+                    l->state = LEX_NORMAL;
+                }
+                break;
+            case LEX_BEGIN:
+                if (c == '#'){
+                    l->state = LEX_BEGIN_HASH;
+                    out_token->type = TOK_PREPROC;
+                    out_token->start = l->pos;
+                }
+                /* fall through */   // ← Add this comment  
             case LEX_NORMAL:
                 if (c == '/'){
                     l->state = LEX_SLASH;
+                }
+                if (c == '"'){
+                    l->state = LEX_LITERAL_STRING;
+                    out_token->type = TOK_LITERAL_STRING;
+                    out_token->start = l->pos;
                 }
                 if (c == '{' || c == '}' || c == '(' || c == ')'  || c == '[' || c == ']' ){
                     out_token->type = TOK_BRACKET;
@@ -150,7 +137,7 @@ int lexer_next(Lexer* l, Token* out_token){
                     out_token->end = l->pos;
                     out_token->color = 16; // black
                     if (is_keyword(l->source + out_token->start, out_token->end - out_token->start))
-                        out_token->color = 13; // pink
+                        out_token->color = 90; // pink
                     else if (is_type(l->source + out_token->start, out_token->end - out_token->start))
                         out_token->color = 27; // blue
                     emit = 1;
