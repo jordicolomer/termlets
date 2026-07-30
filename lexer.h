@@ -10,6 +10,7 @@ typedef enum {
     // Identifiers and literals
     TOK_PREPROC,
     TOK_COMMENT,
+    TOK_LITERAL_NUMBER,
     TOK_LITERAL_STRING,
     TOK_LITERAL_STRING_ESCAPE,
     TOK_IDENTIFIER,
@@ -24,6 +25,7 @@ typedef enum {
     LEX_BEGIN,
     LEX_BEGIN_HASH,
     LEX_NORMAL,
+    LEX_LITERAL_NUMBER,
     LEX_LITERAL_STRING,
     LEX_LITERAL_STRING_ESCAPE,
     LEX_IDENTIFIER,

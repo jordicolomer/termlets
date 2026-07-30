@@ -120,6 +120,21 @@ int lexer_next(Lexer* l, Token* out_token){
                     out_token->start = l->pos;
                     l->state = LEX_IDENTIFIER;
                 }
+                if (isnumber(c)) {
+                    out_token->type = TOK_LITERAL_NUMBER;
+                    out_token->start = l->pos;
+                    l->state = LEX_LITERAL_NUMBER;
+                }
+                break;
+            case LEX_LITERAL_NUMBER:
+                if (isnumber(c)) {
+                } else {
+                    out_token->type = TOK_LITERAL_NUMBER;
+                    out_token->end = l->pos;
+                    out_token->color = 28; // green
+                    emit = 1;
+                    l->state = LEX_NORMAL;
+                }
                 break;
             case LEX_IDENTIFIER:
                 if (isalpha(c) || isnumber(c) || c == '_') {
