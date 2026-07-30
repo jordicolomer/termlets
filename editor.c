@@ -669,10 +669,12 @@ void EditorWindow_draw(struct Window *w, int hasFocus)
         }
 
         // syntax highlighter
+
         Lexer lexer;
         Token token;
         lexer_init(&lexer, str);
-        lexer.state = current->lexerState;
+        if (current != NULL)
+            lexer.state = current->lexerState;
         while(lexer_next(&lexer, &token)){
             int width = token.end - token.start;
             int maxWidth = geo.width - token.start;
@@ -680,6 +682,7 @@ void EditorWindow_draw(struct Window *w, int hasFocus)
             Buffer_set_fg(&main_buf, geo.y + i, geo.x+token.start, width, token.color);
             //LOG_INFO("lexer_next %d %d %d", token.start, token.end, token.color);
         }
+        
 
         i++;
         if (current != NULL)
