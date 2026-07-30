@@ -88,8 +88,8 @@ void EditorWindow_insert(EditorWindow *self, char c){
     insert_char(node->line, self->cursor_x, c, node->length, node->capacity);
     node->length++;
     self->cursor_x++;
-    update_lexer_state(self->head);
-    //update_lexer_state(node);
+    //update_lexer_state(self->head);
+    update_lexer_state(node);
 }
 
 void Node_append(Node *node, char *text)
@@ -135,7 +135,7 @@ void EditorWindow_delete(EditorWindow *self){
             prev->next = next;
             if (next == NULL) self->tail = next;
             else next->prev = prev;
-            //update_lexer_state(node);
+            update_lexer_state(node);
         }
         return;
     } else {
@@ -143,9 +143,9 @@ void EditorWindow_delete(EditorWindow *self){
         delete_char(node->line, self->cursor_x-1, node->length);
         node->length--;
         self->cursor_x--;
-        //update_lexer_state(node);
+        update_lexer_state(node);
     }
-    update_lexer_state(self->head);
+    //update_lexer_state(self->head);
 }
 
 void EditorWindow_copy(EditorWindow *self){
