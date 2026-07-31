@@ -681,7 +681,7 @@ ExplorerWindow *FileExplorer_file_list(){
   w->win.scroll_wheel_up = FileExplorer_scroll_wheel_up;
   w->win.scroll_wheel_down = FileExplorer_scroll_wheel_down;
 
-  w->win.bg = 15;
+  w->win.bg = 255;
   w->win.fill = 1;
 
   return w;
