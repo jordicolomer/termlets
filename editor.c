@@ -16,18 +16,6 @@
 #include "lexer.h"
 
 
-enum Language {
-    LANG_UNSELECT,
-    LANG_NONE,
-    LANG_C,
-    LANG_CPP,
-    LANG_JAVA,
-    LANG_JS,
-    LANG_TS,
-    LANG_PY
-};
-
-
 // Editor Window
 
 void EditorWindow_scroll_wheel_down(struct Window *w){
@@ -73,7 +61,7 @@ void double_capacity(Node *node)
     node->capacity = new_capacity;
 }
 
-void update_lexer_state(Node * current, int fast){
+void update_lexer_state(Node * current, int fast, int language){
     /*
     * Run the lexer on all lines and save the lexer state on each line
     * so that we can run the lexer on a random line as if we processed each line before it
@@ -86,7 +74,7 @@ void update_lexer_state(Node * current, int fast){
         Lexer lexer;
         Token token;
         token.start = 0;
-        lexer_init(&lexer, current->line);
+        lexer_init(&lexer, current->line, language);
         lexer.state = lastLexerState;
         while(lexer_next(&lexer, &token)){}
         lastLexerState = lexer.state;
@@ -104,7 +92,7 @@ void EditorWindow_insert(EditorWindow *self, char c){
     node->length++;
     self->cursor_x++;
     //update_lexer_state(self->head);
-    update_lexer_state(node, 1);
+    update_lexer_state(node, 1, self->language);
 }
 
 void Node_append(Node *node, char *text)
@@ -150,7 +138,7 @@ void EditorWindow_delete(EditorWindow *self){
             prev->next = next;
             if (next == NULL) self->tail = next;
             else next->prev = prev;
-            update_lexer_state(node, 1);
+            update_lexer_state(node, 1, self->language);
         }
         return;
     } else {
@@ -158,7 +146,7 @@ void EditorWindow_delete(EditorWindow *self){
         delete_char(node->line, self->cursor_x-1, node->length);
         node->length--;
         self->cursor_x--;
-        update_lexer_state(node, 1);
+        update_lexer_state(node, 1, self->language);
     }
     //update_lexer_state(self->head);
 }
@@ -269,7 +257,7 @@ void EditorWindow_paste(EditorWindow *self){
 
     free(cb);
 
-    update_lexer_state(current, 1);
+    update_lexer_state(current, 1, self->language);
 }
 
 void EditorWindow_delete_region(EditorWindow *self){
@@ -307,7 +295,7 @@ void EditorWindow_delete_region(EditorWindow *self){
     self->selection_n = -1;
     self->n_lines -= i2-i1;
 
-    update_lexer_state(node1, 1);
+    update_lexer_state(node1, 1, self->language);
 }
 
 void EditorWindow_cut(EditorWindow *self){
@@ -450,7 +438,7 @@ void load_file(EditorWindow *self, const char *filename)
 }
 
 void EditorWindow_run_lexer(EditorWindow *self){
-   update_lexer_state(self->head, 0);
+   update_lexer_state(self->head, 0, self->language);
 }
 
 void EditorWindow_open_file(EditorWindow *editor_window, char *file_path)
@@ -686,7 +674,7 @@ void EditorWindow_draw(struct Window *w, int hasFocus)
         if (self->language > LANG_NONE){
             Lexer lexer;
             Token token;
-            lexer_init(&lexer, str);
+            lexer_init(&lexer, str, self->language);
             if (current != NULL)
                 lexer.state = current->lexerState;
             while(lexer_next(&lexer, &token)){

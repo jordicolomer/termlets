@@ -3,6 +3,18 @@
 
 #include <stdlib.h>
 
+enum Language {
+    LANG_UNSELECT,
+    LANG_NONE,
+    LANG_C,
+    LANG_CPP,
+    LANG_JAVA,
+    LANG_JS,
+    LANG_TS,
+    LANG_PY
+};
+
+
 typedef enum {
     // End of input
     TOK_EOF,
@@ -48,10 +60,13 @@ typedef struct Lexer {
     //int loc;
     int state;           // for resuming complex lexing
     int finished;
+    int lang;
+    char **keywords;
+    char **types;
     // ... other fields
 } Lexer;
 
-void lexer_init(Lexer* l, const char* source);
+void lexer_init(Lexer* l, const char* source, int lang);
 int lexer_next(Lexer* l, Token* out_token);
 
 #endif

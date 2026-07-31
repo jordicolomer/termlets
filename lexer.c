@@ -1,13 +1,6 @@
 #include "lexer.h"
 #include <string.h>
 
-void lexer_init(Lexer* l, const char* source){
-    l->source = source;
-    l->pos = 0;
-    l->state = LEX_BEGIN;
-    l->finished = 0;
-}
-
 int isalpha(char c){
     return 'a' <= c && c <= 'z' || 'A' <= c && c <= 'Z';
 }
@@ -16,17 +9,7 @@ int isnumber(char c){
     return '0' <= c && c <= '9';
 }
 
-/*static const char *keywords[] = {
-    "if",
-    "else",
-    "while",
-    "for",
-    "return",
-    "switch",
-    "",   // sentinel
-};*/
-
-static const char *keywords[] = {
+static const char *c_keywords[] = {
     /* Control flow */
     "if",
     "else",
@@ -58,18 +41,7 @@ static const char *keywords[] = {
     "",   // sentinel
 };
 
-/*static const char *types[] = {
-    "int",
-    "const",
-    "char",
-    "long",
-    "short",
-    "void",
-    "size_t",
-    "",   // sentinel
-};*/
-
-static const char *types[] = {
+static const char *c_types[] = {
     /* Fundamental types */
     "void",
     "char",
@@ -129,6 +101,19 @@ static const char *types[] = {
     "",   // sentinel
 };
 
+void lexer_init(Lexer* l, const char* source, int lang){
+    l->source = source;
+    l->pos = 0;
+    l->state = LEX_BEGIN;
+    l->finished = 0;
+    l->lang = lang;
+    //if (lang == LANG_C){
+        l->keywords = c_keywords;
+        l->types = c_types;
+    //}
+}
+
+
 int in_list(const char *c, int len, const char *kw[])
 {
     for (int i = 0; kw[i][0] != '\0'; i++) {
@@ -141,7 +126,7 @@ int in_list(const char *c, int len, const char *kw[])
     return 0;
 }
 
-int is_keyword(const char *c, int len)
+/*int is_keyword(const char *c, int len)
 {
     return in_list(c, len, keywords);
 }
@@ -149,7 +134,7 @@ int is_keyword(const char *c, int len)
 int is_type(const char *c, int len)
 {
     return in_list(c, len, types);
-}
+}*/
 
 int lexer_next(Lexer* l, Token* out_token){
     if (l->finished) {
@@ -256,9 +241,13 @@ int lexer_next(Lexer* l, Token* out_token){
                     out_token->type = TOK_IDENTIFIER;
                     out_token->end = l->pos;
                     out_token->color = 16; // black
-                    if (is_keyword(l->source + out_token->start, out_token->end - out_token->start))
+                    char * str = l->source + out_token->start;
+                    int width = out_token->end - out_token->start;
+                    //if (is_keyword(l->source + out_token->start, out_token->end - out_token->start))
+                    if (in_list(str, width, l->keywords))
                         out_token->color = 90; // pink
-                    else if (is_type(l->source + out_token->start, out_token->end - out_token->start))
+                    //else if (is_type(l->source + out_token->start, out_token->end - out_token->start))
+                    if (in_list(str, width, l->types))
                         out_token->color = 27; // blue
                     emit = 1;
                     l->state = LEX_NORMAL;
