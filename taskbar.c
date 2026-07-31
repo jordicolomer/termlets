@@ -57,7 +57,7 @@ Window * TaskBar_new_task(const char * name, Window *fm){
 
   task->data = fm;
   task->on_mouse_down = task_on_mouse_down;
-  x += strlen(name)-1;
+  x += task->width+1;
 
   return task;
 }
