@@ -770,7 +770,14 @@ enum Language {
 };
 
 Window *Editor_select_language(EditorFrame *self, int lang){
+    EditorWindow * ew = Editor_get_focused_window(self);
+    ew->language = lang;
+}
 
+
+int Editor_get_current_tab_language(EditorFrame *self){
+    EditorWindow * ew = Editor_get_focused_window(self);
+    return ew->language;
 }
 
 Window *Editor_menu(EditorFrame *self)
@@ -798,16 +805,16 @@ Window *Editor_menu(EditorFrame *self)
     Menu_add_submenu(menu, " View ", view);
 
     Window *syntax = Menu_create_vertical(self);
-    Menu_add_element(syntax, strdup("   None"), create_lambda(Editor_menu_new, 1, self));
-    Menu_add_element(syntax, strdup("   🔧 C"), create_lambda(Editor_menu_new, 1, self));
-    Menu_add_element(syntax, strdup("   💠 C++"), create_lambda(Editor_menu_new, 1, self));
-    Menu_add_element(syntax, strdup("   ☕ Java"), create_lambda(Editor_menu_new, 1, self));
-    Menu_add_element(syntax, strdup("   📜 JavaScript"), create_lambda(Editor_menu_new, 1, self));
-    Menu_add_element(syntax, strdup("   📝 TypeScript"), create_lambda(Editor_menu_new, 1, self));
-    Menu_add_element(syntax, strdup("   🐍 Python"), create_lambda(Editor_menu_new, 1, self));
+    Menu_add_element(syntax, strdup("   None"), create_lambda(Editor_select_language, 2, self, LANG_NONE));
+    Menu_add_element(syntax, strdup("   🔧 C"), create_lambda(Editor_select_language, 2, self, LANG_C));
+    Menu_add_element(syntax, strdup("   💠 C++"), create_lambda(Editor_select_language, 2, self, LANG_CPP));
+    Menu_add_element(syntax, strdup("   ☕ Java"), create_lambda(Editor_select_language, 2, self, LANG_JAVA));
+    Menu_add_element(syntax, strdup("   📜 JavaScript"), create_lambda(Editor_select_language, 2, self, LANG_JS));
+    Menu_add_element(syntax, strdup("   📝 TypeScript"), create_lambda(Editor_select_language, 2, self, LANG_TS));
+    Menu_add_element(syntax, strdup("   🐍 Python"), create_lambda(Editor_select_language, 2, self, LANG_PY));
     Menu_add_element(syntax, "", NULL);
     Menu_add_submenu(menu, " Sytnax ", syntax);
-    syntax->int_data = LANG_C; // this will select C
+    syntax->lambda = create_lambda(Editor_get_current_tab_language, 1, self);
 
     Menu_add_windows(menu, " Window ", self->tabs->win.data, self);
 

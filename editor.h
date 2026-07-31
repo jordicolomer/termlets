@@ -27,11 +27,13 @@ typedef struct EditorWindow {
     int selection_n; // what line has the selection marker. -1 means no marker
     int selection_x; // what column has the selection marker
     char * file_path;
+    int language; // specifies the syntax highlighting language
 } EditorWindow;
 
 typedef struct EditorFrame {
     struct Window win;
     Tabs *tabs;
+    //Window *syntax;
 } EditorFrame;
 
 Window *Editor_new(int left, int right, int top, int bottom, int width, int height);

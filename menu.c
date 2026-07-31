@@ -104,7 +104,8 @@ void Menu_toggle_auto_expand(Menu *self)
 
 void Menu_mark_selected(Window *win){
     Window * current = win->head;
-    int selected = win->int_data;
+    int selected = invoke_lambda(win->lambda);
+    //int selected = win->int_data;
     if (selected == 0) return;
     int i = 0;
     while(current != NULL){
