@@ -14,6 +14,7 @@
 #include "text_edit.h"
 #include "clipboard.h"
 #include "lexer.h"
+#include "utils.h"
 
 
 // Editor Window
@@ -446,6 +447,14 @@ void EditorWindow_open_file(EditorWindow *editor_window, char *file_path)
     load_file(editor_window, file_path);
     editor_window->slider->id = file_path;
     editor_window->file_path = strdup(file_path);
+    if (ends_with_ignore_case(file_path, ".c")) editor_window->language = LANG_C;
+    else if (ends_with_ignore_case(file_path, ".h")) editor_window->language = LANG_C;
+    else if (ends_with_ignore_case(file_path, ".cpp")) editor_window->language = LANG_CPP;
+    else if (ends_with_ignore_case(file_path, ".hpp")) editor_window->language = LANG_CPP;
+    else if (ends_with_ignore_case(file_path, ".java")) editor_window->language = LANG_JAVA;
+    else if (ends_with_ignore_case(file_path, ".js")) editor_window->language = LANG_JS;
+    else if (ends_with_ignore_case(file_path, ".ts")) editor_window->language = LANG_TS;
+    else if (ends_with_ignore_case(file_path, ".py")) editor_window->language = LANG_PY;
     EditorWindow_run_lexer(editor_window);
 }
 
@@ -709,6 +718,7 @@ EditorWindow *EditorWindow_new()
     self->edit_mode = 0;
     self->selection_n = -1;
     self->selection_x = 0;
+    self->language = LANG_NONE;
 
     // Window *editor = (Window *) self;
     self->win.draw = EditorWindow_draw;
