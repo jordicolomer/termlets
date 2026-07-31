@@ -335,7 +335,7 @@ void Window_bring_to_bottom(Window *this)
 void Widget_draw(struct Window *current, int hasFocus)
 {
   //Widget *current = (Widget *)wg;
-  Window_draw((Window *)current, hasFocus);
+  //Window_draw((Window *)current, hasFocus);
   Geometry geo = current->calculated;
   if (current->hidden == 1){
     //LOG_INFO("wg->hidden");
@@ -344,6 +344,7 @@ void Widget_draw(struct Window *current, int hasFocus)
 
   // check if visible
   int visible = 1;
+  int framesOverCount = 0;
   Window *cursor = current;
   while (cursor->parent != root)
   {
@@ -358,6 +359,7 @@ void Widget_draw(struct Window *current, int hasFocus)
       // LOG_INFO("skipping Widget_draw");
       return;
     }
+    framesOverCount+=1;
     // visible = 0;
     cursor = cursor->next;
   }
@@ -365,9 +367,14 @@ void Widget_draw(struct Window *current, int hasFocus)
 
   int fg = current->fg;
   int bg = current->bg;
-  if (strcmp(current->id, "menu")!=0){
+  int isTaskBarOrChild = (strcmp(current->id, "taskBar")==0) || (current->parent != NULL && current->parent->id != NULL && strcmp(current->parent->id, "taskBar")==0);
+  //int isTaskBarOrChild = (strcmp(current->id, "taskBar")==0) ||
+  //                       (current->parent != NULL && strcmp(current->parent->id, "taskBar")==0);
+  if (strcmp(current->id, "menu")!=0 && !isTaskBarOrChild){
+  //if (strcmp(current->id, "menu")!=0){
   if (bg >= 232 + 4 && !hasFocus)
-    bg -= 4;
+    bg -= 2*framesOverCount;
+    //bg -= 4;
   if (bg == WINDOW_BAR_COLOR && !hasFocus)
     bg = 243;
   }

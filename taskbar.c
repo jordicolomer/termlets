@@ -26,7 +26,8 @@ void start_mouse_down(struct Window *w, int x, int y){
 Window *taskBar;
 Window *selectedTask = NULL;
 int x = 11;
-int unselectedTaskColor = 251;
+//int unselectedTaskColor = 251;
+int unselectedTaskColor = 242;
 int selectedTaskColor = SELECTED_COLOR;
 
 
@@ -189,6 +190,7 @@ void quit_mouse_down(struct Window *w, int x, int y){
 Window * TaskBar_new(){
   taskBar = malloc(sizeof *taskBar);
   Window_init(taskBar, 0, -1, -1, 0, -1, 1);
+  taskBar->id = "taskBar";
   Window_append(root, taskBar);
   int taskbar_color = 255;
   taskbar_color = 103;
