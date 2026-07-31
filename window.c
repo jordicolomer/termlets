@@ -82,14 +82,40 @@ void Window_remove(Window *w)
     w->prev = NULL;
 }
 
+int get_bg(struct Window *current, int hasFocus)
+{
+  int framesOverCount = 0;
+  Window *cursor = current;
+  while (cursor->parent != root)
+  {
+    cursor = cursor->parent;
+  }
+  cursor = cursor->next;
+  while (cursor != NULL)
+  {
+    framesOverCount+=1;
+    cursor = cursor->next;
+  }
+  int fg = current->fg;
+  int bg = current->bg;
+  int isTaskBarOrChild = (strcmp(current->id, "taskBar")==0) || (current->parent != NULL && current->parent->id != NULL && strcmp(current->parent->id, "taskBar")==0);
+  if (strcmp(current->id, "menu")!=0 && !isTaskBarOrChild){
+  if (bg >= 232 + 4 && !hasFocus)
+    bg -= 2*framesOverCount;
+  if (bg == WINDOW_BAR_COLOR && !hasFocus)
+    bg = 243;
+  }
+  return bg;
+}
 
 void Window_fill(struct Window *w, int hasFocus){
   Geometry geo = w->calculated;
   int fg = w->fg;
   int bg = w->bg;
 
-  if (bg >= 232 + 4 && !hasFocus)
-    bg -= 4;
+  /*if (bg >= 232 + 4 && !hasFocus)
+    bg -= 4;*/
+  bg = get_bg(w, hasFocus);
 
   //LOG_INFO("Window_fill w:%d", geo.height);
   for (int i=0;i<geo.height;i++) Buffer_print(&main_buf, geo.y+i, geo.x, geo.width, "", fg, bg);
