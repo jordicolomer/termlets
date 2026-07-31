@@ -103,6 +103,7 @@ int get_bg(struct Window *current, int hasFocus)
   if (bg >= 232 + 4 && !hasFocus)
     bg -= 2*framesOverCount;
   if (bg == WINDOW_BAR_COLOR && !hasFocus)
+    //bg -= 2*framesOverCount;
     bg = 243;
   }
   return bg;
@@ -402,7 +403,12 @@ void Widget_draw(struct Window *current, int hasFocus)
     bg -= 2*framesOverCount;
     //bg -= 4;
   if (bg == WINDOW_BAR_COLOR && !hasFocus)
-    bg = 243;
+  {
+    //bg = 243;
+    bg -= framesOverCount;
+    bg = max(bg, 16);
+  }
+
   }
 #ifdef USE_BUFFER
   //Buffer_print(&main_buf, geo.y + wg_y, geo.x + wg_x, wg_width, current->c, current->fg, current->bg);
