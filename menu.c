@@ -109,10 +109,12 @@ void Menu_mark_selected(Window *win){
     if (selected == 0) return;
     int i = 0;
     while(current != NULL){
-        if (selected == i) {
-            if (current->c != NULL)
+        if (current->c != NULL && strlen(current->c) > 1){
+            current->c[1] = ' ';
+            if (selected == i) {
                 //memcpy(&current->c[1], "✔", 3);
                 current->c[1] = 'x';
+            }
         }
         current = current->next;
         i++;
