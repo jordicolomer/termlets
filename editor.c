@@ -15,6 +15,19 @@
 #include "clipboard.h"
 #include "lexer.h"
 
+
+enum Language {
+    LANG_UNSELECT,
+    LANG_NONE,
+    LANG_C,
+    LANG_CPP,
+    LANG_JAVA,
+    LANG_JS,
+    LANG_TS,
+    LANG_PY
+};
+
+
 // Editor Window
 
 void EditorWindow_scroll_wheel_down(struct Window *w){
@@ -670,17 +683,19 @@ void EditorWindow_draw(struct Window *w, int hasFocus)
 
         // syntax highlighter
 
-        Lexer lexer;
-        Token token;
-        lexer_init(&lexer, str);
-        if (current != NULL)
-            lexer.state = current->lexerState;
-        while(lexer_next(&lexer, &token)){
-            int width = token.end - token.start;
-            int maxWidth = geo.width - token.start;
-            width = min(width, maxWidth);
-            Buffer_set_fg(&main_buf, geo.y + i, geo.x+token.start, width, token.color);
-            //LOG_INFO("lexer_next %d %d %d", token.start, token.end, token.color);
+        if (self->language > LANG_NONE){
+            Lexer lexer;
+            Token token;
+            lexer_init(&lexer, str);
+            if (current != NULL)
+                lexer.state = current->lexerState;
+            while(lexer_next(&lexer, &token)){
+                int width = token.end - token.start;
+                int maxWidth = geo.width - token.start;
+                width = min(width, maxWidth);
+                Buffer_set_fg(&main_buf, geo.y + i, geo.x+token.start, width, token.color);
+                //LOG_INFO("lexer_next %d %d %d", token.start, token.end, token.color);
+            }
         }
         
 
@@ -758,18 +773,7 @@ Window *Editor_menu_close(EditorFrame *self)
     LOG_INFO("Editor_menu_close %p", self);
 }
 
-enum Language {
-    LANG_UNSELECT,
-    LANG_NONE,
-    LANG_C,
-    LANG_CPP,
-    LANG_JAVA,
-    LANG_JS,
-    LANG_TS,
-    LANG_PY
-};
-
-Window *Editor_select_language(EditorFrame *self, int lang){
+Window *Editor_set_language(EditorFrame *self, int lang){
     EditorWindow * ew = Editor_get_focused_window(self);
     ew->language = lang;
 }
@@ -805,13 +809,13 @@ Window *Editor_menu(EditorFrame *self)
     Menu_add_submenu(menu, " View ", view);
 
     Window *syntax = Menu_create_vertical(self);
-    Menu_add_element(syntax, strdup("   None"), create_lambda(Editor_select_language, 2, self, LANG_NONE));
-    Menu_add_element(syntax, strdup("   🔧 C"), create_lambda(Editor_select_language, 2, self, LANG_C));
-    Menu_add_element(syntax, strdup("   💠 C++"), create_lambda(Editor_select_language, 2, self, LANG_CPP));
-    Menu_add_element(syntax, strdup("   ☕ Java"), create_lambda(Editor_select_language, 2, self, LANG_JAVA));
-    Menu_add_element(syntax, strdup("   📜 JavaScript"), create_lambda(Editor_select_language, 2, self, LANG_JS));
-    Menu_add_element(syntax, strdup("   📝 TypeScript"), create_lambda(Editor_select_language, 2, self, LANG_TS));
-    Menu_add_element(syntax, strdup("   🐍 Python"), create_lambda(Editor_select_language, 2, self, LANG_PY));
+    Menu_add_element(syntax, strdup("   None"), create_lambda(Editor_set_language, 2, self, LANG_NONE));
+    Menu_add_element(syntax, strdup("   🔧 C"), create_lambda(Editor_set_language, 2, self, LANG_C));
+    Menu_add_element(syntax, strdup("   💠 C++"), create_lambda(Editor_set_language, 2, self, LANG_CPP));
+    Menu_add_element(syntax, strdup("   ☕ Java"), create_lambda(Editor_set_language, 2, self, LANG_JAVA));
+    Menu_add_element(syntax, strdup("   📜 JavaScript"), create_lambda(Editor_set_language, 2, self, LANG_JS));
+    Menu_add_element(syntax, strdup("   📝 TypeScript"), create_lambda(Editor_set_language, 2, self, LANG_TS));
+    Menu_add_element(syntax, strdup("   🐍 Python"), create_lambda(Editor_set_language, 2, self, LANG_PY));
     Menu_add_element(syntax, "", NULL);
     Menu_add_submenu(menu, " Sytnax ", syntax);
     syntax->lambda = create_lambda(Editor_get_current_tab_language, 1, self);
