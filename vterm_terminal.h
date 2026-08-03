@@ -33,7 +33,9 @@ typedef struct TerminalWindow {
     char * cwd;
     Window * slider;
     pid_t pid;
+    int edit_mode;
 
+    // data formely in vterm_terminal_data
     int master;
     VTerm *vt;
     VTermScreen *vts;

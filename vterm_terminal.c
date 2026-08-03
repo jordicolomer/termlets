@@ -571,6 +571,8 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
                 bg = temp;
             }
 
+            if (terminal->edit_mode == 1) fg = 3;
+
             /* Render cursor - handle wide characters and continuation cells properly */
             char cursor_char[8];
             int cursor_width = 1;
@@ -588,6 +590,8 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
                 /* Use the cell width from libvterm */
                 cursor_width = cell.width > 0 ? cell.width : 1;
             }
+
+            LOG_INFO("terminal->edit_mode: %d", terminal->edit_mode);
 
             /* Render cursor with swapped colors (reverse video) */
             Buffer_print(&main_buf, cursor_y, cursor_x, cursor_width, cursor_char, bg, fg);
@@ -608,7 +612,7 @@ void vterm_send_key(struct Window *wg, char c)
     }*/
     if (c == ';')
     {
-        //self->edit_mode = 1 - self->edit_mode;
+        terminal->edit_mode = 1 - terminal->edit_mode;
         return;
     }
 
@@ -690,6 +694,7 @@ static int cb_sb_pushline(int cols, const VTermScreenCell *cells, void *user)
 TerminalWindow *VTermTerminal_window(int initial_rows, int initial_cols)
 {
     TerminalWindow *terminal = malloc(sizeof *terminal);
+    terminal->edit_mode = 0;
     Window_init(terminal, 0, 0, 0, 0, -1, -1);
     terminal->win.id = "vterm terminal window";
     terminal->win.send_key = vterm_send_key;
