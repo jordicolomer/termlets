@@ -26,10 +26,10 @@ static int thread_running = 0;
 
 /* List of all terminal instances */
 #define MAX_TERMINALS 32
-static struct vterm_terminal_data *active_terminals[MAX_TERMINALS];
+static struct TerminalWindow *active_terminals[MAX_TERMINALS];
 static int terminal_count = 0;
 
-typedef struct ScrollbackLine {
+/*typedef struct ScrollbackLine {
     VTermScreenCell *cells;
     int cols;
     struct ScrollbackLine *prev;
@@ -52,7 +52,7 @@ typedef struct vterm_terminal_data {
     int cols;
     ScrollbackList scrollback;
     VTermScreenCallbacks callbacks;
-} vterm_terminal_data;
+} vterm_terminal_data;*/
 
 void VTermTerminal_scroll_wheel_down(struct Window *w){
   TerminalWindow * self = w;
@@ -123,7 +123,7 @@ void scrollback_add_line(ScrollbackList *sb, int cols, const VTermScreenCell *ce
     }
 }
 
-void VTermTerminal_update(vterm_terminal_data *vtd)
+void VTermTerminal_update(TerminalWindow *terminal)
 {
     char buf[4096];
 
@@ -132,46 +132,46 @@ void VTermTerminal_update(vterm_terminal_data *vtd)
     {
         fd_set fds;
         FD_ZERO(&fds);
-        FD_SET(vtd->master, &fds);
+        FD_SET(terminal->master, &fds);
 
         struct timeval tv = {
             .tv_sec = 0,
             .tv_usec = 10000  /* 10ms timeout */
         };
 
-        int ret = select(vtd->master + 1, &fds, NULL, NULL, &tv);
+        int ret = select(terminal->master + 1, &fds, NULL, NULL, &tv);
 
         if (ret <= 0)
             break;  /* no more data or error */
 
-        int n = read(vtd->master, buf, sizeof(buf));
+        int n = read(terminal->master, buf, sizeof(buf));
 
         if (n <= 0)
             break;
 
         /* feed data to libvterm */
-        vterm_input_write(vtd->vt, buf, n);
+        vterm_input_write(terminal->vt, buf, n);
 
         //update_tab_label(vtd->terminal);
     }
 }
 
 /* Register a terminal for monitoring */
-void register_terminal(vterm_terminal_data *vtd)
+void register_terminal(TerminalWindow *terminal)
 {
     pthread_mutex_lock(&terminals_mutex);
     if (terminal_count < MAX_TERMINALS) {
-        active_terminals[terminal_count++] = vtd;
+        active_terminals[terminal_count++] = terminal;
     }
     pthread_mutex_unlock(&terminals_mutex);
 }
 
 /* Unregister a terminal from monitoring */
-void unregister_terminal(vterm_terminal_data *vtd)
+void unregister_terminal(TerminalWindow *terminal)
 {
     pthread_mutex_lock(&terminals_mutex);
     for (int i = 0; i < terminal_count; i++) {
-        if (active_terminals[i] == vtd) {
+        if (active_terminals[i] == terminal) {
             /* shift remaining terminals */
             for (int j = i; j < terminal_count - 1; j++) {
                 active_terminals[j] = active_terminals[j + 1];
@@ -220,19 +220,19 @@ void *pty_monitor_thread_func(void *arg)
             /* Data available on one or more terminals */
             pthread_mutex_lock(&terminals_mutex);
             for (int i = 0; i < terminal_count; i++) {
-                vterm_terminal_data *vtd = active_terminals[i];
+                TerminalWindow *terminal = active_terminals[i];
 
-                if (FD_ISSET(vtd->master, &fds)) {
+                if (FD_ISSET(terminal->master, &fds)) {
                     /* Read and process data from this terminal */
-                    int n = read(vtd->master, buf, sizeof(buf));
+                    int n = read(terminal->master, buf, sizeof(buf));
                     if (n > 0) {
-                        vterm_input_write(vtd->vt, buf, n);
+                        vterm_input_write(terminal->vt, buf, n);
 
                         /* Update scroll position to follow output */
-                        Window *terminal = vtd->terminal;
-                        terminal->shift = -(VTermTerminal_get_virtual_height(terminal) - terminal->calculated.height);
-                        if (terminal->shift > 0)
-                            terminal->shift = 0;
+                        //Window *terminal = terminal->terminal;
+                        terminal->win.shift = -(VTermTerminal_get_virtual_height(terminal) - terminal->win.calculated.height);
+                        if (terminal->win.shift > 0)
+                            terminal->win.shift = 0;
 
                         /* Signal that repaint is needed */
                         need_repaint = 1;
@@ -277,10 +277,11 @@ int check_and_clear_repaint_flag()
 
 int VTermTerminal_get_virtual_height(struct Window *wg)
 {
-    vterm_terminal_data *vtd = wg->data2;
+    //vterm_terminal_data *vtd = wg->data2;
+    TerminalWindow * terminal = wg;
 
     /* total virtual height = scrollback + visible screen */
-    return vtd->scrollback.count + vtd->rows;
+    return terminal->scrollback.count + terminal->rows;
 }
 
 /* convert VTermColor to 256-color palette index */
@@ -355,24 +356,25 @@ static int encode_utf8(uint32_t c, char *buf)
 void VTermTerminal_draw(struct Window *wg, int hasFocus)
 {
     //LOG_INFO("VTermTerminal_draw");
-    vterm_terminal_data *vtd = wg->data2;
+    //vterm_terminal_data *vtd = wg->data2;
+    TerminalWindow * terminal = wg;
     Geometry geo = wg->calculated;
 
     /* resize vterm if window size changed */
-    if (vtd->rows != geo.height || vtd->cols != geo.width) {
+    if (terminal->rows != geo.height || terminal->cols != geo.width) {
         //LOG_INFO("resize");
-        vtd->rows = geo.height;
-        vtd->cols = geo.width;
-        vterm_set_size(vtd->vt, vtd->rows, vtd->cols);
+        terminal->rows = geo.height;
+        terminal->cols = geo.width;
+        vterm_set_size(terminal->vt, terminal->rows, terminal->cols);
 
         // also update PTY size
         struct winsize ws = {
-            .ws_row = vtd->rows,
-            .ws_col = vtd->cols,
+            .ws_row = terminal->rows,
+            .ws_col = terminal->cols,
             .ws_xpixel = 0,
             .ws_ypixel = 0
         };
-        ioctl(vtd->master, TIOCSWINSZ, &ws);
+        ioctl(terminal->master, TIOCSWINSZ, &ws);
     }
 
     wg->virtual_height = VTermTerminal_get_virtual_height(wg);
@@ -388,15 +390,15 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
     VTermPos pos;
     VTermScreenCell cell;
 
-    Window *terminal = vtd->terminal;
+    //Window *terminal = vtd->terminal;
     int virtual_height = VTermTerminal_get_virtual_height(terminal);
 
     /* calculate which virtual lines are visible */
-    int first_visible_line = -terminal->shift;
+    int first_visible_line = -terminal->win.shift;
     int last_visible_line = first_visible_line + geo.height - 1;
     //LOG_INFO("VTermTerminal_draw %d", terminal->shift);
 
-    ScrollbackLine *line = vtd->scrollback.head;
+    ScrollbackLine *line = terminal->scrollback.head;
     for (int i = 0; i < first_visible_line && line != NULL; i++) {
         line = line->next;
     }
@@ -409,7 +411,7 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
         int y = geo.y + viewport_row;
 
         /* determine if this line is in scrollback or current screen */
-        if (virtual_line < vtd->scrollback.count) {
+        if (virtual_line < terminal->scrollback.count) {
             //LOG_INFO("scrollback line");
             /* this is a scrollback line - find it in the linked list */
 
@@ -477,10 +479,10 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
             }
         } else {
             /* this is a current screen line */
-            int screen_row = virtual_line - vtd->scrollback.count;
+            int screen_row = virtual_line - terminal->scrollback.count;
             //LOG_INFO("current screen %d %d", screen_row, virtual_line);
 
-            if (screen_row >= 0 && screen_row < vtd->rows) {
+            if (screen_row >= 0 && screen_row < terminal->rows) {
                 /* render current screen line with color batching */
                 int col = 0;
                 while (col < geo.width) {
@@ -490,7 +492,7 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
                     /* get colors from first cell in batch */
                     pos.row = screen_row;
                     pos.col = col;
-                    vterm_screen_get_cell(vtd->vts, pos, &cell);
+                    vterm_screen_get_cell(terminal->vts, pos, &cell);
                     int fg = vterm_color_to_256(cell.fg);
                     int bg = vterm_color_to_256(cell.bg);
 
@@ -503,10 +505,10 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
 
                     /* collect consecutive cells with same colors */
                     int batch_start = col;
-                    while (col < geo.width && col < vtd->cols) {
+                    while (col < geo.width && col < terminal->cols) {
                         pos.row = screen_row;
                         pos.col = col;
-                        vterm_screen_get_cell(vtd->vts, pos, &cell);
+                        vterm_screen_get_cell(terminal->vts, pos, &cell);
 
                         int cell_fg = vterm_color_to_256(cell.fg);
                         int cell_bg = vterm_color_to_256(cell.bg);
@@ -541,12 +543,12 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
 
     /* Render cursor if this terminal has focus */
     if (hasFocus) {
-        VTermState *state = vterm_obtain_state(vtd->vt);
+        VTermState *state = vterm_obtain_state(terminal->vt);
         VTermPos cursor_pos;
         vterm_state_get_cursorpos(state, &cursor_pos);
 
         /* Convert cursor position from screen coordinates to viewport coordinates */
-        int cursor_virtual_line = vtd->scrollback.count + cursor_pos.row;
+        int cursor_virtual_line = terminal->scrollback.count + cursor_pos.row;
         int cursor_viewport_row = cursor_virtual_line - first_visible_line;
 
         /* Only draw cursor if it's visible in the viewport */
@@ -557,7 +559,7 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
 
             /* Get the character at cursor position */
             VTermScreenCell cell;
-            vterm_screen_get_cell(vtd->vts, cursor_pos, &cell);
+            vterm_screen_get_cell(terminal->vts, cursor_pos, &cell);
 
             int fg = vterm_color_to_256(cell.fg);
             int bg = vterm_color_to_256(cell.bg);
@@ -597,23 +599,30 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
 
 void vterm_send_key(struct Window *wg, char c)
 {
-    vterm_terminal_data *vtd = wg->data2;
+    //vterm_terminal_data *vtd = wg->data2;
+    TerminalWindow * terminal = wg;
 
     /*if (c == 12){ // Ctrl+K
       cycle_tabs();
       return;
     }*/
+    if (c == ';')
+    {
+        //self->edit_mode = 1 - self->edit_mode;
+        return;
+    }
 
 
     /* just write to the PTY, the monitoring thread will handle reading the response */
-    write(vtd->master, &c, 1);
+    write(terminal->master, &c, 1);
     //TerminalWindow * terminal = wg;
     //update_tab_label(terminal);
 }
 
 void vterm_send_sequence(struct Window *wg, const char *seq, int len)
 {
-    vterm_terminal_data *vtd = wg->data2;
+    //vterm_terminal_data *vtd = wg->data2;
+    TerminalWindow * terminal = wg;
 
     /* log what we're sending */
     LOG_INFO("vterm_send_sequence: len=%d", len);
@@ -636,34 +645,35 @@ void vterm_send_sequence(struct Window *wg, const char *seq, int len)
             default:
                 /* unhandled escape sequence, write raw */
                 LOG_INFO("unhandled CSI sequence, writing raw");
-                write(vtd->master, seq, len);
+                write(terminal->master, seq, len);
                 return;
         }
 
         if (key != VTERM_KEY_NONE) {
             LOG_INFO("sending vterm_keyboard_key: %d", key);
-            vterm_keyboard_key(vtd->vt, key, VTERM_MOD_NONE);
+            vterm_keyboard_key(terminal->vt, key, VTERM_MOD_NONE);
 
             /* read the output generated by libvterm and write to PTY */
             char output[64];
-            size_t output_len = vterm_output_read(vtd->vt, output, sizeof(output));
+            size_t output_len = vterm_output_read(terminal->vt, output, sizeof(output));
             if (output_len > 0) {
                 LOG_INFO("vterm generated %zu bytes of output", output_len);
-                write(vtd->master, output, output_len);
+                write(terminal->master, output, output_len);
             }
             return;
         }
     }
 
     /* for non-escape sequences or unhandled ones, write raw */
-    write(vtd->master, seq, len);
+    write(terminal->master, seq, len);
 }
 
 static int cb_sb_pushline(int cols, const VTermScreenCell *cells, void *user)
 {
-    vterm_terminal_data *vtd = user;
+    //vterm_terminal_data *vtd = user;
+    TerminalWindow * terminal = user;
 
-    scrollback_add_line(&vtd->scrollback, cols, cells);
+    scrollback_add_line(&terminal->scrollback, cols, cells);
 
     /*LOG_INFO("[sb_pushline]\n");
     LOG_INFO("  cols=%d\n", cols);
@@ -689,36 +699,36 @@ TerminalWindow *VTermTerminal_window(int initial_rows, int initial_cols)
     terminal->win.scroll_wheel_up = VTermTerminal_scroll_wheel_up;
     terminal->win.scroll_wheel_down = VTermTerminal_scroll_wheel_down;
 
-    vterm_terminal_data *vtd = malloc(sizeof *vtd);
-    terminal->win.data2 = vtd;
+    //vterm_terminal_data *vtd = malloc(sizeof *vtd);
+    //terminal->win.data2 = vtd;
     //frame->data2 = vtd;
 
     /* initialize libvterm */
-    vtd->rows = initial_rows;
-    vtd->cols = initial_cols;
+    terminal->rows = initial_rows;
+    terminal->cols = initial_cols;
 
     /* initialize scrollback list */
-    vtd->scrollback.head = NULL;
-    vtd->scrollback.tail = NULL;
-    vtd->scrollback.count = 0;
-    vtd->scrollback.max_size = 1000000;
+    terminal->scrollback.head = NULL;
+    terminal->scrollback.tail = NULL;
+    terminal->scrollback.count = 0;
+    terminal->scrollback.max_size = 1000000;
 
-    vtd->vt = vterm_new(vtd->rows, vtd->cols);
-    vtd->vts = vterm_obtain_screen(vtd->vt);
+    terminal->vt = vterm_new(terminal->rows, terminal->cols);
+    terminal->vts = vterm_obtain_screen(terminal->vt);
 
-    vtd->callbacks.sb_pushline = cb_sb_pushline;
-    vtd->callbacks.sb_popline = NULL;
+    terminal->callbacks.sb_pushline = cb_sb_pushline;
+    terminal->callbacks.sb_popline = NULL;
 
-    vterm_screen_set_callbacks(vtd->vts, &vtd->callbacks, vtd);
+    vterm_screen_set_callbacks(terminal->vts, &terminal->callbacks, terminal);
 
-    vterm_screen_reset(vtd->vts, 1);
-    vterm_screen_enable_altscreen(vtd->vts, 1);
+    vterm_screen_reset(terminal->vts, 1);
+    vterm_screen_enable_altscreen(terminal->vts, 1);
 
     /* set UTF-8 mode */
-    vterm_set_utf8(vtd->vt, 1);
+    vterm_set_utf8(terminal->vt, 1);
 
     /* fork pty */
-    pid_t pid = forkpty(&vtd->master, NULL, NULL, NULL);
+    pid_t pid = forkpty(&terminal->master, NULL, NULL, NULL);
 
     if (pid == 0) {
         /* child process */
@@ -731,14 +741,14 @@ TerminalWindow *VTermTerminal_window(int initial_rows, int initial_cols)
     terminal->pid = pid;
     //terminal->cwd = get_shell_cwd_mac_native(pid);
 
-    vtd->terminal = terminal;
+    //vtd->terminal = terminal;
 
     /* register this terminal for background monitoring */
-    register_terminal(vtd);
+    register_terminal(terminal);
 
     /* initial update to get the shell prompt */
     usleep(100000);  /* wait 100ms for initial shell output */
-    VTermTerminal_update(vtd);
+    VTermTerminal_update(terminal);
 
     return terminal;
 }

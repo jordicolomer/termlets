@@ -1,12 +1,47 @@
 #ifndef VTERM_TERMINAL_H
 #define VTERM_TERMINAL_H
+#include <vterm.h>
 #include "window.h"
+
+typedef struct ScrollbackLine {
+    VTermScreenCell *cells;
+    int cols;
+    struct ScrollbackLine *prev;
+    struct ScrollbackLine *next;
+} ScrollbackLine;
+
+typedef struct ScrollbackList {
+    ScrollbackLine *head;
+    ScrollbackLine *tail;
+    int count;
+    int max_size;
+} ScrollbackList;
+
+/*typedef struct vterm_terminal_data {
+    int master;
+    VTerm *vt;
+    VTermScreen *vts;
+    Window *terminal;
+    int rows;
+    int cols;
+    ScrollbackList scrollback;
+    VTermScreenCallbacks callbacks;
+} vterm_terminal_data;*/
 
 typedef struct TerminalWindow {
     struct Window win;
     char * cwd;
     Window * slider;
     pid_t pid;
+
+    int master;
+    VTerm *vt;
+    VTermScreen *vts;
+    Window *terminal;
+    int rows;
+    int cols;
+    ScrollbackList scrollback;
+    VTermScreenCallbacks callbacks;
 } TerminalWindow;
 
 typedef struct TerminalFrame {
