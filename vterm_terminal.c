@@ -475,6 +475,9 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
                     /* render this batch */
                     line_buf[buf_idx] = '\0';
                     int batch_width = col - batch_start;
+
+                    if (virtual_line == terminal->cursor_y) bg = 27;
+
                     Buffer_print(&main_buf, y, geo.x + batch_start, batch_width, line_buf, fg, bg);
                 }
             }
@@ -601,6 +604,31 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
     update_tab_label(wg);
 }
 
+void make_cursor_visible(TerminalWindow * terminal){
+    int first_visible_line = -terminal->win.shift;
+    int visible_height = terminal->win.calculated.height;
+    int last_visible_line = first_visible_line + visible_height - 1;
+    int virtual_height = VTermTerminal_get_virtual_height(terminal);
+    int min_shift = -(virtual_height - visible_height);
+
+    // If cursor_y is -1, scroll to bottom of virtual screen
+    if (terminal->cursor_y == -1) {
+        terminal->win.shift = -(virtual_height - visible_height);
+    } else{
+        // If cursor is above visible area, scroll up to show it
+        if (terminal->cursor_y < first_visible_line) {
+            terminal->win.shift = -terminal->cursor_y;
+        }
+        // If cursor is below visible area, scroll down to show it
+        else if (terminal->cursor_y > last_visible_line) {
+            terminal->win.shift = -(terminal->cursor_y - visible_height + 1);
+        }
+    }
+
+    // Clamp shift to valid range
+    terminal->win.shift = max(terminal->win.shift, min_shift);
+    terminal->win.shift = min(terminal->win.shift, 0);
+}
 
 void vterm_send_key(struct Window *wg, char c)
 {
@@ -620,24 +648,44 @@ void vterm_send_key(struct Window *wg, char c)
     {
         int virtual_height = VTermTerminal_get_virtual_height(terminal);
         int min_shift = -(virtual_height - terminal->win.calculated.height);
-        if (c == 'j')
+        if (c == 'j') // move down
         {
-            terminal->win.shift = max(terminal->win.shift - 1, min_shift);
+            if (terminal->cursor_y == -1) return;
+            terminal->cursor_y += 1;
+            if (terminal->cursor_y > terminal->scrollback.count){
+                terminal->cursor_y = -1;
+            }
+            make_cursor_visible(terminal);
             return;
         }
-        if (c == 'k')
+        if (c == 'k') // move up
         {
-            terminal->win.shift = min(terminal->win.shift + 1, 0);
+            if (terminal->cursor_y < 0) terminal->cursor_y = terminal->scrollback.count;
+            else{
+                terminal->cursor_y -= 1;
+                terminal->cursor_y = max(terminal->cursor_y, 0);
+            }
+            make_cursor_visible(terminal);
             return;
         }
-        if (c == 'i')
+        if (c == 'u') // move down
         {
-            terminal->win.shift = min(terminal->win.shift + terminal->win.calculated.height, 0);
+            if (terminal->cursor_y == -1) return;
+            terminal->cursor_y += terminal->win.calculated.height;
+            if (terminal->cursor_y > terminal->scrollback.count){
+                terminal->cursor_y = -1;
+            }
+            make_cursor_visible(terminal);
             return;
         }
-        if (c == 'u')
+        if (c == 'i') // move up
         {
-            terminal->win.shift = max(terminal->win.shift - terminal->win.calculated.height, min_shift);
+            if (terminal->cursor_y < 0) terminal->cursor_y = terminal->scrollback.count;
+            else{
+                terminal->cursor_y -= terminal->win.calculated.height;
+                terminal->cursor_y = max(terminal->cursor_y, 0);
+            }
+            make_cursor_visible(terminal);
             return;
         }
     }
@@ -721,6 +769,7 @@ TerminalWindow *VTermTerminal_window(int initial_rows, int initial_cols)
 {
     TerminalWindow *terminal = malloc(sizeof *terminal);
     terminal->edit_mode = 0;
+    terminal->cursor_y = -1; // no cursor
     Window_init(terminal, 0, 0, 0, 0, -1, -1);
     terminal->win.id = "vterm terminal window";
     terminal->win.send_key = vterm_send_key;
