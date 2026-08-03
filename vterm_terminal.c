@@ -17,6 +17,7 @@
 #include "slider.h"
 #include "tabs.h"
 #include "menu.h"
+#include "utils.h"
 
 /* Global state for PTY monitoring thread */
 static pthread_t pty_monitor_thread;
@@ -614,6 +615,31 @@ void vterm_send_key(struct Window *wg, char c)
     {
         terminal->edit_mode = 1 - terminal->edit_mode;
         return;
+    }
+    if (terminal->edit_mode == 0)
+    {
+        int virtual_height = VTermTerminal_get_virtual_height(terminal);
+        int min_shift = -(virtual_height - terminal->win.calculated.height);
+        if (c == 'j')
+        {
+            terminal->win.shift = max(terminal->win.shift - 1, min_shift);
+            return;
+        }
+        if (c == 'k')
+        {
+            terminal->win.shift = min(terminal->win.shift + 1, 0);
+            return;
+        }
+        if (c == 'i')
+        {
+            terminal->win.shift = min(terminal->win.shift + terminal->win.calculated.height, 0);
+            return;
+        }
+        if (c == 'u')
+        {
+            terminal->win.shift = max(terminal->win.shift - terminal->win.calculated.height, min_shift);
+            return;
+        }
     }
 
 
