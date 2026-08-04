@@ -40,6 +40,9 @@ typedef struct TerminalWindow {
     int selection_x;
     int selection_y;
 
+    ScrollbackLine *last_line;
+    int last_line_idx;
+
     // data formely in vterm_terminal_data
     int master;
     VTerm *vt;
