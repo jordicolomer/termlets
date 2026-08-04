@@ -754,6 +754,18 @@ void vterm_send_key(struct Window *wg, char c)
             terminal->selection_y = -1;
             return;
         }
+        if (c == 'h')
+        {
+            terminal->cursor_y = -1;
+            make_cursor_visible(terminal);
+            return;
+        }
+        if (c == 'l')
+        {
+            terminal->cursor_y = 0;
+            make_cursor_visible(terminal);
+            return;
+        }
     }
 
 
