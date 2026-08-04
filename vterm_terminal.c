@@ -476,7 +476,7 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
                     line_buf[buf_idx] = '\0';
                     int batch_width = col - batch_start;
 
-                    if (virtual_line == terminal->cursor_y) bg = 27;
+                    //if (virtual_line == terminal->cursor_y) bg = 27;
 
                     Buffer_print(&main_buf, y, geo.x + batch_start, batch_width, line_buf, fg, bg);
                 }
@@ -543,6 +543,14 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
             }
         }
         if (line != NULL) line = line->next;
+    }
+
+    // draw cursor
+    int bg = 248;
+    if (terminal->edit_mode == 1) bg = 3;
+    int i = terminal->cursor_y - first_visible_line;
+    if (0 <= i && i <= geo.height){
+        Buffer_set_bg(&main_buf, geo.y + i , geo.x+terminal->cursor_x, 1, bg);
     }
 
     /* Render cursor if this terminal has focus */
@@ -660,7 +668,7 @@ void vterm_send_key(struct Window *wg, char c)
         }
         if (c == 'k') // move up
         {
-            if (terminal->cursor_y < 0) terminal->cursor_y = terminal->scrollback.count;
+            if (terminal->cursor_y < 0) terminal->cursor_y = virtual_height-2;
             else{
                 terminal->cursor_y -= 1;
                 terminal->cursor_y = max(terminal->cursor_y, 0);
@@ -686,6 +694,28 @@ void vterm_send_key(struct Window *wg, char c)
                 terminal->cursor_y = max(terminal->cursor_y, 0);
             }
             make_cursor_visible(terminal);
+            return;
+        }
+        if (c == 'f')
+        {
+            terminal->cursor_x += 1;
+            terminal->cursor_x = min(terminal->cursor_x, terminal->cols);
+            return;
+        }
+        if (c == 'd')
+        {
+            terminal->cursor_x -= 1;
+            terminal->cursor_x = max(terminal->cursor_x, 0);
+            return;
+        }
+        if (c == 'g')
+        {
+            terminal->cursor_x = terminal->cols;
+            return;
+        }
+        if (c == 's')
+        {
+            terminal->cursor_x = 0;
             return;
         }
     }
