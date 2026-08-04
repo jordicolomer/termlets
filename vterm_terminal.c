@@ -18,6 +18,7 @@
 #include "tabs.h"
 #include "menu.h"
 #include "utils.h"
+#include "clipboard.h"
 
 /* Global state for PTY monitoring thread */
 static pthread_t pty_monitor_thread;
@@ -370,7 +371,6 @@ void draw_selection(TerminalWindow * terminal)
         y2 = terminal->cursor_y;
         y1 = terminal->selection_y;
     }
-    //Buffer_set_bg(&main_buf, geo.y + y1 - first_visible_line, geo.x + x1, terminal->cols - x1, 27);
     for (int y=y1;y<=y2;y++){
         int view_y = y - first_visible_line;
         if (0 <= view_y && view_y <= geo.height){
@@ -385,7 +385,6 @@ void draw_selection(TerminalWindow * terminal)
             Buffer_set_bg(&main_buf, geo.y + view_y, geo.x + x, width, 27);
         }
     }
-    //Buffer_set_bg(&main_buf, geo.y + y2 - first_visible_line, geo.x, x2, 27);
 }
 
 VTermScreenCell VTermTerminal_get_cell(TerminalWindow * terminal, int virtual_line, int col){
@@ -415,6 +414,53 @@ VTermScreenCell VTermTerminal_get_cell(TerminalWindow * terminal, int virtual_li
         }
     }
     return (VTermScreenCell){.chars = { ' ' }};
+}
+
+void VTermTerminal_copy(TerminalWindow * terminal){
+    if (terminal->selection_y == -1) return;
+    Geometry geo = terminal->win.calculated;
+    int virtual_height = VTermTerminal_get_virtual_height(terminal);
+    int first_visible_line = -terminal->win.shift;
+    int x1 = terminal->cursor_x;
+    int x2 = terminal->selection_x;
+    int y1 = terminal->cursor_y;
+    int y2 = terminal->selection_y;
+    if (y2 < y1 || (y1 == y2 && x2 < x1)){
+        x2 = terminal->cursor_x;
+        x1 = terminal->selection_x;
+        y2 = terminal->cursor_y;
+        y1 = terminal->selection_y;
+    }
+    char * line_buf = malloc((y2-y1+1)*terminal->cols*4);
+    int buf_idx = 0;
+
+    for (int y=y1;y<=y2;y++){
+        int view_y = y - first_visible_line;
+        if (0 <= view_y && view_y <= geo.height){
+            int x = 0;
+            if (y == y1){
+                x = x1;
+            }
+            int width = terminal->cols - x;
+            if (y == y2){
+                width = x2 - x;
+            }
+            for (int idx = 0; idx < width; idx++){
+                //Buffer_set_bg(&main_buf, geo.y + view_y, geo.x + x, width, 27);
+                int col = x+idx;
+                VTermScreenCell cell_ptr = VTermTerminal_get_cell(terminal, y, col);
+                buf_idx += encode_utf8(cell_ptr.chars[0], &line_buf[buf_idx]);
+            }
+
+        }
+        if (y != y2){
+            line_buf[buf_idx] = '\n';
+            buf_idx++;
+        }
+    }
+    line_buf[buf_idx] = '\0';
+    clipboard_copy(line_buf);
+    free(line_buf);
 }
 
 void VTermTerminal_draw(struct Window *wg, int hasFocus)
@@ -703,6 +749,7 @@ void vterm_send_key(struct Window *wg, char c)
         }
         if (c == 'c')
         {
+            VTermTerminal_copy(terminal);
             terminal->selection_y = -1;
             return;
         }
