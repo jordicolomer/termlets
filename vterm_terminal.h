@@ -37,6 +37,8 @@ typedef struct TerminalWindow {
 
     int cursor_x;
     int cursor_y;
+    int selection_x;
+    int selection_y;
 
     // data formely in vterm_terminal_data
     int master;

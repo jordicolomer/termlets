@@ -354,6 +354,30 @@ static int encode_utf8(uint32_t c, char *buf)
     }
 }
 
+void draw_selection(TerminalWindow * terminal)
+{
+    if (terminal->selection_y == -1) return;
+    Geometry geo = terminal->win.calculated;
+    int virtual_height = VTermTerminal_get_virtual_height(terminal);
+    int first_visible_line = -terminal->win.shift;
+    int x1 = terminal->cursor_x;
+    int x2 = terminal->selection_x;
+    int y1 = terminal->cursor_y;
+    int y2 = terminal->selection_y;
+    if (y2 < y1 || (y1 == y2 && x2 < x1)){
+        x2 = terminal->cursor_x;
+        x1 = terminal->selection_x;
+        y2 = terminal->cursor_y;
+        y1 = terminal->selection_y;
+    }
+    for (int y=y1;y<=y2;y++){
+        int view_y = y - first_visible_line;
+        if (0 <= view_y && view_y <= geo.height){
+            Buffer_set_bg(&main_buf, geo.y + view_y, geo.x, terminal->cols, 27);
+        }
+    }
+}
+
 void VTermTerminal_draw(struct Window *wg, int hasFocus)
 {
     //LOG_INFO("VTermTerminal_draw");
@@ -552,6 +576,7 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
     if (0 <= i && i <= geo.height){
         Buffer_set_bg(&main_buf, geo.y + i , geo.x+terminal->cursor_x, 1, bg);
     }
+    draw_selection(terminal);
 
     /* Render cursor if this terminal has focus */
     if (hasFocus) {
@@ -660,7 +685,7 @@ void vterm_send_key(struct Window *wg, char c)
         {
             if (terminal->cursor_y == -1) return;
             terminal->cursor_y += 1;
-            if (terminal->cursor_y > terminal->scrollback.count){
+            if (terminal->cursor_y > virtual_height){
                 terminal->cursor_y = -1;
             }
             make_cursor_visible(terminal);
@@ -716,6 +741,17 @@ void vterm_send_key(struct Window *wg, char c)
         if (c == 's')
         {
             terminal->cursor_x = 0;
+            return;
+        }
+        if (c == 'p')
+        {
+            terminal->selection_y = terminal->cursor_y;
+            terminal->selection_x = terminal->cursor_x;
+            return;
+        }
+        if (c == 'c')
+        {
+            terminal->selection_y = -1;
             return;
         }
     }
@@ -799,6 +835,7 @@ TerminalWindow *VTermTerminal_window(int initial_rows, int initial_cols)
 {
     TerminalWindow *terminal = malloc(sizeof *terminal);
     terminal->edit_mode = 0;
+    terminal->selection_y = -1;
     terminal->cursor_y = -1; // no cursor
     Window_init(terminal, 0, 0, 0, 0, -1, -1);
     terminal->win.id = "vterm terminal window";
