@@ -388,8 +388,7 @@ void draw_selection(TerminalWindow * terminal)
 }
 
 ScrollbackLine * get_line(TerminalWindow * terminal, int virtual_line){
-    if (terminal->last_line_idx != -1 && virtual_line == terminal->last_line_idx && terminal->last_line != NULL) return terminal->last_line;
-    if (virtual_line <= terminal->last_line_idx){
+    if (terminal->last_line_idx == -1 || virtual_line < terminal->last_line_idx){
         terminal->last_line_idx = 0;
         terminal->last_line = terminal->scrollback.head;
     }
@@ -406,10 +405,6 @@ ScrollbackLine * get_line(TerminalWindow * terminal, int virtual_line){
 
 VTermScreenCell VTermTerminal_get_cell(TerminalWindow * terminal, int virtual_line, int col){
     if (virtual_line < terminal->scrollback.count) {
-        /*ScrollbackLine *line = terminal->scrollback.head;
-        for (int i = 0; i < virtual_line && line != NULL; i++) {
-            line = line->next;
-        }*/
         ScrollbackLine *line = get_line(terminal, virtual_line);
         if (line && col < line->cols) {
             VTermScreenCell *cell_ptr = &line->cells[col];
