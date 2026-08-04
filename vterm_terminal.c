@@ -685,7 +685,7 @@ void vterm_send_key(struct Window *wg, char c)
         {
             if (terminal->cursor_y == -1) return;
             terminal->cursor_y += 1;
-            if (terminal->cursor_y > virtual_height){
+            if (terminal->cursor_y > virtual_height-2){
                 terminal->cursor_y = -1;
             }
             make_cursor_visible(terminal);
@@ -724,7 +724,7 @@ void vterm_send_key(struct Window *wg, char c)
         if (c == 'f')
         {
             terminal->cursor_x += 1;
-            terminal->cursor_x = min(terminal->cursor_x, terminal->cols);
+            terminal->cursor_x = min(terminal->cursor_x, terminal->cols-1);
             return;
         }
         if (c == 'd')
@@ -735,7 +735,7 @@ void vterm_send_key(struct Window *wg, char c)
         }
         if (c == 'g')
         {
-            terminal->cursor_x = terminal->cols;
+            terminal->cursor_x = terminal->cols-1;
             return;
         }
         if (c == 's')
