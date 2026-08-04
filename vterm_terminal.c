@@ -370,17 +370,25 @@ void draw_selection(TerminalWindow * terminal)
         y2 = terminal->cursor_y;
         y1 = terminal->selection_y;
     }
+    //Buffer_set_bg(&main_buf, geo.y + y1 - first_visible_line, geo.x + x1, terminal->cols - x1, 27);
     for (int y=y1;y<=y2;y++){
         int view_y = y - first_visible_line;
         if (0 <= view_y && view_y <= geo.height){
-            Buffer_set_bg(&main_buf, geo.y + view_y, geo.x, terminal->cols, 27);
+            int x = 0;
+            if (y == y1){
+                x = x1;
+            }
+            int width = terminal->cols - x;
+            if (y == y2){
+                width = x2 - x;
+            }
+            Buffer_set_bg(&main_buf, geo.y + view_y, geo.x + x, width, 27);
         }
     }
+    //Buffer_set_bg(&main_buf, geo.y + y2 - first_visible_line, geo.x, x2, 27);
 }
 
 VTermScreenCell VTermTerminal_get_cell(TerminalWindow * terminal, int virtual_line, int col){
-    //int first_visible_line = -terminal->win.shift;
-
     if (virtual_line < terminal->scrollback.count) {
         ScrollbackLine *line = terminal->scrollback.head;
         for (int i = 0; i < virtual_line && line != NULL; i++) {
@@ -406,22 +414,16 @@ VTermScreenCell VTermTerminal_get_cell(TerminalWindow * terminal, int virtual_li
             return cell;
         }
     }
-    //return (VTermScreenCell){0};
     return (VTermScreenCell){.chars = { ' ' }};
 }
 
 void VTermTerminal_draw(struct Window *wg, int hasFocus)
 {
-    //char line_buf[4096];
-    //int buf_idx = 0;
-    //LOG_INFO("VTermTerminal_draw");
-    //vterm_terminal_data *vtd = wg->data2;
     TerminalWindow * terminal = wg;
     Geometry geo = wg->calculated;
 
     /* resize vterm if window size changed */
     if (terminal->rows != geo.height || terminal->cols != geo.width) {
-        //LOG_INFO("resize");
         terminal->rows = geo.height;
         terminal->cols = geo.width;
         vterm_set_size(terminal->vt, terminal->rows, terminal->cols);
@@ -455,12 +457,6 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
     /* calculate which virtual lines are visible */
     int first_visible_line = -terminal->win.shift;
     int last_visible_line = first_visible_line + geo.height - 1;
-    //LOG_INFO("VTermTerminal_draw %d", terminal->shift);
-
-    /*ScrollbackLine *line = terminal->scrollback.head;
-    for (int i = 0; i < first_visible_line && line != NULL; i++) {
-        line = line->next;
-    }*/
 
     /* render visible rows */
     for (int viewport_row = 0; viewport_row < geo.height; viewport_row++) {
@@ -477,20 +473,16 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
             /* get colors from first cell in batch */
             int fg = default_fg;
             int bg = default_bg;
-            //if (col < line->cols) {
-                //VTermScreenCell *first_cell = &line->cells[col];
-                VTermScreenCell first_cell = VTermTerminal_get_cell(terminal, virtual_line, col);
-                //LOG_INFO("VTermScreenCell: %s", first_cell.chars);
-                fg = vterm_color_to_256(first_cell.fg);
-                bg = vterm_color_to_256(first_cell.bg);
+            VTermScreenCell first_cell = VTermTerminal_get_cell(terminal, virtual_line, col);
+            fg = vterm_color_to_256(first_cell.fg);
+            bg = vterm_color_to_256(first_cell.bg);
 
-                /* handle reverse video attribute */
-                if (first_cell.attrs.reverse) {
-                    int temp = fg;
-                    fg = bg;
-                    bg = temp;
-                }
-            //}
+            /* handle reverse video attribute */
+            if (first_cell.attrs.reverse) {
+                int temp = fg;
+                fg = bg;
+                bg = temp;
+            }
 
             /* collect consecutive cells with same colors */
             int batch_start = col;
@@ -498,31 +490,24 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
                 int cell_fg = default_fg;
                 int cell_bg = default_bg;
 
-                //if (col < line->cols) {
-                    //VTermScreenCell *cell_ptr = &line->cells[col];
-                    VTermScreenCell cell_ptr = VTermTerminal_get_cell(terminal, virtual_line, col);
-                //LOG_INFO("VTermScreenCell: %s", cell_ptr.chars);
-                    cell_fg = vterm_color_to_256(cell_ptr.fg);
-                    cell_bg = vterm_color_to_256(cell_ptr.bg);
+                VTermScreenCell cell_ptr = VTermTerminal_get_cell(terminal, virtual_line, col);
+                cell_fg = vterm_color_to_256(cell_ptr.fg);
+                cell_bg = vterm_color_to_256(cell_ptr.bg);
 
-                    /* handle reverse video attribute */
-                    if (cell_ptr.attrs.reverse) {
-                        int temp = cell_fg;
-                        cell_fg = cell_bg;
-                        cell_bg = temp;
-                    }
+                /* handle reverse video attribute */
+                if (cell_ptr.attrs.reverse) {
+                    int temp = cell_fg;
+                    cell_fg = cell_bg;
+                    cell_bg = temp;
+                }
 
-                    /* break batch if colors changed */
-                    if (cell_fg != fg || cell_bg != bg) {
-                        break;
-                    }
+                /* break batch if colors changed */
+                if (cell_fg != fg || cell_bg != bg) {
+                    break;
+                }
 
-                    /* add character to buffer */
-                    buf_idx += encode_utf8(cell_ptr.chars[0], &line_buf[buf_idx]);
-                //} else {
-                    /* past end of line, fill with spaces */
-                    //line_buf[buf_idx++] = ' ';
-                //}
+                /* add character to buffer */
+                buf_idx += encode_utf8(cell_ptr.chars[0], &line_buf[buf_idx]);
 
                 col++;
             }
@@ -530,8 +515,6 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
             /* render this batch */
             line_buf[buf_idx] = '\0';
             int batch_width = col - batch_start;
-
-            //if (virtual_line == terminal->cursor_y) bg = 27;
 
             Buffer_print(&main_buf, y, geo.x + batch_start, batch_width, line_buf, fg, bg);
         }
@@ -605,265 +588,6 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
     update_tab_label(wg);
 }
 
-
-void _VTermTerminal_draw(struct Window *wg, int hasFocus)
-{
-    //LOG_INFO("VTermTerminal_draw");
-    //vterm_terminal_data *vtd = wg->data2;
-    TerminalWindow * terminal = wg;
-    Geometry geo = wg->calculated;
-
-    /* resize vterm if window size changed */
-    if (terminal->rows != geo.height || terminal->cols != geo.width) {
-        //LOG_INFO("resize");
-        terminal->rows = geo.height;
-        terminal->cols = geo.width;
-        vterm_set_size(terminal->vt, terminal->rows, terminal->cols);
-
-        // also update PTY size
-        struct winsize ws = {
-            .ws_row = terminal->rows,
-            .ws_col = terminal->cols,
-            .ws_xpixel = 0,
-            .ws_ypixel = 0
-        };
-        ioctl(terminal->master, TIOCSWINSZ, &ws);
-    }
-
-    wg->virtual_height = VTermTerminal_get_virtual_height(wg);
-
-    int default_fg = 250;
-    int default_bg = 240;
-    if (hasFocus) {
-        default_fg = 7;
-        default_bg = 0;
-    }
-
-    /* render each row from scrollback and vterm screen */
-    VTermPos pos;
-    VTermScreenCell cell;
-
-    //Window *terminal = vtd->terminal;
-    int virtual_height = VTermTerminal_get_virtual_height(terminal);
-
-    /* calculate which virtual lines are visible */
-    int first_visible_line = -terminal->win.shift;
-    int last_visible_line = first_visible_line + geo.height - 1;
-    //LOG_INFO("VTermTerminal_draw %d", terminal->shift);
-
-    ScrollbackLine *line = terminal->scrollback.head;
-    for (int i = 0; i < first_visible_line && line != NULL; i++) {
-        line = line->next;
-    }
-
-    /* render visible rows */
-    for (int viewport_row = 0; viewport_row < geo.height; viewport_row++) {
-        //LOG_INFO("for %d", viewport_row);
-        int virtual_line = first_visible_line + viewport_row;
-
-        int y = geo.y + viewport_row;
-
-        /* determine if this line is in scrollback or current screen */
-        if (virtual_line < terminal->scrollback.count) {
-            //LOG_INFO("scrollback line");
-            /* this is a scrollback line - find it in the linked list */
-
-            if (line) {
-                /* render scrollback line with color batching */
-                int col = 0;
-                while (col < geo.width) {
-                    char line_buf[4096];
-                    int buf_idx = 0;
-
-                    /* get colors from first cell in batch */
-                    int fg = default_fg;
-                    int bg = default_bg;
-                    if (col < line->cols) {
-                        VTermScreenCell *first_cell = &line->cells[col];
-                        fg = vterm_color_to_256(first_cell->fg);
-                        bg = vterm_color_to_256(first_cell->bg);
-
-                        /* handle reverse video attribute */
-                        if (first_cell->attrs.reverse) {
-                            int temp = fg;
-                            fg = bg;
-                            bg = temp;
-                        }
-                    }
-
-                    /* collect consecutive cells with same colors */
-                    int batch_start = col;
-                    while (col < geo.width) {
-                        int cell_fg = default_fg;
-                        int cell_bg = default_bg;
-
-                        if (col < line->cols) {
-                            VTermScreenCell *cell_ptr = &line->cells[col];
-                            cell_fg = vterm_color_to_256(cell_ptr->fg);
-                            cell_bg = vterm_color_to_256(cell_ptr->bg);
-
-                            /* handle reverse video attribute */
-                            if (cell_ptr->attrs.reverse) {
-                                int temp = cell_fg;
-                                cell_fg = cell_bg;
-                                cell_bg = temp;
-                            }
-
-                            /* break batch if colors changed */
-                            if (cell_fg != fg || cell_bg != bg) {
-                                break;
-                            }
-
-                            /* add character to buffer */
-                            buf_idx += encode_utf8(cell_ptr->chars[0], &line_buf[buf_idx]);
-                        } else {
-                            /* past end of line, fill with spaces */
-                            line_buf[buf_idx++] = ' ';
-                        }
-
-                        col++;
-                    }
-
-                    /* render this batch */
-                    line_buf[buf_idx] = '\0';
-                    int batch_width = col - batch_start;
-
-                    //if (virtual_line == terminal->cursor_y) bg = 27;
-
-                    Buffer_print(&main_buf, y, geo.x + batch_start, batch_width, line_buf, fg, bg);
-                }
-            }
-        } else {
-            /* this is a current screen line */
-            int screen_row = virtual_line - terminal->scrollback.count;
-            //LOG_INFO("current screen %d %d", screen_row, virtual_line);
-
-            if (screen_row >= 0 && screen_row < terminal->rows) {
-                /* render current screen line with color batching */
-                int col = 0;
-                while (col < geo.width) {
-                    char line_buf[4096];
-                    int buf_idx = 0;
-
-                    /* get colors from first cell in batch */
-                    pos.row = screen_row;
-                    pos.col = col;
-                    vterm_screen_get_cell(terminal->vts, pos, &cell);
-                    int fg = vterm_color_to_256(cell.fg);
-                    int bg = vterm_color_to_256(cell.bg);
-
-                    /* handle reverse video attribute */
-                    if (cell.attrs.reverse) {
-                        int temp = fg;
-                        fg = bg;
-                        bg = temp;
-                    }
-
-                    /* collect consecutive cells with same colors */
-                    int batch_start = col;
-                    while (col < geo.width && col < terminal->cols) {
-                        pos.row = screen_row;
-                        pos.col = col;
-                        vterm_screen_get_cell(terminal->vts, pos, &cell);
-
-                        int cell_fg = vterm_color_to_256(cell.fg);
-                        int cell_bg = vterm_color_to_256(cell.bg);
-
-                        /* handle reverse video attribute */
-                        if (cell.attrs.reverse) {
-                            int temp = cell_fg;
-                            cell_fg = cell_bg;
-                            cell_bg = temp;
-                        }
-
-                        /* break batch if colors changed */
-                        if (cell_fg != fg || cell_bg != bg) {
-                            break;
-                        }
-
-                        /* add character to buffer */
-                        buf_idx += encode_utf8(cell.chars[0], &line_buf[buf_idx]);
-
-                        col++;
-                    }
-
-                    /* render this batch */
-                    line_buf[buf_idx] = '\0';
-                    int batch_width = col - batch_start;
-                    Buffer_print(&main_buf, y, geo.x + batch_start, batch_width, line_buf, fg, bg);
-                }
-            }
-        }
-        if (line != NULL) line = line->next;
-    }
-
-    // draw cursor
-    int bg = 248;
-    if (terminal->edit_mode == 1) bg = 3;
-    int i = terminal->cursor_y - first_visible_line;
-    if (0 <= i && i <= geo.height){
-        Buffer_set_bg(&main_buf, geo.y + i , geo.x+terminal->cursor_x, 1, bg);
-    }
-    draw_selection(terminal);
-
-    /* Render cursor if this terminal has focus */
-    if (hasFocus) {
-        VTermState *state = vterm_obtain_state(terminal->vt);
-        VTermPos cursor_pos;
-        vterm_state_get_cursorpos(state, &cursor_pos);
-
-        /* Convert cursor position from screen coordinates to viewport coordinates */
-        int cursor_virtual_line = terminal->scrollback.count + cursor_pos.row;
-        int cursor_viewport_row = cursor_virtual_line - first_visible_line;
-
-        /* Only draw cursor if it's visible in the viewport */
-        if (cursor_viewport_row >= 0 && cursor_viewport_row < geo.height &&
-            cursor_pos.col >= 0 && cursor_pos.col < geo.width) {
-            int cursor_y = geo.y + cursor_viewport_row;
-            int cursor_x = geo.x + cursor_pos.col;
-
-            /* Get the character at cursor position */
-            VTermScreenCell cell;
-            vterm_screen_get_cell(terminal->vts, cursor_pos, &cell);
-
-            int fg = vterm_color_to_256(cell.fg);
-            int bg = vterm_color_to_256(cell.bg);
-
-            /* Apply reverse video if already set */
-            if (cell.attrs.reverse) {
-                int temp = fg;
-                fg = bg;
-                bg = temp;
-            }
-
-            if (terminal->edit_mode == 1) fg = 3;
-
-            /* Render cursor - handle wide characters and continuation cells properly */
-            char cursor_char[8];
-            int cursor_width = 1;
-
-            if (cell.chars[0] == (uint32_t)-1) {
-                /* This is a continuation cell for a wide char, render space */
-                strcpy(cursor_char, " ");
-            } else if (cell.chars[0] == 0) {
-                /* Empty cell */
-                strcpy(cursor_char, " ");
-            } else {
-                /* Regular character - encode it */
-                int len = encode_utf8(cell.chars[0], cursor_char);
-                cursor_char[len] = '\0';
-                /* Use the cell width from libvterm */
-                cursor_width = cell.width > 0 ? cell.width : 1;
-            }
-
-            LOG_INFO("terminal->edit_mode: %d", terminal->edit_mode);
-
-            /* Render cursor with swapped colors (reverse video) */
-            Buffer_print(&main_buf, cursor_y, cursor_x, cursor_width, cursor_char, bg, fg);
-        }
-    }
-    update_tab_label(wg);
-}
 
 void make_cursor_visible(TerminalWindow * terminal){
     int first_visible_line = -terminal->win.shift;
