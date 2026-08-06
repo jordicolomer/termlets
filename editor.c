@@ -101,7 +101,7 @@ void Node_append(Node *node, char *text)
     if (!node || !text || *text == '\0')
         return;
 
-    size_t text_len = strlen(text);
+    size_t text_len = strlen(text); // should this be calculate_width?
 
     // Check if we need to grow the buffer
     if (node->length + text_len + 1 > node->capacity)
@@ -231,7 +231,8 @@ void EditorWindow_paste(EditorWindow *self){
         } else {
             Node *new_node = malloc(sizeof(Node));
             new_node->line = strdup(line);
-            new_node->length = strlen(line);
+            //new_node->length = strlen(line);
+            new_node->length = calculate_width(line);
             new_node->capacity = new_node->length+1;
             new_node->lexerState = 0;
             current->next = new_node;
@@ -334,7 +335,8 @@ void EditorWindow_newline(EditorWindow *self){
     node->next = new_node;
 
     new_node->line = strdup(node->line + self->cursor_x);
-    new_node->length = strlen(new_node->line);
+    //new_node->length = strlen(new_node->line);
+    new_node->length = calculate_width(new_node->line);
     new_node->capacity = new_node->length + 1;
     new_node->next = next;
     new_node->prev = node;
@@ -380,9 +382,10 @@ Node *create_node(const char *text)
         perror("malloc failed");
         exit(1);
     }
-    replace_nonprintable(text);
+    //replace_nonprintable(text);
     new_node->line = strdup(text); // copy string
-    new_node->length = strlen(text);
+    //new_node->length = strlen(text);
+    new_node->length = calculate_width(text);
     new_node->capacity = new_node->length + 1;
     new_node->next = NULL;
     new_node->prev = NULL;
@@ -504,14 +507,16 @@ void EditorWindow_send_key(Window *win, char c)
     if (c == 'f')
     {
         Node * node = EditorWindow_get_line_number(self, self->cursor_n);
-        int mx = strlen(node->line);
+        //int mx = strlen(node->line);
+        int mx = node->length;
         self->cursor_x = min(self->cursor_x + 1, mx);
         return;
     }
     if (c == 'g')
     {
         Node * node = EditorWindow_get_line_number(self, self->cursor_n);
-        int mx = strlen(node->line);
+        //int mx = strlen(node->line);
+        int mx = node->length;
         self->cursor_x = mx;
         return;
     }
