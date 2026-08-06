@@ -19,6 +19,7 @@
 #include "menu.h"
 #include "utils.h"
 #include "clipboard.h"
+#include "editor.h"
 
 /* Global state for PTY monitoring thread */
 static pthread_t pty_monitor_thread;
@@ -581,7 +582,7 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
 
     // draw cursor
     int bg = 248;
-    if (terminal->edit_mode == 1) bg = 3;
+    if (edit_mode == 1) bg = 3;
     int i = terminal->cursor_y - first_visible_line;
     if (0 <= i && i <= geo.height){
         Buffer_set_bg(&main_buf, geo.y + i , geo.x+terminal->cursor_x, 1, bg);
@@ -618,7 +619,7 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
                 bg = temp;
             }
 
-            if (terminal->edit_mode == 1) fg = 3;
+            if (edit_mode == 1) fg = 3;
 
             /* Render cursor - handle wide characters and continuation cells properly */
             char cursor_char[8];
@@ -638,7 +639,7 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
                 cursor_width = cell.width > 0 ? cell.width : 1;
             }
 
-            LOG_INFO("terminal->edit_mode: %d", terminal->edit_mode);
+            //LOG_INFO("terminal->edit_mode: %d", terminal->edit_mode);
 
             /* Render cursor with swapped colors (reverse video) */
             Buffer_print(&main_buf, cursor_y, cursor_x, cursor_width, cursor_char, bg, fg);
@@ -685,10 +686,10 @@ void vterm_send_key(struct Window *wg, char c)
     }*/
     if (c == ';')
     {
-        terminal->edit_mode = 1 - terminal->edit_mode;
+        edit_mode = 1 - edit_mode;
         return;
     }
-    if (terminal->edit_mode == 0)
+    if (edit_mode == 0)
     {
         int virtual_height = VTermTerminal_get_virtual_height(terminal);
         int min_shift = -(virtual_height - terminal->win.calculated.height);
@@ -858,7 +859,7 @@ static int cb_sb_pushline(int cols, const VTermScreenCell *cells, void *user)
 TerminalWindow *VTermTerminal_window(int initial_rows, int initial_cols)
 {
     TerminalWindow *terminal = malloc(sizeof *terminal);
-    terminal->edit_mode = 0;
+    //terminal->edit_mode = 0;
     terminal->selection_y = -1;
     terminal->last_line_idx = -1;
     terminal->last_line = NULL;

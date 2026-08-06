@@ -3,6 +3,8 @@
 #include "window.h"
 #include "tabs.h"
 
+extern int edit_mode;
+
 typedef struct Node {
     char *line;
     struct Node *next;
