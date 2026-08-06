@@ -79,6 +79,21 @@ Window * add_to_all_tabs(Tab *self){
     if (all_tabs_tail == NULL) all_tabs_tail = self;
 }
 
+Window * remove_from_all_tabs(Tab *self){
+    if (all_tabs_head == self) all_tabs_head = self->all_tabs_next;
+    if (all_tabs_tail == self) all_tabs_tail = self->all_tabs_prev;
+
+    if (self->all_tabs_prev != NULL) self->all_tabs_prev->all_tabs_next = self->all_tabs_next;
+    if (self->all_tabs_next != NULL) self->all_tabs_next->all_tabs_prev = self->all_tabs_prev;
+
+    self->all_tabs_next = NULL;
+    self->all_tabs_prev = NULL;
+}
+
+void tab_move_to_front(Tab *self){
+    remove_from_all_tabs(self);
+    add_to_all_tabs(self);
+}
 
 void cycle_tab(){
     //LOG_INFO("cycle_tab %p", selected_tab);
@@ -167,6 +182,9 @@ void tabs_plus_clicked(Window *wg, int x, int y)
 
 void tabs_send_key(struct Window *wg, char c)
 {
+    Tabs *mytab = (Tabs *) wg->data;
+    tab_move_to_front(mytab->selected_tab);
+
     if (c == 14){ // Ctrl+N
         Tabs *mytab = (Tabs *) wg->data;
         tabs_new_tab(mytab);
@@ -182,6 +200,7 @@ void tabs_send_key(struct Window *wg, char c)
     if (focused_cursor != NULL) while (focused_cursor->send_key == NULL && focused_cursor->focused != NULL) focused_cursor = focused_cursor->focused;
 
     if (focused_cursor != NULL && focused_cursor->send_key != NULL) {
+        //tab_move_to_front(focused_cursor);
         focused_cursor->send_key(focused_cursor, c);
     }
 
@@ -189,6 +208,7 @@ void tabs_send_key(struct Window *wg, char c)
 
 void tabs_scroll_wheel_up(struct Window *wg)
 {
+    //tab_move_to_front(wg);
     Window *focused_cursor = wg->focused;
     if (focused_cursor != NULL) while (focused_cursor->scroll_wheel_up == NULL && focused_cursor->focused != NULL) focused_cursor = focused_cursor->focused;
 
@@ -199,6 +219,7 @@ void tabs_scroll_wheel_up(struct Window *wg)
 
 void tabs_scroll_wheel_down(struct Window *wg)
 {
+    //tab_move_to_front(wg);
     Window *focused_cursor = wg->focused;
     if (focused_cursor != NULL) while (focused_cursor->scroll_wheel_down == NULL && focused_cursor->focused != NULL) focused_cursor = focused_cursor->focused;
 
@@ -211,6 +232,7 @@ void tabs_scroll_wheel_down(struct Window *wg)
 
 void tabs_send_sequence(struct Window *wg, const char *seq, int len)
 {
+    //tab_move_to_front(wg);
     if (strcmp(seq, "\x1b[Z") == 0) { // Shift+Tab
         Tabs *mytab = (Tabs *) wg->data;
         tabs_cycle(mytab);
