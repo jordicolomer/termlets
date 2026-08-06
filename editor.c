@@ -17,6 +17,8 @@
 #include "utils.h"
 
 
+int edit_mode = 0;
+
 // Editor Window
 
 void EditorWindow_scroll_wheel_down(struct Window *w){
@@ -477,7 +479,7 @@ void EditorWindow_send_key(Window *win, char c)
     EditorWindow *self = win;
     if (c == ';')
     {
-        self->edit_mode = 1 - self->edit_mode;
+        edit_mode = 1 - edit_mode;
         return;
     }
     if (c == 8) // Backspace
@@ -490,7 +492,7 @@ void EditorWindow_send_key(Window *win, char c)
         EditorWindow_newline(self);
         return;
     }
-    if (self->edit_mode == 1){
+    if (edit_mode == 1){
         EditorWindow_insert(self, c);
         return;
     }
@@ -678,7 +680,7 @@ void EditorWindow_draw(struct Window *w, int hasFocus)
         
         if (-self->win.shift + i == self->cursor_n){ // show cursor
             bg = 248;
-            if (self->edit_mode == 1) bg = 3;
+            if (edit_mode == 1) bg = 3;
             //Buffer_print(&main_buf, geo.y + i, geo.x+self->cursor_x, 1, str+self->cursor_x, 16, bg);
             Buffer_set_bg(&main_buf, geo.y + i, geo.x+self->cursor_x, 1, bg);
         }
@@ -720,7 +722,7 @@ EditorWindow *EditorWindow_new()
     self->top_n = 0;
     self->cursor_n = 0;
     self->cursor_x = 0;
-    self->edit_mode = 0;
+    //self->edit_mode = 0;
     self->selection_n = -1;
     self->selection_x = 0;
     self->language = LANG_NONE;
