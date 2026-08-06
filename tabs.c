@@ -5,8 +5,10 @@
 #include "logger.h"
 #include "buffer.h"
 #include "common.h"
+#include "taskbar.h"
 
 //#define SELECTED_COLOR 33
+Tab * selected_tab;
 
 void change_color_hover(Window *wg, int x, int y)
 {
@@ -61,12 +63,34 @@ void tab_select(Tab *tab){
 
     change_color_normal(prev, 0, 0);
     change_color_normal(tab->tab_label, 0, 0);
+    selected_tab = tab;
 }
 
 void tab_clicked(Window *wg, int x, int y)
 {
     Tab *tab = (Tab *) wg->data;
     tab_select(tab);
+}
+
+Window * add_to_all_tabs(Tab *self){
+    if (all_tabs_head != NULL) all_tabs_head->all_tabs_prev = self;
+    self->all_tabs_next = all_tabs_head;
+    all_tabs_head = self;
+    if (all_tabs_tail == NULL) all_tabs_tail = self;
+}
+
+
+void cycle_tab(){
+    //LOG_INFO("cycle_tab %p", selected_tab);
+    if (selected_tab != NULL){
+        selected_tab = selected_tab->all_tabs_next;
+    }
+    if (selected_tab == NULL) selected_tab = all_tabs_head;
+    if (selected_tab != NULL){
+        Window * frame = selected_tab->parent->win.parent->parent;
+        TaskBar_switch_frame(frame);
+        tab_select(selected_tab);
+    }
 }
 
 Window * tabs_new_tab(Tabs *self){
@@ -119,6 +143,9 @@ Window * tabs_new_tab(Tabs *self){
     if (prev_tab_label != NULL) change_color_normal(prev_tab_label, 0, 0);
 
     make_visible(mytab);
+    add_to_all_tabs(mytab);
+
+    selected_tab = mytab;
 
     return child;
 

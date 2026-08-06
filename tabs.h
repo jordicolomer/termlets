@@ -15,7 +15,14 @@ typedef struct Tab {
     Window *child;
     char str[20];
     Tab * next;
+
+    // this allows navigating all tabs in a single list
+    Tab * all_tabs_next;
+    Tab * all_tabs_prev;
 } Tab;
+
+Tab * all_tabs_head;
+Tab * all_tabs_tail;
 
 typedef struct Tabs {
     struct Window win;
@@ -34,5 +41,6 @@ typedef struct Tabs {
 Window *Tab_new(tab_create_callback callback, int new_tab);
 Window * tabs_new_tab(Tabs *self);
 void tab_select(Tab *tab);
+void cycle_tab();
 
 #endif

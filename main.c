@@ -13,6 +13,8 @@
 #include "taskbar.h"
 #include "utils.h"
 #include "vterm_terminal.h"
+#include "editor.h"
+#include "tabs.h"
 
 // TERMINAL
 
@@ -244,6 +246,13 @@ int start()
       file_manager_new();
       repaint();
       continue;
+    }
+    if (edit_mode == 0){
+      if (c == 'm'){
+        cycle_tab();
+        repaint();
+        continue;
+      }
     }
 
     if (c != 27){
