@@ -527,7 +527,8 @@ void FileExplorer_send_key(Window * win, char c)
         FileExplorer_select_single_item(self, selected);
         return;
     }
-    if (c == 109){ // m
+    //if (c == 109){ // m
+    if (c == 13){ // CR
         Window * selected = self->selected;
         item_clicked(selected->head, 0, 0);
         return;

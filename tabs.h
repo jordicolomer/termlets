@@ -42,5 +42,6 @@ Window *Tab_new(tab_create_callback callback, int new_tab);
 Window * tabs_new_tab(Tabs *self);
 void tab_select(Tab *tab);
 void cycle_tab();
+void cycle_tab_reverse();
 
 #endif

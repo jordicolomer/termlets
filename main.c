@@ -253,6 +253,11 @@ int start()
         repaint();
         continue;
       }
+      if (c == 'M'){
+        cycle_tab_reverse();
+        repaint();
+        continue;
+      }
     }
 
     if (c != 27){

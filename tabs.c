@@ -96,11 +96,21 @@ void tab_move_to_front(Tab *self){
 }
 
 void cycle_tab(){
-    //LOG_INFO("cycle_tab %p", selected_tab);
     if (selected_tab != NULL){
         selected_tab = selected_tab->all_tabs_next;
     }
     if (selected_tab == NULL) selected_tab = all_tabs_head;
+    if (selected_tab != NULL){
+        Window * frame = selected_tab->parent->win.parent->parent;
+        TaskBar_switch_frame(frame);
+        tab_select(selected_tab);
+    }
+}
+void cycle_tab_reverse(){
+    if (selected_tab != NULL){
+        selected_tab = selected_tab->all_tabs_prev;
+    }
+    if (selected_tab == NULL) selected_tab = all_tabs_tail;
     if (selected_tab != NULL){
         Window * frame = selected_tab->parent->win.parent->parent;
         TaskBar_switch_frame(frame);
