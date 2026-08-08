@@ -15,11 +15,13 @@
 #include "vterm_terminal.h"
 #include "tabs.h"
 #include "common.h"
+#include "config.h"
 
 // TERMINAL
 
 void init()
 {
+  load_mappings();
   int rows;
   int cols;
   get_terminal_size(&rows, &cols);

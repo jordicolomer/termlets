@@ -26,6 +26,7 @@
 #include "text_edit.h"
 #include "mystring.h"
 #include "common.h"
+#include "config.h"
 
 int ends_with(const char *str, const char *suffix)
 {
@@ -507,29 +508,34 @@ void FileExplorer_send_key(Window * win, char c)
         focused_cursor->send_key(focused_cursor, c);
         return;
     }
+    Action action = mapping[c];
 
-    if (c == 106){ // j
+    if (action == ACTION_DOWN){
+    //if (c == 106){ // j
         FileExplorer_select_single_item(self, self->selected->win.next);
         return;
     }
-    if (c == 107){ // k
+    //if (c == 107){ // k
+    if (action == ACTION_UP){
         FileExplorer_select_single_item(self, self->selected->win.prev);
         return;
     }
-    if (c == 117){ // u
+    if (action == ACTION_PAGE_UP){
+    //if (c == 117){ // u
         Window * selected = self->selected;
         for (int i=0;i<win->calculated.height && selected->next;i++) selected = selected->next;
         FileExplorer_select_single_item(self, selected);
         return;
     }
-    if (c == 105){ // i
+    if (action == ACTION_PAGE_DOWN){
+    //if (c == 105){ // i
         Window * selected = self->selected;
         for (int i=0;i<win->calculated.height && selected->prev;i++) selected = selected->prev;
         FileExplorer_select_single_item(self, selected);
         return;
     }
-    //if (c == 109){ // m
-    if (c == 13){ // CR
+    if (action == ACTION_ENTER){
+    //if (c == 13){ // CR
         Window * selected = self->selected;
         item_clicked(selected->head, 0, 0);
         return;

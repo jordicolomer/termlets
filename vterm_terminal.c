@@ -20,6 +20,7 @@
 #include "utils.h"
 #include "clipboard.h"
 #include "common.h"
+#include "config.h"
 
 /* Global state for PTY monitoring thread */
 static pthread_t pty_monitor_thread;
@@ -679,12 +680,14 @@ void vterm_send_key(struct Window *wg, char c)
 {
     //vterm_terminal_data *vtd = wg->data2;
     TerminalWindow * terminal = wg;
+    Action action = mapping[c];
 
     /*if (c == 12){ // Ctrl+K
       cycle_tabs();
       return;
     }*/
-    if (c == ';')
+    //if (c == ';')
+    if (action == ACTION_MODE)
     {
         insert_mode = 1 - insert_mode;
         return;
@@ -693,7 +696,7 @@ void vterm_send_key(struct Window *wg, char c)
     {
         int virtual_height = VTermTerminal_get_virtual_height(terminal);
         int min_shift = -(virtual_height - terminal->win.calculated.height);
-        if (c == 'j') // move down
+        if (action == ACTION_DOWN)
         {
             if (terminal->cursor_y == -1) return;
             terminal->cursor_y += 1;
@@ -703,7 +706,7 @@ void vterm_send_key(struct Window *wg, char c)
             make_cursor_visible(terminal);
             return;
         }
-        if (c == 'k') // move up
+        if (action == ACTION_UP)
         {
             if (terminal->cursor_y < 0) terminal->cursor_y = virtual_height-2;
             else{
@@ -713,7 +716,7 @@ void vterm_send_key(struct Window *wg, char c)
             make_cursor_visible(terminal);
             return;
         }
-        if (c == 'u') // move down
+        if (action == ACTION_PAGE_UP)
         {
             if (terminal->cursor_y == -1) return;
             terminal->cursor_y += terminal->win.calculated.height;
@@ -723,7 +726,7 @@ void vterm_send_key(struct Window *wg, char c)
             make_cursor_visible(terminal);
             return;
         }
-        if (c == 'i') // move up
+        if (action == ACTION_PAGE_DOWN)
         {
             if (terminal->cursor_y < 0) terminal->cursor_y = terminal->scrollback.count;
             else{
@@ -733,47 +736,47 @@ void vterm_send_key(struct Window *wg, char c)
             make_cursor_visible(terminal);
             return;
         }
-        if (c == 'f')
+        if (action == ACTION_RIGHT)
         {
             terminal->cursor_x += 1;
             terminal->cursor_x = min(terminal->cursor_x, terminal->cols-1);
             return;
         }
-        if (c == 'd')
+        if (action == ACTION_LEFT)
         {
             terminal->cursor_x -= 1;
             terminal->cursor_x = max(terminal->cursor_x, 0);
             return;
         }
-        if (c == 'g')
+        if (action == ACTION_END_OF_LINE)
         {
             terminal->cursor_x = terminal->cols-1;
             return;
         }
-        if (c == 's')
+        if (action == ACTION_START_OF_LINE)
         {
             terminal->cursor_x = 0;
             return;
         }
-        if (c == 'p')
+        if (action == ACTION_START_SELECTION)
         {
             terminal->selection_y = terminal->cursor_y;
             terminal->selection_x = terminal->cursor_x;
             return;
         }
-        if (c == 'c')
+        if (action == ACTION_COPY)
         {
             VTermTerminal_copy(terminal);
             terminal->selection_y = -1;
             return;
         }
-        if (c == 'h')
+        if (action == ACTION_FIRST_LINE)
         {
             terminal->cursor_y = -1;
             make_cursor_visible(terminal);
             return;
         }
-        if (c == 'l')
+        if (action == ACTION_LAST_LINE)
         {
             terminal->cursor_y = 0;
             make_cursor_visible(terminal);

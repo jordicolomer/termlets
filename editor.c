@@ -16,6 +16,7 @@
 #include "lexer.h"
 #include "utils.h"
 #include "common.h"
+#include "config.h"
 
 
 
@@ -477,18 +478,17 @@ void EditorWindow_reload(EditorWindow *editor_window)
 void EditorWindow_send_key(Window *win, char c)
 {
     EditorWindow *self = win;
-    if (c == ';')
-    {
+    Action action = mapping[c];
+
+    if (action == ACTION_MODE){
         insert_mode = 1 - insert_mode;
         return;
     }
-    if (c == 8) // Backspace
-    {
+    if (action == ACTION_BACKSPACE){
         EditorWindow_delete(self);
         return;
     }
-    if (c == 13) // Carriage Return (Enter)
-    {
+    if (action == ACTION_ENTER){
         EditorWindow_newline(self);
         return;
     }
@@ -496,105 +496,89 @@ void EditorWindow_send_key(Window *win, char c)
         EditorWindow_insert(self, c);
         return;
     }
-    if (c == 's')
-    {
+    if (action == ACTION_START_OF_LINE){
         self->cursor_x = 0;
         return;
     }
-    if (c == 'd')
-    {
+    if (action == ACTION_LEFT){
         self->cursor_x = max(self->cursor_x - 1, 0);
         return;
     }
-    if (c == 'f')
-    {
+    if (action == ACTION_RIGHT){
         Node * node = EditorWindow_get_line_number(self, self->cursor_n);
         //int mx = strlen(node->line);
         int mx = node->length;
         self->cursor_x = min(self->cursor_x + 1, mx);
         return;
     }
-    if (c == 'g')
-    {
+    if (action == ACTION_END_OF_LINE){
         Node * node = EditorWindow_get_line_number(self, self->cursor_n);
         //int mx = strlen(node->line);
         int mx = node->length;
         self->cursor_x = mx;
         return;
     }
-    if (c == 'j')
-    {
+    if (action == ACTION_DOWN){
         self->cursor_n++;
         self->cursor_n = min(self->cursor_n, self->n_lines - 1);
         EditorWindow_fix_cursor_x(self);
         EditorWindow_make_cursor_visible(self);
         return;
     }
-    if (c == 'h')
-    {
+    if (action == ACTION_FIRST_LINE){
         self->cursor_n = self->n_lines - 1;
         EditorWindow_fix_cursor_x(self);
         EditorWindow_make_cursor_visible(self);
         return;
     }
-    if (c == 'k')
-    {
+    if (action == ACTION_UP){
         self->cursor_n--;
         self->cursor_n = max(self->cursor_n, 0);
         EditorWindow_fix_cursor_x(self);
         EditorWindow_make_cursor_visible(self);
         return;
     }
-    if (c == 'l')
-    {
+    if (action == ACTION_LAST_LINE){
         self->cursor_n = 0;
         EditorWindow_fix_cursor_x(self);
         EditorWindow_make_cursor_visible(self);
         return;
     }
-    if (c == 'u')
-    {
+    if (action == ACTION_PAGE_UP){
         self->cursor_n += win->calculated.height;
         self->cursor_n = min(self->cursor_n, self->n_lines - 1);
         EditorWindow_make_cursor_visible(self);
         return;
     }
-    if (c == 'i')
-    {
+    if (action == ACTION_PAGE_DOWN){
         self->cursor_n -= win->calculated.height;
         self->cursor_n = max(self->cursor_n, 0);
         EditorWindow_make_cursor_visible(self);
         return;
     }
-    if (c == 'p')
-    {
+    if (action == ACTION_START_SELECTION){
         self->selection_n = self->cursor_n;
         self->selection_x = self->cursor_x;
         return;
     }
-    if (c == 'c')
-    {
+    if (action == ACTION_COPY){
         EditorWindow_copy(self);
         self->selection_n = -1;
         return;
     }
-    if (c == 'v')
-    {
+    if (action == ACTION_PASTE){
         EditorWindow_paste(self);
         return;
     }
-    if (c == 'x')
-    {
+    if (action == ACTION_CUT){
         EditorWindow_cut(self);
         return;
     }
-    if (c == 'w')
-    {
+    if (action == ACTION_SAVE){
         EditorWindow_save(self);
         return;
     }
-    if (c == 'r')
-    {
+    if (action == ACTION_RELOAD){
         EditorWindow_reload(self);
         return;
     }
