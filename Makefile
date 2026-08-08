@@ -3,8 +3,15 @@ CC := gcc
 #CFLAGS := -Wall -Wextra -Werror -std=c11 -g
 #CFLAGS := -Wall -Wextra -std=c11 -g -I/opt/homebrew/opt/libvterm/include
 #LDFLAGS := -L/opt/homebrew/opt/libvterm/lib -lvterm -lpthread
-CFLAGS = -Wall -Wextra -std=c11 -g $(shell pkg-config --cflags libvterm)
-LDFLAGS = $(shell pkg-config --libs libvterm)
+#CFLAGS = -Wall -Wextra -std=c11 -g $(shell pkg-config --cflags libvterm)
+#LDFLAGS = $(shell pkg-config --libs libvterm)
+
+LIBVTERM_PREFIX := $(shell brew --prefix libvterm)
+
+CFLAGS = -Wall -Wextra -std=c11 -g \
+         -I$(LIBVTERM_PREFIX)/include
+
+LDFLAGS = -L$(LIBVTERM_PREFIX)/lib -lvterm
 
 # Project name
 TARGET := termlets
