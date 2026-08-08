@@ -2,7 +2,7 @@
 
 A lightweight terminal multiplexer and desktop environment written in C.
 
-![Screenshot](media/Screenshot1.png)
+![Screenshot](https://github.com/user-attachments/assets/d024501a-0a2b-4a4f-ab94-b5b235528993)
 
 
 Termlets sits somewhere between a terminal multiplexer such as `tmux` or `screen` and a desktop environment such as KDE or Windows. Despite its desktop-like appearance, it runs entirely inside the terminal.
