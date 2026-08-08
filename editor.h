@@ -23,7 +23,7 @@ typedef struct EditorWindow {
     int cursor_n; // what line has the cursor
     int cursor_x; // what column has the cursor
     int n_lines; // total number of lines
-    //int edit_mode;
+    //int insert_mode;
     int selection_n; // what line has the selection marker. -1 means no marker
     int selection_x; // what column has the selection marker
     char * file_path;

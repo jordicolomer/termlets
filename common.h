@@ -2,6 +2,6 @@
 #define COMMON_H
 
 #define SELECTED_COLOR 153
-extern int edit_mode;
+extern int insert_mode;
 
 #endif

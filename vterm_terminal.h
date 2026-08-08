@@ -33,7 +33,7 @@ typedef struct TerminalWindow {
     char * cwd;
     Window * slider;
     pid_t pid;
-    int edit_mode;
+    //int insert_mode;
 
     int cursor_x;
     int cursor_y;

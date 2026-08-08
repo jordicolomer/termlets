@@ -247,7 +247,7 @@ int start()
       repaint();
       continue;
     }
-    if (edit_mode == 0){
+    if (insert_mode == 0){
       if (c == 'm'){
         cycle_tab();
         repaint();
