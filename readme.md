@@ -8,7 +8,7 @@ A lightweight terminal multiplexer and desktop environment written in C.
 # video
 ![Demo](media/demo.gif)
 
-Termlet sits somewhere between a terminal multiplexer such as `tmux` or `screen` and a desktop environment such as KDE or Windows. Despite its desktop-like appearance, it runs entirely inside the terminal.
+Termlets sits somewhere between a terminal multiplexer such as `tmux` or `screen` and a desktop environment such as KDE or Windows. Despite its desktop-like appearance, it runs entirely inside the terminal.
 
 It supports common mouse interactions, including clicking, trackpad scrolling, and dragging windows. It also comes with everything built in, including a fully fledged file manager, text editor, and terminal emulator, all available out of the box.
 
@@ -40,4 +40,4 @@ It has currently only been tested on macOS using the iTerm2 terminal emulator. S
 git clone https://github.com/jordicolomer/termlets.git
 cd termlets
 make
-sudo cp ./termlets /usr/local/bin/termlet
+sudo cp ./termlets /usr/local/bin/termlets
