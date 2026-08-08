@@ -13,8 +13,8 @@
 #include "taskbar.h"
 #include "utils.h"
 #include "vterm_terminal.h"
-#include "editor.h"
 #include "tabs.h"
+#include "common.h"
 
 // TERMINAL
 

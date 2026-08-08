@@ -15,9 +15,9 @@
 #include "clipboard.h"
 #include "lexer.h"
 #include "utils.h"
+#include "common.h"
 
 
-int edit_mode = 0;
 
 // Editor Window
 

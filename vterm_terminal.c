@@ -19,7 +19,7 @@
 #include "menu.h"
 #include "utils.h"
 #include "clipboard.h"
-#include "editor.h"
+#include "common.h"
 
 /* Global state for PTY monitoring thread */
 static pthread_t pty_monitor_thread;

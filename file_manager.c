@@ -25,6 +25,7 @@
 #include "file_operations.h"
 #include "text_edit.h"
 #include "mystring.h"
+#include "common.h"
 
 int ends_with(const char *str, const char *suffix)
 {

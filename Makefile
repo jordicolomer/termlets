@@ -5,10 +5,10 @@ CFLAGS := -Wall -Wextra -std=c11 -g -I/opt/homebrew/opt/libvterm/include
 LDFLAGS := -L/opt/homebrew/opt/libvterm/lib -lvterm -lpthread
 
 # Project name
-TARGET := main
+TARGET := termlets
 
 # Source and object files
-SRC := main.c logger.c buffer.c ansi_term.c window.c frame.c file_manager.c slider.c taskbar.c terminal.c utils.c vterm_terminal.c ansi256.c tabs.c editor.c menu.c lambda.c chess.c sort.c clipboard.c dialog.c file_operations.c text_edit.c lexer.c
+SRC := main.c logger.c buffer.c ansi_term.c window.c frame.c file_manager.c slider.c taskbar.c terminal.c utils.c vterm_terminal.c ansi256.c tabs.c editor.c menu.c lambda.c chess.c sort.c clipboard.c dialog.c file_operations.c text_edit.c lexer.c common.c
 OBJ := $(SRC:.c=.o)
 
 # Default target
