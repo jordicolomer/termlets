@@ -68,19 +68,16 @@ The current binary is built for macOS on Apple Silicon. If you're using an Intel
 
 ## Default Keybindings
 
-| Key          | Action          | Key     | Action          |
-|--------------|-----------------|---------|-----------------|
-| `Backspace`  | Backspace       | `n`     | Page up         |
-| `Enter`      | Enter           | `0`     | Start of line   |
-| `;`          | Switch mode     | `$`     | End of line     |
-| `h`          | Move left       | `g`     | First line      |
-| `l`          | Move right      | `G`     | Last line       |
-| `j`          | Move down       | `w`     | Save            |
-| `k`          | Move up         | `r`     | Reload          |
-| `p`          | Page down       | `Space` | Start selection |
-|              |                 | `c`     | Copy            |
-|              |                 | `v`     | Paste           |
-|              |                 | `x`     | Cut             |
+| Key          | Action          | Key     | Action          | Key     | Action          |
+|--------------|-----------------|---------|-----------------|---------|-----------------|
+| `Backspace`  | Backspace       | `n`     | Page up         | `w`     | Save            |
+| `Enter`      | Enter           | `0`     | Start of line   | `r`     | Reload          |
+| `;`          | Switch mode     | `$`     | End of line     | `Space` | Start selection |
+| `h`          | Move left       | `g`     | First line      | `c`     | Copy            |
+| `l`          | Move right      | `G`     | Last line       | `v`     | Paste           |
+| `j`          | Move down       |         |                 | `x`     | Cut             |
+| `k`          | Move up         |         |                 |         |                 |
+| `p`          | Page down       |         |                 |         |                 |
 
 ## Building from Source
 
