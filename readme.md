@@ -22,14 +22,15 @@ It has currently only been tested on macOS using the iTerm2 terminal emulator. S
 ## Features
 
 - Multiple terminal windows
+- File manager
 - Built-in text editor
 - Syntax highlighting
-- File manager
+- Integrated terminal emulator
+- Windows with tabs
 - Keyboard-driven interface
 - Lightweight and fast
 - Written in C
 - Zero dependencies
-- total binary footprint only 180K
 - Process manager (coming soon)
 - Multiple desktops (coming soon)
 - Chess (coming soon)
