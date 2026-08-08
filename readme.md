@@ -68,10 +68,22 @@ termlets
 
 The current binary is built for macOS on Apple Silicon. If you're using an Intel Mac, you will need an Intel build.
 
-## Build from source
 
-```bash
-git clone https://github.com/jordicolomer/termlets.git
-cd termlets
-make
-sudo cp ./termlets /usr/local/bin/termlets
+## Building from Source
+
+Clone the repository:
+
+    git clone https://github.com/jordicolomer/termlets.git
+    cd termlets
+
+Build the project:
+
+    make
+
+Install the binary:
+
+    sudo cp ./termlets /usr/local/bin/termlets
+
+You can then run it from anywhere:
+
+    termlets
