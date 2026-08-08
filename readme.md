@@ -2,7 +2,6 @@
 
 A lightweight terminal multiplexer and desktop environment written in C.
 
-# Screenshot
 ![Screenshot](media/Screenshot1.png)
 
 <p align="center">
