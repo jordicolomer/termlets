@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/b0f51105-e8cb-428a-8dc5-c5324b0a05db" width="900">
+</p>
+
 # Termlets
 
 A lightweight terminal multiplexer and desktop environment written in C.
