@@ -13,10 +13,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Install dependencies
+        run: brew install libvterm pkg-config
+
       - name: Build
         run: make
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          files: termlet
+          files: termlets
