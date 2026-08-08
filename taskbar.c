@@ -3,7 +3,7 @@
 #include <string.h>
 #include "taskbar.h"
 #include "file_manager.h"
-#include "terminal.h"
+//#include "terminal.h"
 #include "vterm_terminal.h"
 #include "logger.h"
 #include "editor.h"
