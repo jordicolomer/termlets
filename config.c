@@ -5,7 +5,6 @@
 #include "config.h"
 
 int load_mappings_from_file(void) {
-    return 1;
     const char *home = getenv("HOME");
     if (!home) return 1;
 
@@ -89,17 +88,29 @@ void load_default_mappings(){
     mapping[8] = ACTION_BACKSPACE;
     mapping[13] = ACTION_ENTER;
     mapping[';'] = ACTION_MODE;
+
     mapping['h'] = ACTION_LEFT;
+    mapping['l'] = ACTION_RIGHT;
     mapping['j'] = ACTION_DOWN;
     mapping['k'] = ACTION_UP;
-    mapping['l'] = ACTION_RIGHT;
-    mapping['w'] = ACTION_SAVE;
+
+    mapping['p'] = ACTION_PAGE_DOWN;
+    mapping['n'] = ACTION_PAGE_UP;
+
     mapping['0'] = ACTION_START_OF_LINE;
     mapping['$'] = ACTION_END_OF_LINE;
+
     mapping['g'] = ACTION_FIRST_LINE;
     mapping['G'] = ACTION_LAST_LINE;
-    mapping[6] = ACTION_PAGE_DOWN;
-    mapping[2] = ACTION_PAGE_UP;
+
+    mapping['w'] = ACTION_SAVE;
+
+    mapping[' '] = ACTION_START_SELECTION;
+    mapping['c'] = ACTION_COPY;
+    mapping['v'] = ACTION_PASTE;
+    mapping['x'] = ACTION_CUT;
+    mapping['w'] = ACTION_SAVE;
+    mapping['r'] = ACTION_RELOAD;
 }
 
 void load_mappings(){
