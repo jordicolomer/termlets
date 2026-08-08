@@ -37,6 +37,38 @@ It has currently only been tested on macOS using the iTerm2 terminal emulator. S
 
 ## Installation
 
+### macOS
+
+Download the latest macOS binary:
+
+```bash
+curl -L https://github.com/jordicolomer/termlets/releases/download/v0.1.0/termlets -o termlets
+```
+
+Make it executable:
+
+```bash
+chmod +x termlets
+```
+
+Move it somewhere in your `PATH`:
+
+```bash
+sudo mv termlets /usr/local/bin/
+```
+
+You can now run it from anywhere:
+
+```bash
+termlets
+```
+
+### Apple Silicon
+
+The current binary is built for macOS on Apple Silicon. If you're using an Intel Mac, you will need an Intel build.
+
+## Build from source
+
 ```bash
 git clone https://github.com/jordicolomer/termlets.git
 cd termlets
