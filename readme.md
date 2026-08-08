@@ -69,6 +69,31 @@ termlets
 The current binary is built for macOS on Apple Silicon. If you're using an Intel Mac, you will need an Intel build.
 
 
+## Default Keybindings
+
+| Key | Action |
+|-----|--------|
+| `Backspace` | Backspace |
+| `Enter` | Enter |
+| `;` | Switch mode |
+| `h` | Move left |
+| `l` | Move right |
+| `j` | Move down |
+| `k` | Move up |
+| `p` | Page down |
+| `n` | Page up |
+| `0` | Start of line |
+| `$` | End of line |
+| `g` | First line |
+| `G` | Last line |
+| `w` | Save |
+| `r` | Reload |
+| `Space` | Start selection |
+| `c` | Copy |
+| `v` | Paste |
+| `x` | Cut |
+
+
 ## Building from Source
 
 Clone the repository:
