@@ -24,7 +24,7 @@
 #include "dialog.h"
 #include "file_operations.h"
 #include "text_edit.h"
-#include "mystring.h"
+//#include "mystring.h"
 #include "common.h"
 #include "config.h"
 
