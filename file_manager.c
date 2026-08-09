@@ -88,7 +88,7 @@ void FileExplorer_unselect_all(ExplorerWindow * self){
   }
 }
 
-void FileExplorer_select_single_item(ExplorerWindow * self, Window * item){
+void FileExplorer_select_single_item(ExplorerWindow * self, FileItemWindow * item){
   LOG_INFO("FileExplorer_select_single_item %p %p", self, item);
   if (item == NULL) return;
   //FileExplorer_unselect_item(self->selected);
@@ -97,7 +97,7 @@ void FileExplorer_select_single_item(ExplorerWindow * self, Window * item){
   self->selected = item;
   //item->bg = 27;
   FileExplorer_select_item(item);
-  Slider_make_visible(self->slider, item);
+  Slider_make_visible(self->slider, &item->win);
   Slider_show_grip(self->slider);
 }
 
@@ -222,7 +222,8 @@ void FileExplorer_list_files(ExplorerWindow * self, char * dire){
   {
     Slider_reset(slider);
   }
-  fm->virtual_height = fm->height;
+  fm->virtual_height = 0;
+  fm->shift = 0;
 
   // todo: clean properly
   fm->head = NULL;
@@ -254,7 +255,10 @@ void FileExplorer_list_files(ExplorerWindow * self, char * dire){
     else
       len = asprintf(&full_path, "%s/%s", dire, entry->d_name);
 
+	LOG_INFO("readdir: %s", entry->d_name);
     FileItemWindow *file_item = malloc(sizeof *file_item);
+    memset(file_item, 0, sizeof *file_item);
+    file_item->is_dir = 0;
     char *icon = "📄";
     if (entry->d_type == DT_DIR)
     {
@@ -275,6 +279,9 @@ void FileExplorer_list_files(ExplorerWindow * self, char * dire){
 
     char * date = malloc(32);
     char * size = malloc(16);
+    // Initialize with empty values in case stat fails
+    strcpy(date, "");
+    strcpy(size, "");
     /*char date[32];
     date[0] = 0;
     char size[16];
@@ -291,11 +298,9 @@ void FileExplorer_list_files(ExplorerWindow * self, char * dire){
       file_item->size = st.st_size;
       file_item->date = st.st_mtime;
 
-    } /*else {
-      //continue;
-      perror("stat");
-      printf("stat failed: %s\n", strerror(errno));
-    }*/
+    } else {
+      LOG_INFO("stat failed for %s: %s", full_path, strerror(errno));
+    }
     remove_newlines(entry->d_name);
 
 
@@ -306,17 +311,17 @@ void FileExplorer_list_files(ExplorerWindow * self, char * dire){
     len = asprintf(&str, "%s %s", icon, entry->d_name);
     // Window_add_widget(w, fav_width, 0, j++, -1, -1, 1, str, 232, 255);
 
-    Window_init(file_item, -1, -1, -1, -1, -1, -1);
+    Window_init(&file_item->win, -1, -1, -1, -1, -1, -1);
     file_item->win.left = 0;
     file_item->win.right = 0;
     file_item->win.top = j;
     file_item->win.height = 1;
-    Window_append(fm, file_item);
+    Window_append(fm, &file_item->win);
 
-    Window * item = Window_add_widget(file_item, 0, -20, 0, -1, -1, 1, str, 232, 255);
-    
-    Window_add_widget(file_item, -33, 0, 0, -1, -1, 1, date, 232, 255);
-    Window_add_widget(file_item, -12, 0, 0, -1, -1, 1, size, 232, 255);
+    Window * item = Window_add_widget(&file_item->win, 0, -20, 0, -1, -1, 1, str, 232, 255);
+
+    Window_add_widget(&file_item->win, -33, 0, 0, -1, -1, 1, date, 232, 255);
+    Window_add_widget(&file_item->win, -12, 0, 0, -1, -1, 1, size, 232, 255);
     /*Window * item = Window_add_widget(file_item, 0, -20, 0, -1, -1, 1, str, 232, 255);
     Window_add_widget(file_item, -20, -10, 0, -1, -1, 1, date, 232, 255);
     Window_add_widget(file_item, -10, 0, 0, -1, -1, 1, size, 232, 255);*/
@@ -343,12 +348,13 @@ void FileExplorer_list_files(ExplorerWindow * self, char * dire){
 
   // Update virtual_height to reflect the actual number of files
   fm->virtual_height = j;
+  LOG_INFO("FileExplorer_list_files: added %d files, virtual_height=%d, calculated.height=%d, fm->head=%p", j, fm->virtual_height, fm->calculated.height, fm->head);
 
   //sort_list(fm);
   int sort_by = self->sort_by;
   self->sort_by = -1;
   FileExplorer_sort(self, sort_by);
-  FileExplorer_select_single_item(self, fm->head);
+  FileExplorer_select_single_item(self, (FileItemWindow *)fm->head);
 
   // Clear remaining lines to remove previous list items
   //while (j <= self->win.calculated.height)
@@ -520,26 +526,26 @@ void FileExplorer_send_key(Window * win, char c)
 
     if (action == ACTION_DOWN){
     //if (c == 106){ // j
-        FileExplorer_select_single_item(self, self->selected->win.next);
+        FileExplorer_select_single_item(self, (FileItemWindow *)self->selected->win.next);
         return;
     }
     //if (c == 107){ // k
     if (action == ACTION_UP){
-        FileExplorer_select_single_item(self, self->selected->win.prev);
+        FileExplorer_select_single_item(self, (FileItemWindow *)self->selected->win.prev);
         return;
     }
     if (action == ACTION_PAGE_UP){
     //if (c == 117){ // u
-        Window * selected = self->selected;
+        Window * selected = &self->selected->win;
         for (int i=0;i<win->calculated.height && selected->next;i++) selected = selected->next;
-        FileExplorer_select_single_item(self, selected);
+        FileExplorer_select_single_item(self, (FileItemWindow *)selected);
         return;
     }
     if (action == ACTION_PAGE_DOWN){
     //if (c == 105){ // i
-        Window * selected = self->selected;
+        Window * selected = &self->selected->win;
         for (int i=0;i<win->calculated.height && selected->prev;i++) selected = selected->prev;
-        FileExplorer_select_single_item(self, selected);
+        FileExplorer_select_single_item(self, (FileItemWindow *)selected);
         return;
     }
     if (action == ACTION_ENTER){

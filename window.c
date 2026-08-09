@@ -132,12 +132,17 @@ void Window_draw(struct Window *w, int hasFocus)
     }
 
   // LOG_INFO("Window_draw %s w:%p geo.x:%d, geo.y:%d, geo.width:%d, geo.height:%d", w->id, w, geo.x, geo.y, geo.width, geo.height);
+  if (w->virtual_height > 10) {
+    LOG_INFO("Window_draw: w=%p virtual_height=%d geo.height=%d head=%p", w, w->virtual_height, geo.height, w->head);
+  }
   if (focused == w)
     hasFocus = 1;
 
   Window *current = w->head;
+  int child_count = 0;
   while (current != NULL)
   {
+    child_count++;
 
     // geo.width = w->left + w->width + w->right
 
@@ -183,8 +188,11 @@ void Window_draw(struct Window *w, int hasFocus)
     // LOG_INFO("parent %s", w->id);
     int skip = 0;
     // if (top < 0) skip = 1;
-    if (geo.height <= top)
+    if (geo.height <= top) {
       skip = 1;
+      if (current->virtual_height > 10)
+        LOG_INFO("Skipping child (vh=%d): parent.geo.height=%d <= child.top=%d", current->virtual_height, geo.height, top);
+    }
     // if (geo.height < bottom) skip = 1;
     if (height == 1 && top < 0)
       skip = 1;
@@ -195,7 +203,12 @@ void Window_draw(struct Window *w, int hasFocus)
     // if ((!(height == 1 && top < 0)) && top < geo.height)
     if (!skip)
       current->draw(current, hasFocus || current == draggingY);
+    else if (current->virtual_height > 10)
+      LOG_INFO("Skipped child: vh=%d top=%d height=%d left=%d", current->virtual_height, top, height, left);
     current = current->next;
+  }
+  if (child_count > 0 && w->virtual_height > 0 && child_count == w->virtual_height) {
+    LOG_INFO("Window_draw (likely fm): processed %d children, virtual_height=%d, head=%p", child_count, w->virtual_height, w->head);
   }
   // printf("\033[0m");
   // fflush(stdout);
@@ -231,6 +244,7 @@ Window *Window_init(Window *w, int left, int right, int top, int bottom, int wid
   w->parent = NULL;
   w->hidden = 0;
   w->shift = 0;
+  w->shift_x = 0;
 
   w->c = NULL;
 
