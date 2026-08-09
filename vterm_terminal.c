@@ -2,7 +2,14 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+
+//#include <util.h>
+#ifdef __APPLE__
 #include <util.h>
+#elif defined(__linux__)
+#include <pty.h>
+#endif
+
 #include <sys/select.h>
 #include <sys/ioctl.h>
 #include <pthread.h>
