@@ -9,6 +9,7 @@
 #include <wchar.h>
 #include <locale.h>
 #include <time.h>
+#include <stdarg.h>
 
 #include "ansi_term.h"
 #include "logger.h"
