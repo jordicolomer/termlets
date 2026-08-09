@@ -1,9 +1,9 @@
 name: Build Linux Release
 
 on:
-#  push:
-#    tags:
-#      - 'v*'
+  push:
+    tags:
+      - 'v*'
 
 jobs:
   build:
