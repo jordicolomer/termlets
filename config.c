@@ -4,6 +4,9 @@
 #include <limits.h>
 #include "config.h"
 
+Action * mapping;
+
+
 int load_mappings_from_file(void) {
     const char *home = getenv("HOME");
     if (!home) return 1;

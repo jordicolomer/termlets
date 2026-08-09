@@ -23,7 +23,7 @@ typedef enum {
     ACTION_RELOAD,
 } Action;
 
-Action * mapping;
+extern Action * mapping;
 
 void load_mappings();
 
