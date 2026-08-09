@@ -1,9 +1,9 @@
 name: Build macOS Release
 
 on:
-  push:
-    tags:
-      - 'v*'
+#  push:
+#    tags:
+#      - 'v*'
 
 jobs:
   build:

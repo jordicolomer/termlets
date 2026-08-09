@@ -15,7 +15,7 @@ CC := gcc
 
 UNAME_S := $(shell uname -s)
 
-CFLAGS = -Wall -Wextra -std=c11 -g
+CFLAGS = -Wall -Wextra -std=gnu11 -g
 
 ifeq ($(UNAME_S),Darwin)
     LIBVTERM_PREFIX := $(shell brew --prefix libvterm)
