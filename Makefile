@@ -22,7 +22,8 @@ ifeq ($(UNAME_S),Darwin)
     CFLAGS += -I$(LIBVTERM_PREFIX)/include
     LDFLAGS = -L$(LIBVTERM_PREFIX)/lib -lvterm
 else ifeq ($(UNAME_S),Linux)
-    LDFLAGS = -lvterm
+    #LDFLAGS = -lvterm
+	LDFLAGS = -Wl,-Bstatic -lvterm -Wl,-Bdynamic -lutil
 endif
 
 # Project name
