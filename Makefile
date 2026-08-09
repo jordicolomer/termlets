@@ -6,12 +6,24 @@ CC := gcc
 #CFLAGS = -Wall -Wextra -std=c11 -g $(shell pkg-config --cflags libvterm)
 #LDFLAGS = $(shell pkg-config --libs libvterm)
 
-LIBVTERM_PREFIX := $(shell brew --prefix libvterm)
+#LIBVTERM_PREFIX := $(shell brew --prefix libvterm)
 
-CFLAGS = -Wall -Wextra -std=c11 -g \
-         -I$(LIBVTERM_PREFIX)/include
+#CFLAGS = -Wall -Wextra -std=c11 -g \
+#         -I$(LIBVTERM_PREFIX)/include
 
-LDFLAGS = -L$(LIBVTERM_PREFIX)/lib -lvterm
+#LDFLAGS = -L$(LIBVTERM_PREFIX)/lib -lvterm
+
+UNAME_S := $(shell uname -s)
+
+CFLAGS = -Wall -Wextra -std=c11 -g
+
+ifeq ($(UNAME_S),Darwin)
+    LIBVTERM_PREFIX := $(shell brew --prefix libvterm)
+    CFLAGS += -I$(LIBVTERM_PREFIX)/include
+    LDFLAGS = -L$(LIBVTERM_PREFIX)/lib -lvterm
+else ifeq ($(UNAME_S),Linux)
+    LDFLAGS = -lvterm
+endif
 
 # Project name
 TARGET := termlets
