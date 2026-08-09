@@ -592,30 +592,86 @@ ExplorerWindow *FileExplorer_file_list(){
   Window_add_widget(w, 0, 0, j, -1, -1, 1, w->path_label, 232, 255);
   j++;
 
+  // Get home directory
+  const char *home_dir = getenv("HOME");
+  if (home_dir == NULL) home_dir = "/";
+
+  // Build paths for shortcuts
+  char *home_path = malloc(PATH_MAX);
+  char *downloads_path = malloc(PATH_MAX);
+  char *documents_path = malloc(PATH_MAX);
+  char *pictures_path = malloc(PATH_MAX);
+  char *music_path = malloc(PATH_MAX);
+  char *movies_path = malloc(PATH_MAX);
+  char *dropbox_path = malloc(PATH_MAX);
+
+  snprintf(home_path, PATH_MAX, "%s", home_dir);
+  snprintf(downloads_path, PATH_MAX, "%s/Downloads", home_dir);
+  snprintf(documents_path, PATH_MAX, "%s/Documents", home_dir);
+  snprintf(pictures_path, PATH_MAX, "%s/Pictures", home_dir);
+  snprintf(music_path, PATH_MAX, "%s/Music", home_dir);
+  snprintf(movies_path, PATH_MAX, "%s/Movies", home_dir);
+  snprintf(dropbox_path, PATH_MAX, "%s/Dropbox", home_dir);
+
   // favorites
   int start_j = 0;
   int fav_width = 22;
   Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, " Favorites", 255, 245);
-  Window * shortcut = Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, " 🏠 Home", 232, 254);
-  FileExplorer_shortcut_set_target(w, shortcut, "/Users/jordicolomer");
 
-  shortcut = Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, " 📥 Downloads", 232, 254);
-  FileExplorer_shortcut_set_target(w, shortcut, "/Users/jordicolomer/Downloads");
+  struct stat st;
+  Window * shortcut;
 
-  shortcut = Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, " 📄 Documents", 232, 254);
-  FileExplorer_shortcut_set_target(w, shortcut, "/Users/jordicolomer/Documents");
+  // Home - always create
+  shortcut = Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, " 🏠 Home", 232, 254);
+  FileExplorer_shortcut_set_target(w, shortcut, home_path);
 
-  shortcut = Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, " 📷 Pictures", 232, 254);
-  FileExplorer_shortcut_set_target(w, shortcut, "/Users/jordicolomer/Pictures");
+  // Downloads
+  if (stat(downloads_path, &st) == 0 && S_ISDIR(st.st_mode)) {
+    shortcut = Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, " 📥 Downloads", 232, 254);
+    FileExplorer_shortcut_set_target(w, shortcut, downloads_path);
+  } else {
+    free(downloads_path);
+  }
 
-  shortcut = Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, " 🎵 Music", 232, 254);
-  FileExplorer_shortcut_set_target(w, shortcut, "/Users/jordicolomer/Music");
+  // Documents
+  if (stat(documents_path, &st) == 0 && S_ISDIR(st.st_mode)) {
+    shortcut = Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, " 📄 Documents", 232, 254);
+    FileExplorer_shortcut_set_target(w, shortcut, documents_path);
+  } else {
+    free(documents_path);
+  }
 
-  shortcut = Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, " 🎬 Movies", 232, 254);
-  FileExplorer_shortcut_set_target(w, shortcut, "/Users/jordicolomer/Movies");
+  // Pictures
+  if (stat(pictures_path, &st) == 0 && S_ISDIR(st.st_mode)) {
+    shortcut = Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, " 📷 Pictures", 232, 254);
+    FileExplorer_shortcut_set_target(w, shortcut, pictures_path);
+  } else {
+    free(pictures_path);
+  }
 
-  shortcut = Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, " 📦 Dropbox", 232, 254);
-  FileExplorer_shortcut_set_target(w, shortcut, "/Users/jordicolomer/Dropbox");
+  // Music
+  if (stat(music_path, &st) == 0 && S_ISDIR(st.st_mode)) {
+    shortcut = Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, " 🎵 Music", 232, 254);
+    FileExplorer_shortcut_set_target(w, shortcut, music_path);
+  } else {
+    free(music_path);
+  }
+
+  // Movies
+  if (stat(movies_path, &st) == 0 && S_ISDIR(st.st_mode)) {
+    shortcut = Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, " 🎬 Movies", 232, 254);
+    FileExplorer_shortcut_set_target(w, shortcut, movies_path);
+  } else {
+    free(movies_path);
+  }
+
+  // Dropbox
+  if (stat(dropbox_path, &st) == 0 && S_ISDIR(st.st_mode)) {
+    shortcut = Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, " 📦 Dropbox", 232, 254);
+    FileExplorer_shortcut_set_target(w, shortcut, dropbox_path);
+  } else {
+    free(dropbox_path);
+  }
 
   Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, "", 232, 254);
   Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, " Locations", 255, 245);
@@ -673,7 +729,7 @@ ExplorerWindow *FileExplorer_file_list(){
   w->fm = fm;
   Window_init(fm, 0, 0, 0, 0, -1, -1);
 
-  FileExplorer_list_files(w, "/Users/jordicolomer");
+  FileExplorer_list_files(w, home_path);
 
   Window * fm_slider = slider_new(fm);
   fm_slider->left = fav_width;
