@@ -13,6 +13,11 @@ void Slider_reset(Window *wg){
 }
 
 void update_height(Window *slider_grip, Window *fm){
+  if (fm->virtual_height == 0) {
+    slider_grip->height = 1;
+    slider_grip->hidden = 1;
+    return;
+  }
   slider_grip->height = fm->calculated.height * fm->calculated.height / fm->virtual_height;
   if (slider_grip->height >= fm->calculated.height) slider_grip->hidden = 1;
   slider_grip->height = min(slider_grip->height, fm->calculated.height);
@@ -76,6 +81,10 @@ void Slider_set_top(struct Window *w, int top){
   int height = child->calculated.height - slider_data->slider_grip->height;
   // child->virtual_height - child->calculated.height is the first visible element when the scroll is at the bottom
   // w->top / height is the fraction of the scroll (0 top 1 bottom)
+  if (height == 0) {
+    child->shift = 0;
+    return;
+  }
   child->shift = -w->top * (child->virtual_height - child->calculated.height) / height;
 }
 
@@ -93,7 +102,12 @@ void Slider_update_top(struct Window *w){
   //LOG_INFO("Slider_update_top height %d", height);
   //LOG_INFO("Slider_update_top (child->virtual_height - child->calculated.height) %d",(child->virtual_height - child->calculated.height));
   //LOG_INFO("Slider_update_top fraction child->shift / (child->virtual_height - child->calculated.height) %d",child->shift / (child->virtual_height - child->calculated.height));
-  slider_data->slider_grip->top = - child->shift * height / (child->virtual_height - child->calculated.height);
+  int denominator = child->virtual_height - child->calculated.height;
+  if (denominator == 0) {
+    slider_data->slider_grip->top = 0;
+    return;
+  }
+  slider_data->slider_grip->top = - child->shift * height / denominator;
   //LOG_INFO("post Slider_update_top %d", slider_data->slider_grip->top);
 }
 
