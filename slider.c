@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "window.h"
 #include "slider.h"
 #include "logger.h"
