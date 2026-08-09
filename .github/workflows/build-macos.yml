@@ -22,4 +22,4 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          files: termlets
+          files: termlets-macos-arm64
