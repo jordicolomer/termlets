@@ -890,6 +890,7 @@ static int cb_sb_pushline(int cols, const VTermScreenCell *cells, void *user)
 TerminalWindow *VTermTerminal_window(int initial_rows, int initial_cols)
 {
     TerminalWindow *terminal = malloc(sizeof *terminal);
+    memset(terminal, 0, sizeof *terminal);  // Zero-initialize to prevent garbage values
     //terminal->insert_mode = 0;
     terminal->selection_y = -1;
     terminal->last_line_idx = -1;
@@ -1037,6 +1038,7 @@ Window *VTermTerminal_toolbar(TerminalFrame *self)
 Window *VTermTerminal_new(int left, int right, int top, int bottom, int width, int height)
 {
     TerminalFrame *frame = malloc(sizeof *frame);
+    memset(frame, 0, sizeof *frame);  // Zero-initialize to prevent garbage values
     Window *w = Frame_init(frame, left, right, top, bottom, width, height, NULL, 1);
     //frame->send_key = vterm_send_key;
     //frame->send_sequence = vterm_send_sequence;

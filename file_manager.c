@@ -626,6 +626,7 @@ void FileExplorer_shortcut_set_target(ExplorerWindow * self, Window * shortcut, 
 
 ExplorerWindow *FileExplorer_file_list(){
   ExplorerWindow *w = malloc(sizeof *w);
+  memset(w, 0, sizeof *w);  // Zero-initialize to prevent garbage values
   Window_init(w, -1, -1, -1, -1, -1, -1);
   w->win.id = malloc(ID_LENGTH*4);
   snprintf(w->win.id, ID_LENGTH*4, "file list");
@@ -983,6 +984,7 @@ Window *FileExplorer_toolbar(ExplorerFrame *self)
 Window *FileExplorer_new(int left, int right, int top, int bottom, int width, int height)
 {
   ExplorerFrame *frame = malloc(sizeof *frame);
+  memset(frame, 0, sizeof *frame);  // Zero-initialize to prevent garbage values
   Window *w = Frame_init(frame, left, right, top, bottom, width, height, NULL, 0);
 
   /*Window * menu = FileExplorer_menu();

@@ -118,6 +118,7 @@ void load_default_mappings(){
 
 void load_mappings(){
     mapping = malloc(sizeof(Action) * 256);
+    memset(mapping, 0, sizeof(Action) * 256);  // Zero-initialize to prevent garbage values
     if (load_mappings_from_file()){
         load_default_mappings();
     }

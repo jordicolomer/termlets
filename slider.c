@@ -146,6 +146,7 @@ Window *slider_new(Window *fm){
   slider->draw = Slider_draw;
 
   Slider_data *slider_data = (Slider_data *)malloc(sizeof(Slider_data));
+  memset(slider_data, 0, sizeof(Slider_data));  // Zero-initialize to prevent garbage values
   slider->data = slider_data;
   fm_slider->data = slider_data;
   slider_data->child = fm;
