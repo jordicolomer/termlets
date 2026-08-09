@@ -9,6 +9,9 @@
 
 //#define SELECTED_COLOR 33
 Tab * selected_tab;
+Tab * all_tabs_head;
+Tab * all_tabs_tail;
+
 
 void change_color_hover(Window *wg, int x, int y)
 {
