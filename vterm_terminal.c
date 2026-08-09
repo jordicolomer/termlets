@@ -6,7 +6,9 @@
 //#include <util.h>
 #ifdef __APPLE__
 #include <util.h>
+#include <libproc.h>
 #elif defined(__linux__)
+#include <limits.h>
 #include <pty.h>
 #endif
 
@@ -14,7 +16,6 @@
 #include <sys/ioctl.h>
 #include <pthread.h>
 #include <vterm.h>
-#include <libproc.h>
 
 #include "vterm_terminal.h"
 #include "window.h"
@@ -75,7 +76,8 @@ void VTermTerminal_scroll_wheel_up(struct Window *w){
   Slider_scroll_up(self->slider);
 }
 
-char* get_shell_cwd_mac_native(pid_t pid)
+#ifdef __APPLE__
+char* get_shell_cwd(pid_t pid)
 {
     struct proc_vnodepathinfo vpi;
 
@@ -91,9 +93,28 @@ char* get_shell_cwd_mac_native(pid_t pid)
 
     return NULL;
 }
+#elif defined(__linux__)
+char *get_shell_cwd(pid_t pid)
+{
+    char proc_path[64];
+    char cwd[PATH_MAX];
+
+    snprintf(proc_path, sizeof(proc_path), "/proc/%d/cwd", pid);
+
+    ssize_t len = readlink(proc_path, cwd, sizeof(cwd) - 1);
+    if (len == -1) {
+        return NULL;
+    }
+
+    cwd[len] = '\0';
+
+    return strdup(cwd);
+}
+#endif
+
 
 void update_tab_label(TerminalWindow * terminal){
-    char * cwd = get_shell_cwd_mac_native(terminal->pid);
+    char * cwd = get_shell_cwd(terminal->pid);
     Window_set_id_from_path(terminal->slider, "💻", cwd);
 }
 
