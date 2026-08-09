@@ -247,7 +247,12 @@ void FileExplorer_list_files(ExplorerWindow * self, char * dire){
     if (strcmp(entry->d_name, ".") == 0) continue;
 
     char *full_path = NULL;
-    int len = asprintf(&full_path, "%s/%s", dire, entry->d_name);
+    // Avoid double slash when dire is root "/"
+    int len;
+    if (strcmp(dire, "/") == 0)
+      len = asprintf(&full_path, "/%s", entry->d_name);
+    else
+      len = asprintf(&full_path, "%s/%s", dire, entry->d_name);
 
     FileItemWindow *file_item = malloc(sizeof *file_item);
     char *icon = "📄";
@@ -335,6 +340,9 @@ void FileExplorer_list_files(ExplorerWindow * self, char * dire){
     // mvwprintw(win, x++, 1, "%s %s", icon, entry->d_name);
   }
   closedir(dir);
+
+  // Update virtual_height to reflect the actual number of files
+  fm->virtual_height = j;
 
   //sort_list(fm);
   int sort_by = self->sort_by;
