@@ -1,0 +1,38 @@
+name: Build Windows Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >-
+            mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-make
+            mingw-w64-x86_64-pkg-config
+            mingw-w64-x86_64-libvterm
+
+      - name: Build
+        shell: msys2 {0}
+        run: make
+
+      - name: Rename binary
+        shell: bash
+        run: mv termlets.exe termlets-windows-x86_64.exe
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: termlets-windows-x86_64.exe
