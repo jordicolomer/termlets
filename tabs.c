@@ -136,6 +136,7 @@ Window * tabs_new_tab(Tabs *self){
     Window_append(self->tabs, child);
 
     Tab *mytab = malloc(sizeof *mytab);
+    memset(mytab, 0, sizeof *mytab);  // Zero-initialize to prevent garbage pointers
     self->selected_tab = mytab;
     if (self->first == NULL) self->first = mytab;
     if (self->last != NULL) self->last->next = mytab;
@@ -255,7 +256,8 @@ void tabs_send_sequence(struct Window *wg, const char *seq, int len)
 
 Window *Tab_new(tab_create_callback callback, int new_tab){
     Tabs *mytab = malloc(sizeof *mytab);
-    
+    memset(mytab, 0, sizeof *mytab);  // Zero-initialize
+
     //Window *tabs = malloc(sizeof *tabs);
     Window *tabs = mytab;
     Window_init(tabs, -1, -1, -1, -1, -1, -1);
@@ -267,6 +269,7 @@ Window *Tab_new(tab_create_callback callback, int new_tab){
     tabs->id = "tabs";
 
     Window *tabs_bar = malloc(sizeof *tabs_bar);
+    memset(tabs_bar, 0, sizeof *tabs_bar);  // Zero-initialize
     tabs_bar->id = "tabs_bar";
     mytab->tabs_bar = tabs_bar;
     Window_init(tabs_bar, -1, -1, -1, -1, -1, -1);

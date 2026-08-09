@@ -81,10 +81,10 @@ void FileExplorer_toggle_selection_item(ExplorerWindow * self, FileItemWindow * 
 void FileExplorer_unselect_all(ExplorerWindow * self){
   if (self->fm == NULL) return;
   self->selected = NULL;
-  FileItemWindow * item = self->fm->head;
+  FileItemWindow * item = (FileItemWindow *)self->fm->head;
   while (item != NULL){
     FileExplorer_unselect_item(item);
-    item = item->win.next;
+    item = (FileItemWindow *)item->win.next;
   }
 }
 
@@ -104,16 +104,35 @@ void FileExplorer_select_single_item(ExplorerWindow * self, FileItemWindow * ite
 void item_clicked(Window *wg, int x, int y)
 {
   LOG_INFO("item_clicked %p %d %d", wg, x, y);
+    if (wg == NULL) {
+      LOG_INFO("item_clicked: wg is NULL");
+      return;
+    }
     ExplorerWindow * self = wg->data;
+    if (self == NULL) {
+      LOG_INFO("item_clicked: self is NULL");
+      return;
+    }
     FileItemWindow *file_item = wg->data2;
+    if (file_item == NULL) {
+      LOG_INFO("item_clicked: file_item is NULL");
+      return;
+    }
+    LOG_INFO("item_clicked: self=%p file_item=%p is_dir=%d path=%s", self, file_item, file_item->is_dir, file_item->path);
     if (self->selected == file_item){
+      LOG_INFO("item_clicked: double-click detected");
       if (file_item->is_dir){
+        LOG_INFO("item_clicked: opening directory %s", file_item->path);
         FileExplorer_list_files(self, file_item->path);
+      } else {
+        LOG_INFO("item_clicked: opening file %s", file_item->path);
+        Editor_last_open_file(file_item->path);
       }
     } else {
+      LOG_INFO("item_clicked: selecting item");
       FileExplorer_select_single_item(self, file_item);
     }
-    
+
 }
 
 void command_item_clicked(Window *wg, int x, int y)
@@ -438,7 +457,8 @@ void FileExplorer_new_file(ExplorerWindow * self){
 }
 
 void FileExplorer_copy_name(ExplorerWindow * self){
-  clipboard_copy(self->selected->name);
+  if (self->selected != NULL)
+    clipboard_copy(self->selected->name);
 }
 
 void FileExplorer_copy_directory(ExplorerWindow * self){
@@ -446,11 +466,13 @@ void FileExplorer_copy_directory(ExplorerWindow * self){
 }
 
 void FileExplorer_copy_path(ExplorerWindow * self){
-  clipboard_copy(self->selected->path);
+  if (self->selected != NULL)
+    clipboard_copy(self->selected->path);
 }
 
 void FileExplorer_edit(ExplorerWindow * self){
-  Editor_last_open_file(self->selected->path);
+  if (self->selected != NULL)
+    Editor_last_open_file(self->selected->path);
 }
 
 void FileExplorer_terminal(ExplorerWindow * self){
@@ -526,39 +548,49 @@ void FileExplorer_send_key(Window * win, char c)
 
     if (action == ACTION_DOWN){
     //if (c == 106){ // j
-        FileExplorer_select_single_item(self, (FileItemWindow *)self->selected->win.next);
+        if (self->selected != NULL && self->selected->win.next != NULL)
+            FileExplorer_select_single_item(self, (FileItemWindow *)self->selected->win.next);
         return;
     }
     //if (c == 107){ // k
     if (action == ACTION_UP){
-        FileExplorer_select_single_item(self, (FileItemWindow *)self->selected->win.prev);
+        if (self->selected != NULL && self->selected->win.prev != NULL)
+            FileExplorer_select_single_item(self, (FileItemWindow *)self->selected->win.prev);
         return;
     }
     if (action == ACTION_PAGE_UP){
     //if (c == 117){ // u
-        Window * selected = &self->selected->win;
-        for (int i=0;i<win->calculated.height && selected->next;i++) selected = selected->next;
-        FileExplorer_select_single_item(self, (FileItemWindow *)selected);
+        if (self->selected != NULL) {
+            Window * selected = &self->selected->win;
+            for (int i=0;i<win->calculated.height && selected->next;i++) selected = selected->next;
+            FileExplorer_select_single_item(self, (FileItemWindow *)selected);
+        }
         return;
     }
     if (action == ACTION_PAGE_DOWN){
     //if (c == 105){ // i
-        Window * selected = &self->selected->win;
-        for (int i=0;i<win->calculated.height && selected->prev;i++) selected = selected->prev;
-        FileExplorer_select_single_item(self, (FileItemWindow *)selected);
+        if (self->selected != NULL) {
+            Window * selected = &self->selected->win;
+            for (int i=0;i<win->calculated.height && selected->prev;i++) selected = selected->prev;
+            FileExplorer_select_single_item(self, (FileItemWindow *)selected);
+        }
         return;
     }
     if (action == ACTION_ENTER){
     //if (c == 13){ // CR
-        Window * selected = self->selected;
-        item_clicked(selected->head, 0, 0);
+        FileItemWindow * selected = self->selected;
+        if (selected != NULL && selected->win.head != NULL) {
+            item_clicked(selected->win.head, 0, 0);
+        }
         return;
     }
     if (c == 'e'){
-        Window * selected = self->selected;
+        FileItemWindow * selected = self->selected;
         //item_clicked(selected, 0, 0);
-        char * file_path = selected->data2;
-        Editor_last_open_file(file_path);
+        if (selected != NULL) {
+            char * file_path = selected->path;
+            Editor_last_open_file(file_path);
+        }
         return;
     }
     if (c == 47){ // /
@@ -775,12 +807,12 @@ Window *FileExplorer_menu_delete_execute(ExplorerFrame *self, ExplorerWindow * e
 {
   LOG_INFO("FileExplorer_menu_delete_execute %p %p", self, ew);
   
-  FileItemWindow * current = ew->fm->head;
+  FileItemWindow * current = (FileItemWindow *)ew->fm->head;
   while (current != NULL){
     if (current->is_selected){
       remove(current->path);
     }
-    current = current->win.next;
+    current = (FileItemWindow *)current->win.next;
   }
   ExplorerFrame_refresh(self);
 }
@@ -788,6 +820,7 @@ Window *FileExplorer_menu_delete_execute(ExplorerFrame *self, ExplorerWindow * e
 Window *FileExplorer_menu_delete(ExplorerFrame *self)
 {
   ExplorerWindow * ew = self->tabs->focused;
+  if (ew->selected == NULL) return NULL;
   char * path = ew->selected->path;
   LOG_INFO("FileExplorer_menu_delete %p", self);
   open_dialog(
@@ -840,7 +873,7 @@ Window *FileExplorer_menu_paste(ExplorerFrame *self)
   if (paste_source->fm == NULL) return NULL;
   ExplorerWindow * ew = self->tabs->focused;
   char * destination = ew->path;
-  FileItemWindow * current = paste_source->fm->head;
+  FileItemWindow * current = (FileItemWindow *)paste_source->fm->head;
 
   while (current != NULL){
     if (current->is_selected == 1){
@@ -851,7 +884,7 @@ Window *FileExplorer_menu_paste(ExplorerFrame *self)
       if (paste_operation == 2) copy_file(current->path, dst);
       free(dst);
     }
-    current = current->win.next;
+    current = (FileItemWindow *)current->win.next;
   }
   
   FileExplorer_refresh(ew);

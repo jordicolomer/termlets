@@ -172,6 +172,7 @@ char * char_at(char *s, int i)
 
 int calculate_width(char *s)
 {
+  if (s == NULL) return 0;
   const uint8_t *p = (const uint8_t *)s;
   int total = 0;
 
