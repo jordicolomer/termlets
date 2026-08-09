@@ -26,11 +26,15 @@ jobs:
 
       - name: Build
         shell: msys2 {0}
-        run: make
+        run: |
+          which gcc
+          which make
+          make
 
       - name: Rename binary
-        shell: bash
-        run: mv termlets.exe termlets-windows-x86_64.exe
+        shell: msys2 {0}
+        run: |
+          mv termlets.exe termlets-windows-x86_64.exe
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
