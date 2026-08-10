@@ -1,7 +1,19 @@
 #ifndef VTERM_TERMINAL_H
 #define VTERM_TERMINAL_H
-#include <vterm.h>
+
 #include "window.h"
+
+#ifdef _WIN32
+    /* Windows: Define minimal types for compatibility */
+    typedef int pid_t;
+    typedef void VTerm;
+    typedef void VTermScreen;
+    typedef void VTermScreenCell;
+    typedef void VTermScreenCallbacks;
+#else
+    #include <vterm.h>
+    #include <sys/types.h>
+#endif
 
 typedef struct ScrollbackLine {
     VTermScreenCell *cells;
@@ -17,23 +29,11 @@ typedef struct ScrollbackList {
     int max_size;
 } ScrollbackList;
 
-/*typedef struct vterm_terminal_data {
-    int master;
-    VTerm *vt;
-    VTermScreen *vts;
-    Window *terminal;
-    int rows;
-    int cols;
-    ScrollbackList scrollback;
-    VTermScreenCallbacks callbacks;
-} vterm_terminal_data;*/
-
 typedef struct TerminalWindow {
     struct Window win;
     char * cwd;
     Window * slider;
     pid_t pid;
-    //int insert_mode;
 
     int cursor_x;
     int cursor_y;
@@ -43,7 +43,7 @@ typedef struct TerminalWindow {
     ScrollbackLine *last_line;
     int last_line_idx;
 
-    // data formely in vterm_terminal_data
+    /* data formerly in vterm_terminal_data */
     int master;
     VTerm *vt;
     VTermScreen *vts;
