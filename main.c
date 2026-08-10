@@ -198,6 +198,10 @@ int start()
   /* Set console to UTF-8 mode on Windows - MUST be done first */
   SetConsoleOutputCP(65001);  /* UTF-8 code page */
   SetConsoleCP(65001);         /* UTF-8 input code page */
+
+  /* Set C runtime stdout/stderr to binary mode to prevent UTF-8 corruption */
+  _setmode(_fileno(stdout), _O_BINARY);
+  _setmode(_fileno(stderr), _O_BINARY);
 #endif
 
   setlocale(LC_ALL, "");  /* Enable locale-aware character handling */
