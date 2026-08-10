@@ -1,6 +1,7 @@
 #ifdef _WIN32
     /* Disable strict pointer type warnings on Windows for this file */
     #pragma GCC diagnostic ignored "-Wincompatible-pointer-types"
+    #define NOMINMAX  /* Prevent Windows from defining min/max macros */
 #endif
 
 #include <stdio.h>

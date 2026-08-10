@@ -2,6 +2,7 @@
 #include "ansi_term.h"
 
 #ifdef _WIN32
+    #define NOMINMAX  /* Prevent Windows from defining min/max macros */
     #include <windows.h>
     #include <io.h>
     #include <conio.h>

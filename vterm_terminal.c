@@ -4,6 +4,7 @@
 
 #ifdef _WIN32
     /* Windows: Terminal/PTY not yet implemented */
+    #define NOMINMAX  /* Prevent Windows from defining min/max macros */
     #include <windows.h>
     #define usleep(x) Sleep((x)/1000)
 #else
