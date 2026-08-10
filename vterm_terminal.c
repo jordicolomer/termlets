@@ -1,21 +1,29 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <unistd.h>
 
-//#include <util.h>
-#ifdef __APPLE__
-#include <util.h>
-#include <libproc.h>
-#elif defined(__linux__)
-#include <limits.h>
-#include <pty.h>
+#ifdef _WIN32
+    /* Windows: Terminal/PTY not yet implemented */
+    #include <windows.h>
+    #define usleep(x) Sleep((x)/1000)
+#else
+    #include <unistd.h>
+    #include <sys/select.h>
+    #include <sys/ioctl.h>
+    #include <pthread.h>
+
+    #ifdef __APPLE__
+        #include <util.h>
+        #include <libproc.h>
+    #elif defined(__linux__)
+        #include <limits.h>
+        #include <pty.h>
+    #endif
 #endif
 
-#include <sys/select.h>
-#include <sys/ioctl.h>
-#include <pthread.h>
-#include <vterm.h>
+#ifndef _WIN32
+    #include <vterm.h>
+#endif
 
 #include "vterm_terminal.h"
 #include "window.h"
@@ -29,6 +37,9 @@
 #include "clipboard.h"
 #include "common.h"
 #include "config.h"
+
+#ifndef _WIN32
+/* POSIX-only implementation (Mac/Linux) */
 
 /* Global state for PTY monitoring thread */
 static pthread_t pty_monitor_thread;
@@ -1060,3 +1071,23 @@ Window *VTermTerminal_new(int left, int right, int top, int bottom, int width, i
 
     return frame;
 }
+
+#else
+/* Windows stub implementations - terminal functionality not yet supported */
+
+Window *VTermTerminal_new(int left, int right, int top, int bottom, int width, int height) {
+    (void)left; (void)right; (void)top; (void)bottom; (void)width; (void)height;
+    /* Return a simple window with a message */
+    Window *w = malloc(sizeof(Window));
+    if (w) {
+        Window_init(w, left, right, top, bottom, width, height);
+        w->id = "Terminal (not supported on Windows yet)";
+    }
+    return w;
+}
+
+Window *VTermTerminal_callback() {
+    return VTermTerminal_new(0, 0, 0, 0, 80, 24);
+}
+
+#endif /* _WIN32 */
