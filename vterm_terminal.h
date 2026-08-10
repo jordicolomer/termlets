@@ -4,12 +4,13 @@
 #include "window.h"
 
 #ifdef _WIN32
-    /* Windows: Define minimal types for compatibility */
-    typedef int pid_t;
-    typedef void VTerm;
-    typedef void VTermScreen;
-    typedef void VTermScreenCell;
-    typedef void VTermScreenCallbacks;
+    /* Windows: Include sys/types.h for pid_t, define dummy VTerm types */
+    #include <sys/types.h>
+
+    typedef struct { int dummy; } VTerm;
+    typedef struct { int dummy; } VTermScreen;
+    typedef struct { int dummy; } VTermScreenCell;
+    typedef struct { int dummy; } VTermScreenCallbacks;
 #else
     #include <vterm.h>
     #include <sys/types.h>
