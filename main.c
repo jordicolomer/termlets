@@ -8,6 +8,8 @@
     #define NOMINMAX  /* Prevent Windows from defining min/max macros */
     #include <windows.h>
     #include <conio.h>
+    #include <io.h>
+    #include <fcntl.h>
     #define STDIN_FILENO 0
 #else
     #include <unistd.h>
@@ -192,17 +194,18 @@ void on_mouse_up()
 // #include <locale.h>
 int start()
 {
-  log_init("app.log");
-
 #ifdef _WIN32
-  /* Set console to UTF-8 mode on Windows */
+  /* Set console to UTF-8 mode on Windows - MUST be done first */
   SetConsoleOutputCP(65001);  /* UTF-8 code page */
   SetConsoleCP(65001);         /* UTF-8 input code page */
 #endif
 
+  setlocale(LC_ALL, "");  /* Enable locale-aware character handling */
+
+  log_init("app.log");
+
   // Enter alternate screen
   printf("\x1b[?1049h");
-  setlocale(LC_ALL, "");  /* Enable locale-aware character handling */
   enable_raw_mode();
   enable_mouse();
   //enter_alternate_screen();
