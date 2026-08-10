@@ -2,8 +2,8 @@ name: Build Windows Release
 
 on:
   push:
-    branches:
-      - windows
+    tags:
+      - 'v*'
 
 jobs:
   build:
@@ -32,8 +32,12 @@ jobs:
           which make
           make
 
+      - name: Rename binary
+        shell: msys2 {0}
+        run: mv termlets.exe termlets-w64-x86_64.exe
+
       - name: Upload binary
         uses: actions/upload-artifact@v4
         with:
           name: termlets-windows
-          path: termlets.exe
+          path: termlets-w64-x86_64.exe
