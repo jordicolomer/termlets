@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <locale.h>
 #include "ansi_term.h"
 
 #ifdef _WIN32
@@ -193,9 +194,15 @@ int start()
 {
   log_init("app.log");
 
+#ifdef _WIN32
+  /* Set console to UTF-8 mode on Windows */
+  SetConsoleOutputCP(65001);  /* UTF-8 code page */
+  SetConsoleCP(65001);         /* UTF-8 input code page */
+#endif
+
   // Enter alternate screen
   printf("\x1b[?1049h");
-  // setlocale(LC_ALL, "");
+  setlocale(LC_ALL, "");  /* Enable locale-aware character handling */
   enable_raw_mode();
   enable_mouse();
   //enter_alternate_screen();
