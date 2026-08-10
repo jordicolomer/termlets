@@ -2,8 +2,8 @@ name: Build Windows Release
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches:
+      - windows
 
 jobs:
   build:
@@ -31,13 +31,3 @@ jobs:
           which gcc
           which make
           make
-
-      - name: Rename binary
-        shell: msys2 {0}
-        run: |
-          mv termlets.exe termlets-windows-x86_64.exe
-
-      - name: Create Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: termlets-windows-x86_64.exe
