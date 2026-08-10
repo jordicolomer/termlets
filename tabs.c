@@ -75,14 +75,14 @@ void tab_clicked(Window *wg, int x, int y)
     tab_select(tab);
 }
 
-Window * add_to_all_tabs(Tab *self){
+void add_to_all_tabs(Tab *self){
     if (all_tabs_head != NULL) all_tabs_head->all_tabs_prev = self;
     self->all_tabs_next = all_tabs_head;
     all_tabs_head = self;
     if (all_tabs_tail == NULL) all_tabs_tail = self;
 }
 
-Window * remove_from_all_tabs(Tab *self){
+void remove_from_all_tabs(Tab *self){
     if (all_tabs_head == self) all_tabs_head = self->all_tabs_next;
     if (all_tabs_tail == self) all_tabs_tail = self->all_tabs_prev;
 
@@ -259,7 +259,7 @@ Window *Tab_new(tab_create_callback callback, int new_tab){
     memset(mytab, 0, sizeof *mytab);  // Zero-initialize
 
     //Window *tabs = malloc(sizeof *tabs);
-    Window *tabs = mytab;
+    Window *tabs = (Window *)mytab;
     Window_init(tabs, -1, -1, -1, -1, -1, -1);
     tabs->send_key = tabs_send_key;
     tabs->send_sequence = tabs_send_sequence;
