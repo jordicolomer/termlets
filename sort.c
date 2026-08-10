@@ -1,3 +1,8 @@
+#ifdef _WIN32
+    /* Disable strict pointer type warnings on Windows for this file */
+    #pragma GCC diagnostic ignored "-Wincompatible-pointer-types"
+#endif
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <stddef.h>
