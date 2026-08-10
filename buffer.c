@@ -13,7 +13,7 @@
     #define write _write
 
     /* Basic wcwidth implementation for Windows */
-    static int wcwidth(wchar_t wc) {
+    static int wcwidth(uint32_t wc) {
         /* Non-printable characters */
         if (wc < 32 || (wc >= 0x7f && wc < 0xa0))
             return -1;
