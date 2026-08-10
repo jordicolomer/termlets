@@ -962,29 +962,30 @@ Window *FileExplorer_menu(ExplorerFrame *self)
 
 Window *FileExplorer_toolbar(ExplorerFrame *self)
 {
-    Window *toolbar = Menu_create_horizontal();
-    //Menu_add_element(toolbar, " 📄 New ", create_lambda(FileExplorer_menu_new, 1, self));
-    //Menu_add_element(toolbar, " ❌ Close ", create_lambda(FileExplorer_menu_new, 1, self));
-    Menu_add_element(toolbar, " ❌ Delete ", create_lambda(FileExplorer_menu_delete, 1, self));
-    Menu_add_element(toolbar, " 🔪 Cut ", create_lambda(FileExplorer_menu_cut, 1, self));
-    Menu_add_element(toolbar, " 📋 Copy ", create_lambda(FileExplorer_menu_copy, 1, self));
-    Menu_add_element(toolbar, " 📌 Paste ", create_lambda(FileExplorer_menu_paste, 1, self));
-    Menu_add_element(toolbar, " 🔤 Rename ", create_lambda(FileExplorer_menu_rename, 1, self));
-    Menu_add_element(toolbar, " 🔄 Refresh ", create_lambda(ExplorerFrame_refresh, 1, self));
-    //Menu_add_element(toolbar, " 🔼 Up ", create_lambda(ExplorerFrame_up_one_level, 1, self));
-    Menu_add_element(toolbar, " 🔝 Up ", create_lambda(ExplorerFrame_on_selected, 2, self, FileExplorer_up_one_level));
-    Menu_add_element(toolbar, " 📝 Edit ", create_lambda(ExplorerFrame_on_selected, 2, self, FileExplorer_edit));
-    Menu_add_element(toolbar, " 💻 Terminal ", create_lambda(ExplorerFrame_on_selected, 2, self, FileExplorer_terminal));
+    Menu *toolbar_menu = (Menu *)Menu_create_horizontal();
+    //Menu_add_element(toolbar_menu, " 📄 New ", create_lambda(FileExplorer_menu_new, 1, self));
+    //Menu_add_element(toolbar_menu, " ❌ Close ", create_lambda(FileExplorer_menu_new, 1, self));
+    Menu_add_element(toolbar_menu, " ❌ Delete ", create_lambda(FileExplorer_menu_delete, 1, self));
+    Menu_add_element(toolbar_menu, " 🔪 Cut ", create_lambda(FileExplorer_menu_cut, 1, self));
+    Menu_add_element(toolbar_menu, " 📋 Copy ", create_lambda(FileExplorer_menu_copy, 1, self));
+    Menu_add_element(toolbar_menu, " 📌 Paste ", create_lambda(FileExplorer_menu_paste, 1, self));
+    Menu_add_element(toolbar_menu, " 🔤 Rename ", create_lambda(FileExplorer_menu_rename, 1, self));
+    Menu_add_element(toolbar_menu, " 🔄 Refresh ", create_lambda(ExplorerFrame_refresh, 1, self));
+    //Menu_add_element(toolbar_menu, " 🔼 Up ", create_lambda(ExplorerFrame_up_one_level, 1, self));
+    Menu_add_element(toolbar_menu, " 🔝 Up ", create_lambda(ExplorerFrame_on_selected, 2, self, FileExplorer_up_one_level));
+    Menu_add_element(toolbar_menu, " 📝 Edit ", create_lambda(ExplorerFrame_on_selected, 2, self, FileExplorer_edit));
+    Menu_add_element(toolbar_menu, " 💻 Terminal ", create_lambda(ExplorerFrame_on_selected, 2, self, FileExplorer_terminal));
 
-    toolbar->top = 1;
+    toolbar_menu->win.top = 1;
 
-    return toolbar;
+    return (Window *)toolbar_menu;
 }
 
 Window *FileExplorer_new(int left, int right, int top, int bottom, int width, int height)
 {
-  ExplorerFrame *frame = malloc(sizeof *frame);
-  memset(frame, 0, sizeof *frame);  // Zero-initialize to prevent garbage values
+  ExplorerFrame *explorer_frame = malloc(sizeof *explorer_frame);
+  memset(explorer_frame, 0, sizeof *explorer_frame);  // Zero-initialize to prevent garbage values
+  Window *frame = (Window *)explorer_frame;
   Window *w = Frame_init(frame, left, right, top, bottom, width, height, NULL, 0);
 
   /*Window * menu = FileExplorer_menu();
@@ -998,12 +999,12 @@ Window *FileExplorer_new(int left, int right, int top, int bottom, int width, in
   tabs->left = 0;
   tabs->right = 0;
   Window_append(w, tabs);
-  frame->win.focused = tabs;
-  frame->tabs = tabs;
+  explorer_frame->win.focused = tabs;
+  explorer_frame->tabs = tabs;
 
-  Window *toolbar = FileExplorer_toolbar(frame);
+  Window *toolbar = FileExplorer_toolbar(explorer_frame);
   Window_append(w, toolbar);
-  Window *menu = FileExplorer_menu(frame);
+  Window *menu = FileExplorer_menu(explorer_frame);
   Window_append(w, menu);
 
   return frame;
