@@ -6,6 +6,30 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#ifdef _WIN32
+    #include <stdarg.h>
+
+    /* Provide asprintf for Windows */
+    static int asprintf(char **strp, const char *fmt, ...) {
+        va_list args;
+        va_start(args, fmt);
+        int len = _vscprintf(fmt, args);
+        if (len < 0) {
+            va_end(args);
+            return -1;
+        }
+        *strp = malloc(len + 1);
+        if (!*strp) {
+            va_end(args);
+            return -1;
+        }
+        int result = vsprintf(*strp, fmt, args);
+        va_end(args);
+        return result;
+    }
+#endif
+
 #include "menu.h"
 #include "utils.h"
 #include "logger.h"
@@ -267,6 +291,7 @@ Window *Menu_list_windows(Menu * menu, Tabs *tabs, struct Window *window_menu_it
     Menu_add_element(submenu, "", NULL);
 
     Menu_show_submenu(submenu, window_menu_item);
+    return (Window *)submenu;
 }
 
 void Menu_add_windows(Menu *menu, char *name, Tabs *tabs, Window * self)
