@@ -1,9 +1,6 @@
 #include <stdio.h>
-#include <unistd.h>
-#include <termios.h>
 #include <stdlib.h>
 #include <string.h>
-#include <dirent.h>
 #include "window.h"
 #include "logger.h"
 #include "buffer.h"
