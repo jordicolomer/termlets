@@ -10,6 +10,7 @@
     #define STDOUT_FILENO 1
 #else
     #include <sys/ioctl.h>
+    #include <sys/select.h>
     #include <unistd.h>
     #include <termios.h>
 #endif
