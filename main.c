@@ -4,6 +4,7 @@
 #include "ansi_term.h"
 
 #ifdef _WIN32
+    #define NOMINMAX  /* Prevent Windows from defining min/max macros */
     #include <windows.h>
     #include <conio.h>
     #define STDIN_FILENO 0
@@ -404,11 +405,12 @@ int test_buffer(){
 */
 
 #include <signal.h>
+
+#ifndef _WIN32
 #include <execinfo.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
+
 void write_stacktrace_to_fd(int fd)
 {
   void *array[50];
@@ -432,6 +434,18 @@ void crash_handler(int sig)
 
   _exit(1);
 }
+#else
+/* Windows crash handler - simplified version without backtrace */
+void crash_handler(int sig)
+{
+  FILE *f = fopen("crash.log", "a");
+  if (f) {
+    fprintf(f, "\n--- Crash detected (signal %d) ---\n", sig);
+    fclose(f);
+  }
+  _exit(1);
+}
+#endif
 void setup_crash_handler()
 {
   signal(SIGSEGV, crash_handler);
