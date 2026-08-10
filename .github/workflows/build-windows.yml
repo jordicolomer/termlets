@@ -36,8 +36,7 @@ jobs:
         shell: msys2 {0}
         run: mv termlets.exe termlets-w64-x86_64.exe
 
-      - name: Upload binary
-        uses: actions/upload-artifact@v4
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
         with:
-          name: termlets-windows
-          path: termlets-w64-x86_64.exe
+          files: termlets-w64-x86_64.exe
