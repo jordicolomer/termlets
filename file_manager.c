@@ -724,8 +724,13 @@ ExplorerWindow *FileExplorer_file_list(){
   j++;
 
   // Get home directory
+#ifdef _WIN32
+  const char *home_dir = getenv("USERPROFILE");
+  if (home_dir == NULL) home_dir = "C:/";
+#else
   const char *home_dir = getenv("HOME");
   if (home_dir == NULL) home_dir = "/";
+#endif
 
   // Build paths for shortcuts
   char *home_path = malloc(PATH_MAX);
@@ -808,10 +813,18 @@ ExplorerWindow *FileExplorer_file_list(){
   Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, " Locations", 255, 245);
 
   shortcut = Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, " 💻 Root", 232, 254);
+#ifdef _WIN32
+  FileExplorer_shortcut_set_target(w, shortcut, "C:/");
+#else
   FileExplorer_shortcut_set_target(w, shortcut, "/");
+#endif
 
   shortcut = Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, " 👥 Users", 232, 254);
+#ifdef _WIN32
+  FileExplorer_shortcut_set_target(w, shortcut, "C:/Users");
+#else
   FileExplorer_shortcut_set_target(w, shortcut, "/Users");
+#endif
 
   while (j <= 200)
     Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, "", 232, 255);
