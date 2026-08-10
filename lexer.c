@@ -1,3 +1,9 @@
+#ifdef _WIN32
+    /* Disable const qualifier warnings on Windows for this file */
+    #pragma GCC diagnostic ignored "-Wincompatible-pointer-types"
+    #pragma GCC diagnostic ignored "-Wdiscarded-qualifiers"
+#endif
+
 #include "lexer.h"
 #include <string.h>
 
