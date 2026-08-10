@@ -1,14 +1,97 @@
+#ifdef _WIN32
+    /* Disable strict pointer type warnings on Windows for this file */
+    #pragma GCC diagnostic ignored "-Wincompatible-pointer-types"
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <dirent.h>
 #include <time.h>
 #include <errno.h>
 #include <limits.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/stat.h>
+
+#ifdef _WIN32
+    #include <windows.h>
+    #include <sys/stat.h>
+    #include <stdarg.h>
+
+    /* Provide asprintf for Windows */
+    static int asprintf(char **strp, const char *fmt, ...) {
+        va_list args;
+        va_start(args, fmt);
+        int len = _vscprintf(fmt, args);
+        if (len < 0) {
+            va_end(args);
+            return -1;
+        }
+        *strp = malloc(len + 1);
+        if (!*strp) {
+            va_end(args);
+            return -1;
+        }
+        int result = vsprintf(*strp, fmt, args);
+        va_end(args);
+        return result;
+    }
+
+    /* Define DT_DIR for Windows */
+    #define DT_DIR 4
+
+    /* Minimal dirent.h replacement for Windows */
+    struct dirent {
+        char d_name[MAX_PATH];
+        unsigned char d_type;
+    };
+
+    typedef struct {
+        HANDLE handle;
+        WIN32_FIND_DATAA find_data;
+        struct dirent entry;
+        int first;
+    } DIR;
+
+    static DIR *opendir(const char *name) {
+        DIR *dir = malloc(sizeof(DIR));
+        if (!dir) return NULL;
+
+        char search_path[MAX_PATH];
+        snprintf(search_path, sizeof(search_path), "%s\\*", name);
+
+        dir->handle = FindFirstFileA(search_path, &dir->find_data);
+        if (dir->handle == INVALID_HANDLE_VALUE) {
+            free(dir);
+            return NULL;
+        }
+        dir->first = 1;
+        return dir;
+    }
+
+    static struct dirent *readdir(DIR *dir) {
+        if (!dir) return NULL;
+
+        if (dir->first) {
+            dir->first = 0;
+        } else {
+            if (!FindNextFileA(dir->handle, &dir->find_data)) {
+                return NULL;
+            }
+        }
+
+        strncpy(dir->entry.d_name, dir->find_data.cFileName, MAX_PATH);
+        dir->entry.d_type = (dir->find_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) ? DT_DIR : 0;
+        return &dir->entry;
+    }
+
+    static int closedir(DIR *dir) {
+        if (!dir) return -1;
+        FindClose(dir->handle);
+        free(dir);
+        return 0;
+    }
+#else
+    #include <dirent.h>
+    #include <sys/stat.h>
+#endif
 
 #include "window.h"
 #include "frame.h"
@@ -53,8 +136,8 @@ void FileExplorer_bg_set_item(Window * item, int bg){
 
 void FileExplorer_paint_selection_item(FileItemWindow * item){
   if (item == NULL) return;
-  if (item->is_selected == 0) FileExplorer_bg_set_item(item, 255);
-  if (item->is_selected == 1) FileExplorer_bg_set_item(item, 27);
+  if (item->is_selected == 0) FileExplorer_bg_set_item((Window *)item, 255);
+  if (item->is_selected == 1) FileExplorer_bg_set_item((Window *)item, 27);
 }
 
 void FileExplorer_unselect_item(FileItemWindow * item){
