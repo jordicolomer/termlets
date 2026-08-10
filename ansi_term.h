@@ -62,4 +62,8 @@ void get_terminal_size(int *rows, int *cols);
 void cleanup(void);
 void enter_alternate_screen(void);
 
+/* Platform-agnostic input functions */
+int check_input_available(int timeout_usec);
+int read_char(char *c);
+
 #endif // ANSI_TERM_H

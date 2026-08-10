@@ -1,15 +1,19 @@
 #include <stdio.h>
-#include <unistd.h>
-#include <termios.h>
 #include <stdlib.h>
 #include <string.h>
-#include <dirent.h>
-#include <stdio.h>
 #include <stdint.h>
 #include <wchar.h>
 #include <locale.h>
 #include <time.h>
 #include <stdarg.h>
+
+#ifdef _WIN32
+    #include <io.h>
+    #define STDOUT_FILENO 1
+    #define write _write
+#else
+    #include <unistd.h>
+#endif
 
 #include "ansi_term.h"
 #include "logger.h"

@@ -1,10 +1,17 @@
 #include <stdio.h>
-#include <unistd.h>
-#include <termios.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/select.h>
 #include "ansi_term.h"
+
+#ifdef _WIN32
+    #include <windows.h>
+    #include <conio.h>
+    #define STDIN_FILENO 0
+#else
+    #include <unistd.h>
+    #include <termios.h>
+    #include <sys/select.h>
+#endif
 #include "logger.h"
 #include "buffer.h"
 #include "window.h"
@@ -210,18 +217,7 @@ int start()
     }
 
     /* Use non-blocking read with timeout */
-    fd_set fds;
-    FD_ZERO(&fds);
-    FD_SET(STDIN_FILENO, &fds);
-
-    struct timeval tv = {
-      .tv_sec = 0,
-      .tv_usec = 16666  /* ~60fps */
-    };
-
-    int ret = select(STDIN_FILENO + 1, &fds, NULL, NULL, &tv);
-
-    if (ret <= 0) {
+    if (!check_input_available(16666)) {  /* ~60fps */
       continue;  /* timeout or error, check repaint flag again */
     }
 
@@ -230,7 +226,9 @@ int start()
       break;
 
     char c;
-    read(STDIN_FILENO, &c, 1);
+    if (!read_char(&c)) {
+      continue;
+    }
     //LOG_INFO("read %d", c);
 
     //if (c == 11){ // Ctrl+K
@@ -283,23 +281,12 @@ int start()
       while (i < 31)
       {
         /* wait for more data with a short timeout */
-        fd_set read_fds;
-        FD_ZERO(&read_fds);
-        FD_SET(STDIN_FILENO, &read_fds);
-
-        struct timeval timeout = {
-          .tv_sec = 0,
-          .tv_usec = 100000  /* 100ms timeout for escape sequences */
-        };
-
-        int sel_ret = select(STDIN_FILENO + 1, &read_fds, NULL, NULL, &timeout);
-
-        if (sel_ret <= 0) {
+        if (!check_input_available(100000)) {  /* 100ms timeout for escape sequences */
           /* timeout or error - no more data in escape sequence */
           break;
         }
 
-        if (read(STDIN_FILENO, &seq[i], 1) != 1) {
+        if (!read_char(&seq[i])) {
           break;
         }
 

@@ -1,9 +1,16 @@
-#include <sys/ioctl.h>
-#include <unistd.h>
 #include <stdio.h>
-#include <termios.h>
-#include <unistd.h>
 #include "ansi_term.h"
+
+#ifdef _WIN32
+    #include <windows.h>
+    #include <io.h>
+    #define STDIN_FILENO 0
+    #define STDOUT_FILENO 1
+#else
+    #include <sys/ioctl.h>
+    #include <unistd.h>
+    #include <termios.h>
+#endif
 
 void set_terminal_color(ForegroundColor fg, BackgroundColor bg) {
     printf("\033[%d;%dm", fg, bg);
@@ -39,9 +46,30 @@ int test() {
 }
 
 
-struct termios orig;
+#ifdef _WIN32
+static DWORD orig_input_mode;
+static DWORD orig_output_mode;
+#else
+static struct termios orig;
+#endif
 
 void enable_raw_mode() {
+#ifdef _WIN32
+  HANDLE hIn = GetStdHandle(STD_INPUT_HANDLE);
+  HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+
+  GetConsoleMode(hIn, &orig_input_mode);
+  GetConsoleMode(hOut, &orig_output_mode);
+
+  DWORD mode = orig_input_mode;
+  mode &= ~(ENABLE_LINE_INPUT | ENABLE_ECHO_INPUT | ENABLE_PROCESSED_INPUT);
+  mode |= ENABLE_VIRTUAL_TERMINAL_INPUT;
+  SetConsoleMode(hIn, mode);
+
+  DWORD out_mode = orig_output_mode;
+  out_mode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING | DISABLE_NEWLINE_AUTO_RETURN;
+  SetConsoleMode(hOut, out_mode);
+#else
   tcgetattr(STDIN_FILENO, &orig);
   struct termios raw = orig;
 
@@ -55,10 +83,18 @@ void enable_raw_mode() {
   raw.c_cc[VTIME] = 0;
 
   tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
+#endif
 }
 
 void disable_raw_mode() {
+#ifdef _WIN32
+  HANDLE hIn = GetStdHandle(STD_INPUT_HANDLE);
+  HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+  SetConsoleMode(hIn, orig_input_mode);
+  SetConsoleMode(hOut, orig_output_mode);
+#else
   tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig);
+#endif
 }
 
 void enable_mouse() {
@@ -96,10 +132,17 @@ void show_cursor() {
 }
 
 void get_terminal_size(int *rows, int *cols) {
+#ifdef _WIN32
+    CONSOLE_SCREEN_BUFFER_INFO csbi;
+    GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
+    *cols = csbi.srWindow.Right - csbi.srWindow.Left + 1;
+    *rows = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
+#else
     struct winsize w;
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
     *cols = w.ws_col;
     *rows = w.ws_row;
+#endif
 }
 
 void cleanup(void) {
@@ -137,5 +180,44 @@ void enter_alternate_screen(void) {
     //printf("\x1b[2J\x1b[H");
 
     fflush(stdout);
+}
+
+/* Platform-agnostic input functions */
+int check_input_available(int timeout_usec) {
+#ifdef _WIN32
+    /* Windows: use _kbhit() for checking input, Sleep for timeout */
+    if (_kbhit()) {
+        return 1;
+    }
+    if (timeout_usec > 0) {
+        Sleep(timeout_usec / 1000);  /* Sleep takes milliseconds */
+    }
+    return _kbhit();
+#else
+    /* POSIX: use select() */
+    fd_set fds;
+    FD_ZERO(&fds);
+    FD_SET(STDIN_FILENO, &fds);
+
+    struct timeval tv;
+    tv.tv_sec = timeout_usec / 1000000;
+    tv.tv_usec = timeout_usec % 1000000;
+
+    return select(STDIN_FILENO + 1, &fds, NULL, NULL, &tv) > 0;
+#endif
+}
+
+int read_char(char *c) {
+#ifdef _WIN32
+    /* Windows: use _getch() which doesn't echo */
+    if (_kbhit()) {
+        *c = _getch();
+        return 1;
+    }
+    return 0;
+#else
+    /* POSIX: use read() */
+    return read(STDIN_FILENO, c, 1) == 1;
+#endif
 }
 
