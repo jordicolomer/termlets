@@ -1091,4 +1091,18 @@ Window *VTermTerminal_callback() {
     return VTermTerminal_new(0, 0, 0, 0, 80, 24);
 }
 
+/* PTY monitoring thread stubs for Windows */
+void start_pty_monitor_thread() {
+    /* No-op on Windows */
+}
+
+void stop_pty_monitor_thread() {
+    /* No-op on Windows */
+}
+
+int check_and_clear_repaint_flag() {
+    /* Always return 0 on Windows */
+    return 0;
+}
+
 #endif /* _WIN32 */
