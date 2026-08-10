@@ -11,6 +11,36 @@
     #include <io.h>
     #define STDOUT_FILENO 1
     #define write _write
+
+    /* Basic wcwidth implementation for Windows */
+    static int wcwidth(wchar_t wc) {
+        /* Non-printable characters */
+        if (wc < 32 || (wc >= 0x7f && wc < 0xa0))
+            return -1;
+
+        /* Null character */
+        if (wc == 0)
+            return 0;
+
+        /* Combining characters (simplified) */
+        if (wc >= 0x0300 && wc <= 0x036F)
+            return 0;
+
+        /* Wide characters (CJK, emojis, etc.) */
+        if ((wc >= 0x1100 && wc <= 0x115F) ||  /* Hangul Jamo */
+            (wc >= 0x2E80 && wc <= 0x9FFF) ||  /* CJK */
+            (wc >= 0xAC00 && wc <= 0xD7A3) ||  /* Hangul Syllables */
+            (wc >= 0xF900 && wc <= 0xFAFF) ||  /* CJK Compatibility Ideographs */
+            (wc >= 0xFE10 && wc <= 0xFE19) ||  /* Vertical forms */
+            (wc >= 0xFE30 && wc <= 0xFE6F) ||  /* CJK Compatibility Forms */
+            (wc >= 0xFF00 && wc <= 0xFF60) ||  /* Fullwidth Forms */
+            (wc >= 0xFFE0 && wc <= 0xFFE6) ||  /* Fullwidth Forms */
+            (wc >= 0x1F300 && wc <= 0x1F9FF))  /* Emojis */
+            return 2;
+
+        /* Default: single-width character */
+        return 1;
+    }
 #else
     #include <unistd.h>
 #endif
