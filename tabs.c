@@ -250,6 +250,14 @@ void tabs_send_sequence(struct Window *wg, const char *seq, int len)
     if (strcmp(seq, "\x1b[Z") == 0) { // Shift+Tab
         Tabs *mytab = (Tabs *) wg->data;
         tabs_cycle(mytab);
+		return;
+    }
+	
+    Window *focused_cursor = wg->focused;
+    if (focused_cursor != NULL) while (focused_cursor->send_key == NULL && focused_cursor->focused != NULL) focused_cursor = focused_cursor->focused;
+
+    if (focused_cursor != NULL && focused_cursor->send_sequence != NULL) {
+	  focused_cursor->send_sequence(focused_cursor, seq, len);
     }
 }
 

@@ -326,7 +326,7 @@ int start()
 
       seq[i] = 0;
 
-      //LOG_INFO("seq: %s", seq);
+      LOG_INFO("seq: %s", seq);
 
       int btn, x, y;
       char type;
@@ -379,10 +379,12 @@ int start()
         if (focused_cursor != NULL && focused_cursor->send_sequence != NULL)
         {
           /* construct full escape sequence */
-          char full_seq[34];
-          full_seq[0] = 27;  /* ESC */
-          memcpy(full_seq + 1, seq, i);
-          focused_cursor->send_sequence(focused_cursor, full_seq, i + 1);
+          //char full_seq[34];
+          //full_seq[0] = 27;  /* ESC */
+          //memcpy(full_seq + 1, seq, i);
+		  //LOG_INFO("else %p %p %s", focused_cursor, focused_cursor->send_sequence, focused_cursor->id);
+          //focused_cursor->send_sequence(focused_cursor, full_seq, i + 1);
+          focused_cursor->send_sequence(focused_cursor, seq, i);
           repaint();
         }
       }

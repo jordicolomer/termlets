@@ -538,113 +538,136 @@ void EditorWindow_reload(EditorWindow *editor_window)
     EditorWindow_open_file(editor_window, editor_window->file_path);
 }
 
+void EditorWindow_left(EditorWindow *self){
+  self->cursor_x = max(self->cursor_x - 1, 0);
+}
+
+void EditorWindow_right(EditorWindow *self){
+  Node * node = EditorWindow_get_line_number(self, self->cursor_n);
+  int mx = node->length;
+  self->cursor_x = min(self->cursor_x + 1, mx);
+}
+
+void EditorWindow_up(EditorWindow *self){
+  self->cursor_n--;
+  self->cursor_n = max(self->cursor_n, 0);
+  EditorWindow_fix_cursor_x(self);
+  EditorWindow_make_cursor_visible(self);
+}
+
+void EditorWindow_down(EditorWindow *self){
+  self->cursor_n++;
+  self->cursor_n = min(self->cursor_n, self->n_lines - 1);
+  EditorWindow_fix_cursor_x(self);
+  EditorWindow_make_cursor_visible(self);
+}
+
+void EditorWindow_send_sequence(Window *win, const char *seq, int len){
+  EditorWindow *self = win;
+  if (strcmp(seq, "[A") == 0){ EditorWindow_up(self); return; }
+  if (strcmp(seq, "[B") == 0){ EditorWindow_down(self); return; }
+  if (strcmp(seq, "[C") == 0){ EditorWindow_right(self); return; }
+  if (strcmp(seq, "[D") == 0){ EditorWindow_left(self); return; }
+}
+
 void EditorWindow_send_key(Window *win, char c)
 {
-    EditorWindow *self = win;
-    Action action = mapping[c];
+  EditorWindow *self = win;
+  Action action = mapping[c];
 
-    if (action == ACTION_MODE){
-        insert_mode = 1 - insert_mode;
-        return;
-    }
-    if (action == ACTION_BACKSPACE){
-        EditorWindow_delete(self);
-        return;
-    }
-    if (action == ACTION_ENTER){
-        EditorWindow_newline(self);
-        return;
-    }
-    if (insert_mode == 1){
-        EditorWindow_insert(self, c);
-        return;
-    }
-    if (action == ACTION_START_OF_LINE){
-        self->cursor_x = 0;
-        return;
-    }
-    if (action == ACTION_LEFT){
-        self->cursor_x = max(self->cursor_x - 1, 0);
-        return;
-    }
-    if (action == ACTION_RIGHT){
-        Node * node = EditorWindow_get_line_number(self, self->cursor_n);
-        //int mx = strlen(node->line);
-        int mx = node->length;
-        self->cursor_x = min(self->cursor_x + 1, mx);
-        return;
-    }
-    if (action == ACTION_END_OF_LINE){
-        Node * node = EditorWindow_get_line_number(self, self->cursor_n);
-        //int mx = strlen(node->line);
-        int mx = node->length;
-        self->cursor_x = mx;
-        return;
-    }
-    if (action == ACTION_DOWN){
-        self->cursor_n++;
-        self->cursor_n = min(self->cursor_n, self->n_lines - 1);
-        EditorWindow_fix_cursor_x(self);
-        EditorWindow_make_cursor_visible(self);
-        return;
-    }
-    if (action == ACTION_FIRST_LINE){
-        self->cursor_n = self->n_lines - 1;
-        EditorWindow_fix_cursor_x(self);
-        EditorWindow_make_cursor_visible(self);
-        return;
-    }
-    if (action == ACTION_UP){
-        self->cursor_n--;
-        self->cursor_n = max(self->cursor_n, 0);
-        EditorWindow_fix_cursor_x(self);
-        EditorWindow_make_cursor_visible(self);
-        return;
-    }
-    if (action == ACTION_LAST_LINE){
-        self->cursor_n = 0;
-        EditorWindow_fix_cursor_x(self);
-        EditorWindow_make_cursor_visible(self);
-        return;
-    }
-    if (action == ACTION_PAGE_UP){
-        self->cursor_n += win->calculated.height;
-        self->cursor_n = min(self->cursor_n, self->n_lines - 1);
-        EditorWindow_make_cursor_visible(self);
-        return;
-    }
-    if (action == ACTION_PAGE_DOWN){
-        self->cursor_n -= win->calculated.height;
-        self->cursor_n = max(self->cursor_n, 0);
-        EditorWindow_make_cursor_visible(self);
-        return;
-    }
-    if (action == ACTION_START_SELECTION){
-        self->selection_n = self->cursor_n;
-        self->selection_x = self->cursor_x;
-        return;
-    }
-    if (action == ACTION_COPY){
-        EditorWindow_copy(self);
-        self->selection_n = -1;
-        return;
-    }
-    if (action == ACTION_PASTE){
-        EditorWindow_paste(self);
-        return;
-    }
-    if (action == ACTION_CUT){
-        EditorWindow_cut(self);
-        return;
-    }
-    if (action == ACTION_SAVE){
-        EditorWindow_save(self);
-        return;
-    }
-    if (action == ACTION_RELOAD){
-        EditorWindow_reload(self);
-        return;
-    }
+  if (action == ACTION_MODE){
+	insert_mode = 1 - insert_mode;
+	return;
+  }
+  if (action == ACTION_BACKSPACE){
+	EditorWindow_delete(self);
+	return;
+  }
+  if (action == ACTION_ENTER){
+	EditorWindow_newline(self);
+	return;
+  }
+  if (insert_mode == 1){
+	EditorWindow_insert(self, c);
+	return;
+  }
+  if (action == ACTION_START_OF_LINE){
+	self->cursor_x = 0;
+	return;
+  }
+  if (action == ACTION_LEFT){
+	EditorWindow_left(self);
+	return;
+  }
+  if (action == ACTION_RIGHT){
+	EditorWindow_right(self);
+	return;
+  }
+  if (action == ACTION_END_OF_LINE){
+	Node * node = EditorWindow_get_line_number(self, self->cursor_n);
+	//int mx = strlen(node->line);
+	int mx = node->length;
+	self->cursor_x = mx;
+	return;
+  }
+  if (action == ACTION_DOWN){
+	EditorWindow_down(self);
+	return;
+  }
+  if (action == ACTION_FIRST_LINE){
+	self->cursor_n = self->n_lines - 1;
+	EditorWindow_fix_cursor_x(self);
+	EditorWindow_make_cursor_visible(self);
+	return;
+  }
+  if (action == ACTION_UP){
+	EditorWindow_up(self);
+	return;
+  }
+  if (action == ACTION_LAST_LINE){
+	self->cursor_n = 0;
+	EditorWindow_fix_cursor_x(self);
+	EditorWindow_make_cursor_visible(self);
+	return;
+  }
+  if (action == ACTION_PAGE_UP){
+	self->cursor_n += win->calculated.height;
+	self->cursor_n = min(self->cursor_n, self->n_lines - 1);
+	EditorWindow_make_cursor_visible(self);
+	return;
+  }
+  if (action == ACTION_PAGE_DOWN){
+	self->cursor_n -= win->calculated.height;
+	self->cursor_n = max(self->cursor_n, 0);
+	EditorWindow_make_cursor_visible(self);
+	return;
+  }
+  if (action == ACTION_START_SELECTION){
+	self->selection_n = self->cursor_n;
+	self->selection_x = self->cursor_x;
+	return;
+  }
+  if (action == ACTION_COPY){
+	EditorWindow_copy(self);
+	self->selection_n = -1;
+	return;
+  }
+  if (action == ACTION_PASTE){
+	EditorWindow_paste(self);
+	return;
+  }
+  if (action == ACTION_CUT){
+	EditorWindow_cut(self);
+	return;
+  }
+  if (action == ACTION_SAVE){
+	EditorWindow_save(self);
+	return;
+  }
+  if (action == ACTION_RELOAD){
+	EditorWindow_reload(self);
+	return;
+  }
 }
 
 
@@ -782,6 +805,7 @@ EditorWindow *EditorWindow_new()
     self->win.draw = EditorWindow_draw;
 
     self->win.send_key = EditorWindow_send_key;
+    self->win.send_sequence = EditorWindow_send_sequence;
 
     self->win.scroll_wheel_up = EditorWindow_scroll_wheel_up;
     self->win.scroll_wheel_down = EditorWindow_scroll_wheel_down;
