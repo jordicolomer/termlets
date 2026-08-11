@@ -92,10 +92,17 @@ void load_default_mappings(){
     mapping[13] = ACTION_ENTER;
     mapping[';'] = ACTION_MODE;
 
+	// emacs style navigation
+    mapping[16] = ACTION_UP;
+    mapping[14] = ACTION_DOWN;
+    mapping[2] = ACTION_LEFT;
+    mapping[6] = ACTION_RIGHT;
+
+	// vim style navigation
+    mapping['k'] = ACTION_UP;
+    mapping['j'] = ACTION_DOWN;
     mapping['h'] = ACTION_LEFT;
     mapping['l'] = ACTION_RIGHT;
-    mapping['j'] = ACTION_DOWN;
-    mapping['k'] = ACTION_UP;
 
     mapping['p'] = ACTION_PAGE_DOWN;
     mapping['n'] = ACTION_PAGE_UP;

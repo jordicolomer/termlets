@@ -587,10 +587,6 @@ void EditorWindow_send_key(Window *win, char c)
 	EditorWindow_newline(self);
 	return;
   }
-  if (insert_mode == 1){
-	EditorWindow_insert(self, c);
-	return;
-  }
   if (action == ACTION_START_OF_LINE){
 	self->cursor_x = 0;
 	return;
@@ -666,6 +662,10 @@ void EditorWindow_send_key(Window *win, char c)
   }
   if (action == ACTION_RELOAD){
 	EditorWindow_reload(self);
+	return;
+  }
+  if (insert_mode == 1){
+	EditorWindow_insert(self, c);
 	return;
   }
 }

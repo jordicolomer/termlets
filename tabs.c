@@ -199,11 +199,11 @@ void tabs_send_key(struct Window *wg, char c)
     Tabs *mytab = (Tabs *) wg->data;
     tab_move_to_front(mytab->selected_tab);
 
-    if (c == 14){ // Ctrl+N
+    /*if (c == 14){ // Ctrl+N
         Tabs *mytab = (Tabs *) wg->data;
         tabs_new_tab(mytab);
         return;
-    }
+		}*/
     if (c == 12){ // Ctrl+L
         Tabs *mytab = (Tabs *) wg->data;
         tabs_cycle(mytab);
