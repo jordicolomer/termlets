@@ -1,1 +1,1 @@
-int insert_mode = 0;
+int insert_mode = 1;

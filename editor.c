@@ -538,28 +538,69 @@ void EditorWindow_reload(EditorWindow *editor_window)
     EditorWindow_open_file(editor_window, editor_window->file_path);
 }
 
-void EditorWindow_left(EditorWindow *self){
-  self->cursor_x = max(self->cursor_x - 1, 0);
+void EditorWindow_start_selection(EditorWindow *self){
+  self->selection_n = self->cursor_n;
+  self->selection_x = self->cursor_x;
 }
 
-void EditorWindow_right(EditorWindow *self){
-  Node * node = EditorWindow_get_line_number(self, self->cursor_n);
-  int mx = node->length;
-  self->cursor_x = min(self->cursor_x + 1, mx);
-}
-
-void EditorWindow_up(EditorWindow *self){
+void _EditorWindow_up(EditorWindow *self){
   self->cursor_n--;
   self->cursor_n = max(self->cursor_n, 0);
   EditorWindow_fix_cursor_x(self);
   EditorWindow_make_cursor_visible(self);
 }
 
-void EditorWindow_down(EditorWindow *self){
+void _EditorWindow_down(EditorWindow *self){
   self->cursor_n++;
   self->cursor_n = min(self->cursor_n, self->n_lines - 1);
   EditorWindow_fix_cursor_x(self);
   EditorWindow_make_cursor_visible(self);
+}
+
+void _EditorWindow_right(EditorWindow *self){
+  Node * node = EditorWindow_get_line_number(self, self->cursor_n);
+  int mx = node->length;
+  self->cursor_x = min(self->cursor_x + 1, mx);
+}
+
+void _EditorWindow_left(EditorWindow *self){
+  self->cursor_x = max(self->cursor_x - 1, 0);
+}
+
+void EditorWindow_up(EditorWindow *self){
+  _EditorWindow_up(self);
+  if (insert_mode == 1) EditorWindow_start_selection(self);
+}
+
+void EditorWindow_down(EditorWindow *self){
+  _EditorWindow_down(self);
+  if (insert_mode == 1) EditorWindow_start_selection(self);
+}
+
+void EditorWindow_right(EditorWindow *self){
+  _EditorWindow_right(self);
+  if (insert_mode == 1) EditorWindow_start_selection(self);
+}
+
+void EditorWindow_left(EditorWindow *self){
+  _EditorWindow_left(self);
+  if (insert_mode == 1) EditorWindow_start_selection(self);
+}
+
+void EditorWindow_shift_up(EditorWindow *self){
+  _EditorWindow_up(self);
+}
+
+void EditorWindow_shift_down(EditorWindow *self){
+  _EditorWindow_down(self);
+}
+
+void EditorWindow_shift_right(EditorWindow *self){
+  _EditorWindow_right(self);
+}
+
+void EditorWindow_shift_left(EditorWindow *self){
+  _EditorWindow_left(self);
 }
 
 void EditorWindow_send_sequence(Window *win, const char *seq, int len){
@@ -568,6 +609,10 @@ void EditorWindow_send_sequence(Window *win, const char *seq, int len){
   if (strcmp(seq, "[B") == 0){ EditorWindow_down(self); return; }
   if (strcmp(seq, "[C") == 0){ EditorWindow_right(self); return; }
   if (strcmp(seq, "[D") == 0){ EditorWindow_left(self); return; }
+  if (strcmp(seq, "[1;2A") == 0){ EditorWindow_shift_up(self); return; }
+  if (strcmp(seq, "[1;2B") == 0){ EditorWindow_shift_down(self); return; }
+  if (strcmp(seq, "[1;2C") == 0){ EditorWindow_shift_right(self); return; }
+  if (strcmp(seq, "[1;2D") == 0){ EditorWindow_shift_left(self); return; }
 }
 
 void EditorWindow_send_key(Window *win, char c)
@@ -585,6 +630,10 @@ void EditorWindow_send_key(Window *win, char c)
   }
   if (action == ACTION_ENTER){
 	EditorWindow_newline(self);
+	return;
+  }
+  if (insert_mode == 1){
+	EditorWindow_insert(self, c);
 	return;
   }
   if (action == ACTION_START_OF_LINE){
@@ -639,8 +688,9 @@ void EditorWindow_send_key(Window *win, char c)
 	return;
   }
   if (action == ACTION_START_SELECTION){
-	self->selection_n = self->cursor_n;
-	self->selection_x = self->cursor_x;
+	//self->selection_n = self->cursor_n;
+	//self->selection_x = self->cursor_x;
+	EditorWindow_start_selection(self);
 	return;
   }
   if (action == ACTION_COPY){
@@ -662,10 +712,6 @@ void EditorWindow_send_key(Window *win, char c)
   }
   if (action == ACTION_RELOAD){
 	EditorWindow_reload(self);
-	return;
-  }
-  if (insert_mode == 1){
-	EditorWindow_insert(self, c);
 	return;
   }
 }

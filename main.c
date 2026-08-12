@@ -244,10 +244,16 @@ int start()
     if (!read_char(&c)) {
       continue;
     }
-    //LOG_INFO("read %d", c);
+    LOG_INFO("read %d", c);
 
     //if (c == 11){ // Ctrl+K
     if (c == '\t'){ // tab
+      //cycle_task();
+	  cycle_tab();
+      repaint();
+      continue;
+    }
+    if (c == 96){ // Ctrl+space
       cycle_task();
       repaint();
       continue;
@@ -273,6 +279,9 @@ int start()
         repaint();
         continue;
       }
+    }
+    if (c == 0){ // Ctrl+space then insert tab
+	  c = '\t';
     }
 
     if (c != 27){
@@ -330,6 +339,12 @@ int start()
 
       int btn, x, y;
       char type;
+
+	  if (strcmp(seq, "[Z") == 0){
+        cycle_tab_reverse();
+        repaint();
+        continue;
+	  }
 
 
       if (sscanf(seq, "[<%d;%d;%d%c", &btn, &x, &y, &type) == 4)

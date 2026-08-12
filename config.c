@@ -88,7 +88,8 @@ int load_mappings_from_file(void) {
 }
 
 void load_default_mappings(){
-    mapping[8] = ACTION_BACKSPACE;
+    mapping[8] = ACTION_BACKSPACE;   // control+h
+    mapping[127] = ACTION_BACKSPACE; // backspace
     mapping[13] = ACTION_ENTER;
     mapping[';'] = ACTION_MODE;
 
