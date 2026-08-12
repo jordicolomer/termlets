@@ -91,13 +91,23 @@ void load_default_mappings(){
     mapping[8] = ACTION_BACKSPACE;   // control+h
     mapping[127] = ACTION_BACKSPACE; // backspace
     mapping[13] = ACTION_ENTER;
-    mapping[';'] = ACTION_MODE;
+    //mapping[';'] = ACTION_MODE;
 
 	// emacs style navigation
     mapping[16] = ACTION_UP;
     mapping[14] = ACTION_DOWN;
     mapping[2] = ACTION_LEFT;
     mapping[6] = ACTION_RIGHT;
+
+    mapping[3] = ACTION_COPY;
+    mapping[22] = ACTION_PASTE;
+    mapping[24] = ACTION_CUT;
+}
+
+void load_edit_mode_mappings(){
+    mapping[8] = ACTION_BACKSPACE;   // control+h
+    mapping[127] = ACTION_BACKSPACE; // backspace
+    mapping[';'] = ACTION_MODE;
 
 	// vim style navigation
     mapping['k'] = ACTION_UP;

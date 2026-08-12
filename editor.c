@@ -569,22 +569,34 @@ void _EditorWindow_left(EditorWindow *self){
 
 void EditorWindow_up(EditorWindow *self){
   _EditorWindow_up(self);
-  if (insert_mode == 1) EditorWindow_start_selection(self);
+  if (insert_mode == 1) {
+	EditorWindow_start_selection(self);
+	//self->selection_n = -1;
+  }
 }
 
 void EditorWindow_down(EditorWindow *self){
   _EditorWindow_down(self);
-  if (insert_mode == 1) EditorWindow_start_selection(self);
+  if (insert_mode == 1) {
+	EditorWindow_start_selection(self);
+	//self->selection_n = -1;
+  }
 }
 
 void EditorWindow_right(EditorWindow *self){
   _EditorWindow_right(self);
-  if (insert_mode == 1) EditorWindow_start_selection(self);
+  if (insert_mode == 1) {
+	EditorWindow_start_selection(self);
+	//self->selection_n = -1;
+  }
 }
 
 void EditorWindow_left(EditorWindow *self){
   _EditorWindow_left(self);
-  if (insert_mode == 1) EditorWindow_start_selection(self);
+  if (insert_mode == 1) {
+	EditorWindow_start_selection(self);
+	//self->selection_n = -1;
+  }
 }
 
 void EditorWindow_shift_up(EditorWindow *self){
@@ -605,7 +617,6 @@ void EditorWindow_shift_left(EditorWindow *self){
 
 void EditorWindow_send_sequence(Window *win, const char *seq, int len){
   EditorWindow *self = win;
-  LOG_INFO("strlen(seq): %d", strlen(seq));
   if (strlen(seq) == 0){ insert_mode = 0; return; }
   if (strcmp(seq, "[A") == 0){ EditorWindow_up(self); return; }
   if (strcmp(seq, "[B") == 0){ EditorWindow_down(self); return; }
@@ -628,14 +639,11 @@ void EditorWindow_send_key(Window *win, char c)
   }
   if (action == ACTION_BACKSPACE){
 	EditorWindow_delete(self);
+	self->selection_n = -1;
 	return;
   }
   if (action == ACTION_ENTER){
 	EditorWindow_newline(self);
-	return;
-  }
-  if (insert_mode == 1){
-	EditorWindow_insert(self, c);
 	return;
   }
   if (action == ACTION_START_OF_LINE){
@@ -718,6 +726,10 @@ void EditorWindow_send_key(Window *win, char c)
   }
   if (action == ACTION_RELOAD){
 	EditorWindow_reload(self);
+	return;
+  }
+  if (insert_mode == 1){
+	EditorWindow_insert(self, c);
 	return;
   }
 }

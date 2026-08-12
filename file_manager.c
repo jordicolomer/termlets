@@ -630,20 +630,20 @@ void FileExplorer_send_key(Window * win, char c)
     }
     Action action = mapping[c];
 
-    if (action == ACTION_DOWN){
-    //if (c == 106){ // j
+    //if (action == ACTION_DOWN){
+    if (c == 106){ // j
         if (self->selected != NULL && self->selected->win.next != NULL)
             FileExplorer_select_single_item(self, (FileItemWindow *)self->selected->win.next);
         return;
     }
-    //if (c == 107){ // k
-    if (action == ACTION_UP){
+    if (c == 107){ // k
+	  //if (action == ACTION_UP){
         if (self->selected != NULL && self->selected->win.prev != NULL)
             FileExplorer_select_single_item(self, (FileItemWindow *)self->selected->win.prev);
         return;
     }
-    if (action == ACTION_PAGE_UP){
-    //if (c == 117){ // u
+    //if (action == ACTION_PAGE_UP){
+    if (c == 117){ // u
         if (self->selected != NULL) {
             Window * selected = &self->selected->win;
             for (int i=0;i<win->calculated.height && selected->next;i++) selected = selected->next;
@@ -651,8 +651,8 @@ void FileExplorer_send_key(Window * win, char c)
         }
         return;
     }
-    if (action == ACTION_PAGE_DOWN){
-    //if (c == 105){ // i
+    //if (action == ACTION_PAGE_DOWN){
+    if (c == 105){ // i
         if (self->selected != NULL) {
             Window * selected = &self->selected->win;
             for (int i=0;i<win->calculated.height && selected->prev;i++) selected = selected->prev;
@@ -660,8 +660,8 @@ void FileExplorer_send_key(Window * win, char c)
         }
         return;
     }
-    if (action == ACTION_ENTER){
-    //if (c == 13){ // CR
+    //if (action == ACTION_ENTER){
+    if (c == 13){ // CR
         FileItemWindow * selected = self->selected;
         if (selected != NULL && selected->win.head != NULL) {
             item_clicked(selected->win.head, 0, 0);
