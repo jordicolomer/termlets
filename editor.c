@@ -631,7 +631,7 @@ void EditorWindow_send_sequence(Window *win, const char *seq, int len){
 void EditorWindow_send_key(Window *win, char c)
 {
   EditorWindow *self = win;
-  Action action = mapping[c];
+  Action action = get_mapping()[c];
 
   if (action == ACTION_MODE){
 	insert_mode = 1 - insert_mode;

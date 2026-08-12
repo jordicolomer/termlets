@@ -3,9 +3,15 @@
 #include <string.h>
 #include <limits.h>
 #include "config.h"
+#include "common.h"
 
 Action * mapping;
+Action * mapping_edit;
 
+Action * get_mapping(void) {
+  if (insert_mode == 1) return mapping;
+  return mapping_edit;
+}
 
 int load_mappings_from_file(void) {
     const char *home = getenv("HOME");
@@ -105,40 +111,43 @@ void load_default_mappings(){
 }
 
 void load_edit_mode_mappings(){
-    mapping[8] = ACTION_BACKSPACE;   // control+h
-    mapping[127] = ACTION_BACKSPACE; // backspace
-    mapping[';'] = ACTION_MODE;
+    mapping_edit[8] = ACTION_BACKSPACE;   // control+h
+    mapping_edit[127] = ACTION_BACKSPACE; // backspace
+    //mapping_edit[';'] = ACTION_MODE;
 
 	// vim style navigation
-    mapping['k'] = ACTION_UP;
-    mapping['j'] = ACTION_DOWN;
-    mapping['h'] = ACTION_LEFT;
-    mapping['l'] = ACTION_RIGHT;
-    mapping['i'] = ACTION_INSERT;
+    mapping_edit['k'] = ACTION_UP;
+    mapping_edit['j'] = ACTION_DOWN;
+    mapping_edit['h'] = ACTION_LEFT;
+    mapping_edit['l'] = ACTION_RIGHT;
+    mapping_edit['i'] = ACTION_INSERT;
 
-    mapping['p'] = ACTION_PAGE_DOWN;
-    mapping['n'] = ACTION_PAGE_UP;
+    mapping_edit['p'] = ACTION_PAGE_DOWN;
+    mapping_edit['n'] = ACTION_PAGE_UP;
 
-    mapping['0'] = ACTION_START_OF_LINE;
-    mapping['$'] = ACTION_END_OF_LINE;
+    mapping_edit['0'] = ACTION_START_OF_LINE;
+    mapping_edit['$'] = ACTION_END_OF_LINE;
 
-    mapping['g'] = ACTION_FIRST_LINE;
-    mapping['G'] = ACTION_LAST_LINE;
+    mapping_edit['g'] = ACTION_FIRST_LINE;
+    mapping_edit['G'] = ACTION_LAST_LINE;
 
-    mapping['w'] = ACTION_SAVE;
+    mapping_edit['w'] = ACTION_SAVE;
 
-    mapping[' '] = ACTION_START_SELECTION;
-    mapping['c'] = ACTION_COPY;
-    mapping['v'] = ACTION_PASTE;
-    mapping['x'] = ACTION_CUT;
-    mapping['w'] = ACTION_SAVE;
-    mapping['r'] = ACTION_RELOAD;
+    mapping_edit[' '] = ACTION_START_SELECTION;
+    mapping_edit['c'] = ACTION_COPY;
+    mapping_edit['v'] = ACTION_PASTE;
+    mapping_edit['x'] = ACTION_CUT;
+    mapping_edit['w'] = ACTION_SAVE;
+    mapping_edit['r'] = ACTION_RELOAD;
 }
 
 void load_mappings(){
     mapping = malloc(sizeof(Action) * 256);
     memset(mapping, 0, sizeof(Action) * 256);  // Zero-initialize to prevent garbage values
+    mapping_edit = malloc(sizeof(Action) * 256);
+    memset(mapping_edit, 0, sizeof(Action) * 256);  // Zero-initialize to prevent garbage values
     if (load_mappings_from_file()){
         load_default_mappings();
+		load_edit_mode_mappings();
     }
 }
