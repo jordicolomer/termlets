@@ -2,6 +2,7 @@
 #define CONFIG_H
 
 typedef enum {
+    ACTION_NONE,
     ACTION_LEFT,
     ACTION_RIGHT,
     ACTION_MODE,

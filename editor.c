@@ -729,6 +729,7 @@ void EditorWindow_send_key(Window *win, char c)
 	return;
   }
   if (insert_mode == 1){
+	self->selection_n = -1;
 	EditorWindow_insert(self, c);
 	return;
   }
@@ -814,7 +815,7 @@ void EditorWindow_draw(struct Window *w, int hasFocus)
         
         if (-self->win.shift + i == self->cursor_n){ // show cursor
             bg = 248;
-            if (insert_mode == 1) bg = 3;
+            if (insert_mode == 1) bg = 1;
             //Buffer_print(&main_buf, geo.y + i, geo.x+self->cursor_x, 1, str+self->cursor_x, 16, bg);
             Buffer_set_bg(&main_buf, geo.y + i, geo.x+self->cursor_x, 1, bg);
         }
