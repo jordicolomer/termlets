@@ -104,6 +104,7 @@ void load_default_mappings(){
     mapping['j'] = ACTION_DOWN;
     mapping['h'] = ACTION_LEFT;
     mapping['l'] = ACTION_RIGHT;
+    mapping['i'] = ACTION_INSERT;
 
     mapping['p'] = ACTION_PAGE_DOWN;
     mapping['n'] = ACTION_PAGE_UP;

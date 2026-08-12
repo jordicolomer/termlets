@@ -21,6 +21,7 @@ typedef enum {
     ACTION_CUT,
     ACTION_SAVE,
     ACTION_RELOAD,
+	ACTION_INSERT,
 } Action;
 
 extern Action * mapping;

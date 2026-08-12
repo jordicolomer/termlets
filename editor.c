@@ -605,6 +605,8 @@ void EditorWindow_shift_left(EditorWindow *self){
 
 void EditorWindow_send_sequence(Window *win, const char *seq, int len){
   EditorWindow *self = win;
+  LOG_INFO("strlen(seq): %d", strlen(seq));
+  if (strlen(seq) == 0){ insert_mode = 0; return; }
   if (strcmp(seq, "[A") == 0){ EditorWindow_up(self); return; }
   if (strcmp(seq, "[B") == 0){ EditorWindow_down(self); return; }
   if (strcmp(seq, "[C") == 0){ EditorWindow_right(self); return; }
@@ -638,6 +640,10 @@ void EditorWindow_send_key(Window *win, char c)
   }
   if (action == ACTION_START_OF_LINE){
 	self->cursor_x = 0;
+	return;
+  }
+  if (action == ACTION_INSERT){
+	insert_mode = 1;
 	return;
   }
   if (action == ACTION_LEFT){
