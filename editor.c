@@ -168,12 +168,16 @@ void EditorWindow_delete(EditorWindow *self){
         int w = cp_width(cp);  // Display width
         int byte_len = p - start;  // Byte length of the UTF-8 character
 
-        // Delete the UTF-8 character (may be multiple bytes)
-        for (int i = 0; i < byte_len; i++) {
-            delete_char(node->line, byte_pos, node->length);
-            node->length -= 1;
-        }
+        // Get the actual byte length of the string
+        size_t str_byte_len = strlen(node->line);
 
+        // Delete the UTF-8 character (may be multiple bytes) in a single operation
+        memmove(node->line + byte_pos,
+                node->line + byte_pos + byte_len,
+                str_byte_len - byte_pos - byte_len + 1);  // +1 for null terminator
+
+        // node->length is the display width, not byte length
+        node->length -= w;
         self->cursor_x -= w;
         update_lexer_state(node, 1, self->language);
     }
