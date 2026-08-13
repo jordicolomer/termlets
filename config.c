@@ -108,6 +108,8 @@ void load_default_mappings(){
     mapping[3] = ACTION_COPY;
     mapping[22] = ACTION_PASTE;
     mapping[24] = ACTION_CUT;
+	
+    mapping[19] = ACTION_SAVE;
 }
 
 void load_edit_mode_mappings(){

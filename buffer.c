@@ -324,6 +324,7 @@ void Buffer_print(Buffer *buf, int y, int x, int width, char *s, int fg, int bg)
     //LOG_INFO("Buffer_print %d %d %d\n", cp, x, y);
     if (cp == '\t') {
       // Tab: leave as spaces (from initialization), advance by tab_width
+	  if (show_tabs) buf->buffer[y * buf->width + x + idx] = 0x2192;
       idx += tab_width;
     } else {
       // Regular character: write it and mark continuation cells
