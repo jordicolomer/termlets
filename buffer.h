@@ -30,6 +30,8 @@ void Buffer_reset();
 void Buffer_print_to_screen(Buffer *buf);
 int calculate_width(char *s);
 char * char_at(char *s, int i);
+int get_idx_pos(char *s, int i);
+
 
 extern Buffer main_buf;
 

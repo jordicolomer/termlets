@@ -817,7 +817,8 @@ void EditorWindow_draw(struct Window *w, int hasFocus)
             bg = 248;
             if (insert_mode == 1) bg = 1;
             //Buffer_print(&main_buf, geo.y + i, geo.x+self->cursor_x, 1, str+self->cursor_x, 16, bg);
-            Buffer_set_bg(&main_buf, geo.y + i, geo.x+self->cursor_x, 1, bg);
+			int idx = get_idx_pos(str, self->cursor_x);
+            Buffer_set_bg(&main_buf, geo.y + i, geo.x+idx, 1, bg);
         }
 
         // syntax highlighter

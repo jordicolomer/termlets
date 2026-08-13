@@ -158,6 +158,7 @@ void Buffer_clear(Buffer *buf)
 
 int cp_width(int cp)
 {
+  if (cp == '\t') return 4;
   if (cp == 8991) return 1;
   if (cp == 8212) return 1;
   if (cp == 8211) return 1;
@@ -301,6 +302,22 @@ void Buffer_print_raw_slow(Buffer *buf, int y, int x, int width, char *s, int fg
   }
   move_cursor(y, x);
   printf("%s", s);
+}
+
+int get_idx_pos(char *s, int i)
+{
+  const uint8_t *p = (const uint8_t *)s;
+  int n = 0;
+  int acc = 0;
+  while (*p)
+  {
+	if (n == i) return acc;
+    uint32_t cp = utf8_decode(&p);
+    int w = cp_width(cp);
+	acc += w;
+	n+=1;
+  }
+  return acc;
 }
 
 void Buffer_print(Buffer *buf, int y, int x, int width, char *s, int fg, int bg)
