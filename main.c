@@ -351,11 +351,12 @@ int start()
       {
         //LOG_INFO("mouse event seq:%s btn:%d x:%d y:%d type:%c", seq, btn, x, y, type);
         /* mouse event */
-        if (y == 1)
-          continue;
         // LOG_INFO("sscanf %d %d %d %c", btn, x, y, type);
         if (dragging == 0 && btn == 0 && type == 'M')
         { // click
+          // Don't allow starting drag from first row
+          if (y == 1)
+            continue;
           dragging = 1;
           on_mouse_down(x, y);
         }
