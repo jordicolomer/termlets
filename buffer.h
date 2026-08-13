@@ -30,7 +30,11 @@ void Buffer_reset();
 void Buffer_print_to_screen(Buffer *buf);
 int calculate_width(char *s);
 char * char_at(char *s, int i);
+char * char_at_prev(char *s, int i);
 int get_idx_pos(char *s, int i);
+int count_chars(char *s);
+uint32_t utf8_decode(const uint8_t **s);
+int cp_width(int cp);
 
 
 extern Buffer main_buf;

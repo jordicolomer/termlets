@@ -206,6 +206,26 @@ char * char_at(char *s, int i)
   return NULL;
 }
 
+char * char_at_prev(char *s, int i)
+{
+  const uint8_t *p = (const uint8_t *)s;
+  const uint8_t *prev = NULL;
+  int total = 0;
+  int idx = 0;
+
+  while (*p)
+  {
+    if (idx >= i) return prev;
+    prev = p;  // Save pointer BEFORE advancing
+    uint32_t cp = utf8_decode(&p);
+    int w = cp_width(cp);
+    //printf("%d %d\r\n", cp, w);
+
+    idx += w;
+  }
+  return prev;
+}
+
 int calculate_width(char *s)
 {
   if (s == NULL) return 0;
@@ -304,8 +324,22 @@ void Buffer_print_raw_slow(Buffer *buf, int y, int x, int width, char *s, int fg
   printf("%s", s);
 }
 
+int count_chars(char *s)
+{
+  const uint8_t *p = (const uint8_t *)s;
+  int n = 0;
+  while (*p)
+  {
+    uint32_t cp = utf8_decode(&p);
+	n+=1;
+  }
+  return n;
+}
+
 int get_idx_pos(char *s, int i)
 {
+  // given a utf-8 string and a char idx,
+  // returns what position this char occupies on the screen
   const uint8_t *p = (const uint8_t *)s;
   int n = 0;
   int acc = 0;

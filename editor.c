@@ -559,12 +559,33 @@ void _EditorWindow_down(EditorWindow *self){
 
 void _EditorWindow_right(EditorWindow *self){
   Node * node = EditorWindow_get_line_number(self, self->cursor_n);
-  int mx = node->length;
-  self->cursor_x = min(self->cursor_x + 1, mx);
+  if (self->cursor_x < node->length){
+	const uint8_t *p = char_at(node->line, self->cursor_x);
+	uint32_t cp = utf8_decode(&p);
+	int w = cp_width(cp);
+	self->cursor_x += w;
+  } else {
+	if (self->cursor_n < self->n_lines-1){
+	  self->cursor_n += 1;
+	  self->cursor_x = 0;
+	}
+  }
 }
 
 void _EditorWindow_left(EditorWindow *self){
-  self->cursor_x = max(self->cursor_x - 1, 0);
+  if (self->cursor_x == 0){
+	if (self->cursor_n > 0){
+	  self->cursor_n -= 1;
+	  Node * node = EditorWindow_get_line_number(self, self->cursor_n);
+	  self->cursor_x = node->length;
+	}
+  } else {	
+	Node * node = EditorWindow_get_line_number(self, self->cursor_n);
+	const uint8_t *p = char_at_prev(node->line, self->cursor_x);
+	uint32_t cp = utf8_decode(&p);
+	int w = cp_width(cp);
+	self->cursor_x -= w;
+  }
 }
 
 void EditorWindow_up(EditorWindow *self){
@@ -664,7 +685,6 @@ void EditorWindow_send_key(Window *win, char c)
   }
   if (action == ACTION_END_OF_LINE){
 	Node * node = EditorWindow_get_line_number(self, self->cursor_n);
-	//int mx = strlen(node->line);
 	int mx = node->length;
 	self->cursor_x = mx;
 	return;
@@ -817,8 +837,9 @@ void EditorWindow_draw(struct Window *w, int hasFocus)
             bg = 248;
             if (insert_mode == 1) bg = 1;
             //Buffer_print(&main_buf, geo.y + i, geo.x+self->cursor_x, 1, str+self->cursor_x, 16, bg);
-			int idx = get_idx_pos(str, self->cursor_x);
-            Buffer_set_bg(&main_buf, geo.y + i, geo.x+idx, 1, bg);
+			//int idx = get_idx_pos(str, self->cursor_x);
+            //Buffer_set_bg(&main_buf, geo.y + i, geo.x+idx, 1, bg);
+			Buffer_set_bg(&main_buf, geo.y + i, geo.x+self->cursor_x, 1, bg);
         }
 
         // syntax highlighter
