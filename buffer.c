@@ -158,6 +158,7 @@ void Buffer_clear(Buffer *buf)
 
 int cp_width(int cp)
 {
+  if (32 < cp && cp < 255) return 1;
   if (cp == '\t') return 4;
   if (cp == 8991) return 1;
   if (cp == 8212) return 1;

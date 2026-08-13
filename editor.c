@@ -99,7 +99,8 @@ void EditorWindow_insert(EditorWindow *self, char c){
     }
     insert_char(node->line, self->cursor_x, c, node->length, node->capacity);
     node->length++;
-    self->cursor_x++;
+	if (c == '\t') self->cursor_x+=tab_width;
+    else self->cursor_x++;
     //update_lexer_state(self->head);
     update_lexer_state(node, 1, self->language);
 }
@@ -152,9 +153,28 @@ void EditorWindow_delete(EditorWindow *self){
         return;
     } else {
         Node * node = EditorWindow_get_line_number(self, self->cursor_n);
-        delete_char(node->line, self->cursor_x-1, node->length);
-        node->length--;
-        self->cursor_x--;
+
+        // Get pointer to the character to delete
+        const uint8_t *char_ptr = (const uint8_t *)char_at_prev(node->line, self->cursor_x);
+        if (char_ptr == NULL) return;
+
+        // Calculate byte position in the string
+        size_t byte_pos = char_ptr - (const uint8_t *)node->line;
+
+        // Decode to get character width and byte length
+        const uint8_t *p = char_ptr;
+        const uint8_t *start = p;
+        uint32_t cp = utf8_decode(&p);
+        int w = cp_width(cp);  // Display width
+        int byte_len = p - start;  // Byte length of the UTF-8 character
+
+        // Delete the UTF-8 character (may be multiple bytes)
+        for (int i = 0; i < byte_len; i++) {
+            delete_char(node->line, byte_pos, node->length);
+            node->length -= 1;
+        }
+
+        self->cursor_x -= w;
         update_lexer_state(node, 1, self->language);
     }
     //update_lexer_state(self->head);
