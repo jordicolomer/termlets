@@ -6,6 +6,7 @@
 #include <locale.h>
 #include <time.h>
 #include <stdarg.h>
+#include "common.h"
 
 #ifdef _WIN32
     #include <io.h>
@@ -321,13 +322,18 @@ void Buffer_print(Buffer *buf, int y, int x, int width, char *s, int fg, int bg)
     //int w = wcwidth(cp);
     int w = cp_width(cp);
     //LOG_INFO("Buffer_print %d %d %d\n", cp, x, y);
-    buf->buffer[y * buf->width + x + idx] = cp;
-    // Mark continuation cells with -1 so they differ from regular spaces
-    for (int i = 1; i < w; i++) {
-       buf->buffer[y * buf->width + x + idx + i] = (uint32_t)-1;
+    if (cp == '\t') {
+      // Tab: leave as spaces (from initialization), advance by tab_width
+      idx += tab_width;
+    } else {
+      // Regular character: write it and mark continuation cells
+      buf->buffer[y * buf->width + x + idx] = cp;
+      // Mark continuation cells with -1 so they differ from regular spaces
+      for (int i = 1; i < w; i++) {
+         buf->buffer[y * buf->width + x + idx + i] = (uint32_t)-1;
+      }
+      idx += w;
     }
-    //x += w;
-    idx += w;
     // printf("U+%04X %d\n", cp, w);
   }
 }

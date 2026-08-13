@@ -457,7 +457,7 @@ void load_file(EditorWindow *self, const char *filename)
 
     LOG_INFO("load_file: reading file");
     char buffer[MAX_LINE];
-    char expanded[MAX_LINE];
+    //char expanded[MAX_LINE];
 
     int line_count = 0;
     while (fgets(buffer, MAX_LINE, file))
@@ -467,7 +467,7 @@ void load_file(EditorWindow *self, const char *filename)
         buffer[strcspn(buffer, "\n")] = '\0';
 
         // Replace tabs with spaces (4 spaces per tab)
-        int j = 0;
+        /*int j = 0;
         for (int i = 0; buffer[i] != '\0' && j < MAX_LINE - 4; i++) {
             if (buffer[i] == '\t') {
                 // Replace tab with 4 spaces
@@ -479,10 +479,10 @@ void load_file(EditorWindow *self, const char *filename)
                 expanded[j++] = buffer[i];
             }
         }
-        expanded[j] = '\0';
+        expanded[j] = '\0';*/
 
-        LOG_INFO("load_file: line %d, length=%zu", line_count, strlen(expanded));
-        append(self, expanded);
+        //LOG_INFO("load_file: line %d, length=%zu", line_count, strlen(expanded));
+        append(self, buffer);
         self->n_lines++;
     }
     LOG_INFO("load_file: file read complete, lines=%d", self->n_lines);
