@@ -7,6 +7,7 @@
 
 Action * mapping;
 Action * mapping_edit;
+char *config_file = NULL;
 
 Action * get_mapping(void) {
   if (insert_mode == 1) return mapping;
@@ -18,9 +19,12 @@ int load_mappings_from_file(void) {
     if (!home) return 1;
 
     char path[PATH_MAX];
-    snprintf(path, sizeof(path), "%s/.config/termlets/mapping.conf", home);
+	if (config_file == NULL){
+	  snprintf(path, sizeof(path), "%s/.config/termlets/mapping.conf", home);
+	  config_file = path;
+	}
 
-    FILE *file = fopen(path, "r");
+    FILE *file = fopen(config_file, "r");
     if (!file) return 1;
 
     char line[256];

@@ -485,9 +485,40 @@ void setup_crash_handler()
   signal(SIGFPE, crash_handler);
 }
 
+int parse_args(int argc, char **argv){
+  //const char *config_file = NULL;
+  //const char *filename = NULL;
+
+  for (int i = 1; i < argc; i++) {
+	if (strcmp(argv[i], "--config") == 0) {
+	  if (i + 1 >= argc) {
+		fprintf(stderr, "--config requires a filename\n");
+		return 1;
+	  }
+	  
+	  config_file = argv[++i];
+	}
+	else if (strcmp(argv[i], "--help") == 0) {
+	  printf("Usage: %s [options] [file]\n", argv[0]);
+	  printf("  --config FILE    Use configuration file\n");
+	  printf("  --help           Show this help\n");
+	  return 0;
+	}
+	else if (argv[i][0] == '-') {
+	  fprintf(stderr, "Unknown option: %s\n", argv[i]);
+	  return 1;
+	}
+	/*else {
+	  filename = argv[i];
+	}*/
+  }
+  return 0;
+}
+
 int calculate_width(char *s);
-int main()
+int main(int argc, char **argv)
 {
+  parse_args(argc, argv);
   setup_crash_handler();
   start();
   //calculate_width("~$ll Stack Developer – Data Analytics and Integration.docx");

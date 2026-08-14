@@ -26,6 +26,7 @@ typedef enum {
 } Action;
 
 extern Action * mapping;
+extern char *config_file;
 
 void load_mappings();
 Action * get_mapping();
