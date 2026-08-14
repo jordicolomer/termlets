@@ -4,6 +4,7 @@
 #include <limits.h>
 #include "config.h"
 #include "common.h"
+#include "logger.h"
 
 Action * mapping;
 Action * mapping_edit;
@@ -31,7 +32,15 @@ int load_mappings_from_file(void) {
     char action[64];
     char value[64];
 
+	Action * map = mapping_edit;
+
     while (fgets(line, sizeof(line), file)) {
+        if (strcmp(line, "[edit-mode]\n") == 0){
+            map = mapping_edit;
+        }
+        if (strcmp(line, "[insert-mode]\n") == 0){
+            map = mapping;
+        }
         if (sscanf(line, " %63[^=] = %63s", action, value) != 2)
             continue;
 
@@ -44,52 +53,57 @@ int load_mappings_from_file(void) {
 
         int key;
 
-        if (strlen(value) == 1) {
+		key = atoi(value);
+		if (key == 0){
+            key = (unsigned char)value[0];
+		}
+        /*if (strlen(value) == 1) {
             // Single character: d, f, ;, s, g, etc.
             key = (unsigned char)value[0];
         } else {
             // Integer: 8, 13, etc.
             key = atoi(value);
-        }
+			LOG_INFO("atoi: %d", key);
+		}*/
 
         if (strcmp(action, "LEFT") == 0) {
-            mapping[(unsigned char)key] = ACTION_LEFT;
+            map[(unsigned char)key] = ACTION_LEFT;
         } else if (strcmp(action, "RIGHT") == 0) {
-            mapping[(unsigned char)key] = ACTION_RIGHT;
+            map[(unsigned char)key] = ACTION_RIGHT;
         } else if (strcmp(action, "MODE") == 0) {
-            mapping[(unsigned char)key] = ACTION_MODE;
+            map[(unsigned char)key] = ACTION_MODE;
         } else if (strcmp(action, "BACKSPACE") == 0) {
-            mapping[(unsigned char)key] = ACTION_BACKSPACE;
+            map[(unsigned char)key] = ACTION_BACKSPACE;
         } else if (strcmp(action, "ENTER") == 0) {
-            mapping[(unsigned char)key] = ACTION_ENTER;
+            map[(unsigned char)key] = ACTION_ENTER;
         } else if (strcmp(action, "START_OF_LINE") == 0) {
-            mapping[(unsigned char)key] = ACTION_START_OF_LINE;
+            map[(unsigned char)key] = ACTION_START_OF_LINE;
         } else if (strcmp(action, "END_OF_LINE") == 0) {
-            mapping[(unsigned char)key] = ACTION_END_OF_LINE;
+            map[(unsigned char)key] = ACTION_END_OF_LINE;
         } else if (strcmp(action, "UP") == 0) {
-            mapping[(unsigned char)key] = ACTION_UP;
+            map[(unsigned char)key] = ACTION_UP;
         } else if (strcmp(action, "DOWN") == 0) {
-            mapping[(unsigned char)key] = ACTION_DOWN;
+            map[(unsigned char)key] = ACTION_DOWN;
         } else if (strcmp(action, "PAGE_UP") == 0) {
-            mapping[(unsigned char)key] = ACTION_PAGE_UP;
+            map[(unsigned char)key] = ACTION_PAGE_UP;
         } else if (strcmp(action, "PAGE_DOWN") == 0) {
-            mapping[(unsigned char)key] = ACTION_PAGE_DOWN;
+            map[(unsigned char)key] = ACTION_PAGE_DOWN;
         } else if (strcmp(action, "FIRST_LINE") == 0) {
-            mapping[(unsigned char)key] = ACTION_FIRST_LINE;
+            map[(unsigned char)key] = ACTION_FIRST_LINE;
         } else if (strcmp(action, "LAST_LINE") == 0) {
-            mapping[(unsigned char)key] = ACTION_LAST_LINE;
+            map[(unsigned char)key] = ACTION_LAST_LINE;
         } else if (strcmp(action, "START_SELECTION") == 0) {
-            mapping[(unsigned char)key] = ACTION_START_SELECTION;
+            map[(unsigned char)key] = ACTION_START_SELECTION;
         } else if (strcmp(action, "COPY") == 0) {
-            mapping[(unsigned char)key] = ACTION_COPY;
+            map[(unsigned char)key] = ACTION_COPY;
         } else if (strcmp(action, "PASTE") == 0) {
-            mapping[(unsigned char)key] = ACTION_PASTE;
+            map[(unsigned char)key] = ACTION_PASTE;
         } else if (strcmp(action, "CUT") == 0) {
-            mapping[(unsigned char)key] = ACTION_CUT;
+            map[(unsigned char)key] = ACTION_CUT;
         } else if (strcmp(action, "SAVE") == 0) {
-            mapping[(unsigned char)key] = ACTION_SAVE;
+            map[(unsigned char)key] = ACTION_SAVE;
         } else if (strcmp(action, "RELOAD") == 0) {
-            mapping[(unsigned char)key] = ACTION_RELOAD;
+            map[(unsigned char)key] = ACTION_RELOAD;
         }
     }
 
