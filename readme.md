@@ -1,8 +1,10 @@
 # Termlets
 
-A lightweight terminal multiplexer and desktop environment written in C.
+A desktop environment that runs on your terminal.
 
-![Screenshot](https://github.com/user-attachments/assets/d024501a-0a2b-4a4f-ab94-b5b235528993)
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/b0f51105-e8cb-428a-8dc5-c5324b0a05db" width="900">
+</p>
 
 Termlets sits somewhere between a terminal multiplexer such as `tmux` or `screen` and a desktop environment such as KDE or Windows. Despite its desktop-like appearance, it runs entirely inside the terminal.
 
@@ -12,9 +14,7 @@ It’s implemented entirely in C, with zero external dependencies, resulting in 
 
 Currently supported on macOS (with iTerm2), Linux, and Windows.
 
-<p align="center">
-  <img src="https://github.com/user-attachments/assets/b0f51105-e8cb-428a-8dc5-c5324b0a05db" width="900">
-</p>
+![Screenshot](https://github.com/user-attachments/assets/d024501a-0a2b-4a4f-ab94-b5b235528993)
 
 ## Features
 
@@ -68,7 +68,7 @@ The current binary is built for macOS on Apple Silicon. If you're using an Intel
 
 ### Linux
 
-Download the latest macOS binary:
+Download the latest Linux binary:
 
 ```bash
 curl -L https://github.com/jordicolomer/termlets/releases/download/v0.1.2/termlets-linux-x86_64 -o termlets
