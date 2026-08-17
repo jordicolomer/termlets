@@ -28,9 +28,6 @@ Currently supported on macOS (with iTerm2), Linux, and Windows.
 - Lightweight and fast
 - Written in C
 - Zero dependencies
-- Process manager (coming soon)
-- Multiple desktops (coming soon)
-- Chess (coming soon)
 
 
 ## Installation
@@ -128,19 +125,6 @@ termlets
 **Requirements:**
 - Windows 10 or later
 - PowerShell 7 recommended for better UTF-8 support
-
-## Default Keybindings
-
-| Key          | Action          | Key     | Action          | Key     | Action          |
-|--------------|-----------------|---------|-----------------|---------|-----------------|
-| `Backspace`  | Backspace       | `n`     | Page up         | `w`     | Save            |
-| `Enter`      | Enter           | `0`     | Start of line   | `r`     | Reload          |
-| `;`          | Switch mode     | `$`     | End of line     | `Space` | Start selection |
-| `h`          | Move left       | `g`     | First line      | `c`     | Copy            |
-| `l`          | Move right      | `G`     | Last line       | `v`     | Paste           |
-| `j`          | Move down       |         |                 | `x`     | Cut             |
-| `k`          | Move up         |         |                 |         |                 |
-| `p`          | Page down       |         |                 |         |                 |
 
 ## Building from Source
 
