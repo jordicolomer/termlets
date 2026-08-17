@@ -263,8 +263,8 @@ void EditorWindow_paste(EditorWindow *self){
         } else {
             Node *new_node = malloc(sizeof(Node));
             new_node->line = strdup(line);
-            //new_node->length = strlen(line);
-            new_node->length = calculate_width(line);
+            new_node->length = strlen(line);
+            new_node->width = calculate_width(line);
             new_node->capacity = new_node->length+1;
             new_node->lexerState = 0;
             new_node->next = NULL;  // Initialize to NULL to prevent garbage pointer
@@ -368,8 +368,8 @@ void EditorWindow_newline(EditorWindow *self){
     node->next = new_node;
 
     new_node->line = strdup(node->line + self->cursor_x);
-    //new_node->length = strlen(new_node->line);
-    new_node->length = calculate_width(new_node->line);
+    new_node->length = strlen(new_node->line);
+    new_node->width = calculate_width(new_node->line);
     new_node->capacity = new_node->length + 1;
     new_node->next = next;
     new_node->prev = node;
@@ -421,8 +421,8 @@ Node *create_node(const char *text)
     }
     //replace_nonprintable(text);
     new_node->line = strdup(text); // copy string
-    //new_node->length = strlen(text);
-    new_node->length = calculate_width(text);
+    new_node->length = strlen(text);
+    new_node->width = calculate_width(text);
     new_node->capacity = new_node->length + 1;
     new_node->next = NULL;
     new_node->prev = NULL;
@@ -518,6 +518,8 @@ void load_file(EditorWindow *self, const char *filename)
     fclose(file);
 
     self->win.virtual_height = self->n_lines;
+
+	self->cursor_ptr = self->head->line;
 }
 
 void EditorWindow_run_lexer(EditorWindow *self){
@@ -582,16 +584,17 @@ void _EditorWindow_down(EditorWindow *self){
 }
 
 void _EditorWindow_right(EditorWindow *self){
-  Node * node = EditorWindow_get_line_number(self, self->cursor_n);
-  if (self->cursor_x < node->length){
-	const uint8_t *p = char_at(node->line, self->cursor_x);
-	uint32_t cp = utf8_decode(&p);
+  if (* self->cursor_ptr){
+	Node * node = EditorWindow_get_line_number(self, self->cursor_n);
+	uint32_t cp = utf8_decode(&self->cursor_ptr);
 	int w = cp_width(cp);
 	self->cursor_x += w;
   } else {
 	if (self->cursor_n < self->n_lines-1){
 	  self->cursor_n += 1;
 	  self->cursor_x = 0;
+	  Node * node = EditorWindow_get_line_number(self, self->cursor_n);
+	  self->cursor_ptr = node->line;
 	}
   }
 }
@@ -601,12 +604,12 @@ void _EditorWindow_left(EditorWindow *self){
 	if (self->cursor_n > 0){
 	  self->cursor_n -= 1;
 	  Node * node = EditorWindow_get_line_number(self, self->cursor_n);
-	  self->cursor_x = node->length;
+	  self->cursor_x = node->width;
+	  self->cursor_ptr = node->line + node->length;
 	}
   } else {	
 	Node * node = EditorWindow_get_line_number(self, self->cursor_n);
-	const uint8_t *p = char_at_prev(node->line, self->cursor_x);
-	uint32_t cp = utf8_decode(&p);
+	uint32_t cp = utf8_decode_left(&self->cursor_ptr, node->line);
 	int w = cp_width(cp);
 	self->cursor_x -= w;
   }

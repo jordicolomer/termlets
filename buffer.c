@@ -89,6 +89,53 @@ uint32_t utf8_decode(const uint8_t **s)
   return cp;
 }
 
+uint32_t utf8_decode_left(const uint8_t **s, const uint8_t *start)
+{
+    const uint8_t *p = *s;
+    uint32_t cp = 0;
+
+    if (p <= start)
+        return 0;
+
+    // Move to the first byte of the previous UTF-8 character.
+    p--;
+
+    while (p > start && (p[0] & 0xC0) == 0x80)
+        p--;
+
+    if (p[0] < 0x80)
+    {
+        cp = p[0];
+    }
+    else if ((p[0] & 0xE0) == 0xC0)
+    {
+        cp = ((p[0] & 0x1F) << 6) |
+             (p[1] & 0x3F);
+    }
+    else if ((p[0] & 0xF0) == 0xE0)
+    {
+        cp = ((p[0] & 0x0F) << 12) |
+             ((p[1] & 0x3F) << 6) |
+             (p[2] & 0x3F);
+    }
+    else if ((p[0] & 0xF8) == 0xF0)
+    {
+        cp = ((p[0] & 0x07) << 18) |
+             ((p[1] & 0x3F) << 12) |
+             ((p[2] & 0x3F) << 6) |
+             (p[3] & 0x3F);
+    }
+    else
+    {
+        // Invalid UTF-8 leading byte.
+        cp = 0;
+    }
+
+    *s = p;
+
+    return cp;
+}
+
 int utf8_encode(uint32_t cp, uint8_t **s)
 {
   uint8_t *p = *s;

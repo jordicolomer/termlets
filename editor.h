@@ -7,7 +7,8 @@ typedef struct Node {
     char *line;
     struct Node *next;
     struct Node *prev;
-    size_t length;   // characters, excluding '\0'
+    size_t length;   // characters in memory, excluding '\0'
+    size_t width;   // width on screen
     size_t capacity; // allocated bytes
     int lexerState; // used for syntax highlighting
 } Node;
@@ -22,10 +23,12 @@ typedef struct EditorWindow {
     //Node *cursor;
     int cursor_n; // what line has the cursor
     int cursor_x; // what column has the cursor
+    uint8_t * cursor_ptr; // pointer to cursor location in memory
     int n_lines; // total number of lines
     //int insert_mode;
     int selection_n; // what line has the selection marker. -1 means no marker
     int selection_x; // what column has the selection marker
+    uint8_t * selection_ptr; // pointer to cursor location in memory
     char * file_path;
     int language; // specifies the syntax highlighting language
 } EditorWindow;

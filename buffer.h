@@ -34,6 +34,7 @@ char * char_at_prev(char *s, int i);
 int get_idx_pos(char *s, int i);
 int count_chars(char *s);
 uint32_t utf8_decode(const uint8_t **s);
+uint32_t utf8_decode_left(const uint8_t **s, const uint8_t *start);
 int cp_width(int cp);
 
 
