@@ -367,22 +367,32 @@ void EditorWindow_delete_region(EditorWindow *self){
     if (self->selection_n == -1) return;
     // get range
     int i1 = self->cursor_n;
-    int j1 = self->cursor_x;
+    int j1_width = self->cursor_x;  // display width
+    uint8_t *j1_ptr = (uint8_t *)self->cursor_ptr;  // byte pointer
     int i2 = self->selection_n;
-    int j2 = self->selection_x;
-    if (self->selection_n < self->cursor_n || 
+    int j2_width = self->selection_x;  // display width
+    uint8_t *j2_ptr = (uint8_t *)self->selection_ptr;  // byte pointer
+
+    if (self->selection_n < self->cursor_n ||
        (self->selection_n == self->cursor_n && self->selection_x < self->cursor_x)){
         i1 = self->selection_n;
-        j1 = self->selection_x;
+        j1_width = self->selection_x;
+        j1_ptr = (uint8_t *)self->selection_ptr;
         i2 = self->cursor_n;
-        j2 = self->cursor_x;
+        j2_width = self->cursor_x;
+        j2_ptr = (uint8_t *)self->cursor_ptr;
     }
-    
+
     Node * node1 = EditorWindow_get_line_number(self, i1);
     Node * node2 = EditorWindow_get_line_number(self, i2);
-    char * tail = node2->line + j2;
-    node1->line[j1] = 0;
-    node1->length = j1;
+
+    // Use byte pointers instead of display widths
+    char * tail = (char *)j2_ptr;
+    size_t byte_pos1 = j1_ptr - (uint8_t *)node1->line;
+
+    node1->line[byte_pos1] = 0;
+    node1->length = byte_pos1;  // byte length
+    node1->width = j1_width;  // display width
     Node_append(node1, tail);
 
     node1->next = node2->next;
@@ -393,7 +403,8 @@ void EditorWindow_delete_region(EditorWindow *self){
     }
 
     self->cursor_n = i1;
-    self->cursor_x = j1;
+    self->cursor_x = j1_width;
+    self->cursor_ptr = node1->line + byte_pos1;
 
     self->selection_n = -1;
     self->n_lines -= i2-i1;
