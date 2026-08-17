@@ -188,15 +188,17 @@ void EditorWindow_copy(EditorWindow *self){
     if (self->selection_n == -1) return;
     // get range
     int i1 = self->cursor_n;
-    int j1 = self->cursor_x;
+    //int j1 = self->cursor_x;
+	uint8_t * j1 = self->cursor_ptr;
     int i2 = self->selection_n;
-    int j2 = self->selection_x;
+    //int j2 = self->selection_x;
+	uint8_t * j2 = self->selection_ptr;
     if (self->selection_n < self->cursor_n || 
        (self->selection_n == self->cursor_n && self->selection_x < self->cursor_x)){
         i1 = self->selection_n;
-        j1 = self->selection_x;
+        j1 = self->selection_ptr;
         i2 = self->cursor_n;
-        j2 = self->cursor_x;
+        j2 = self->cursor_ptr;
     }
 
     // calculate size
@@ -215,17 +217,22 @@ void EditorWindow_copy(EditorWindow *self){
     for(int i=0;i<i2-i1+1;i++){
         if (i == 0){ // first item
             if (i == i2-i1){ // first and last item
-                memcpy(buffer_cursor, node->line+j1, j2-j1);
+                // Copy from j1 to j2 (both on same line)
+                memcpy(buffer_cursor, j1, j2-j1);
                 buffer_cursor += j2-j1;
             } else { // first item only
-                memcpy(buffer_cursor, node->line+j1, node->length-j1);
-                buffer_cursor += node->length-j1;
+                // Copy from j1 to end of line
+                size_t len = node->length - (j1 - (uint8_t*)node->line);
+                memcpy(buffer_cursor, j1, len);
+                buffer_cursor += len;
                 *buffer_cursor = '\n';
                 buffer_cursor++;
             }
         } else if (i == i2-i1){ // last item
-            memcpy(buffer_cursor, node->line, j2);
-            buffer_cursor += j2;
+            // Copy from start of line to j2
+            size_t len = j2 - (uint8_t*)node->line;
+            memcpy(buffer_cursor, node->line, len);
+            buffer_cursor += len;
         } else { // rest
             memcpy(buffer_cursor, node->line, node->length);
             buffer_cursor += node->length;
@@ -573,6 +580,7 @@ void EditorWindow_reload(EditorWindow *editor_window)
 void EditorWindow_start_selection(EditorWindow *self){
   self->selection_n = self->cursor_n;
   self->selection_x = self->cursor_x;
+  self->selection_ptr = self->cursor_ptr;
 }
 
 void _EditorWindow_up(EditorWindow *self){
@@ -702,6 +710,7 @@ void EditorWindow_send_key(Window *win, char c)
   }
   if (action == ACTION_START_OF_LINE){
 	self->cursor_x = 0;
+	EditorWindow_fix_cursor_x(self);
 	return;
   }
   if (action == ACTION_INSERT){
@@ -720,6 +729,7 @@ void EditorWindow_send_key(Window *win, char c)
 	Node * node = EditorWindow_get_line_number(self, self->cursor_n);
 	int mx = node->length;
 	self->cursor_x = mx;
+	EditorWindow_fix_cursor_x(self);
 	return;
   }
   if (action == ACTION_DOWN){
