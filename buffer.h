@@ -29,6 +29,7 @@ void Buffer_set_bg(Buffer *buf, int y, int x, int width, int bg);
 void Buffer_reset();
 void Buffer_print_to_screen(Buffer *buf);
 int calculate_width(char *s);
+int calculate_width_n(char *s, size_t byte_len);
 char * char_at(char *s, int i, int * width);
 char * char_at_prev(char *s, int i);
 int get_idx_pos(char *s, int i);

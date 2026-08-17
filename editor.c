@@ -292,9 +292,19 @@ void EditorWindow_paste(EditorWindow *self){
     Node * next_line = current->next;
     char * cb = clipboard_paste_apple();
 
-    char * tail = strdup(current->line + self->cursor_x);
-    current->line[self->cursor_x] = '\0';
-    current->length = self->cursor_x;
+    // Check if clipboard is empty
+    if (cb == NULL || *cb == '\0') {
+        if (cb) free(cb);
+        return;
+    }
+
+    // Use cursor_ptr to get the byte position for splitting the line
+    size_t byte_pos = (uint8_t *)self->cursor_ptr - (uint8_t *)current->line;
+
+    char * tail = strdup(self->cursor_ptr);
+    current->line[byte_pos] = '\0';
+    current->length = byte_pos;  // byte length
+    current->width = self->cursor_x;  // display width
 
     char *line = cb;
     int i = 0;
@@ -328,12 +338,23 @@ void EditorWindow_paste(EditorWindow *self){
         line = end + 1;
         i += 1;
     }
-    self->cursor_x = current->length;
+
+    // Save byte length before appending tail
+    size_t pos_before_tail = current->length;
+
     Node_append(current, tail);
     free(tail);
-    
+
+    // Update cursor position to where we were before appending tail
+    self->cursor_x = calculate_width_n(current->line, pos_before_tail);
+    self->cursor_ptr = current->line + pos_before_tail;
+
     current->next = next_line;
-    next_line->prev = current;
+    if (next_line != NULL) {
+        next_line->prev = current;
+    } else {
+        self->tail = current;
+    }
 
     self->cursor_n += i;
 

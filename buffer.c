@@ -304,6 +304,23 @@ int calculate_width(char *s)
   return total;
 }
 
+int calculate_width_n(char *s, size_t byte_len)
+{
+  if (s == NULL) return 0;
+  const uint8_t *p = (const uint8_t *)s;
+  const uint8_t *end = p + byte_len;
+  int total = 0;
+
+  while (*p && p < end)
+  {
+    uint32_t cp = utf8_decode(&p);
+    int w = cp_width(cp);
+    total += w;
+  }
+
+  return total;
+}
+
 int y_state = -1;
 int x_state = -1;
 int fg_state = -1;
