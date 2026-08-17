@@ -94,12 +94,15 @@ void update_lexer_state(Node * current, int fast, int language){
 
 void EditorWindow_insert(EditorWindow *self, char c){
     Node * node = EditorWindow_get_line_number(self, self->cursor_n);
+
+    // Calculate byte position BEFORE potential realloc
+    size_t byte_pos = (uint8_t *)self->cursor_ptr - (uint8_t *)node->line;
+
     if (node->capacity <= node->length+1){
         double_capacity(node);
+        // After realloc, cursor_ptr is invalid! Recalculate it
+        self->cursor_ptr = node->line + byte_pos;
     }
-
-    // Calculate byte position from cursor_ptr
-    size_t byte_pos = (uint8_t *)self->cursor_ptr - (uint8_t *)node->line;
 
     insert_char(node->line, byte_pos, c, node->length, node->capacity);
     node->length++;  // Increment byte length
