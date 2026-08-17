@@ -99,6 +99,7 @@ void EditorWindow_insert(EditorWindow *self, char c){
     }
     insert_char(node->line, self->cursor_x, c, node->length, node->capacity);
     node->length++;
+    node->width++;
 	if (c == '\t') self->cursor_x+=tab_width;
     else self->cursor_x++;
     //update_lexer_state(self->head);
@@ -727,7 +728,7 @@ void EditorWindow_send_key(Window *win, char c)
   }
   if (action == ACTION_END_OF_LINE){
 	Node * node = EditorWindow_get_line_number(self, self->cursor_n);
-	int mx = node->length;
+	int mx = node->width;
 	self->cursor_x = mx;
 	EditorWindow_fix_cursor_x(self);
 	return;
@@ -845,7 +846,7 @@ void EditorWindow_draw(struct Window *w, int hasFocus)
                 // if selection marker above
                 if (self->selection_n < self->cursor_n){
                     idx1 = self->selection_x;
-                    idx2 = current->length;
+                    idx2 = current->width;
                 }
                 // if selection marker below
                 if (self->cursor_n < self->selection_n){
@@ -868,7 +869,7 @@ void EditorWindow_draw(struct Window *w, int hasFocus)
                 // if cursor below
                 if (self->cursor_n < self->selection_n){
                     idx1 = self->cursor_x;
-                    idx2 = current->length;
+                    idx2 = current->width;
                 }
                 int diff = idx2 - idx1;
                 //Buffer_print(&main_buf, geo.y + i, geo.x+idx1, diff, str+idx1, 16, 27);
