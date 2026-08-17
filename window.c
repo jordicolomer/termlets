@@ -483,7 +483,7 @@ void Window_set_id_from_path(Window *self, char * icon, char * path){
   char * filename = filename_from_path(path);
   snprintf(self->id, ID_LENGTH*4, "%s %s", icon, filename);
   if (calculate_width(self->id) >= ID_LENGTH) {
-    char * end = char_at(self->id, ID_LENGTH-3);
+    char * end = char_at(self->id, ID_LENGTH-3, NULL);
     end[0] = '.';
     end[1] = '.';
     end[2] = '.';

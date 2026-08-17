@@ -236,15 +236,26 @@ int cp_width(int cp)
   return width;
 }
 
-char * char_at(char *s, int i)
+char * char_at(char *s, int i, int * width)
 {
   const uint8_t *p = (const uint8_t *)s;
+  const uint8_t *ant_p = (const uint8_t *)s;
   int total = 0;
   int idx = 0;
+  int ant_idx = 0;
 
   while (*p)
   {
-    if (idx >= i) return p;
+    if (idx == i) {
+	  if (width != NULL) *width = idx;
+	  return p;
+	}
+    if (idx > i) { // if multicell character, return the beginning of the character
+	  if (width != NULL) *width = ant_idx;
+	  return ant_p;
+	}
+	ant_p = p;
+	ant_idx = idx;
     uint32_t cp = utf8_decode(&p);
     int w = cp_width(cp);
     //printf("%d %d\r\n", cp, w);
@@ -253,6 +264,7 @@ char * char_at(char *s, int i)
   }
   return NULL;
 }
+
 
 char * char_at_prev(char *s, int i)
 {

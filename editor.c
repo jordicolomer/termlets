@@ -395,7 +395,7 @@ void EditorWindow_fix_cursor_x(EditorWindow *self){
 	if (self->cursor_x == node->width){
 	  self->cursor_ptr = node->line + node->length;
 	} else {
-	  self->cursor_ptr = char_at(node->line, self->cursor_x);
+	  self->cursor_ptr = char_at(node->line, self->cursor_x, &self->cursor_x);
 	}
 }
 
