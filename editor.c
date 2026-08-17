@@ -388,9 +388,15 @@ void EditorWindow_newline(EditorWindow *self){
 
 void EditorWindow_fix_cursor_x(EditorWindow *self){
     Node * node = EditorWindow_get_line_number(self, self->cursor_n);
-    if (node->length < self->cursor_x){
-        self->cursor_x = node->length;
+    if (node->width < self->cursor_x){
+        self->cursor_x = node->width;
     }
+	//Node * node = EditorWindow_get_line_number(self, self->cursor_n);
+	if (self->cursor_x == node->width){
+	  self->cursor_ptr = node->line + node->length;
+	} else {
+	  self->cursor_ptr = char_at(node->line, self->cursor_x);
+	}
 }
 
 
@@ -572,7 +578,7 @@ void EditorWindow_start_selection(EditorWindow *self){
 void _EditorWindow_up(EditorWindow *self){
   self->cursor_n--;
   self->cursor_n = max(self->cursor_n, 0);
-  EditorWindow_fix_cursor_x(self);
+  EditorWindow_fix_cursor_x(self);	
   EditorWindow_make_cursor_visible(self);
 }
 
