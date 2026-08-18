@@ -482,7 +482,7 @@ void EditorWindow_fix_cursor_x(EditorWindow *self){
     if (self->cursor_x == node->width){
       self->cursor_ptr = node->length;
     } else {
-      self->cursor_ptr = node->line - char_at(node->line, self->cursor_x, &self->cursor_x);
+      self->cursor_ptr = char_at(node->line, self->cursor_x, &self->cursor_x) - node->line;
     }
 }
 
@@ -664,11 +664,17 @@ void EditorWindow_start_selection(EditorWindow *self){
   self->selection_ptr = self->cursor_ptr;
 }
 
+/*
+void EditorWindow_log(EditorWindow *self){
+  LOG_INFO("EditorWindow_log %d %d %d", self->cursor_n, self->cursor_x, self->cursor_ptr);
+  }*/
+
 void _EditorWindow_up(EditorWindow *self){
   self->cursor_n--;
   self->cursor_n = max(self->cursor_n, 0);
   EditorWindow_fix_cursor_x(self);	
   EditorWindow_make_cursor_visible(self);
+  //EditorWindow_log(self);
 }
 
 void _EditorWindow_down(EditorWindow *self){
@@ -676,12 +682,13 @@ void _EditorWindow_down(EditorWindow *self){
   self->cursor_n = min(self->cursor_n, self->n_lines - 1);
   EditorWindow_fix_cursor_x(self);
   EditorWindow_make_cursor_visible(self);
+  //EditorWindow_log(self);
 }
 
 void _EditorWindow_right(EditorWindow *self){
   Node * node = EditorWindow_get_line_number(self, self->cursor_n);
-  char * cursor_ptr = node->line + self->cursor_ptr;
-  if (* cursor_ptr){
+  //char * cursor_ptr = node->line + self->cursor_ptr;
+  if (node->line[self->cursor_ptr] != 0){
 	//Node * node = EditorWindow_get_line_number(self, self->cursor_n);
 	//uint32_t cp = utf8_decode(&self->cursor_ptr);
 	uint32_t cp = utf8_decode2(node->line, &self->cursor_ptr);
@@ -695,6 +702,7 @@ void _EditorWindow_right(EditorWindow *self){
 	  self->cursor_ptr = 0;
 	}
   }
+  //EditorWindow_log(self);
 }
 
 void _EditorWindow_left(EditorWindow *self){
@@ -708,10 +716,15 @@ void _EditorWindow_left(EditorWindow *self){
   } else {	
 	Node * node = EditorWindow_get_line_number(self, self->cursor_n);
 	//uint32_t cp = utf8_decode_left(&self->cursor_ptr, node->line);
+	//LOG_INFO("self->cursor_ptr %d", self->cursor_ptr);
 	uint32_t cp = utf8_decode_left2(node->line, &self->cursor_ptr);
+	//LOG_INFO("self->cursor_ptr %d", self->cursor_ptr);
 	int w = cp_width(cp);
+	//LOG_INFO("_EditorWindow_left %d %d", cp, w);
+	
 	self->cursor_x -= w;
   }
+  //EditorWindow_log(self);
 }
 
 void EditorWindow_up(EditorWindow *self){

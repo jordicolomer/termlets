@@ -91,7 +91,7 @@ uint32_t utf8_decode2(const uint8_t *s, int * idx)
 
 uint32_t utf8_decode_left2(const uint8_t *start, int * idx)
 {
-  const uint8_t *s = s + *idx;
+  const uint8_t *s = start + *idx;
     const uint8_t *p = s;
     uint32_t cp = 0;
 
@@ -100,11 +100,11 @@ uint32_t utf8_decode_left2(const uint8_t *start, int * idx)
 
     // Move to the first byte of the previous UTF-8 character.
     p--;
-    *idx--;
+    (*idx)--;
 
     while (p > start && (p[0] & 0xC0) == 0x80){
         p--;
-		*idx--;
+		(*idx)--;
 	}
 
     if (p[0] < 0x80)
