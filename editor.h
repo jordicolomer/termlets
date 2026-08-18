@@ -2,6 +2,7 @@
 #define FILE_EDITOR_H
 #include "window.h"
 #include "tabs.h"
+#include "text_edit.h"
 
 typedef struct Node {
     char *line;
@@ -23,12 +24,12 @@ typedef struct EditorWindow {
     //Node *cursor;
     int cursor_n; // what line has the cursor
     int cursor_x; // what column has the cursor
-    uint8_t * cursor_ptr; // pointer to cursor location in memory
+    int cursor_ptr; // pointer to cursor location in memory
     int n_lines; // total number of lines
     //int insert_mode;
     int selection_n; // what line has the selection marker. -1 means no marker
     int selection_x; // what column has the selection marker
-    uint8_t * selection_ptr; // pointer to cursor location in memory
+    int selection_ptr; // pointer to cursor location in memory
     char * file_path;
     int language; // specifies the syntax highlighting language
 } EditorWindow;
@@ -36,7 +37,7 @@ typedef struct EditorWindow {
 typedef struct EditorFrame {
     struct Window win;
     Tabs *tabs;
-    EditorWindow *search_box;
+    LineEditorWindow *search_box;
     //Window *syntax;
 } EditorFrame;
 

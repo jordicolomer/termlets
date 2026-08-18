@@ -36,6 +36,8 @@ int get_idx_pos(char *s, int i);
 int count_chars(char *s);
 uint32_t utf8_decode(const uint8_t **s);
 uint32_t utf8_decode_left(const uint8_t **s, const uint8_t *start);
+uint32_t utf8_decode2(const uint8_t *s, int * idx);
+uint32_t utf8_decode_left2(const uint8_t *start, int * idx);
 int cp_width(int cp);
 
 

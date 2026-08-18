@@ -100,15 +100,15 @@ void EditorWindow_insert(EditorWindow *self, char c){
     Node * node = EditorWindow_get_line_number(self, self->cursor_n);
 
     // Calculate byte position BEFORE potential realloc
-    size_t byte_pos = (uint8_t *)self->cursor_ptr - (uint8_t *)node->line;
+    //size_t byte_pos = (uint8_t *)self->cursor_ptr - (uint8_t *)node->line;
 
     if (node->capacity <= node->length+1){
         double_capacity(node);
         // After realloc, cursor_ptr is invalid! Recalculate it
-        self->cursor_ptr = node->line + byte_pos;
+        //self->cursor_ptr = node->line + byte_pos;
     }
 
-    insert_char(node->line, byte_pos, c, node->length, node->capacity);
+    insert_char(node->line, self->cursor_ptr, c, node->length, node->capacity);
     node->length++;  // Increment byte length
 
     int w = 1;
@@ -119,7 +119,8 @@ void EditorWindow_insert(EditorWindow *self, char c){
     node->width += w;
 
     // Update cursor_ptr to point after the inserted character
-    self->cursor_ptr = node->line + byte_pos + 1;
+    //self->cursor_ptr = node->line + byte_pos + 1;
+	self->cursor_ptr += 1;
 
     //update_lexer_state(self->head);
 	EditorWindow_make_cursor_visible(self);
@@ -167,7 +168,8 @@ void EditorWindow_delete(EditorWindow *self){
             self->cursor_x = prev->width;  // Use width (display), not length (bytes)
 			int prev_length = prev->length;
             Node_append(prev, node->line);
-            self->cursor_ptr = prev->line + prev_length;  // Point to end of prev line
+            //self->cursor_ptr = prev->line + prev_length;  // Point to end of prev line
+			self->cursor_ptr = prev_length;
             self->cursor_n--;
             self->n_lines--;
             //self->win.virtual_height = self->n_lines;
@@ -182,33 +184,38 @@ void EditorWindow_delete(EditorWindow *self){
         Node * node = EditorWindow_get_line_number(self, self->cursor_n);
 
         // Use cursor_ptr which already points to the correct position
-        const uint8_t *char_start = (const uint8_t *)self->cursor_ptr;
+        //const uint8_t *char_start = (const uint8_t *)self->cursor_ptr;
 
         // Move back one character
-        const uint8_t *char_ptr = char_start;
-        uint32_t cp = utf8_decode_left(&char_ptr, (const uint8_t *)node->line);
-        if (char_ptr < (const uint8_t *)node->line) return;  // Already at start
+        //const uint8_t *char_ptr = char_start;
+        //uint32_t cp = utf8_decode_left(&char_ptr, (const uint8_t *)node->line);
+		int size = node->length - self->cursor_ptr + 1;
+		int before = self->cursor_ptr;
+		uint32_t cp = utf8_decode_left2(node->line, &self->cursor_ptr);
+		int diff = before - self->cursor_ptr;
+        //if (char_ptr < (const uint8_t *)node->line) return;  // Already at start
 
         // Decode again from the found position to get byte length
-        const uint8_t *p = char_ptr;
-        const uint8_t *start = p;
-        cp = utf8_decode(&p);
+        //const uint8_t *p = char_ptr;
+        //const uint8_t *start = p;
+        //cp = utf8_decode(&p);
+		//cp = utf8_decode2(node->line, &p);
         int w = cp_width(cp);  // Display width
-        int byte_len = p - start;  // Byte length of the UTF-8 character
+        //int byte_len = before - self->cursor_ptr;  // Byte length of the UTF-8 character
 
         // Calculate byte position in the string
-        size_t byte_pos = char_ptr - (const uint8_t *)node->line;
+        //size_t byte_pos = char_ptr - (const uint8_t *)node->line;
 
         // Delete the UTF-8 character (may be multiple bytes) in a single operation
-        memmove(node->line + byte_pos,
-                node->line + byte_pos + byte_len,
-                node->length - byte_pos - byte_len + 1);  // +1 for null terminator
+        memmove(node->line + before,
+                node->line + self->cursor_ptr,
+                size);  // +1 for null terminator
 
         // Update both byte length and display width
-        node->length -= byte_len;
+        node->length -= diff;
         node->width -= w;
         self->cursor_x -= w;
-        self->cursor_ptr = (char *)char_ptr;  // Update cursor pointer
+        //self->cursor_ptr = (char *)char_ptr;  // Update cursor pointer
         update_lexer_state(node, 1, self->language);
     }
     //update_lexer_state(self->head);
@@ -219,10 +226,10 @@ void EditorWindow_copy(EditorWindow *self){
     // get range
     int i1 = self->cursor_n;
     //int j1 = self->cursor_x;
-	uint8_t * j1 = self->cursor_ptr;
+	int j1 = self->cursor_ptr;
     int i2 = self->selection_n;
     //int j2 = self->selection_x;
-	uint8_t * j2 = self->selection_ptr;
+	int j2 = self->selection_ptr;
     if (self->selection_n < self->cursor_n || 
        (self->selection_n == self->cursor_n && self->selection_x < self->cursor_x)){
         i1 = self->selection_n;
@@ -248,19 +255,19 @@ void EditorWindow_copy(EditorWindow *self){
         if (i == 0){ // first item
             if (i == i2-i1){ // first and last item
                 // Copy from j1 to j2 (both on same line)
-                memcpy(buffer_cursor, j1, j2-j1);
+                memcpy(buffer_cursor, node->line+j1, j2-j1);
                 buffer_cursor += j2-j1;
             } else { // first item only
                 // Copy from j1 to end of line
-                size_t len = node->length - (j1 - (uint8_t*)node->line);
-                memcpy(buffer_cursor, j1, len);
+                size_t len = node->length - (j1);
+                memcpy(buffer_cursor, node->line+j1, len);
                 buffer_cursor += len;
                 *buffer_cursor = '\n';
                 buffer_cursor++;
             }
         } else if (i == i2-i1){ // last item
             // Copy from start of line to j2
-            size_t len = j2 - (uint8_t*)node->line;
+            size_t len = j2;
             memcpy(buffer_cursor, node->line, len);
             buffer_cursor += len;
         } else { // rest
@@ -289,11 +296,11 @@ void EditorWindow_paste(EditorWindow *self){
     }
 
     // Use cursor_ptr to get the byte position for splitting the line
-    size_t byte_pos = (uint8_t *)self->cursor_ptr - (uint8_t *)current->line;
+    //size_t byte_pos = (uint8_t *)self->cursor_ptr - (uint8_t *)current->line;
 
-    char * tail = strdup(self->cursor_ptr);
-    current->line[byte_pos] = '\0';
-    current->length = byte_pos;  // byte length
+    char * tail = strdup(current->line+self->cursor_ptr);
+    current->line[self->cursor_ptr] = '\0';
+    current->length = self->cursor_ptr;  // byte length
     current->width = self->cursor_x;  // display width
 
     char *line = cb;
@@ -337,7 +344,7 @@ void EditorWindow_paste(EditorWindow *self){
 
     // Update cursor position to where we were before appending tail
     self->cursor_x = calculate_width_n(current->line, pos_before_tail);
-    self->cursor_ptr = current->line + pos_before_tail;
+    self->cursor_ptr = pos_before_tail;
 
     current->next = next_line;
     if (next_line != NULL) {
@@ -360,19 +367,19 @@ void EditorWindow_delete_region(EditorWindow *self){
     // get range
     int i1 = self->cursor_n;
     int j1_width = self->cursor_x;  // display width
-    uint8_t *j1_ptr = (uint8_t *)self->cursor_ptr;  // byte pointer
+    int j1_ptr = self->cursor_ptr;  // byte pointer
     int i2 = self->selection_n;
     int j2_width = self->selection_x;  // display width
-    uint8_t *j2_ptr = (uint8_t *)self->selection_ptr;  // byte pointer
+    int j2_ptr = self->selection_ptr;  // byte pointer
 
     if (self->selection_n < self->cursor_n ||
        (self->selection_n == self->cursor_n && self->selection_x < self->cursor_x)){
         i1 = self->selection_n;
         j1_width = self->selection_x;
-        j1_ptr = (uint8_t *)self->selection_ptr;
+        j1_ptr = self->selection_ptr;
         i2 = self->cursor_n;
         j2_width = self->cursor_x;
-        j2_ptr = (uint8_t *)self->cursor_ptr;
+        j2_ptr = self->cursor_ptr;
     }
 
     Node * node1 = EditorWindow_get_line_number(self, i1);
@@ -380,10 +387,10 @@ void EditorWindow_delete_region(EditorWindow *self){
 
     // Use byte pointers instead of display widths
     char * tail = (char *)j2_ptr;
-    size_t byte_pos1 = j1_ptr - (uint8_t *)node1->line;
+    //size_t byte_pos1 = j1_ptr - (uint8_t *)node1->line;
 
-    node1->line[byte_pos1] = 0;
-    node1->length = byte_pos1;  // byte length
+    node1->line[j1_ptr] = 0;
+    node1->length = j1_ptr;  // byte length
     node1->width = j1_width;  // display width
     Node_append(node1, tail);
 
@@ -396,7 +403,7 @@ void EditorWindow_delete_region(EditorWindow *self){
 
     self->cursor_n = i1;
     self->cursor_x = j1_width;
-    self->cursor_ptr = node1->line + byte_pos1;
+    self->cursor_ptr = j1_ptr;
 
     self->selection_n = -1;
     self->n_lines -= i2-i1;
@@ -441,7 +448,7 @@ void EditorWindow_newline(EditorWindow *self){
     node->next = new_node;
 
     // Use cursor_ptr (byte position) instead of cursor_x (display width)
-    new_node->line = strdup(self->cursor_ptr);
+    new_node->line = strdup(node->line + self->cursor_ptr);
     new_node->length = strlen(new_node->line);
     new_node->width = calculate_width(new_node->line);
     new_node->capacity = new_node->length + 1;
@@ -453,9 +460,9 @@ void EditorWindow_newline(EditorWindow *self){
     else next->prev = new_node;
 
     // Truncate current line at cursor position
-    size_t byte_pos = (uint8_t *)self->cursor_ptr - (uint8_t *)node->line;
-    node->line[byte_pos] = '\0';
-    node->length = byte_pos;  // byte length, not display width
+    //size_t byte_pos = (uint8_t *)self->cursor_ptr - (uint8_t *)node->line;
+    node->line[self->cursor_ptr] = '\0';
+    node->length = self->cursor_ptr;  // byte length, not display width
     node->width = self->cursor_x;  // display width
 
     self->n_lines++;
@@ -463,7 +470,7 @@ void EditorWindow_newline(EditorWindow *self){
 	EditorWindow_update_height(self);
     self->cursor_n++;
     self->cursor_x = 0;
-    self->cursor_ptr = new_node->line;  // Point to start of new line
+    self->cursor_ptr = 0;  // Point to start of new line
 }
 
 void EditorWindow_fix_cursor_x(EditorWindow *self){
@@ -473,9 +480,9 @@ void EditorWindow_fix_cursor_x(EditorWindow *self){
     }
     //Node * node = EditorWindow_get_line_number(self, self->cursor_n);
     if (self->cursor_x == node->width){
-      self->cursor_ptr = node->line + node->length;
+      self->cursor_ptr = node->length;
     } else {
-      self->cursor_ptr = char_at(node->line, self->cursor_x, &self->cursor_x);
+      self->cursor_ptr = node->line - char_at(node->line, self->cursor_x, &self->cursor_x);
     }
 }
 
@@ -606,7 +613,7 @@ void load_file(EditorWindow *self, const char *filename)
     //self->win.virtual_height = self->n_lines;
 	EditorWindow_update_height(self);
 
-    self->cursor_ptr = self->head->line;
+    self->cursor_ptr = 0;
 }
 
 void EditorWindow_run_lexer(EditorWindow *self){
@@ -672,9 +679,12 @@ void _EditorWindow_down(EditorWindow *self){
 }
 
 void _EditorWindow_right(EditorWindow *self){
-  if (* self->cursor_ptr){
-	Node * node = EditorWindow_get_line_number(self, self->cursor_n);
-	uint32_t cp = utf8_decode(&self->cursor_ptr);
+  Node * node = EditorWindow_get_line_number(self, self->cursor_n);
+  char * cursor_ptr = node->line + self->cursor_ptr;
+  if (* cursor_ptr){
+	//Node * node = EditorWindow_get_line_number(self, self->cursor_n);
+	//uint32_t cp = utf8_decode(&self->cursor_ptr);
+	uint32_t cp = utf8_decode2(node->line, &self->cursor_ptr);
 	int w = cp_width(cp);
 	self->cursor_x += w;
   } else {
@@ -682,7 +692,7 @@ void _EditorWindow_right(EditorWindow *self){
 	  self->cursor_n += 1;
 	  self->cursor_x = 0;
 	  Node * node = EditorWindow_get_line_number(self, self->cursor_n);
-	  self->cursor_ptr = node->line;
+	  self->cursor_ptr = 0;
 	}
   }
 }
@@ -693,11 +703,12 @@ void _EditorWindow_left(EditorWindow *self){
 	  self->cursor_n -= 1;
 	  Node * node = EditorWindow_get_line_number(self, self->cursor_n);
 	  self->cursor_x = node->width;
-	  self->cursor_ptr = node->line + node->length;
+	  self->cursor_ptr = node->length;
 	}
   } else {	
 	Node * node = EditorWindow_get_line_number(self, self->cursor_n);
-	uint32_t cp = utf8_decode_left(&self->cursor_ptr, node->line);
+	//uint32_t cp = utf8_decode_left(&self->cursor_ptr, node->line);
+	uint32_t cp = utf8_decode_left2(node->line, &self->cursor_ptr);
 	int w = cp_width(cp);
 	self->cursor_x -= w;
   }
@@ -1147,7 +1158,7 @@ Window *_Editor_searchbox(EditorFrame *self)
   
 Window *Editor_searchbox_enter(EditorFrame *self){
   //self->win.focused = self->tabs;
-  EditorWindow * editor = self->tabs->selected;
+  EditorWindow * editor = self->tabs->selected_tab->child;
   EditorWindow_search(editor, self->search_box->buffer);
 }
 

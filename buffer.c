@@ -50,6 +50,96 @@
 #include "logger.h"
 #include "buffer.h"
 
+uint32_t utf8_decode2(const uint8_t *s, int * idx)
+{
+  const uint8_t *p = s + *idx;
+  uint32_t cp = 0;
+
+  if (p[0] < 0x80)
+  {
+    cp = p[0];
+    *idx += 1;
+  }
+  else if ((p[0] & 0xE0) == 0xC0)
+  {
+    cp = ((p[0] & 0x1F) << 6) |
+         (p[1] & 0x3F);
+    *idx += 2;
+  }
+  else if ((p[0] & 0xF0) == 0xE0)
+  {
+    cp = ((p[0] & 0x0F) << 12) |
+         ((p[1] & 0x3F) << 6) |
+         (p[2] & 0x3F);
+    *idx += 3;
+  }
+  else if ((p[0] & 0xF8) == 0xF0)
+  {
+    cp = ((p[0] & 0x07) << 18) |
+         ((p[1] & 0x3F) << 12) |
+         ((p[2] & 0x3F) << 6) |
+         (p[3] & 0x3F);
+    *idx += 4;
+  }
+  else
+  {
+    *idx += 1;
+  }
+
+  return cp;
+}
+
+uint32_t utf8_decode_left2(const uint8_t *start, int * idx)
+{
+  const uint8_t *s = s + *idx;
+    const uint8_t *p = s;
+    uint32_t cp = 0;
+
+    if (p <= start)
+        return 0;
+
+    // Move to the first byte of the previous UTF-8 character.
+    p--;
+    *idx--;
+
+    while (p > start && (p[0] & 0xC0) == 0x80){
+        p--;
+		*idx--;
+	}
+
+    if (p[0] < 0x80)
+    {
+        cp = p[0];
+    }
+    else if ((p[0] & 0xE0) == 0xC0)
+    {
+        cp = ((p[0] & 0x1F) << 6) |
+             (p[1] & 0x3F);
+    }
+    else if ((p[0] & 0xF0) == 0xE0)
+    {
+        cp = ((p[0] & 0x0F) << 12) |
+             ((p[1] & 0x3F) << 6) |
+             (p[2] & 0x3F);
+    }
+    else if ((p[0] & 0xF8) == 0xF0)
+    {
+        cp = ((p[0] & 0x07) << 18) |
+             ((p[1] & 0x3F) << 12) |
+             ((p[2] & 0x3F) << 6) |
+             (p[3] & 0x3F);
+    }
+    else
+    {
+        // Invalid UTF-8 leading byte.
+        cp = 0;
+    }
+
+    //*s = p;
+
+    return cp;
+}
+
 uint32_t utf8_decode(const uint8_t **s)
 {
   const uint8_t *p = *s;
