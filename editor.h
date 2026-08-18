@@ -36,6 +36,7 @@ typedef struct EditorWindow {
 typedef struct EditorFrame {
     struct Window win;
     Tabs *tabs;
+    EditorWindow *search_box;
     //Window *syntax;
 } EditorFrame;
 

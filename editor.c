@@ -751,6 +751,10 @@ void EditorWindow_shift_left(EditorWindow *self){
   _EditorWindow_left(self);
 }
 
+void EditorWindow_search(EditorWindow *self){
+  
+}
+
 void EditorWindow_send_sequence(Window *win, const char *seq, int len){
   EditorWindow *self = win;
   if (strlen(seq) == 0){ insert_mode = 0; return; }
@@ -865,6 +869,10 @@ void EditorWindow_send_key(Window *win, char c)
 	EditorWindow_reload(self);
 	return;
   }
+  /*if (action == ACTION_SEARCH){
+	EditorWindow_search(self);
+	return;
+	}*/
   if (insert_mode == 1){
 	self->selection_n = -1;
 	EditorWindow_insert(self, c);
@@ -1125,7 +1133,7 @@ Window *Editor_toolbar(EditorFrame *self)
     return toolbar;
 }
 
-Window *Editor_searchbox(EditorFrame *self)
+Window *_Editor_searchbox(EditorFrame *self)
 {
   EditorWindow * search_box = EditorWindow_new();
   search_box->win.top = 1;
@@ -1136,6 +1144,57 @@ Window *Editor_searchbox(EditorFrame *self)
   return search_box;
 }
 
+Window *Editor_searchbox(EditorFrame *self)
+{
+  LineEditorWindow * line_edit = LineEditorWindow_new("Search");
+  line_edit->win.top = 1;
+  line_edit->win.left = -1;
+  line_edit->win.right = 1;
+  line_edit->win.width = 15;
+  line_edit->win.height = 1;
+  line_edit->win.bg = 15;
+  return line_edit;
+}
+
+void EditorFrame_search(EditorFrame *self){
+  LOG_INFO("EditorFrame_search");
+  self->win.focused = self->search_box;
+}
+
+void EditorFrame_send_key(struct Window *wg, char c){
+  EditorFrame *self = wg;
+  Action action = get_mapping()[c];
+  LOG_INFO("EditorFrame_send_key %p %p %d", self->win.focused, self->search_box, c);
+  if (action == ACTION_SEARCH){
+	EditorFrame_search(self);
+	return;
+  }
+  
+    Window *focused_cursor = wg->focused;
+    if (focused_cursor != NULL) while (focused_cursor->send_key == NULL && focused_cursor->focused != NULL) focused_cursor = focused_cursor->focused;
+
+    if (focused_cursor != NULL && focused_cursor->send_key != NULL) {
+        focused_cursor->send_key(focused_cursor, c);
+    }
+}
+
+void EditorFrame_send_sequence(struct Window *wg, const char *seq, int len)
+{
+  EditorFrame *self = wg;
+  if (self->win.focused == self->search_box && strlen(seq) == 0) { // esc
+	self->win.focused = self->tabs;
+	return;
+  }
+	
+    Window *focused_cursor = wg->focused;
+    if (focused_cursor != NULL) while (focused_cursor->send_key == NULL && focused_cursor->focused != NULL) focused_cursor = focused_cursor->focused;
+
+    if (focused_cursor != NULL && focused_cursor->send_sequence != NULL) {
+	  focused_cursor->send_sequence(focused_cursor, seq, len);
+    }
+}
+
+
 Window *Editor_new(int left, int right, int top, int bottom, int width, int height)
 {
     EditorFrame *editor_frame = malloc(sizeof *editor_frame);
@@ -1143,6 +1202,8 @@ Window *Editor_new(int left, int right, int top, int bottom, int width, int heig
     Window *frame = editor_frame;
     // Window *frame = malloc(sizeof *frame);
     Window *w = Frame_init(frame, left, right, top, bottom, width, height, NULL, 0);
+    frame->send_key = EditorFrame_send_key;
+    frame->send_sequence = EditorFrame_send_sequence;
 
     Window *tabs = Tab_new((Window * (*)(void)) EditorWindow_new_tab, 0);
     editor_frame->tabs = tabs;
@@ -1159,6 +1220,7 @@ Window *Editor_new(int left, int right, int top, int bottom, int width, int heig
     Window_append(w, menu);
 
 	EditorWindow * search_box = Editor_searchbox(editor_frame);
+	editor_frame->search_box = search_box;
     Window_append(w, search_box);
 
     last_frame = frame;

@@ -102,6 +102,8 @@ int load_mappings_from_file(void) {
             map[(unsigned char)key] = ACTION_CUT;
         } else if (strcmp(action, "SAVE") == 0) {
             map[(unsigned char)key] = ACTION_SAVE;
+        } else if (strcmp(action, "SEARCH") == 0) {
+            map[(unsigned char)key] = ACTION_SEARCH;
         } else if (strcmp(action, "RELOAD") == 0) {
             map[(unsigned char)key] = ACTION_RELOAD;
         }
@@ -112,6 +114,7 @@ int load_mappings_from_file(void) {
 }
 
 void load_default_mappings(){
+    mapping[6] = ACTION_SEARCH;   // control+f
     mapping[8] = ACTION_BACKSPACE;   // control+h
     mapping[127] = ACTION_BACKSPACE; // backspace
     mapping[13] = ACTION_ENTER;
@@ -131,6 +134,7 @@ void load_default_mappings(){
 }
 
 void load_edit_mode_mappings(){
+    mapping[6] = ACTION_SEARCH;   // control+f
     mapping_edit[8] = ACTION_BACKSPACE;   // control+h
     mapping_edit[127] = ACTION_BACKSPACE; // backspace
     //mapping_edit[';'] = ACTION_MODE;
