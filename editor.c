@@ -363,13 +363,13 @@ void EditorWindow_delete_region(EditorWindow *self){
     Node * node2 = EditorWindow_get_line_number(self, i2);
 
     // Use byte pointers instead of display widths
-    char * tail = (char *)j2_ptr;
+    //char * tail = (char *)j2_ptr;
     //size_t byte_pos1 = j1_ptr - (uint8_t *)node1->line;
 
     node1->line[j1_ptr] = 0;
     node1->length = j1_ptr;  // byte length
     node1->width = j1_width;  // display width
-    Node_append(node1, tail);
+    Node_append(node1, node2->line + j2_ptr);
 
     node1->next = node2->next;
     if (node2->next == NULL){
