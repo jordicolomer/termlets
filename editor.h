@@ -14,6 +14,12 @@ typedef struct Node {
     int lexerState; // used for syntax highlighting
 } Node;
 
+typedef struct EditorPointer {
+    int n;
+    int x;
+    int ptr;
+} EditorPointer;
+
 typedef struct EditorWindow {
     struct Window win;
     Window *slider;
@@ -22,14 +28,18 @@ typedef struct EditorWindow {
     //Node *top; // pointer to top_n. todo: remove this
     int top_n; // what line is shown as first line
     //Node *cursor;
-    int cursor_n; // what line has the cursor
+  
+    struct EditorPointer cursor;
+    struct EditorPointer selection;
+  /*int cursor_n; // what line has the cursor
     int cursor_x; // what column has the cursor
     int cursor_ptr; // pointer to cursor location in memory
-    int n_lines; // total number of lines
-    //int insert_mode;
+  
     int selection_n; // what line has the selection marker. -1 means no marker
     int selection_x; // what column has the selection marker
-    int selection_ptr; // pointer to cursor location in memory
+    int selection_ptr; // pointer to cursor location in memory*/
+  
+    int n_lines; // total number of lines
     char * file_path;
     int language; // specifies the syntax highlighting language
 } EditorWindow;

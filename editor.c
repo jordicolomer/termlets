@@ -44,11 +44,11 @@ void EditorWindow_scroll_wheel_up(struct Window *w){
 void EditorWindow_make_cursor_visible(EditorWindow *self)
 {
     int height = self->win.calculated.height;
-    int diff = self->cursor_n + self->win.shift;
+    int diff = self->cursor.n + self->win.shift;
     if (diff < 0)
-        self->win.shift = -(self->cursor_n);
+        self->win.shift = -(self->cursor.n);
     if (diff > height - 1)
-        self->win.shift = height - 1 - self->cursor_n;
+        self->win.shift = height - 1 - self->cursor.n;
 }
 
 Node * EditorWindow_get_line_number(EditorWindow *self, int number){
@@ -97,7 +97,7 @@ void update_lexer_state(Node * current, int fast, int language){
 }
 
 void EditorWindow_insert(EditorWindow *self, char c){
-    Node * node = EditorWindow_get_line_number(self, self->cursor_n);
+    Node * node = EditorWindow_get_line_number(self, self->cursor.n);
 
     // Calculate byte position BEFORE potential realloc
     //size_t byte_pos = (uint8_t *)self->cursor_ptr - (uint8_t *)node->line;
@@ -108,19 +108,19 @@ void EditorWindow_insert(EditorWindow *self, char c){
         //self->cursor_ptr = node->line + byte_pos;
     }
 
-    insert_char(node->line, self->cursor_ptr, c, node->length, node->capacity);
+    insert_char(node->line, self->cursor.ptr, c, node->length, node->capacity);
     node->length++;  // Increment byte length
 
     int w = 1;
     if (c == '\t') {
         w = tab_width;
     }
-    self->cursor_x += w;
+    self->cursor.x += w;
     node->width += w;
 
     // Update cursor_ptr to point after the inserted character
     //self->cursor_ptr = node->line + byte_pos + 1;
-	self->cursor_ptr += 1;
+	self->cursor.ptr += 1;
 
     //update_lexer_state(self->head);
 	EditorWindow_make_cursor_visible(self);
@@ -160,17 +160,17 @@ void Node_append(Node *node, char *text)
 
 void EditorWindow_delete(EditorWindow *self){
     // delete a character
-    if (self->cursor_x == 0){
-	  if (self->cursor_n != 0){ // join two lines
-            Node * node = EditorWindow_get_line_number(self, self->cursor_n);
+    if (self->cursor.x == 0){
+	  if (self->cursor.n != 0){ // join two lines
+            Node * node = EditorWindow_get_line_number(self, self->cursor.n);
             Node * next = node->next;
             Node * prev = node->prev;
-            self->cursor_x = prev->width;  // Use width (display), not length (bytes)
+            self->cursor.x = prev->width;  // Use width (display), not length (bytes)
 			int prev_length = prev->length;
             Node_append(prev, node->line);
             //self->cursor_ptr = prev->line + prev_length;  // Point to end of prev line
-			self->cursor_ptr = prev_length;
-            self->cursor_n--;
+			self->cursor.ptr = prev_length;
+            self->cursor.n--;
             self->n_lines--;
             //self->win.virtual_height = self->n_lines;
 			EditorWindow_update_height(self);
@@ -181,38 +181,38 @@ void EditorWindow_delete(EditorWindow *self){
         }
         return;
     } else { // delete previous char
-        Node * node = EditorWindow_get_line_number(self, self->cursor_n);
-		int size = node->length - self->cursor_ptr + 1;
-		int before = self->cursor_ptr;
-		uint32_t cp = utf8_decode_left2(node->line, &self->cursor_ptr);
-		int diff = before - self->cursor_ptr;
+        Node * node = EditorWindow_get_line_number(self, self->cursor.n);
+		int size = node->length - self->cursor.ptr + 1;
+		int before = self->cursor.ptr;
+		uint32_t cp = utf8_decode_left2(node->line, &self->cursor.ptr);
+		int diff = before - self->cursor.ptr;
         int w = cp_width(cp);
-        memmove(node->line + self->cursor_ptr,
+        memmove(node->line + self->cursor.ptr,
                 node->line + before,
                 size);
         node->length -= diff;
         node->width -= w;
-        self->cursor_x -= w;
+        self->cursor.x -= w;
         update_lexer_state(node, 1, self->language);
     }
     //update_lexer_state(self->head);
 }
 
 void EditorWindow_copy(EditorWindow *self){
-    if (self->selection_n == -1) return;
+    if (self->selection.n == -1) return;
     // get range
-    int i1 = self->cursor_n;
+    int i1 = self->cursor.n;
     //int j1 = self->cursor_x;
-	int j1 = self->cursor_ptr;
-    int i2 = self->selection_n;
+	int j1 = self->cursor.ptr;
+    int i2 = self->selection.n;
     //int j2 = self->selection_x;
-	int j2 = self->selection_ptr;
-    if (self->selection_n < self->cursor_n || 
-       (self->selection_n == self->cursor_n && self->selection_x < self->cursor_x)){
-        i1 = self->selection_n;
-        j1 = self->selection_ptr;
-        i2 = self->cursor_n;
-        j2 = self->cursor_ptr;
+	int j2 = self->selection.ptr;
+    if (self->selection.n < self->cursor.n || 
+       (self->selection.n == self->cursor.n && self->selection.x < self->cursor.x)){
+        i1 = self->selection.n;
+        j1 = self->selection.ptr;
+        i2 = self->cursor.n;
+        j2 = self->cursor.ptr;
     }
 
     // calculate size
@@ -262,7 +262,7 @@ void EditorWindow_copy(EditorWindow *self){
 }
 
 void EditorWindow_paste(EditorWindow *self){
-    Node * current = EditorWindow_get_line_number(self, self->cursor_n);
+    Node * current = EditorWindow_get_line_number(self, self->cursor.n);
     Node * next_line = current->next;
     char * cb = clipboard_paste_apple();
 
@@ -275,10 +275,10 @@ void EditorWindow_paste(EditorWindow *self){
     // Use cursor_ptr to get the byte position for splitting the line
     //size_t byte_pos = (uint8_t *)self->cursor_ptr - (uint8_t *)current->line;
 
-    char * tail = strdup(current->line+self->cursor_ptr);
-    current->line[self->cursor_ptr] = '\0';
-    current->length = self->cursor_ptr;  // byte length
-    current->width = self->cursor_x;  // display width
+    char * tail = strdup(current->line+self->cursor.ptr);
+    current->line[self->cursor.ptr] = '\0';
+    current->length = self->cursor.ptr;  // byte length
+    current->width = self->cursor.x;  // display width
 
     char *line = cb;
     int i = 0;
@@ -320,8 +320,8 @@ void EditorWindow_paste(EditorWindow *self){
     free(tail);
 
     // Update cursor position to where we were before appending tail
-    self->cursor_x = calculate_width_n(current->line, pos_before_tail);
-    self->cursor_ptr = pos_before_tail;
+    self->cursor.x = calculate_width_n(current->line, pos_before_tail);
+    self->cursor.ptr = pos_before_tail;
 
     current->next = next_line;
     if (next_line != NULL) {
@@ -330,7 +330,7 @@ void EditorWindow_paste(EditorWindow *self){
         self->tail = current;
     }
 
-    self->cursor_n += i;
+    self->cursor.n += i;
 	EditorWindow_update_height(self);
 	EditorWindow_make_cursor_visible(self);
 
@@ -340,23 +340,23 @@ void EditorWindow_paste(EditorWindow *self){
 }
 
 void EditorWindow_delete_region(EditorWindow *self){
-    if (self->selection_n == -1) return;
+    if (self->selection.n == -1) return;
     // get range
-    int i1 = self->cursor_n;
-    int j1_width = self->cursor_x;  // display width
-    int j1_ptr = self->cursor_ptr;  // byte pointer
-    int i2 = self->selection_n;
-    int j2_width = self->selection_x;  // display width
-    int j2_ptr = self->selection_ptr;  // byte pointer
+    int i1 = self->cursor.n;
+    int j1_width = self->cursor.x;  // display width
+    int j1_ptr = self->cursor.ptr;  // byte pointer
+    int i2 = self->selection.n;
+    int j2_width = self->selection.x;  // display width
+    int j2_ptr = self->selection.ptr;  // byte pointer
 
-    if (self->selection_n < self->cursor_n ||
-       (self->selection_n == self->cursor_n && self->selection_x < self->cursor_x)){
-        i1 = self->selection_n;
-        j1_width = self->selection_x;
-        j1_ptr = self->selection_ptr;
-        i2 = self->cursor_n;
-        j2_width = self->cursor_x;
-        j2_ptr = self->cursor_ptr;
+    if (self->selection.n < self->cursor.n ||
+       (self->selection.n == self->cursor.n && self->selection.x < self->cursor.x)){
+        i1 = self->selection.n;
+        j1_width = self->selection.x;
+        j1_ptr = self->selection.ptr;
+        i2 = self->cursor.n;
+        j2_width = self->cursor.x;
+        j2_ptr = self->cursor.ptr;
     }
 
     Node * node1 = EditorWindow_get_line_number(self, i1);
@@ -378,11 +378,11 @@ void EditorWindow_delete_region(EditorWindow *self){
         node2->next->prev = node1;
     }
 
-    self->cursor_n = i1;
-    self->cursor_x = j1_width;
-    self->cursor_ptr = j1_ptr;
+    self->cursor.n = i1;
+    self->cursor.x = j1_width;
+    self->cursor.ptr = j1_ptr;
 
-    self->selection_n = -1;
+    self->selection.n = -1;
     self->n_lines -= i2-i1;
     //self->win.virtual_height = self->n_lines;
 	EditorWindow_update_height(self);
@@ -413,7 +413,7 @@ void EditorWindow_save(EditorWindow *self){
 }
 
 void EditorWindow_newline(EditorWindow *self){
-    Node * node = EditorWindow_get_line_number(self, self->cursor_n);
+    Node * node = EditorWindow_get_line_number(self, self->cursor.n);
     Node * next = node->next;
 
     Node *new_node = malloc(sizeof(Node));
@@ -425,7 +425,7 @@ void EditorWindow_newline(EditorWindow *self){
     node->next = new_node;
 
     // Use cursor_ptr (byte position) instead of cursor_x (display width)
-    new_node->line = strdup(node->line + self->cursor_ptr);
+    new_node->line = strdup(node->line + self->cursor.ptr);
     new_node->length = strlen(new_node->line);
     new_node->width = calculate_width(new_node->line);
     new_node->capacity = new_node->length + 1;
@@ -438,28 +438,28 @@ void EditorWindow_newline(EditorWindow *self){
 
     // Truncate current line at cursor position
     //size_t byte_pos = (uint8_t *)self->cursor_ptr - (uint8_t *)node->line;
-    node->line[self->cursor_ptr] = '\0';
-    node->length = self->cursor_ptr;  // byte length, not display width
-    node->width = self->cursor_x;  // display width
+    node->line[self->cursor.ptr] = '\0';
+    node->length = self->cursor.ptr;  // byte length, not display width
+    node->width = self->cursor.x;  // display width
 
     self->n_lines++;
     //self->win.virtual_height = self->n_lines;
 	EditorWindow_update_height(self);
-    self->cursor_n++;
-    self->cursor_x = 0;
-    self->cursor_ptr = 0;  // Point to start of new line
+    self->cursor.n++;
+    self->cursor.x = 0;
+    self->cursor.ptr = 0;  // Point to start of new line
 }
 
 void EditorWindow_fix_cursor_x(EditorWindow *self){
-    Node * node = EditorWindow_get_line_number(self, self->cursor_n);
-    if (node->width < self->cursor_x){
-        self->cursor_x = node->width;
+    Node * node = EditorWindow_get_line_number(self, self->cursor.n);
+    if (node->width < self->cursor.x){
+        self->cursor.x = node->width;
     }
     //Node * node = EditorWindow_get_line_number(self, self->cursor_n);
-    if (self->cursor_x == node->width){
-      self->cursor_ptr = node->length;
+    if (self->cursor.x == node->width){
+      self->cursor.ptr = node->length;
     } else {
-      self->cursor_ptr = char_at(node->line, self->cursor_x, &self->cursor_x) - node->line;
+      self->cursor.ptr = char_at(node->line, self->cursor.x, &self->cursor.x) - node->line;
     }
 }
 
@@ -590,7 +590,7 @@ void load_file(EditorWindow *self, const char *filename)
     //self->win.virtual_height = self->n_lines;
 	EditorWindow_update_height(self);
 
-    self->cursor_ptr = 0;
+    self->cursor.ptr = 0;
 }
 
 void EditorWindow_run_lexer(EditorWindow *self){
@@ -628,17 +628,17 @@ void EditorWindow_reload(EditorWindow *editor_window)
 {
     editor_window->head = NULL;
     editor_window->tail = NULL;
-    editor_window->cursor_n = 0;
-    editor_window->cursor_x = 0;
+    editor_window->cursor.n = 0;
+    editor_window->cursor.x = 0;
     editor_window->n_lines = 0;
-    editor_window->selection_n = -1;
+    editor_window->selection.n = -1;
     EditorWindow_open_file(editor_window, editor_window->file_path);
 }
 
 void EditorWindow_start_selection(EditorWindow *self){
-  self->selection_n = self->cursor_n;
-  self->selection_x = self->cursor_x;
-  self->selection_ptr = self->cursor_ptr;
+  self->selection.n = self->cursor.n;
+  self->selection.x = self->cursor.x;
+  self->selection.ptr = self->cursor.ptr;
 }
 
 /*
@@ -647,59 +647,59 @@ void EditorWindow_log(EditorWindow *self){
   }*/
 
 void _EditorWindow_up(EditorWindow *self){
-  self->cursor_n--;
-  self->cursor_n = max(self->cursor_n, 0);
+  self->cursor.n--;
+  self->cursor.n = max(self->cursor.n, 0);
   EditorWindow_fix_cursor_x(self);	
   EditorWindow_make_cursor_visible(self);
   //EditorWindow_log(self);
 }
 
 void _EditorWindow_down(EditorWindow *self){
-  self->cursor_n++;
-  self->cursor_n = min(self->cursor_n, self->n_lines - 1);
+  self->cursor.n++;
+  self->cursor.n = min(self->cursor.n, self->n_lines - 1);
   EditorWindow_fix_cursor_x(self);
   EditorWindow_make_cursor_visible(self);
   //EditorWindow_log(self);
 }
 
 void _EditorWindow_right(EditorWindow *self){
-  Node * node = EditorWindow_get_line_number(self, self->cursor_n);
+  Node * node = EditorWindow_get_line_number(self, self->cursor.n);
   //char * cursor_ptr = node->line + self->cursor_ptr;
-  if (node->line[self->cursor_ptr] != 0){
+  if (node->line[self->cursor.ptr] != 0){
 	//Node * node = EditorWindow_get_line_number(self, self->cursor_n);
 	//uint32_t cp = utf8_decode(&self->cursor_ptr);
-	uint32_t cp = utf8_decode2(node->line, &self->cursor_ptr);
+	uint32_t cp = utf8_decode2(node->line, &self->cursor.ptr);
 	int w = cp_width(cp);
-	self->cursor_x += w;
+	self->cursor.x += w;
   } else {
-	if (self->cursor_n < self->n_lines-1){
-	  self->cursor_n += 1;
-	  self->cursor_x = 0;
-	  Node * node = EditorWindow_get_line_number(self, self->cursor_n);
-	  self->cursor_ptr = 0;
+	if (self->cursor.n < self->n_lines-1){
+	  self->cursor.n += 1;
+	  self->cursor.x = 0;
+	  Node * node = EditorWindow_get_line_number(self, self->cursor.n);
+	  self->cursor.ptr = 0;
 	}
   }
   //EditorWindow_log(self);
 }
 
 void _EditorWindow_left(EditorWindow *self){
-  if (self->cursor_x == 0){
-	if (self->cursor_n > 0){
-	  self->cursor_n -= 1;
-	  Node * node = EditorWindow_get_line_number(self, self->cursor_n);
-	  self->cursor_x = node->width;
-	  self->cursor_ptr = node->length;
+  if (self->cursor.x == 0){
+	if (self->cursor.n > 0){
+	  self->cursor.n -= 1;
+	  Node * node = EditorWindow_get_line_number(self, self->cursor.n);
+	  self->cursor.x = node->width;
+	  self->cursor.ptr = node->length;
 	}
   } else {	
-	Node * node = EditorWindow_get_line_number(self, self->cursor_n);
+	Node * node = EditorWindow_get_line_number(self, self->cursor.n);
 	//uint32_t cp = utf8_decode_left(&self->cursor_ptr, node->line);
 	//LOG_INFO("self->cursor_ptr %d", self->cursor_ptr);
-	uint32_t cp = utf8_decode_left2(node->line, &self->cursor_ptr);
+	uint32_t cp = utf8_decode_left2(node->line, &self->cursor.ptr);
 	//LOG_INFO("self->cursor_ptr %d", self->cursor_ptr);
 	int w = cp_width(cp);
 	//LOG_INFO("_EditorWindow_left %d %d", cp, w);
 	
-	self->cursor_x -= w;
+	self->cursor.x -= w;
   }
   //EditorWindow_log(self);
 }
@@ -780,7 +780,7 @@ void EditorWindow_send_key(Window *win, char c)
   }
   if (action == ACTION_BACKSPACE){
 	EditorWindow_delete(self);
-	self->selection_n = -1;
+	self->selection.n = -1;
 	return;
   }
   if (action == ACTION_ENTER){
@@ -788,7 +788,7 @@ void EditorWindow_send_key(Window *win, char c)
 	return;
   }
   if (action == ACTION_START_OF_LINE){
-	self->cursor_x = 0;
+	self->cursor.x = 0;
 	EditorWindow_fix_cursor_x(self);
 	return;
   }
@@ -805,9 +805,9 @@ void EditorWindow_send_key(Window *win, char c)
 	return;
   }
   if (action == ACTION_END_OF_LINE){
-	Node * node = EditorWindow_get_line_number(self, self->cursor_n);
+	Node * node = EditorWindow_get_line_number(self, self->cursor.n);
 	int mx = node->width;
-	self->cursor_x = mx;
+	self->cursor.x = mx;
 	EditorWindow_fix_cursor_x(self);
 	return;
   }
@@ -816,7 +816,7 @@ void EditorWindow_send_key(Window *win, char c)
 	return;
   }
   if (action == ACTION_FIRST_LINE){
-	self->cursor_n = self->n_lines - 1;
+	self->cursor.n = self->n_lines - 1;
 	EditorWindow_fix_cursor_x(self);
 	EditorWindow_make_cursor_visible(self);
 	return;
@@ -826,20 +826,20 @@ void EditorWindow_send_key(Window *win, char c)
 	return;
   }
   if (action == ACTION_LAST_LINE){
-	self->cursor_n = 0;
+	self->cursor.n = 0;
 	EditorWindow_fix_cursor_x(self);
 	EditorWindow_make_cursor_visible(self);
 	return;
   }
   if (action == ACTION_PAGE_UP){
-	self->cursor_n += win->calculated.height;
-	self->cursor_n = min(self->cursor_n, self->n_lines - 1);
+	self->cursor.n += win->calculated.height;
+	self->cursor.n = min(self->cursor.n, self->n_lines - 1);
 	EditorWindow_make_cursor_visible(self);
 	return;
   }
   if (action == ACTION_PAGE_DOWN){
-	self->cursor_n -= win->calculated.height;
-	self->cursor_n = max(self->cursor_n, 0);
+	self->cursor.n -= win->calculated.height;
+	self->cursor.n = max(self->cursor.n, 0);
 	EditorWindow_make_cursor_visible(self);
 	return;
   }
@@ -851,7 +851,7 @@ void EditorWindow_send_key(Window *win, char c)
   }
   if (action == ACTION_COPY){
 	EditorWindow_copy(self);
-	self->selection_n = -1;
+	self->selection.n = -1;
 	return;
   }
   if (action == ACTION_PASTE){
@@ -875,7 +875,7 @@ void EditorWindow_send_key(Window *win, char c)
 	return;
 	}*/
   if (insert_mode == 1){
-	self->selection_n = -1;
+	self->selection.n = -1;
 	EditorWindow_insert(self, c);
 	return;
   }
@@ -913,44 +913,44 @@ void EditorWindow_draw(struct Window *w, int hasFocus)
             str = current->line;
         
         // if in between selection, show blue bg
-        if (self->selection_n != -1){
-            if (self->cursor_n < top_line+i && top_line+i < self->selection_n) bg = 27;
-            if (self->selection_n < top_line+i && top_line+i < self->cursor_n) bg = 27;
+        if (self->selection.n != -1){
+            if (self->cursor.n < top_line+i && top_line+i < self->selection.n) bg = 27;
+            if (self->selection.n < top_line+i && top_line+i < self->cursor.n) bg = 27;
         }
 
         Buffer_print(&main_buf, geo.y + i, geo.x, geo.width, str, 16, bg);
 
-        if (self->selection_n != -1){
-            if (self->selection_n == top_line+i){ // line with selection
+        if (self->selection.n != -1){
+            if (self->selection.n == top_line+i){ // line with selection
                 // generic case (both markers in same line)
-                int idx1 = min(self->cursor_x, self->selection_x);
-                int idx2 = max(self->cursor_x, self->selection_x);
+                int idx1 = min(self->cursor.x, self->selection.x);
+                int idx2 = max(self->cursor.x, self->selection.x);
                 // if selection marker above
-                if (self->selection_n < self->cursor_n){
-                    idx1 = self->selection_x;
+                if (self->selection.n < self->cursor.n){
+                    idx1 = self->selection.x;
                     idx2 = current->width;
                 }
                 // if selection marker below
-                if (self->cursor_n < self->selection_n){
+                if (self->cursor.n < self->selection.n){
                     idx1 = 0;
-                    idx2 = self->selection_x;
+                    idx2 = self->selection.x;
                 }
                 int diff = idx2 - idx1;
                 //Buffer_print(&main_buf, geo.y + i, geo.x+idx1, diff, str+idx1, 16, 27);
                 Buffer_set_bg(&main_buf, geo.y + i, geo.x+idx1, diff, 27);
             }
-            if (self->cursor_n == top_line+i){ // line with cursor
+            if (self->cursor.n == top_line+i){ // line with cursor
                 // generic case (both markers in same line)
-                int idx1 = min(self->cursor_x, self->selection_x);
-                int idx2 = max(self->cursor_x, self->selection_x);
+                int idx1 = min(self->cursor.x, self->selection.x);
+                int idx2 = max(self->cursor.x, self->selection.x);
                 // if cursor above
-                if (self->selection_n < self->cursor_n){
+                if (self->selection.n < self->cursor.n){
                     idx1 = 0;
-                    idx2 = self->cursor_x;
+                    idx2 = self->cursor.x;
                 }
                 // if cursor below
-                if (self->cursor_n < self->selection_n){
-                    idx1 = self->cursor_x;
+                if (self->cursor.n < self->selection.n){
+                    idx1 = self->cursor.x;
                     idx2 = current->width;
                 }
                 int diff = idx2 - idx1;
@@ -959,13 +959,13 @@ void EditorWindow_draw(struct Window *w, int hasFocus)
             }
         }
         
-        if (-self->win.shift + i == self->cursor_n){ // show cursor
+        if (-self->win.shift + i == self->cursor.n){ // show cursor
             bg = 248;
             if (insert_mode == 1) bg = 1;
             //Buffer_print(&main_buf, geo.y + i, geo.x+self->cursor_x, 1, str+self->cursor_x, 16, bg);
 			//int idx = get_idx_pos(str, self->cursor_x);
             //Buffer_set_bg(&main_buf, geo.y + i, geo.x+idx, 1, bg);
-			Buffer_set_bg(&main_buf, geo.y + i, geo.x+self->cursor_x, 1, bg);
+			Buffer_set_bg(&main_buf, geo.y + i, geo.x+self->cursor.x, 1, bg);
         }
 
         // syntax highlighter
@@ -1007,11 +1007,11 @@ EditorWindow *EditorWindow_new()
     self->tail = NULL;
     self->n_lines = 0;
     self->top_n = 0;
-    self->cursor_n = 0;
-    self->cursor_x = 0;
+    self->cursor.n = 0;
+    self->cursor.x = 0;
     //self->insert_mode = 0;
-    self->selection_n = -1;
-    self->selection_x = 0;
+    self->selection.n = -1;
+    self->selection.x = 0;
     self->language = LANG_NONE;
 
     // Window *editor = (Window *) self;
