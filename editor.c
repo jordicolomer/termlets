@@ -641,17 +641,16 @@ void EditorWindow_start_selection(EditorWindow *self){
   self->selection.ptr = self->cursor.ptr;
 }
 
-/*
 void EditorWindow_log(EditorWindow *self){
-  LOG_INFO("EditorWindow_log %d %d %d", self->cursor_n, self->cursor_x, self->cursor_ptr);
-  }*/
+  LOG_INFO("EditorWindow_log %p %d %d %d", self, self->cursor.n, self->cursor.x, self->cursor.ptr);
+}
 
 void _EditorWindow_up(EditorWindow *self){
   self->cursor.n--;
   self->cursor.n = max(self->cursor.n, 0);
   EditorWindow_fix_cursor_x(self);	
   EditorWindow_make_cursor_visible(self);
-  //EditorWindow_log(self);
+  EditorWindow_log(self);
 }
 
 void _EditorWindow_down(EditorWindow *self){
@@ -659,7 +658,7 @@ void _EditorWindow_down(EditorWindow *self){
   self->cursor.n = min(self->cursor.n, self->n_lines - 1);
   EditorWindow_fix_cursor_x(self);
   EditorWindow_make_cursor_visible(self);
-  //EditorWindow_log(self);
+  EditorWindow_log(self);
 }
 
 void _EditorWindow_right(EditorWindow *self){
@@ -679,7 +678,7 @@ void _EditorWindow_right(EditorWindow *self){
 	  self->cursor.ptr = 0;
 	}
   }
-  //EditorWindow_log(self);
+  EditorWindow_log(self);
 }
 
 void _EditorWindow_left(EditorWindow *self){
@@ -701,7 +700,7 @@ void _EditorWindow_left(EditorWindow *self){
 	
 	self->cursor.x -= w;
   }
-  //EditorWindow_log(self);
+  EditorWindow_log(self);
 }
 
 void EditorWindow_up(EditorWindow *self){
@@ -753,6 +752,26 @@ void EditorWindow_shift_left(EditorWindow *self){
 }
 
 void EditorWindow_search(EditorWindow *self, char * query){
+  int n = self->cursor.n;
+  
+  Node * node = EditorWindow_get_line_number(self, n);
+  LOG_INFO("EditorWindow_search %p %d", node, n);
+  char *p = strstr(node->line + self->cursor.ptr, query);
+  while (p == NULL && n <= self->n_lines){
+	n+=1;
+	node = EditorWindow_get_line_number(self, n);
+	p = strstr(node->line, query);
+  }
+
+  if (p != NULL){
+	self->highlight_start.n = n;
+	self->highlight_start.x = p - node->line; // todo: fix
+	self->highlight_start.ptr = p - node->line;
+	
+	self->highlight_end.n = n;
+	self->highlight_end.x = self->highlight_start.x + strlen(query);
+	self->highlight_end.ptr = self->highlight_start.x + calculate_width(query);
+  }
   
 }
 
@@ -1012,6 +1031,8 @@ EditorWindow *EditorWindow_new()
     //self->insert_mode = 0;
     self->selection.n = -1;
     self->selection.x = 0;
+    self->highlight_start.n = -1;
+    self->highlight_end.n = -1;
     self->language = LANG_NONE;
 
     // Window *editor = (Window *) self;
@@ -1032,6 +1053,8 @@ Window *EditorWindow_new_tab()
 {
     EditorWindow *editor = EditorWindow_new();
     Window *slider = slider_new(editor);
+	LOG_INFO("EditorWindow_new_tab editor %p", editor);
+	LOG_INFO("EditorWindow_new_tab slider %p", slider);
     Slider_show_grip(slider);
     editor->slider = slider;
 
@@ -1148,7 +1171,11 @@ Window *_Editor_searchbox(EditorFrame *self)
   
 Window *Editor_searchbox_enter(EditorFrame *self){
   //self->win.focused = self->tabs;
-  EditorWindow * editor = self->tabs->selected_tab->child;
+  //Slider_data *slider_data = self->tabs->selected_tab->child;
+  //EditorWindow * editor = slider_data->child;
+  EditorWindow * editor = self->tabs->win.focused->focused;
+  //LOG_INFO("Editor_searchbox_enter %p %s %d", editor, editor->win.id, editor->cursor.n);
+  //LOG_INFO("Editor_searchbox_enter %p", self->tabs->selected_tab->child);
   EditorWindow_search(editor, self->search_box->buffer);
 }
 

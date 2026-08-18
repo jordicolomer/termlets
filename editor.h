@@ -31,6 +31,8 @@ typedef struct EditorWindow {
   
     struct EditorPointer cursor;
     struct EditorPointer selection;
+    struct EditorPointer highlight_start;
+    struct EditorPointer highlight_end;
   /*int cursor_n; // what line has the cursor
     int cursor_x; // what column has the cursor
     int cursor_ptr; // pointer to cursor location in memory
