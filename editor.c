@@ -26,6 +26,10 @@
 
 
 // Editor Window
+void EditorWindow_update_height(EditorWindow *self){
+    self->win.virtual_height = self->n_lines;
+	Slider_show_grip(self->slider);  
+}
 
 void EditorWindow_scroll_wheel_down(struct Window *w){
   EditorWindow * self = w;
@@ -166,7 +170,8 @@ void EditorWindow_delete(EditorWindow *self){
             self->cursor_ptr = prev->line + prev_length;  // Point to end of prev line
             self->cursor_n--;
             self->n_lines--;
-            self->win.virtual_height = self->n_lines;
+            //self->win.virtual_height = self->n_lines;
+			EditorWindow_update_height(self);
             prev->next = next;
             if (next == NULL) self->tail = next;
             else next->prev = prev;
@@ -342,7 +347,8 @@ void EditorWindow_paste(EditorWindow *self){
     }
 
     self->cursor_n += i;
-    self->win.virtual_height = self->n_lines;
+	EditorWindow_update_height(self);
+	EditorWindow_make_cursor_visible(self);
 
     free(cb);
 
@@ -394,7 +400,8 @@ void EditorWindow_delete_region(EditorWindow *self){
 
     self->selection_n = -1;
     self->n_lines -= i2-i1;
-    self->win.virtual_height = self->n_lines;
+    //self->win.virtual_height = self->n_lines;
+	EditorWindow_update_height(self);
 
     update_lexer_state(node1, 1, self->language);
 }
@@ -452,7 +459,8 @@ void EditorWindow_newline(EditorWindow *self){
     node->width = self->cursor_x;  // display width
 
     self->n_lines++;
-    self->win.virtual_height = self->n_lines;
+    //self->win.virtual_height = self->n_lines;
+	EditorWindow_update_height(self);
     self->cursor_n++;
     self->cursor_x = 0;
     self->cursor_ptr = new_node->line;  // Point to start of new line
@@ -595,7 +603,8 @@ void load_file(EditorWindow *self, const char *filename)
 
     fclose(file);
 
-    self->win.virtual_height = self->n_lines;
+    //self->win.virtual_height = self->n_lines;
+	EditorWindow_update_height(self);
 
     self->cursor_ptr = self->head->line;
 }
