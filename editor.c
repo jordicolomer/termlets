@@ -161,7 +161,7 @@ void Node_append(Node *node, char *text)
 void EditorWindow_delete(EditorWindow *self){
     // delete a character
     if (self->cursor_x == 0){
-        if (self->cursor_n != 0){
+	  if (self->cursor_n != 0){ // join two lines
             Node * node = EditorWindow_get_line_number(self, self->cursor_n);
             Node * next = node->next;
             Node * prev = node->prev;
@@ -180,42 +180,19 @@ void EditorWindow_delete(EditorWindow *self){
             update_lexer_state(node, 1, self->language);
         }
         return;
-    } else {
+    } else { // delete previous char
         Node * node = EditorWindow_get_line_number(self, self->cursor_n);
-
-        // Use cursor_ptr which already points to the correct position
-        //const uint8_t *char_start = (const uint8_t *)self->cursor_ptr;
-
-        // Move back one character
-        //const uint8_t *char_ptr = char_start;
-        //uint32_t cp = utf8_decode_left(&char_ptr, (const uint8_t *)node->line);
 		int size = node->length - self->cursor_ptr + 1;
 		int before = self->cursor_ptr;
 		uint32_t cp = utf8_decode_left2(node->line, &self->cursor_ptr);
 		int diff = before - self->cursor_ptr;
-        //if (char_ptr < (const uint8_t *)node->line) return;  // Already at start
-
-        // Decode again from the found position to get byte length
-        //const uint8_t *p = char_ptr;
-        //const uint8_t *start = p;
-        //cp = utf8_decode(&p);
-		//cp = utf8_decode2(node->line, &p);
-        int w = cp_width(cp);  // Display width
-        //int byte_len = before - self->cursor_ptr;  // Byte length of the UTF-8 character
-
-        // Calculate byte position in the string
-        //size_t byte_pos = char_ptr - (const uint8_t *)node->line;
-
-        // Delete the UTF-8 character (may be multiple bytes) in a single operation
-        memmove(node->line + before,
-                node->line + self->cursor_ptr,
-                size);  // +1 for null terminator
-
-        // Update both byte length and display width
+        int w = cp_width(cp);
+        memmove(node->line + self->cursor_ptr,
+                node->line + before,
+                size);
         node->length -= diff;
         node->width -= w;
         self->cursor_x -= w;
-        //self->cursor_ptr = (char *)char_ptr;  // Update cursor pointer
         update_lexer_state(node, 1, self->language);
     }
     //update_lexer_state(self->head);
