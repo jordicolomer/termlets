@@ -751,7 +751,7 @@ void EditorWindow_shift_left(EditorWindow *self){
   _EditorWindow_left(self);
 }
 
-void EditorWindow_search(EditorWindow *self){
+void EditorWindow_search(EditorWindow *self, char * query){
   
 }
 
@@ -1144,6 +1144,13 @@ Window *_Editor_searchbox(EditorFrame *self)
   return search_box;
 }
 
+  
+Window *Editor_searchbox_enter(EditorFrame *self){
+  //self->win.focused = self->tabs;
+  EditorWindow * editor = self->tabs->selected;
+  EditorWindow_search(editor, self->search_box->buffer);
+}
+
 Window *Editor_searchbox(EditorFrame *self)
 {
   LineEditorWindow * line_edit = LineEditorWindow_new("Search");
@@ -1153,6 +1160,7 @@ Window *Editor_searchbox(EditorFrame *self)
   line_edit->win.width = 15;
   line_edit->win.height = 1;
   line_edit->win.bg = 15;
+  line_edit->win.lambda = create_lambda(Editor_searchbox_enter, 1, self);
   return line_edit;
 }
 
