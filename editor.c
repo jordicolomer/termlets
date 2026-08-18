@@ -127,8 +127,8 @@ void Node_append(Node *node, char *text)
     if (!node || !text || *text == '\0')
         return;
 
-    size_t text_len = strlen(text); // should this be calculate_width?
-    int width = calculate_width(text); // should this be calculate_width?
+    size_t text_len = strlen(text);
+    int width = calculate_width(text);
 
     // Check if we need to grow the buffer
     if (node->length + text_len + 1 > node->capacity)
@@ -161,10 +161,12 @@ void EditorWindow_delete(EditorWindow *self){
             Node * next = node->next;
             Node * prev = node->prev;
             self->cursor_x = prev->width;  // Use width (display), not length (bytes)
-            self->cursor_ptr = prev->line + prev->length;  // Point to end of prev line
+			int prev_length = prev->length;
+            Node_append(prev, node->line);
+            self->cursor_ptr = prev->line + prev_length;  // Point to end of prev line
             self->cursor_n--;
             self->n_lines--;
-            Node_append(prev, node->line);
+            self->win.virtual_height = self->n_lines;
             prev->next = next;
             if (next == NULL) self->tail = next;
             else next->prev = prev;
@@ -340,6 +342,7 @@ void EditorWindow_paste(EditorWindow *self){
     }
 
     self->cursor_n += i;
+    self->win.virtual_height = self->n_lines;
 
     free(cb);
 
@@ -391,6 +394,7 @@ void EditorWindow_delete_region(EditorWindow *self){
 
     self->selection_n = -1;
     self->n_lines -= i2-i1;
+    self->win.virtual_height = self->n_lines;
 
     update_lexer_state(node1, 1, self->language);
 }
@@ -448,6 +452,7 @@ void EditorWindow_newline(EditorWindow *self){
     node->width = self->cursor_x;  // display width
 
     self->n_lines++;
+    self->win.virtual_height = self->n_lines;
     self->cursor_n++;
     self->cursor_x = 0;
     self->cursor_ptr = new_node->line;  // Point to start of new line
