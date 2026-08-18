@@ -118,24 +118,7 @@ void EditorWindow_insert(EditorWindow *self, char c){
     self->cursor_ptr = node->line + byte_pos + 1;
 
     //update_lexer_state(self->head);
-    update_lexer_state(node, 1, self->language);
-}
-
-void __EditorWindow_insert(EditorWindow *self, char c){
-    Node * node = EditorWindow_get_line_number(self, self->cursor_n);
-    if (node->capacity <= node->length+1){
-        double_capacity(node);
-    }
-    insert_char(node->line, self->cursor_x, c, node->length, node->capacity);
-    node->length++;
-    node->width++;
-	if (c == '\t') {
-	  self->cursor_x+=tab_width;
-	}
-    else {
-	  self->cursor_x++;
-	}
-    //update_lexer_state(self->head);
+	EditorWindow_make_cursor_visible(self);
     update_lexer_state(node, 1, self->language);
 }
 
@@ -475,12 +458,12 @@ void EditorWindow_fix_cursor_x(EditorWindow *self){
     if (node->width < self->cursor_x){
         self->cursor_x = node->width;
     }
-	//Node * node = EditorWindow_get_line_number(self, self->cursor_n);
-	if (self->cursor_x == node->width){
-	  self->cursor_ptr = node->line + node->length;
-	} else {
-	  self->cursor_ptr = char_at(node->line, self->cursor_x, &self->cursor_x);
-	}
+    //Node * node = EditorWindow_get_line_number(self, self->cursor_n);
+    if (self->cursor_x == node->width){
+      self->cursor_ptr = node->line + node->length;
+    } else {
+      self->cursor_ptr = char_at(node->line, self->cursor_x, &self->cursor_x);
+    }
 }
 
 
@@ -609,7 +592,7 @@ void load_file(EditorWindow *self, const char *filename)
 
     self->win.virtual_height = self->n_lines;
 
-	self->cursor_ptr = self->head->line;
+    self->cursor_ptr = self->head->line;
 }
 
 void EditorWindow_run_lexer(EditorWindow *self){
