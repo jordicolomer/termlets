@@ -1125,6 +1125,17 @@ Window *Editor_toolbar(EditorFrame *self)
     return toolbar;
 }
 
+Window *Editor_searchbox(EditorFrame *self)
+{
+  EditorWindow * search_box = EditorWindow_new();
+  search_box->win.top = 1;
+  search_box->win.left = -1;
+  search_box->win.right = 1;
+  search_box->win.width = 15;
+  search_box->win.height = 1;
+  return search_box;
+}
+
 Window *Editor_new(int left, int right, int top, int bottom, int width, int height)
 {
     EditorFrame *editor_frame = malloc(sizeof *editor_frame);
@@ -1146,6 +1157,9 @@ Window *Editor_new(int left, int right, int top, int bottom, int width, int heig
     Window_append(w, toolbar);
     Window *menu = Editor_menu(editor_frame);
     Window_append(w, menu);
+
+	EditorWindow * search_box = Editor_searchbox(editor_frame);
+    Window_append(w, search_box);
 
     last_frame = frame;
 
