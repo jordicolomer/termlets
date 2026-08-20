@@ -902,18 +902,18 @@ void EditorWindow_send_key(Window *win, char c)
   }
 }
 
-void EditorWindow_draw_selection(struct Window *w, EditorPointer p1, EditorPointer p2)
+void EditorWindow_draw_selection(struct Window *w, EditorPointer p1, EditorPointer p2, int color)
 {
     EditorWindow *self = w;
     Geometry geo = w->calculated;
     int i = 0;
     int top_line = -self->win.shift;
-    Node *current = EditorWindow_get_line_number(self, top_line);
+    //Node *current = EditorWindow_get_line_number(self, top_line);
     while (i < geo.height)
     {
         if (p2.n != -1){
 		  if ((p1.n < top_line+i && top_line+i < p2.n)||(p2.n < top_line+i && top_line+i < p1.n)){
-			Buffer_set_bg(&main_buf, geo.y + i, geo.x+0, current->width, 27);
+			Buffer_set_bg(&main_buf, geo.y + i, geo.x+0, geo.width, color);
 		  }
             if (p2.n == top_line+i){ // line with selection
                 // generic case (both markers in same line)
@@ -922,7 +922,7 @@ void EditorWindow_draw_selection(struct Window *w, EditorPointer p1, EditorPoint
                 // if selection marker above
                 if (p2.n < p1.n){
                     idx1 = p2.x;
-                    idx2 = current->width;
+                    idx2 = geo.width;
                 }
                 // if selection marker below
                 if (p1.n < p2.n){
@@ -931,7 +931,7 @@ void EditorWindow_draw_selection(struct Window *w, EditorPointer p1, EditorPoint
                 }
                 int diff = idx2 - idx1;
                 //Buffer_print(&main_buf, geo.y + i, geo.x+idx1, diff, str+idx1, 16, 27);
-                Buffer_set_bg(&main_buf, geo.y + i, geo.x+idx1, diff, 27);
+                Buffer_set_bg(&main_buf, geo.y + i, geo.x+idx1, diff, color);
             }
             if (p1.n == top_line+i){ // line with cursor
                 // generic case (both markers in same line)
@@ -945,16 +945,16 @@ void EditorWindow_draw_selection(struct Window *w, EditorPointer p1, EditorPoint
                 // if cursor below
                 if (p1.n < p2.n){
                     idx1 = p1.x;
-                    idx2 = current->width;
+                    idx2 = geo.width;
                 }
                 int diff = idx2 - idx1;
                 //Buffer_print(&main_buf, geo.y + i, geo.x+idx1, diff, str+idx1, 16, 27);
-                Buffer_set_bg(&main_buf, geo.y + i, geo.x+idx1, diff, 27);
+                Buffer_set_bg(&main_buf, geo.y + i, geo.x+idx1, diff, color);
             }
         }
         i++;
-        if (current != NULL)
-            current = current->next;
+        //if (current != NULL)
+        //    current = current->next;
 	}
 }
   
@@ -1028,7 +1028,7 @@ void EditorWindow_draw(struct Window *w, int hasFocus)
         if (current != NULL)
             current = current->next;
     }
-	EditorWindow_draw_selection(w, self->cursor, self->selection);
+	EditorWindow_draw_selection(w, self->cursor, self->selection, 27);
 }
 
 EditorWindow *latestEditorWindow;
