@@ -95,7 +95,8 @@ void LineEditorWindow_draw(struct Window *current, int hasFocus)
     int fg = current->fg;
     int bg = current->bg;
     Buffer_print(&main_buf, geo.y, geo.x, geo.width, current->c, fg, bg);
-    Buffer_print(&main_buf, geo.y, geo.x+self->cursor, 1, current->c+self->cursor, fg, 73);
+	if (current->parent->parent->focused == current)
+	  Buffer_print(&main_buf, geo.y, geo.x+self->cursor, 1, current->c+self->cursor, fg, 73);
 }
 
 LineEditorWindow * LineEditorWindow_new(char * c){
