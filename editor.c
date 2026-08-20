@@ -904,6 +904,8 @@ void EditorWindow_send_key(Window *win, char c)
 
 void EditorWindow_draw_selection(struct Window *w, EditorPointer p1, EditorPointer p2, int color)
 {
+  if (p1.n == -1) return;
+  if (p2.n == -1) return;
     EditorWindow *self = w;
     Geometry geo = w->calculated;
     int i = 0;
@@ -1029,6 +1031,7 @@ void EditorWindow_draw(struct Window *w, int hasFocus)
             current = current->next;
     }
 	EditorWindow_draw_selection(w, self->cursor, self->selection, 27);
+	EditorWindow_draw_selection(w, self->highlight_start, self->highlight_end, 11);
 }
 
 EditorWindow *latestEditorWindow;
