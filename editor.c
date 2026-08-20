@@ -41,14 +41,18 @@ void EditorWindow_scroll_wheel_up(struct Window *w){
   Slider_scroll_up(self->slider);
 }
 
+void EditorWindow_show_line(EditorWindow *self, int n){
+    int height = self->win.calculated.height;
+    int diff = n + self->win.shift;
+    if (diff < 0)
+        self->win.shift = -(n);
+    if (diff > height - 1)
+        self->win.shift = height - 1 - n;
+}
+
 void EditorWindow_make_cursor_visible(EditorWindow *self)
 {
-    int height = self->win.calculated.height;
-    int diff = self->cursor.n + self->win.shift;
-    if (diff < 0)
-        self->win.shift = -(self->cursor.n);
-    if (diff > height - 1)
-        self->win.shift = height - 1 - self->cursor.n;
+  EditorWindow_show_line(self, self->cursor.n);
 }
 
 Node * EditorWindow_get_line_number(EditorWindow *self, int number){
@@ -777,6 +781,8 @@ void EditorWindow_search(EditorWindow *self, char * query){
 	self->highlight_end.n = n;
 	self->highlight_end.x = self->highlight_start.x + strlen(query);
 	self->highlight_end.ptr = self->highlight_start.x + calculate_width(query);
+
+	EditorWindow_show_line(self, self->highlight_start.n);
   }
   
 }
@@ -1241,11 +1247,14 @@ void EditorFrame_send_sequence(struct Window *wg, const char *seq, int len)
   EditorFrame *self = wg;
   if (self->win.focused == self->search_box && strlen(seq) == 0) { // esc
 	self->win.focused = self->tabs;
+	EditorWindow * editor = self->tabs->win.focused->focused; // this is bad code. fix it
+	editor->highlight_start.n = -1;
+	editor->highlight_end.n = -1;
 	return;
   }
 	
     Window *focused_cursor = wg->focused;
-    if (focused_cursor != NULL) while (focused_cursor->send_key == NULL && focused_cursor->focused != NULL) focused_cursor = focused_cursor->focused;
+    if (focused_cursor != NULL) while (focused_cursor->send_sequence == NULL && focused_cursor->focused != NULL) focused_cursor = focused_cursor->focused;
 
     if (focused_cursor != NULL && focused_cursor->send_sequence != NULL) {
 	  focused_cursor->send_sequence(focused_cursor, seq, len);

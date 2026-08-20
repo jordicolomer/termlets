@@ -367,6 +367,8 @@ int start()
         }
         if (dragging == 0 && btn == 64 && type == 'M')
         { // scroll wheel down 
+		  Window *focused_cursor = focused;
+		  if (focused_cursor != NULL) while (focused_cursor->scroll_wheel_up == NULL && focused_cursor->focused != NULL) focused_cursor = focused_cursor->focused;
           if (focused_cursor != NULL && focused_cursor->scroll_wheel_up != NULL){
             focused_cursor->scroll_wheel_up(focused_cursor);
             repaint();
@@ -374,6 +376,8 @@ int start()
         }
         if (dragging == 0 && btn == 65 && type == 'M')
         { // scroll wheel down 
+		  Window *focused_cursor = focused;
+		  if (focused_cursor != NULL) while (focused_cursor->scroll_wheel_up == NULL && focused_cursor->focused != NULL) focused_cursor = focused_cursor->focused;
           if (focused_cursor != NULL && focused_cursor->scroll_wheel_down != NULL){
             focused_cursor->scroll_wheel_down(focused_cursor);
             repaint();
