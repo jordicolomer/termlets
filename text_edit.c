@@ -94,13 +94,19 @@ void LineEditorWindow_draw(struct Window *current, int hasFocus)
     Geometry geo = current->calculated;
     int fg = current->fg;
     int bg = current->bg;
-    Buffer_print(&main_buf, geo.y, geo.x, geo.width, current->c, fg, bg);
+	char * label = current->c;
+	if (label[0] == 0){
+	  label = self->empty_label;
+	  fg = 7;
+	}
+    Buffer_print(&main_buf, geo.y, geo.x, geo.width, label, fg, bg);
 	if (current->parent->parent->focused == current)
 	  Buffer_print(&main_buf, geo.y, geo.x+self->cursor, 1, current->c+self->cursor, fg, 73);
 }
 
-LineEditorWindow * LineEditorWindow_new(char * c){
+LineEditorWindow * LineEditorWindow_new(char * c, char * empty_label){
     LineEditorWindow *self = malloc(sizeof *self);
+	memset(self, 0, sizeof *self);  // Zero-initialize to prevent garbage values
     Window_init(self, -1, -1, -1, -1, -1, -1);
     self->win.draw = LineEditorWindow_draw;
 
@@ -113,8 +119,12 @@ LineEditorWindow * LineEditorWindow_new(char * c){
     self->win.id = "line editor";
     self->win.send_key = LineEditorWindow_send_key;
     self->win.send_sequence = LineEditorWindow_send_sequence;
-    snprintf(self->buffer, sizeof(self->buffer), "%s", c);
+    self->win.scroll_wheel_up = NULL;
+    self->win.scroll_wheel_down = NULL;
+	if (c != NULL)
+	  snprintf(self->buffer, sizeof(self->buffer), "%s", c);
     self->cursor = strlen(self->buffer);
+    self->empty_label = empty_label;
 
     return self;
 }

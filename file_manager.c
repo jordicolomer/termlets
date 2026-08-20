@@ -602,7 +602,7 @@ Window *ExplorerWindow_rename(ExplorerWindow *self)
   if (selected == NULL) return NULL;
 
   // create line edit and copy geometry from label
-  LineEditorWindow * line_edit = LineEditorWindow_new(selected->name);
+  LineEditorWindow * line_edit = LineEditorWindow_new(selected->name, "");
   Window * label = selected->win.head;
   line_edit->win.left = selected->win.left+3; // don't include icon
   line_edit->win.right = selected->win.right;

@@ -5,11 +5,12 @@
 
 typedef struct LineEditorWindow {
     struct Window win;
+    char * empty_label;
     char buffer[1024];
     int cursor;
 } LineEditorWindow;
 
-LineEditorWindow * LineEditorWindow_new(char * c);
+LineEditorWindow * LineEditorWindow_new(char * c, char * empty_label);
 
 void insert_char(char *buffer, size_t pos, char c, 
                  size_t current_len, size_t capacity);

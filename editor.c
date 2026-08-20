@@ -1211,7 +1211,7 @@ Window *Editor_searchbox_enter(EditorFrame *self){
 
 Window *Editor_searchbox(EditorFrame *self)
 {
-  LineEditorWindow * line_edit = LineEditorWindow_new("Search");
+  LineEditorWindow * line_edit = LineEditorWindow_new(NULL, "Search");
   line_edit->win.top = 1;
   line_edit->win.left = -1;
   line_edit->win.right = 1;
