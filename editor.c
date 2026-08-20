@@ -752,11 +752,17 @@ void EditorWindow_shift_left(EditorWindow *self){
 }
 
 void EditorWindow_search(EditorWindow *self, char * query){
-  int n = self->cursor.n;
+  EditorPointer ptr = self->highlight_end;
+
+  if (ptr.n == -1){
+	ptr = self->cursor;
+  }
+  
+  int n = ptr.n;
   
   Node * node = EditorWindow_get_line_number(self, n);
   LOG_INFO("EditorWindow_search %p %d", node, n);
-  char *p = strstr(node->line + self->cursor.ptr, query);
+  char *p = strstr(node->line + ptr.ptr, query);
   while (p == NULL && n <= self->n_lines){
 	n+=1;
 	node = EditorWindow_get_line_number(self, n);
