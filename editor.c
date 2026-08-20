@@ -782,7 +782,9 @@ void EditorWindow_search(EditorWindow *self, char * query){
 	self->highlight_end.x = self->highlight_start.x + strlen(query);
 	self->highlight_end.ptr = self->highlight_start.x + calculate_width(query);
 
-	EditorWindow_show_line(self, self->highlight_start.n);
+	//EditorWindow_show_line(self, self->highlight_start.n);
+	self->cursor = self->highlight_start;
+	EditorWindow_make_cursor_visible(self);
   }
   
 }

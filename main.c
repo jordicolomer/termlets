@@ -268,7 +268,7 @@ int start()
       repaint();
       continue;
     }
-    if (insert_mode == 0){
+    /*if (insert_mode == 0){
       if (c == 'm'){
         cycle_tab();
         repaint();
@@ -279,7 +279,7 @@ int start()
         repaint();
         continue;
       }
-    }
+	}*/
     if (c == 0){ // Ctrl+space then insert tab
 	  c = '\t';
     }
