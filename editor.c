@@ -765,14 +765,12 @@ void EditorWindow_search(EditorWindow *self, char * query){
 
   if (p != NULL){
 	self->highlight_start.n = n;
-	self->highlight_start.x = p - node->line; // todo: fix
+	self->highlight_start.x = calculate_width_n(node->line, p - node->line);
 	self->highlight_start.ptr = p - node->line;
-	//LOG_INFO("EditorWindow_search highlight_start %p %d %d %d", self, self->highlight_start.n, self->highlight_start.x, self->highlight_start.ptr);
 	
 	self->highlight_end.n = n;
 	self->highlight_end.x = self->highlight_start.x + strlen(query);
 	self->highlight_end.ptr = self->highlight_start.x + calculate_width(query);
-	//LOG_INFO("EditorWindow_search highlight_end %p %d %d %d", self, self->highlight_end.n, self->highlight_end.x, self->highlight_end.ptr);
   }
   
 }
