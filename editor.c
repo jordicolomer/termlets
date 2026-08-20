@@ -902,7 +902,7 @@ void EditorWindow_send_key(Window *win, char c)
   }
 }
 
-void EditorWindow_draw_selection(struct Window *w) // , EditorPointer p1, EditorPointer p2
+void EditorWindow_draw_selection(struct Window *w, EditorPointer p1, EditorPointer p2)
 {
     EditorWindow *self = w;
     Geometry geo = w->calculated;
@@ -911,40 +911,40 @@ void EditorWindow_draw_selection(struct Window *w) // , EditorPointer p1, Editor
     Node *current = EditorWindow_get_line_number(self, top_line);
     while (i < geo.height)
     {
-        if (self->selection.n != -1){
-		  if ((self->cursor.n < top_line+i && top_line+i < self->selection.n)||(self->selection.n < top_line+i && top_line+i < self->cursor.n)){
+        if (p2.n != -1){
+		  if ((p1.n < top_line+i && top_line+i < p2.n)||(p2.n < top_line+i && top_line+i < p1.n)){
 			Buffer_set_bg(&main_buf, geo.y + i, geo.x+0, current->width, 27);
 		  }
-            if (self->selection.n == top_line+i){ // line with selection
+            if (p2.n == top_line+i){ // line with selection
                 // generic case (both markers in same line)
-                int idx1 = min(self->cursor.x, self->selection.x);
-                int idx2 = max(self->cursor.x, self->selection.x);
+                int idx1 = min(p1.x, p2.x);
+                int idx2 = max(p1.x, p2.x);
                 // if selection marker above
-                if (self->selection.n < self->cursor.n){
-                    idx1 = self->selection.x;
+                if (p2.n < p1.n){
+                    idx1 = p2.x;
                     idx2 = current->width;
                 }
                 // if selection marker below
-                if (self->cursor.n < self->selection.n){
+                if (p1.n < p2.n){
                     idx1 = 0;
-                    idx2 = self->selection.x;
+                    idx2 = p2.x;
                 }
                 int diff = idx2 - idx1;
                 //Buffer_print(&main_buf, geo.y + i, geo.x+idx1, diff, str+idx1, 16, 27);
                 Buffer_set_bg(&main_buf, geo.y + i, geo.x+idx1, diff, 27);
             }
-            if (self->cursor.n == top_line+i){ // line with cursor
+            if (p1.n == top_line+i){ // line with cursor
                 // generic case (both markers in same line)
-                int idx1 = min(self->cursor.x, self->selection.x);
-                int idx2 = max(self->cursor.x, self->selection.x);
+                int idx1 = min(p1.x, p2.x);
+                int idx2 = max(p1.x, p2.x);
                 // if cursor above
-                if (self->selection.n < self->cursor.n){
+                if (p2.n < p1.n){
                     idx1 = 0;
-                    idx2 = self->cursor.x;
+                    idx2 = p1.x;
                 }
                 // if cursor below
-                if (self->cursor.n < self->selection.n){
-                    idx1 = self->cursor.x;
+                if (p1.n < p2.n){
+                    idx1 = p1.x;
                     idx2 = current->width;
                 }
                 int diff = idx2 - idx1;
@@ -1028,7 +1028,7 @@ void EditorWindow_draw(struct Window *w, int hasFocus)
         if (current != NULL)
             current = current->next;
     }
-	EditorWindow_draw_selection(w);
+	EditorWindow_draw_selection(w, self->cursor, self->selection);
 }
 
 EditorWindow *latestEditorWindow;
