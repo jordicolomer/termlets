@@ -767,10 +767,12 @@ void EditorWindow_search(EditorWindow *self, char * query){
 	self->highlight_start.n = n;
 	self->highlight_start.x = p - node->line; // todo: fix
 	self->highlight_start.ptr = p - node->line;
+	//LOG_INFO("EditorWindow_search highlight_start %p %d %d %d", self, self->highlight_start.n, self->highlight_start.x, self->highlight_start.ptr);
 	
 	self->highlight_end.n = n;
 	self->highlight_end.x = self->highlight_start.x + strlen(query);
 	self->highlight_end.ptr = self->highlight_start.x + calculate_width(query);
+	//LOG_INFO("EditorWindow_search highlight_end %p %d %d %d", self, self->highlight_end.n, self->highlight_end.x, self->highlight_end.ptr);
   }
   
 }
@@ -900,46 +902,19 @@ void EditorWindow_send_key(Window *win, char c)
   }
 }
 
-
-void EditorWindow_draw(struct Window *w, int hasFocus)
+void EditorWindow_draw_selection(struct Window *w) // , EditorPointer p1, EditorPointer p2
 {
-    // LOG_INFO("EditorWindow_draw");
-    // int first_visible_line = -w->shift;
     EditorWindow *self = w;
-    // self->cursor_n = first_visible_line;
-    // EditorWindow_make_cursor_visible(self);
-    // EditorWindow_update_first_visible_line(self, first_visible_line);
-
     Geometry geo = w->calculated;
     int i = 0;
-    // Node * current = self->top;
-    /*Node *current = self->head;
-    for (int i = 0; i < -self->win.shift; i++)
-        current = current->next;*/
     int top_line = -self->win.shift;
     Node *current = EditorWindow_get_line_number(self, top_line);
-
     while (i < geo.height)
     {
-        // background color
-        int bg = 255;
-        //bg = 236;
-        if (bg >= 232 + 4 && !hasFocus)
-            bg -= 4;
-
-        char *str = "";
-        if (current != NULL)
-            str = current->line;
-        
-        // if in between selection, show blue bg
         if (self->selection.n != -1){
-            if (self->cursor.n < top_line+i && top_line+i < self->selection.n) bg = 27;
-            if (self->selection.n < top_line+i && top_line+i < self->cursor.n) bg = 27;
-        }
-
-        Buffer_print(&main_buf, geo.y + i, geo.x, geo.width, str, 16, bg);
-
-        if (self->selection.n != -1){
+		  if ((self->cursor.n < top_line+i && top_line+i < self->selection.n)||(self->selection.n < top_line+i && top_line+i < self->cursor.n)){
+			Buffer_set_bg(&main_buf, geo.y + i, geo.x+0, current->width, 27);
+		  }
             if (self->selection.n == top_line+i){ // line with selection
                 // generic case (both markers in same line)
                 int idx1 = min(self->cursor.x, self->selection.x);
@@ -977,6 +952,50 @@ void EditorWindow_draw(struct Window *w, int hasFocus)
                 Buffer_set_bg(&main_buf, geo.y + i, geo.x+idx1, diff, 27);
             }
         }
+        i++;
+        if (current != NULL)
+            current = current->next;
+	}
+}
+  
+void EditorWindow_draw(struct Window *w, int hasFocus)
+{
+    // LOG_INFO("EditorWindow_draw");
+    // int first_visible_line = -w->shift;
+    EditorWindow *self = w;
+    // self->cursor_n = first_visible_line;
+    // EditorWindow_make_cursor_visible(self);
+    // EditorWindow_update_first_visible_line(self, first_visible_line);
+
+    Geometry geo = w->calculated;
+    int i = 0;
+    // Node * current = self->top;
+    /*Node *current = self->head;
+    for (int i = 0; i < -self->win.shift; i++)
+        current = current->next;*/
+    int top_line = -self->win.shift;
+    Node *current = EditorWindow_get_line_number(self, top_line);
+
+    while (i < geo.height)
+    {
+        // background color
+        int bg = 255;
+        //bg = 236;
+        if (bg >= 232 + 4 && !hasFocus)
+            bg -= 4;
+
+        char *str = "";
+        if (current != NULL)
+            str = current->line;
+        
+        // if in between selection, show blue bg
+        /*if (self->selection.n != -1){
+            if (self->cursor.n < top_line+i && top_line+i < self->selection.n) bg = 27;
+            if (self->selection.n < top_line+i && top_line+i < self->cursor.n) bg = 27;
+			}*/
+
+        Buffer_print(&main_buf, geo.y + i, geo.x, geo.width, str, 16, bg);
+
         
         if (-self->win.shift + i == self->cursor.n){ // show cursor
             bg = 248;
@@ -1009,6 +1028,7 @@ void EditorWindow_draw(struct Window *w, int hasFocus)
         if (current != NULL)
             current = current->next;
     }
+	EditorWindow_draw_selection(w);
 }
 
 EditorWindow *latestEditorWindow;
@@ -1170,12 +1190,7 @@ Window *_Editor_searchbox(EditorFrame *self)
 
   
 Window *Editor_searchbox_enter(EditorFrame *self){
-  //self->win.focused = self->tabs;
-  //Slider_data *slider_data = self->tabs->selected_tab->child;
-  //EditorWindow * editor = slider_data->child;
-  EditorWindow * editor = self->tabs->win.focused->focused;
-  //LOG_INFO("Editor_searchbox_enter %p %s %d", editor, editor->win.id, editor->cursor.n);
-  //LOG_INFO("Editor_searchbox_enter %p", self->tabs->selected_tab->child);
+  EditorWindow * editor = self->tabs->win.focused->focused; // this is bad code. fix it
   EditorWindow_search(editor, self->search_box->buffer);
 }
 
