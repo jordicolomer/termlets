@@ -1046,6 +1046,14 @@ void EditorWindow_draw(struct Window *w, int hasFocus)
 	EditorWindow_draw_selection(w, self->highlight_start, self->highlight_end, 11);
 }
 
+
+void EditorWindow_on_mouse_down(Window *win, int x, int y){
+  EditorWindow *self = win;
+  self->cursor.n = y - win->shift - win->calculated.y;
+  EditorWindow_make_cursor_visible(self);
+}
+
+
 EditorWindow *latestEditorWindow;
 EditorWindow *EditorWindow_new()
 {
@@ -1078,6 +1086,7 @@ EditorWindow *EditorWindow_new()
 
     self->win.scroll_wheel_up = EditorWindow_scroll_wheel_up;
     self->win.scroll_wheel_down = EditorWindow_scroll_wheel_down;
+	self->win.on_mouse_down = EditorWindow_on_mouse_down;
 
     latestEditorWindow = self;
 
@@ -1214,7 +1223,7 @@ Window *Editor_searchbox(EditorFrame *self)
   LineEditorWindow * line_edit = LineEditorWindow_new(NULL, "Search");
   line_edit->win.top = 1;
   line_edit->win.left = -1;
-  line_edit->win.right = 1;
+  line_edit->win.right = 2;
   line_edit->win.width = 15;
   line_edit->win.height = 1;
   line_edit->win.bg = 15;
