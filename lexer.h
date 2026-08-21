@@ -50,6 +50,8 @@ typedef enum {
 typedef struct Token {
     size_t start; // included
     size_t end; // excluded
+    size_t start_screen; // included
+    size_t end_screen; // excluded
     TokenType type;
     int color;
 } Token;
@@ -57,6 +59,7 @@ typedef struct Token {
 typedef struct Lexer {
     const char* source;
     size_t pos;
+    size_t pos_screen;
     //int loc;
     int state;           // for resuming complex lexing
     int finished;

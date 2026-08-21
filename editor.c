@@ -1029,10 +1029,10 @@ void EditorWindow_draw(struct Window *w, int hasFocus)
             if (current != NULL)
                 lexer.state = current->lexerState;
             while(lexer_next(&lexer, &token)){
-                int width = token.end - token.start;
+                int width = token.end_screen - token.start_screen;
                 int maxWidth = geo.width - token.start;
                 width = min(width, maxWidth);
-                Buffer_set_fg(&main_buf, geo.y + i, geo.x+token.start, width, token.color);
+                Buffer_set_fg(&main_buf, geo.y + i, geo.x+token.start_screen, width, token.color);
                 //LOG_INFO("lexer_next %d %d %d", token.start, token.end, token.color);
             }
         }
