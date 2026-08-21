@@ -1220,6 +1220,15 @@ Window *Editor_searchbox_enter(EditorFrame *self){
   EditorWindow_search(editor, self->search_box->buffer);
 }
 
+void EditorFrame_search(EditorFrame *self){
+  LOG_INFO("EditorFrame_search");
+  self->win.focused = self->search_box;
+}
+
+void Editor_searchbox_on_mouse_down(struct Window *self, int x, int y){
+  EditorFrame_search(self->data);
+}
+
 Window *Editor_searchbox(EditorFrame *self)
 {
   LineEditorWindow * line_edit = LineEditorWindow_new(NULL, "Search");
@@ -1230,13 +1239,11 @@ Window *Editor_searchbox(EditorFrame *self)
   line_edit->win.height = 1;
   line_edit->win.bg = 15;
   line_edit->win.lambda = create_lambda(Editor_searchbox_enter, 1, self);
+  line_edit->win.data = self;
+  line_edit->win.on_mouse_down = Editor_searchbox_on_mouse_down; // this should be a lambda
   return line_edit;
 }
 
-void EditorFrame_search(EditorFrame *self){
-  LOG_INFO("EditorFrame_search");
-  self->win.focused = self->search_box;
-}
 
 void EditorFrame_send_key(struct Window *wg, char c){
   EditorFrame *self = wg;
