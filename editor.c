@@ -456,6 +456,7 @@ void EditorWindow_newline(EditorWindow *self){
 
 void EditorWindow_fix_cursor_x(EditorWindow *self){
     Node * node = EditorWindow_get_line_number(self, self->cursor.n);
+	if (node == NULL) return;
     if (node->width < self->cursor.x){
         self->cursor.x = node->width;
     }
@@ -767,7 +768,7 @@ void EditorWindow_search(EditorWindow *self, char * query){
   Node * node = EditorWindow_get_line_number(self, n);
   LOG_INFO("EditorWindow_search %p %d", node, n);
   char *p = strstr(node->line + ptr.ptr, query);
-  while (p == NULL && n <= self->n_lines){
+  while (p == NULL && n < self->n_lines-1){
 	n+=1;
 	node = EditorWindow_get_line_number(self, n);
 	p = strstr(node->line, query);
