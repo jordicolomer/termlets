@@ -355,8 +355,8 @@ int start()
         if (dragging == 0 && btn == 0 && type == 'M')
         { // click
           // Don't allow starting drag from first row
-          if (y == 1)
-            continue;
+          //if (y == 1)
+          //  continue;
           dragging = 1;
           on_mouse_down(x, y);
         }
