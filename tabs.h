@@ -43,5 +43,6 @@ Window * tabs_new_tab(Tabs *self);
 void tab_select(Tab *tab);
 void cycle_tab();
 void cycle_tab_reverse();
+void select_window(Window * win);
 
 #endif
