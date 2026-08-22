@@ -211,7 +211,7 @@ void EditorWindow_delete(EditorWindow *self){
     //update_lexer_state(self->head);
 }
 
-void EditorWindow_copy(EditorWindow *self){
+void _EditorWindow_copy(EditorWindow *self){
     if (self->selection.n == -1) return;
     // get range
     int i1 = self->cursor.n;
@@ -272,7 +272,11 @@ void EditorWindow_copy(EditorWindow *self){
 
     clipboard_copy(buffer);
     free(buffer);
-	self->selection.n = -1;
+}
+
+void EditorWindow_copy(EditorWindow *self){
+  _EditorWindow_copy(self);
+  self->selection.n = -1;
 }
 
 void EditorWindow_paste(EditorWindow *self){
@@ -409,7 +413,7 @@ void EditorWindow_delete_region(EditorWindow *self){
 }
 
 void EditorWindow_cut(EditorWindow *self){
-    EditorWindow_copy(self);
+    _EditorWindow_copy(self);
     EditorWindow_delete_region(self);
 }
 
