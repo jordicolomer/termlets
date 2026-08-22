@@ -865,6 +865,8 @@ void EditorWindow_send_sequence(Window *win, const char *seq, int len){
   if (strcmp(seq, "[1;2B") == 0){ EditorWindow_shift_down(self); return; }
   if (strcmp(seq, "[1;2C") == 0){ EditorWindow_shift_right(self); return; }
   if (strcmp(seq, "[1;2D") == 0){ EditorWindow_shift_left(self); return; }
+  if (strcmp(seq, "[1;3D") == 0){ EditorWindow_prev_word(self); return; }
+  if (strcmp(seq, "[1;3C") == 0){ EditorWindow_next_word(self); return; }
 }
 
 void EditorWindow_send_key(Window *win, char c)
