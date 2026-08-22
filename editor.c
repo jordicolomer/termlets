@@ -272,6 +272,7 @@ void EditorWindow_copy(EditorWindow *self){
 
     clipboard_copy(buffer);
     free(buffer);
+	self->selection.n = -1;
 }
 
 void EditorWindow_paste(EditorWindow *self){
@@ -973,7 +974,6 @@ void EditorWindow_send_key(Window *win, char c)
   }
   if (action == ACTION_COPY){
 	EditorWindow_copy(self);
-	self->selection.n = -1;
 	return;
   }
   if (action == ACTION_PASTE){
@@ -1262,16 +1262,16 @@ Window *Editor_menu(EditorFrame *self)
     Window *file = Menu_create_vertical(self);
     Menu_add_element(file, " 📄 New    Ctrl+N", create_lambda(Editor_menu_new, 1, self));
     Menu_add_element(file, " 🔄 Reload Ctrl+R", create_lambda(Editor_on_selected, 2, self, EditorWindow_reload));
-    Menu_add_element(file, " ❌ Close  Ctrl+W", create_lambda(Editor_menu_new, 1, self));
     Menu_add_element(file, " 💾 Save  Ctrl+S", create_lambda(Editor_on_selected, 2, self, EditorWindow_save));
+    Menu_add_element(file, " ❌ Close  Ctrl+W", create_lambda(Editor_menu_new, 1, self));
     Menu_add_element(file, "", NULL);
     Menu_add_submenu(menu, " File ", file);
 
     Window *edit = Menu_create_vertical(self);
     Menu_add_element(edit, " ❌ Delete Backspace", create_lambda(Editor_menu_new, 1, self));
-    Menu_add_element(edit, " 🔪 Cut    Ctrl+X", create_lambda(Editor_menu_new, 1, self));
-    Menu_add_element(edit, " 📋 Copy   Ctrl+C", create_lambda(Editor_menu_new, 1, self));
-    Menu_add_element(edit, " 📌 Paste  Ctrl+V", create_lambda(Editor_menu_new, 1, self));
+    Menu_add_element(edit, " 🔪 Cut    Ctrl+X", create_lambda(Editor_on_selected, 2, self, EditorWindow_cut));
+    Menu_add_element(edit, " 📋 Copy   Ctrl+C", create_lambda(Editor_on_selected, 2, self, EditorWindow_copy));
+    Menu_add_element(edit, " 📌 Paste  Ctrl+V", create_lambda(Editor_on_selected, 2, self, EditorWindow_paste));
     Menu_add_element(edit, "", NULL);
     Menu_add_submenu(menu, " Edit ", edit);
 
@@ -1305,9 +1305,9 @@ Window *Editor_toolbar(EditorFrame *self)
     Menu_add_element(toolbar, " 🔄 Undo ", create_lambda(Editor_menu_new, 1, self));
     //Menu_add_element(toolbar, " ❌ Close ", create_lambda(Editor_menu_new, 1, self));
     //Menu_add_element(toolbar, " ❌ Delete ", create_lambda(Editor_menu_new, 1, self));
-    Menu_add_element(toolbar, " 🔪 Cut ", create_lambda(Editor_menu_new, 1, self));
-    Menu_add_element(toolbar, " 📋 Copy ", create_lambda(Editor_menu_new, 1, self));
-    Menu_add_element(toolbar, " 📌 Paste ", create_lambda(Editor_menu_new, 1, self));
+    Menu_add_element(toolbar, " 🔪 Cut ", create_lambda(Editor_on_selected, 2, self, EditorWindow_cut));
+    Menu_add_element(toolbar, " 📋 Copy ", create_lambda(Editor_on_selected, 2, self, EditorWindow_copy));
+    Menu_add_element(toolbar, " 📌 Paste ", create_lambda(Editor_on_selected, 2, self, EditorWindow_paste));
 
     toolbar->top = 1;
 
