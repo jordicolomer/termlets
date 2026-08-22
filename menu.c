@@ -258,7 +258,6 @@ void Menu_list_windows_item_selected(Tab *tab, Window *menu)
     auto_expand = NULL;
 }
 
-
 Window *Menu_list_windows(Menu * menu, Tabs *tabs, struct Window *window_menu_item, Menu *submenu)
 {
     Menu_toggle_auto_expand(menu);
@@ -277,7 +276,14 @@ Window *Menu_list_windows(Menu * menu, Tabs *tabs, struct Window *window_menu_it
         char *selected_sign = " ";
         if (tabs->selected_tab == tab)
             selected_sign = "*";
-        asprintf(&tab_label, " %s%s  ", selected_sign, tab->child->id);
+		int len = strlen(tab->child->id);
+		int max_len = 40;
+		if (max_len < len){
+		  char * shortened = tab->child->id + strlen(tab->child->id) - max_len;
+		  asprintf(&tab_label, " %s...%s  ", selected_sign, shortened);
+		} else {
+		  asprintf(&tab_label, " %s%s  ", selected_sign, tab->child->id);
+		}
 
         Window *win = Menu_add_element(submenu, tab_label, NULL);
         win->on_hover = Menu_change_color_hover;

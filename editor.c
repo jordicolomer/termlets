@@ -431,6 +431,7 @@ void EditorWindow_save(EditorWindow *self){
 }
 
 void EditorWindow_newline(EditorWindow *self){
+  set_modified(self, 1);
     Node * node = EditorWindow_get_line_number(self, self->cursor.n);
     Node * next = node->next;
 
