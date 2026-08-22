@@ -24,6 +24,14 @@
 #include "config.h"
 
 
+void set_modified(EditorWindow *self, int modified){
+  if (modified == 1){
+    Window_set_id_from_path(self, "📝 *", self->file_path);
+  } else {
+    Window_set_id_from_path(self, "📝", self->file_path);
+  }
+	self->modified = modified;  
+}
 
 // Editor Window
 void EditorWindow_update_height(EditorWindow *self){
@@ -101,6 +109,7 @@ void update_lexer_state(Node * current, int fast, int language){
 }
 
 void EditorWindow_insert(EditorWindow *self, char c){
+  set_modified(self, 1);
     Node * node = EditorWindow_get_line_number(self, self->cursor.n);
 
     // Calculate byte position BEFORE potential realloc
@@ -275,6 +284,7 @@ void EditorWindow_paste(EditorWindow *self){
         if (cb) free(cb);
         return;
     }
+	set_modified(self, 1);
 
     // Use cursor_ptr to get the byte position for splitting the line
     //size_t byte_pos = (uint8_t *)self->cursor_ptr - (uint8_t *)current->line;
@@ -417,6 +427,7 @@ void EditorWindow_save(EditorWindow *self){
         if (current != NULL) fputc('\n', file);
     }
     fclose(file);
+	set_modified(self, 0);
 }
 
 void EditorWindow_newline(EditorWindow *self){
@@ -541,6 +552,7 @@ void append(EditorWindow *self, const char *text)
 
 #define MAX_LINE 10240
 
+
 void load_file(EditorWindow *self, const char *filename)
 {
     LOG_INFO("load_file: self=%p filename=%s", self, filename);
@@ -550,6 +562,7 @@ void load_file(EditorWindow *self, const char *filename)
     }
     LOG_INFO("load_file: calling Window_set_id_from_path");
     Window_set_id_from_path(self, "📝", filename);
+	set_modified(self, 0);
     LOG_INFO("load_file: opening file");
     FILE *file = fopen(filename, "r");
     if (!file)
@@ -1173,6 +1186,7 @@ EditorWindow *EditorWindow_new()
     self->highlight_start.n = -1;
     self->highlight_end.n = -1;
     self->language = LANG_NONE;
+    self->modified = 0;
 
     // Window *editor = (Window *) self;
     self->win.draw = EditorWindow_draw;

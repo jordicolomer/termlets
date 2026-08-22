@@ -44,6 +44,7 @@ typedef struct EditorWindow {
     int n_lines; // total number of lines
     char * file_path;
     int language; // specifies the syntax highlighting language
+    int modified;
 } EditorWindow;
 
 typedef struct EditorFrame {
