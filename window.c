@@ -495,3 +495,13 @@ void Window_execute_lambda(struct Window *w, int x, int y)
 {
     invoke_lambda(w->lambda);
 }
+
+
+Window * Window_get_frame(struct Window *w)
+{
+	Window *current = w;
+	while(current->parent != NULL){
+		current = current->parent;
+		if (current->parent == root) return current;
+	}
+}

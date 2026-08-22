@@ -162,6 +162,8 @@ void on_mouse_down(int x, int y)
   //Geometry rect = {0, 0, root->width, root->height};
   Window *wg = Window_find_widget(root, x, y);
   LOG_INFO("Window_find_widget: %p", (void *)wg);
+  Window * frame = Window_get_frame(wg);
+  TaskBar_switch_frame(frame);
 
   int action_triggered = 0;
 
