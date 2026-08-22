@@ -453,6 +453,7 @@ void EditorWindow_newline(EditorWindow *self){
     //self->win.virtual_height = self->n_lines;
 	EditorWindow_update_height(self);
     self->cursor.n++;
+	EditorWindow_make_cursor_visible(self);
     self->cursor.x = 0;
     self->cursor.ptr = 0;  // Point to start of new line
 }
