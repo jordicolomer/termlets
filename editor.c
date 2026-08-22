@@ -1051,6 +1051,7 @@ void EditorWindow_draw(struct Window *w, int hasFocus)
 void EditorWindow_on_mouse_down(Window *win, int x, int y){
   EditorWindow *self = win;
   self->cursor.n = y - win->shift - win->calculated.y;
+  self->cursor.n = min(self->cursor.n, self->n_lines-1);
   self->cursor.x = x - win->calculated.x;
   EditorWindow_fix_cursor_x(self);	
   EditorWindow_make_cursor_visible(self);
