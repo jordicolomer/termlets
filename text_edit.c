@@ -46,7 +46,7 @@ void LineEditorWindow_send_key(Window * win, char c){
     LineEditorWindow *self = win;
     int len = strlen(self->buffer);
     LOG_INFO("LineEditorWindow_send_key: %c %d", c, c);
-    if (c == 8) { // Control+H
+    if (c == 8 || c == 127) { // Control+H
         if (self->cursor > 0){
             delete_char(self->buffer, self->cursor-1, len);
             self->cursor--;
@@ -56,12 +56,6 @@ void LineEditorWindow_send_key(Window * win, char c){
     if (c == 4) { // Ctrl+D
         if (self->cursor > 0){
             self->cursor--;
-        }
-        return;
-    }
-    if (c == 6) { // Ctrl+F
-        if (self->cursor < len){
-            self->cursor++;
         }
         return;
     }

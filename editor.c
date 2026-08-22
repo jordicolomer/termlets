@@ -172,6 +172,7 @@ void Node_append(Node *node, char *text)
 }
 
 void EditorWindow_delete(EditorWindow *self){
+  set_modified(self, 1);
     // delete a character
     if (self->cursor.x == 0){
 	  if (self->cursor.n != 0){ // join two lines
@@ -1318,7 +1319,7 @@ Window *Editor_toolbar(EditorFrame *self)
     Window *toolbar = Menu_create_horizontal();
     Menu_add_element(toolbar, " 💾 Save ", create_lambda(Editor_on_selected, 2, self, EditorWindow_save));
     Menu_add_element(toolbar, " 📄 New ", create_lambda(Editor_menu_new, 1, self));
-    Menu_add_element(toolbar, " 🔄 Undo ", create_lambda(Editor_menu_new, 1, self));
+    //Menu_add_element(toolbar, " 🔄 Undo ", create_lambda(Editor_menu_new, 1, self));
     //Menu_add_element(toolbar, " ❌ Close ", create_lambda(Editor_menu_new, 1, self));
     //Menu_add_element(toolbar, " ❌ Delete ", create_lambda(Editor_menu_new, 1, self));
     Menu_add_element(toolbar, " 🔪 Cut ", create_lambda(Editor_on_selected, 2, self, EditorWindow_cut));
