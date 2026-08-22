@@ -908,6 +908,11 @@ void EditorWindow_send_key(Window *win, char c)
 	EditorWindow_reload(self);
 	return;
   }
+  if (action == ACTION_INSERT_SEMICOLON){
+	self->selection.n = -1;
+	EditorWindow_insert(self, ';');
+	return;
+  }
   /*if (action == ACTION_SEARCH){
 	EditorWindow_search(self);
 	return;
