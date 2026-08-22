@@ -1272,7 +1272,7 @@ Window *Editor_menu(EditorFrame *self)
     Menu_add_submenu(menu, " File ", file);
 
     Window *edit = Menu_create_vertical(self);
-    Menu_add_element(edit, " ❌ Delete Backspace", create_lambda(Editor_menu_new, 1, self));
+    Menu_add_element(edit, " ❌ Delete Backspace", create_lambda(Editor_on_selected, 2, self, EditorWindow_delete));
     Menu_add_element(edit, " 🔪 Cut    Ctrl+X", create_lambda(Editor_on_selected, 2, self, EditorWindow_cut));
     Menu_add_element(edit, " 📋 Copy   Ctrl+C", create_lambda(Editor_on_selected, 2, self, EditorWindow_copy));
     Menu_add_element(edit, " 📌 Paste  Ctrl+V", create_lambda(Editor_on_selected, 2, self, EditorWindow_paste));
