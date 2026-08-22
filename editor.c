@@ -1052,7 +1052,7 @@ void EditorWindow_draw(struct Window *w, int hasFocus)
         if (current != NULL)
             current = current->next;
     }
-	EditorWindow_draw_selection(w, self->cursor, self->selection, 27);
+	EditorWindow_draw_selection(w, self->cursor, self->selection, 123);
 	EditorWindow_draw_selection(w, self->highlight_start, self->highlight_end, 11);
 }
 
