@@ -1259,6 +1259,15 @@ int Editor_get_current_tab_language(EditorFrame *self){
     return ew->language;
 }
 
+void Editor_show_tabs(EditorFrame *self, char * show_tabs_label){
+  show_tabs = 1 - show_tabs;
+  if (show_tabs){
+	show_tabs_label[1] = 'x';
+  } else {
+	show_tabs_label[1] = ' ';
+  }
+}
+
 Window *Editor_menu(EditorFrame *self)
 {
     Window *menu = Menu_create_horizontal();
@@ -1266,7 +1275,7 @@ Window *Editor_menu(EditorFrame *self)
     Window *file = Menu_create_vertical(self);
     Menu_add_element(file, " 📄 New    Ctrl+N", create_lambda(Editor_menu_new, 1, self));
     Menu_add_element(file, " 🔄 Reload Ctrl+R", create_lambda(Editor_on_selected, 2, self, EditorWindow_reload));
-    Menu_add_element(file, " 💾 Save  Ctrl+S", create_lambda(Editor_on_selected, 2, self, EditorWindow_save));
+    Menu_add_element(file, " 💾 Save   Ctrl+S", create_lambda(Editor_on_selected, 2, self, EditorWindow_save));
     Menu_add_element(file, " ❌ Close  Ctrl+W", create_lambda(Editor_menu_new, 1, self));
     Menu_add_element(file, "", NULL);
     Menu_add_submenu(menu, " File ", file);
@@ -1280,7 +1289,10 @@ Window *Editor_menu(EditorFrame *self)
     Menu_add_submenu(menu, " Edit ", edit);
 
     Window *view = Menu_create_vertical(self);
-    Menu_add_element(view, " ⤶ Word wrap", create_lambda(Editor_menu_new, 1, self));
+    //Menu_add_element(view, " ⤶ Word wrap", create_lambda(Editor_menu_new, 1, self));
+	char * show_tabs_label = strdup("   Show Tabs");
+    Menu_add_element(view, show_tabs_label, create_lambda(Editor_show_tabs, 2, self, show_tabs_label));
+    //Menu_add_bool_element(view, " Show Tabs", &self->show_tabs);
     Menu_add_element(view, "", NULL);
     Menu_add_submenu(menu, " View ", view);
 

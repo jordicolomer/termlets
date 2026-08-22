@@ -48,10 +48,11 @@ typedef struct EditorWindow {
 } EditorWindow;
 
 typedef struct EditorFrame {
-    struct Window win;
-    Tabs *tabs;
-    LineEditorWindow *search_box;
-    //Window *syntax;
+  struct Window win;
+  Tabs *tabs;
+  LineEditorWindow *search_box;
+  //int show_tabs;
+  //Window *syntax;
 } EditorFrame;
 
 Window *Editor_new(int left, int right, int top, int bottom, int width, int height);
