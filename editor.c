@@ -782,11 +782,43 @@ void EditorWindow_next_word(EditorWindow *self){
 	  self->cursor.x = 0;
 	  Node * node = EditorWindow_get_line_number(self, self->cursor.n);
 	  self->cursor.ptr = 0;
+	} else {
+	  return;
 	}
   }
   }
 }
 
+
+void EditorWindow_prev_word(EditorWindow *self){
+  int state = 0;
+  while (1){
+  if (self->cursor.x == 0){
+	if (self->cursor.n > 0){
+	  self->cursor.n -= 1;
+	  Node * node = EditorWindow_get_line_number(self, self->cursor.n);
+	  self->cursor.x = node->width;
+	  self->cursor.ptr = node->length;
+	} else {
+	  return;
+	}
+  } else {	
+	Node * node = EditorWindow_get_line_number(self, self->cursor.n);
+	uint32_t cp = utf8_decode_left2(node->line, &self->cursor.ptr);
+	int w = cp_width(cp);
+	self->cursor.x -= w;
+	
+	if (state == 0){
+	  if (cp != ' ' && cp != '\t') state = 1;
+	} else if (state == 1){
+	  if (cp == ' ' || cp == '\t') {
+		_EditorWindow_right(self);
+		return;
+	  }
+	}
+  }
+  }
+}
 
 void EditorWindow_search(EditorWindow *self, char * query){
   EditorPointer ptr = self->highlight_end;
@@ -872,6 +904,10 @@ void EditorWindow_send_key(Window *win, char c)
   }
   if (action == ACTION_NEXT_WORD){
 	EditorWindow_next_word(self);
+	return;
+  }
+  if (action == ACTION_PREV_WORD){
+	EditorWindow_prev_word(self);
 	return;
   }
   if (action == ACTION_END_OF_LINE){

@@ -72,6 +72,8 @@ int load_mappings_from_file(void) {
             map[(unsigned char)key] = ACTION_RIGHT;
         } else if (strcmp(action, "NEXT_WORD") == 0) {
             map[(unsigned char)key] = ACTION_NEXT_WORD;
+        } else if (strcmp(action, "PREV_WORD") == 0) {
+            map[(unsigned char)key] = ACTION_PREV_WORD;
         } else if (strcmp(action, "MODE") == 0) {
             map[(unsigned char)key] = ACTION_MODE;
         } else if (strcmp(action, "BACKSPACE") == 0) {
