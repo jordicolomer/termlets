@@ -1005,8 +1005,8 @@ void EditorWindow_draw(struct Window *w, int hasFocus)
         // background color
         int bg = 255;
         //bg = 236;
-        if (bg >= 232 + 4 && !hasFocus)
-            bg -= 4;
+        if (bg >= 232 + 2 && !hasFocus)
+            bg -= 2;
 
         char *str = "";
         if (current != NULL)
