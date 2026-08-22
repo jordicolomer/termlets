@@ -268,7 +268,7 @@ void EditorWindow_copy(EditorWindow *self){
 void EditorWindow_paste(EditorWindow *self){
     Node * current = EditorWindow_get_line_number(self, self->cursor.n);
     Node * next_line = current->next;
-    char * cb = clipboard_paste_apple();
+    char * cb = clipboard_paste();
 
     // Check if clipboard is empty
     if (cb == NULL || *cb == '\0') {
@@ -307,6 +307,9 @@ void EditorWindow_paste(EditorWindow *self){
             new_node->prev = current;
             current = new_node;
             self->n_lines++;
+        }
+        if (end != NULL) {
+            *end = '\n';
         }
 
         if (end == NULL || *line == '\0'){

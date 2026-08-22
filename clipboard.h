@@ -2,6 +2,6 @@
 #define CLIPBOARD_H
 
 void clipboard_copy(const char *text);
-char *clipboard_paste_apple(void);
-
+char *clipboard_paste(void);
+  
 #endif
