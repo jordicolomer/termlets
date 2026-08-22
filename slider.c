@@ -215,6 +215,7 @@ void Slider_scroll_down(struct Window *w){
   if (w == NULL) return;
   Slider_data * slider_data = w->data;
   Window *child = slider_data->child;
+  if (child->virtual_height <= child->calculated.height) return;
   child->shift--;
   int min_shift = -(child->virtual_height - child->calculated.height);
   child->shift = max(child->shift, min_shift);
