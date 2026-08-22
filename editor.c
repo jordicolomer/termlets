@@ -650,16 +650,16 @@ void EditorWindow_start_selection(EditorWindow *self){
   self->selection.ptr = self->cursor.ptr;
 }
 
-void EditorWindow_log(EditorWindow *self){
-  LOG_INFO("EditorWindow_log %p %d %d %d", self, self->cursor.n, self->cursor.x, self->cursor.ptr);
-}
+//void EditorWindow_log(EditorWindow *self){
+//  LOG_INFO("EditorWindow_log %p %d %d %d", self, self->cursor.n, self->cursor.x, self->cursor.ptr);
+//}
 
 void _EditorWindow_up(EditorWindow *self){
   self->cursor.n--;
   self->cursor.n = max(self->cursor.n, 0);
   EditorWindow_fix_cursor_x(self);	
   EditorWindow_make_cursor_visible(self);
-  EditorWindow_log(self);
+  //EditorWindow_log(self);
 }
 
 void _EditorWindow_down(EditorWindow *self){
@@ -667,9 +667,9 @@ void _EditorWindow_down(EditorWindow *self){
   self->cursor.n = min(self->cursor.n, self->n_lines - 1);
   EditorWindow_fix_cursor_x(self);
   EditorWindow_make_cursor_visible(self);
-  EditorWindow_log(self);
+  //EditorWindow_log(self);
 }
-
+  
 void _EditorWindow_right(EditorWindow *self){
   Node * node = EditorWindow_get_line_number(self, self->cursor.n);
   //char * cursor_ptr = node->line + self->cursor_ptr;
@@ -687,7 +687,7 @@ void _EditorWindow_right(EditorWindow *self){
 	  self->cursor.ptr = 0;
 	}
   }
-  EditorWindow_log(self);
+  //EditorWindow_log(self);
 }
 
 void _EditorWindow_left(EditorWindow *self){
@@ -709,7 +709,7 @@ void _EditorWindow_left(EditorWindow *self){
 	
 	self->cursor.x -= w;
   }
-  EditorWindow_log(self);
+  //EditorWindow_log(self);
 }
 
 void EditorWindow_up(EditorWindow *self){
@@ -759,6 +759,34 @@ void EditorWindow_shift_right(EditorWindow *self){
 void EditorWindow_shift_left(EditorWindow *self){
   _EditorWindow_left(self);
 }
+
+void EditorWindow_next_word(EditorWindow *self){
+  int state = 0;
+  while (1){
+  Node * node = EditorWindow_get_line_number(self, self->cursor.n);
+  if (node->line[self->cursor.ptr] != 0){
+	uint32_t cp = utf8_decode2(node->line, &self->cursor.ptr);
+	int w = cp_width(cp);
+	self->cursor.x += w;
+	if (state == 0){
+	  if (cp != ' ' && cp != '\t') state = 1;
+	} else if (state == 1){
+	  if (cp == ' ' || cp == '\t') {
+		_EditorWindow_left(self);
+		return;
+	  }
+	}
+  } else {
+	if (self->cursor.n < self->n_lines-1){
+	  self->cursor.n += 1;
+	  self->cursor.x = 0;
+	  Node * node = EditorWindow_get_line_number(self, self->cursor.n);
+	  self->cursor.ptr = 0;
+	}
+  }
+  }
+}
+
 
 void EditorWindow_search(EditorWindow *self, char * query){
   EditorPointer ptr = self->highlight_end;
@@ -840,6 +868,10 @@ void EditorWindow_send_key(Window *win, char c)
   }
   if (action == ACTION_RIGHT){
 	EditorWindow_right(self);
+	return;
+  }
+  if (action == ACTION_NEXT_WORD){
+	EditorWindow_next_word(self);
 	return;
   }
   if (action == ACTION_END_OF_LINE){
