@@ -1092,8 +1092,8 @@ void EditorWindow_draw(struct Window *w, int hasFocus)
 
         
         if (-self->win.shift + i == self->cursor.n){ // show cursor
-            bg = 248;
-            if (insert_mode == 1) bg = 1;
+            bg = 208;
+            if (insert_mode == 1) bg = 27;
             //Buffer_print(&main_buf, geo.y + i, geo.x+self->cursor_x, 1, str+self->cursor_x, 16, bg);
 			//int idx = get_idx_pos(str, self->cursor_x);
             //Buffer_set_bg(&main_buf, geo.y + i, geo.x+idx, 1, bg);
