@@ -1057,7 +1057,20 @@ void EditorWindow_draw(struct Window *w, int hasFocus)
 }
 
 
+void EditorFrame_escape_search_box(EditorFrame *self){
+  if (self->win.focused == self->search_box) {
+	self->win.focused = self->tabs;
+	EditorWindow * editor = self->tabs->win.focused->focused; // this is bad code. fix it
+	editor->highlight_start.n = -1;
+	editor->highlight_end.n = -1;
+  }
+}
+
+
 void EditorWindow_on_mouse_down(Window *win, int x, int y){
+  EditorFrame *frame = Window_get_frame(win);
+  EditorFrame_escape_search_box(frame);
+  
   EditorWindow *self = win;
   self->cursor.n = y - win->shift - win->calculated.y;
   self->cursor.n = min(self->cursor.n, self->n_lines-1);
@@ -1276,11 +1289,8 @@ void EditorFrame_send_key(struct Window *wg, char c){
 void EditorFrame_send_sequence(struct Window *wg, const char *seq, int len)
 {
   EditorFrame *self = wg;
-  if (self->win.focused == self->search_box && strlen(seq) == 0) { // esc
-	self->win.focused = self->tabs;
-	EditorWindow * editor = self->tabs->win.focused->focused; // this is bad code. fix it
-	editor->highlight_start.n = -1;
-	editor->highlight_end.n = -1;
+  if (strlen(seq) == 0) { // esc
+	EditorFrame_escape_search_box(self);
 	return;
   }
 	
