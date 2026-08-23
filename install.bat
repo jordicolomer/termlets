@@ -1,10 +1,8 @@
 @echo off
 setlocal
 
-set "REPO=jordicolomer/termlets"
-set "ASSET=termlets-w64-x86_64.exe"
 set "INSTALL_DIR=%USERPROFILE%\.local\bin"
-set "URL=https://github.com/%REPO%/releases/latest/download/%ASSET%"
+set "URL=https://github.com/jordicolomer/termlets/releases/latest/download/termlets-w64-x86_64.exe"
 
 echo Installing termlets...
 
