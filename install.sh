@@ -2,8 +2,6 @@
 
 set -e
 
-REPO="jordicolomer/termlets"
-
 OS="$(uname -s)"
 ARCH="$(uname -m)"
 
@@ -28,17 +26,7 @@ case "$OS" in
         ;;
 esac
 
-VERSION=$(curl -fsSL \
-    "https://api.github.com/repos/$REPO/releases/latest" |
-    grep '"tag_name":' |
-    sed -E 's/.*"([^"]+)".*/\1/')
-
-echo "Installing termlets $VERSION..."
-
-curl -fL \
-    "https://github.com/$REPO/releases/download/$VERSION/$ASSET" \
-    -o termlets
-
+curl -fL  "https://github.com/jordicolomer/termlets/releases/latest/download/termlets-macos-arm64"  -o termlets
 chmod +x termlets
 sudo mv termlets /usr/local/bin/termlets
 

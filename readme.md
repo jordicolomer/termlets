@@ -32,55 +32,12 @@ Currently supported on macOS (with iTerm2), Linux, and Windows.
 
 ## Installation
 
-### macOS
+### Linux or macOS
 
-Download the latest macOS binary:
-
-```bash
-curl -L https://github.com/jordicolomer/termlets/releases/download/v0.1.2/termlets-macos-arm64 -o termlets
-```
-
-Make it executable:
+Install the latest macOS binary:
 
 ```bash
-chmod +x termlets
-```
-
-Move it somewhere in your `PATH`:
-
-```bash
-sudo mv termlets /usr/local/bin/
-```
-
-You can now run it from anywhere:
-
-```bash
-termlets
-```
-
-### Apple Silicon
-
-The current binary is built for macOS on Apple Silicon. If you're using an Intel Mac, you will need an Intel build.
-
-
-### Linux
-
-Download the latest Linux binary:
-
-```bash
-curl -L https://github.com/jordicolomer/termlets/releases/download/v0.1.2/termlets-linux-x86_64 -o termlets
-```
-
-Make it executable:
-
-```bash
-chmod +x termlets
-```
-
-Move it somewhere in your `PATH`:
-
-```bash
-sudo mv termlets /usr/local/bin/
+curl -fsSL https://raw.githubusercontent.com/jordicolomer/termlets/refs/heads/main/install.sh | sh
 ```
 
 You can now run it from anywhere:
