@@ -192,6 +192,13 @@ void on_mouse_up()
   draggingX = NULL;
   draggingY = NULL;
   resizing = NULL;
+
+  Window *focused_cursor = focused;
+  if (focused_cursor != NULL) while (focused_cursor->on_mouse_up == NULL && focused_cursor->focused != NULL) focused_cursor = focused_cursor->focused;
+  if (focused_cursor != NULL && focused_cursor->on_mouse_up != NULL){
+	focused_cursor->on_mouse_up(focused_cursor);
+	repaint();
+  }
 }
 
 // #include <locale.h>

@@ -1052,7 +1052,7 @@ Window *FileExplorer_menu(ExplorerFrame *self)
     Menu_add_element(view, "", NULL);
     Menu_add_submenu(menu, " View ", view);
 
-    Menu_add_windows(menu, " Tabs ", self->tabs->data, self);
+    Menu_add_windows(menu, " Window ", self->tabs->data, self);
 
     return menu;
 }

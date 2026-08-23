@@ -30,7 +30,7 @@ void set_modified(EditorWindow *self, int modified){
   } else {
     Window_set_id_from_path(self, "📝", self->file_path);
   }
-	self->modified = modified;  
+  self->modified = modified;  
 }
 
 // Editor Window
@@ -1141,7 +1141,7 @@ void EditorWindow_draw(struct Window *w, int hasFocus)
         if (current != NULL)
             current = current->next;
     }
-	EditorWindow_draw_selection(w, self->cursor, self->selection, 123);
+	EditorWindow_draw_selection(w, self->cursor, self->selection, 117);
 	EditorWindow_draw_selection(w, self->highlight_start, self->highlight_end, 11);
 }
 
@@ -1166,8 +1166,30 @@ void EditorWindow_on_mouse_down(Window *win, int x, int y){
   self->cursor.x = x - win->calculated.x;
   EditorWindow_fix_cursor_x(self);	
   EditorWindow_make_cursor_visible(self);
+  self->selection = self->cursor;
+  self->selecting = 1;
 }
 
+void EditorWindow_on_hover(Window * win, int x, int y){  
+  EditorWindow * self = win;
+  
+  if (self->selecting == 0) return;
+  
+  int relative_x = x - self->win.calculated.x;
+  int relative_y = y - self->win.calculated.y;
+
+  self->cursor.n = relative_y - win->shift;
+  self->cursor.n = min(self->cursor.n, self->n_lines-1);
+  self->cursor.x = relative_x;
+  EditorWindow_fix_cursor_x(self);	
+  EditorWindow_make_cursor_visible(self);
+}
+
+void EditorWindow_on_mouse_up(Window * win){
+  LOG_INFO("EditorWindow_on_mouse_up");
+  EditorWindow * self = win;
+  self->selecting = 0;
+}
 
 EditorWindow *latestEditorWindow;
 EditorWindow *EditorWindow_new()
@@ -1193,6 +1215,7 @@ EditorWindow *EditorWindow_new()
     self->highlight_end.n = -1;
     self->language = LANG_NONE;
     self->modified = 0;
+    self->selecting = 0;
 
     // Window *editor = (Window *) self;
     self->win.draw = EditorWindow_draw;
@@ -1203,6 +1226,8 @@ EditorWindow *EditorWindow_new()
     self->win.scroll_wheel_up = EditorWindow_scroll_wheel_up;
     self->win.scroll_wheel_down = EditorWindow_scroll_wheel_down;
 	self->win.on_mouse_down = EditorWindow_on_mouse_down;
+	self->win.on_hover = EditorWindow_on_hover;
+	self->win.on_mouse_up = EditorWindow_on_mouse_up;
 
     latestEditorWindow = self;
 

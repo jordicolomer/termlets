@@ -45,6 +45,7 @@ typedef struct EditorWindow {
     char * file_path;
     int language; // specifies the syntax highlighting language
     int modified;
+    int selecting;
 } EditorWindow;
 
 typedef struct EditorFrame {

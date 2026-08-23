@@ -45,6 +45,7 @@ typedef struct Window
   void (*send_sequence)(struct Window *wg, const char *seq, int len);
   void (*scroll_wheel_down)(struct Window *wg);
   void (*scroll_wheel_up)(struct Window *wg);
+  void (*on_mouse_up)(struct Window *wg);
   void *data;
   void *data2;
   void *data3;
