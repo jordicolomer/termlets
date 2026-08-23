@@ -32,12 +32,10 @@ Currently supported on macOS (with iTerm2), Linux, and Windows.
 
 ## Installation
 
-### Linux or macOS
-
-Install the latest macOS binary:
+### Install the latest Linux or macOS version
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/jordicolomer/termlets/refs/heads/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/jordicolomer/termlets/main/install.sh | sh
 ```
 
 You can now run it from anywhere:
@@ -46,34 +44,17 @@ You can now run it from anywhere:
 termlets
 ```
 
-### Windows
+### Install the latest Windows version
 
-Download the latest Windows binary:
-
-```powershell
-curl -L https://github.com/jordicolomer/termlets/releases/download/v0.1.2/termlets-w64-x86_64.exe -o termlets.exe
-```
-
-Create a local bin directory and add it to your PATH (one-time setup):
+Open cmd.exe or PowerShell and run:
 
 ```powershell
-# Create the directory
-New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\.local\bin"
-
-# Add to PATH for current session
-$env:Path += ";$env:USERPROFILE\.local\bin"
-
-# Add to PATH permanently (user-level, no admin required)
-[Environment]::SetEnvironmentVariable("Path", [Environment]::GetEnvironmentVariable("Path", "User") + ";$env:USERPROFILE\.local\bin", "User")
+irm https://raw.githubusercontent.com/jordicolomer/termlets/main/install.ps1 | iex
 ```
 
-Move the binary to the bin directory:
+The installer will download and install the latest version of termlets and add it to your user PATH.
 
-```powershell
-Move-Item termlets.exe "$env:USERPROFILE\.local\bin\termlets.exe"
-```
-
-Restart your terminal, then you can run it from anywhere:
+Restart PowerShell so the updated PATH takes effect. You can then run termlets from any directory:
 
 ```powershell
 termlets
