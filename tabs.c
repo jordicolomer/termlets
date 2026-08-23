@@ -116,7 +116,7 @@ Window * find_tab(Window * win){
 }
 
 void select_window(Window * win){
-  Tabs *tab = find_tab(win);
+  Tabs *tab = (Tabs *) find_tab(win);
   if (tab != NULL) select_tab(tab->selected_tab);
 }
 
