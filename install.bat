@@ -2,7 +2,7 @@
 setlocal
 
 set "REPO=jordicolomer/termlets"
-set "ASSET=termlets-windows-x86_64.exe"
+set "ASSET=termlets-w64-x86_64.exe"
 set "INSTALL_DIR=%USERPROFILE%\.local\bin"
 set "URL=https://github.com/%REPO%/releases/latest/download/%ASSET%"
 
