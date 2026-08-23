@@ -49,7 +49,7 @@ termlets
 Open cmd.exe or PowerShell and run:
 
 ```powershell
-irm https://raw.githubusercontent.com/jordicolomer/termlets/main/install.ps1 | iex
+curl.exe -fsSL https://raw.githubusercontent.com/jordicolomer/termlets/main/install.bat -o "%TEMP%\termlets-install.bat" && call "%TEMP%\termlets-install.bat"
 ```
 
 The installer will download and install the latest version of termlets and add it to your user PATH.
