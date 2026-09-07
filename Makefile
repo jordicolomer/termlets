@@ -30,7 +30,7 @@ endif
 TARGET := termlets
 
 # Source and object files
-SRC := main.c logger.c buffer.c ansi_term.c window.c frame.c file_manager.c slider.c taskbar.c utils.c vterm_terminal.c tabs.c editor.c menu.c lambda.c chess.c sort.c clipboard.c dialog.c file_operations.c text_edit.c lexer.c common.c config.c
+SRC := main.c logger.c buffer.c ansi_term.c window.c frame.c file_manager.c slider.c taskbar.c utils.c vterm_terminal.c tabs.c editor.c menu.c lambda.c chess.c sort.c clipboard.c dialog.c file_operations.c text_edit.c lexer.c common.c config.c window_manager.c
 OBJ := $(SRC:.c=.o)
 
 # Default target
