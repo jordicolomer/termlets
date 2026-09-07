@@ -41,6 +41,7 @@ typedef struct Tabs {
 Window *Tab_new(tab_create_callback callback, int new_tab);
 Window * tabs_new_tab(Tabs *self);
 void tab_select(Tab *tab);
+void select_tab(Tab * selected_tab);
 void cycle_tab();
 void cycle_tab_reverse();
 void select_window(Window * win);

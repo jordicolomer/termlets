@@ -357,6 +357,58 @@ void Window_bring_to_bottom(Window *this)
   }
 }
 
+
+void Window_bring_to_top(Window *this)
+{
+  LOG_INFO("Window_bring_to_top: %p", (void *)this->parent);
+  if (!this || !this->parent)
+    return;
+
+  Window *parent = this->parent;
+
+  // If already the head, nothing to do
+  if (parent->head == this)
+    return;
+
+  // ---- 1. Unlink from current position ----
+  if (this->prev)
+  {
+    this->prev->next = this->next;
+  }
+  else
+  {
+    // this was head (redundant check, but safe)
+    parent->head = this->next;
+  }
+
+  if (this->next)
+  {
+    this->next->prev = this->prev;
+  }
+  else
+  {
+    // this was tail
+    parent->tail = this->prev;
+  }
+
+  // ---- 2. Insert at head ----
+  this->prev = NULL;
+  this->next = parent->head;
+
+  if (parent->head)
+  {
+    parent->head->prev = this;
+  }
+
+  parent->head = this;
+
+  // If list was empty or had one element
+  if (parent->tail == NULL)
+  {
+    parent->tail = this;
+  }
+}
+
 /* widget.c */
 
 

@@ -27,6 +27,7 @@
 #include "tabs.h"
 #include "common.h"
 #include "config.h"
+#include "window_manager.h"
 
 // TERMINAL
 
@@ -275,6 +276,13 @@ int start()
     }
     if (c == 5){ // Ctrl+E
       file_manager_new();
+      repaint();
+      continue;
+    }
+    if (c == 'a' && insert_mode == 0 && wm != focused){ 
+      //file_manager_new();
+      //repaint();
+      WM_show();
       repaint();
       continue;
     }

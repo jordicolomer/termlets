@@ -112,6 +112,8 @@ int load_mappings_from_file(void) {
             map[(unsigned char)key] = ACTION_RELOAD;
         } else if (strcmp(action, "INSERT_SEMICOLON") == 0) {
             map[(unsigned char)key] = ACTION_INSERT_SEMICOLON;
+        } else if (strcmp(action, "WINDOW_MANAGER") == 0) {
+            map[(unsigned char)key] = ACTION_WINDOW_MANAGER;
         }
     }
 

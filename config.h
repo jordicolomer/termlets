@@ -27,6 +27,7 @@ typedef enum {
 	ACTION_INSERT,
 	ACTION_SEARCH,
 	ACTION_INSERT_SEMICOLON,
+	ACTION_WINDOW_MANAGER,
 } Action;
 
 extern Action * mapping;

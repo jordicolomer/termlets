@@ -103,6 +103,7 @@ void select_tab(Tab * selected_tab){
         Window * frame = selected_tab->parent->win.parent->parent;
         TaskBar_switch_frame(frame);
         tab_select(selected_tab);
+        tab_move_to_front(selected_tab);
     }
 }
 
