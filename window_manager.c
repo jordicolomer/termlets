@@ -93,6 +93,7 @@ Window * WM_create(int left, int right, int top, int bottom, int width, int heig
     w->draw = WM_draw;
     w->send_key = WM_send_key;
     w->send_sequence = WM_send_sequence;
+    w->data = (void*) 1;
     vm_frame->focused = w;
     return vm_frame;
 }
@@ -105,7 +106,6 @@ Window * WM_show(){
         wm = WM_create(20, -1, 20, -1, 90, 20);
         wm->parent = root;
         wm->id = "WindowManager";
-        wm->data = (void*) 1;
         Window_append(root, wm);
     }
     wm->hidden = 0;
