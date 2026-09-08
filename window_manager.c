@@ -52,7 +52,7 @@ void WM_select(Window *self){
             select_tab(tabs);
             self->parent->hidden = 1;
             Window_bring_to_top(self->parent);
-            self->data = (void*) 0;
+            self->data = (void*) 1;
             return;
         }
         tabs = tabs->all_tabs_next;
@@ -105,6 +105,7 @@ Window * WM_show(){
         wm = WM_create(20, -1, 20, -1, 90, 20);
         wm->parent = root;
         wm->id = "WindowManager";
+        wm->data = (void*) 1;
         Window_append(root, wm);
     }
     wm->hidden = 0;
