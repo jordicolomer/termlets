@@ -427,7 +427,6 @@ void EditorWindow_save(EditorWindow *self){
 
     Node *current = self->head;
     while(current != NULL){
-        //LOG_INFO("EditorWindow_save %s", current->line);
         fputs(current->line, file);
         current = current->next;
         if (current != NULL) fputc('\n', file);
@@ -507,7 +506,6 @@ void replace_nonprintable(char *str)
 Node *create_node(const char *text)
 {
     if (text == NULL) {
-        LOG_INFO("create_node: text is NULL!");
         text = "";
     }
     Node *new_node = malloc(sizeof(Node));
@@ -530,31 +528,21 @@ Node *create_node(const char *text)
 
 void append(EditorWindow *self, const char *text)
 {
-    LOG_INFO("append: self=%p text_len=%zu", self, text ? strlen(text) : 0);
     if (self == NULL) {
-        LOG_INFO("append: ERROR self is NULL!");
         return;
     }
-    LOG_INFO("append: creating node");
     Node *new_node = create_node(text);
-    LOG_INFO("append: node created=%p", new_node);
 
     if (self->head == NULL)
     {
-        LOG_INFO("append: setting head");
         self->head = new_node;
         // return;
     }
-    LOG_INFO("append: self->tail=%p", self->tail);
     if (self->tail != NULL) {
-        LOG_INFO("append: linking tail->next");
         self->tail->next = new_node;
     }
-    LOG_INFO("append: setting new_node->prev");
     new_node->prev = self->tail;
-    LOG_INFO("append: updating tail");
     self->tail = new_node;
-    LOG_INFO("append: completed");
 }
 
 #define MAX_LINE 10240
@@ -562,15 +550,11 @@ void append(EditorWindow *self, const char *text)
 
 void load_file(EditorWindow *self, const char *filename)
 {
-    LOG_INFO("load_file: self=%p filename=%s", self, filename);
     if (self == NULL) {
-        LOG_INFO("load_file: ERROR self is NULL!");
         return;
     }
-    LOG_INFO("load_file: calling Window_set_id_from_path");
     Window_set_id_from_path(self, "📝", filename);
 	set_modified(self, 0);
-    LOG_INFO("load_file: opening file");
     FILE *file = fopen(filename, "r");
     if (!file)
     {
@@ -578,7 +562,6 @@ void load_file(EditorWindow *self, const char *filename)
         return;
     }
 
-    LOG_INFO("load_file: reading file");
     char buffer[MAX_LINE];
     //char expanded[MAX_LINE];
 
@@ -604,11 +587,9 @@ void load_file(EditorWindow *self, const char *filename)
         }
         expanded[j] = '\0';*/
 
-        //LOG_INFO("load_file: line %d, length=%zu", line_count, strlen(expanded));
         append(self, buffer);
         self->n_lines++;
     }
-    LOG_INFO("load_file: file read complete, lines=%d", self->n_lines);
     if (self->n_lines == 0){
         append(self, "");
         self->n_lines++;
@@ -628,14 +609,10 @@ void EditorWindow_run_lexer(EditorWindow *self){
 
 void EditorWindow_open_file(EditorWindow *editor_window, char *file_path)
 {
-    LOG_INFO("EditorWindow_open_file: editor_window=%p file_path=%s", editor_window, file_path);
     if (editor_window == NULL) {
-        LOG_INFO("EditorWindow_open_file: ERROR editor_window is NULL!");
         return;
     }
-    LOG_INFO("EditorWindow_open_file: slider=%p", editor_window->slider);
     load_file(editor_window, file_path);
-    LOG_INFO("EditorWindow_open_file: file loaded");
     if (editor_window->slider != NULL) {
         editor_window->slider->id = file_path;
     }
@@ -648,9 +625,7 @@ void EditorWindow_open_file(EditorWindow *editor_window, char *file_path)
     else if (ends_with_ignore_case(file_path, ".js")) editor_window->language = LANG_JS;
     else if (ends_with_ignore_case(file_path, ".ts")) editor_window->language = LANG_TS;
     else if (ends_with_ignore_case(file_path, ".py")) editor_window->language = LANG_PY;
-    LOG_INFO("EditorWindow_open_file: running lexer");
     EditorWindow_run_lexer(editor_window);
-    LOG_INFO("EditorWindow_open_file: completed");
 }
 
 void EditorWindow_reload(EditorWindow *editor_window)
@@ -850,7 +825,6 @@ void EditorWindow_search(EditorWindow *self, char * query){
   int n = ptr.n;
   
   Node * node = EditorWindow_get_line_number(self, n);
-  LOG_INFO("EditorWindow_search %p %d", node, n);
   char *p = strstr(node->line + ptr.ptr, query);
   while (p == NULL && n < self->n_lines-1){
 	n+=1;
@@ -1186,7 +1160,6 @@ void EditorWindow_on_hover(Window * win, int x, int y){
 }
 
 void EditorWindow_on_mouse_up(Window * win){
-  LOG_INFO("EditorWindow_on_mouse_up");
   EditorWindow * self = win;
   self->selecting = 0;
 }
@@ -1238,8 +1211,6 @@ Window *EditorWindow_new_tab()
 {
     EditorWindow *editor = EditorWindow_new();
     Window *slider = slider_new(editor);
-	LOG_INFO("EditorWindow_new_tab editor %p", editor);
-	LOG_INFO("EditorWindow_new_tab slider %p", slider);
     Slider_show_grip(slider);
     editor->slider = slider;
 
@@ -1374,7 +1345,6 @@ Window *Editor_searchbox_enter(EditorFrame *self){
 }
 
 void EditorFrame_search(EditorFrame *self){
-  LOG_INFO("EditorFrame_search");
   self->win.focused = self->search_box;
 }
 
@@ -1401,7 +1371,6 @@ Window *Editor_searchbox(EditorFrame *self)
 void EditorFrame_send_key(struct Window *wg, char c){
   EditorFrame *self = wg;
   Action action = get_mapping()[c];
-  LOG_INFO("EditorFrame_send_key %p %p %d", self->win.focused, self->search_box, c);
   if (action == ACTION_SEARCH){
 	EditorFrame_search(self);
 	return;
@@ -1467,7 +1436,6 @@ Window *Editor_new(int left, int right, int top, int bottom, int width, int heig
 
 void Editor_open_file(EditorFrame *editor_frame, char *file_path)
 {
-    LOG_INFO("Editor_open_file: start, file_path=%s", file_path);
     if (file_path == NULL) {
         LOG_INFO("Editor_open_file: file_path is NULL");
         return;
@@ -1503,19 +1471,14 @@ void Editor_open_file(EditorFrame *editor_frame, char *file_path)
         LOG_INFO("Editor_open_file: moving to next tab");
         tab = tab->next;
     }
-    LOG_INFO("Editor_open_file: checked %d tabs, file not already open", tab_count);
 
     // otherwise load new file
-    LOG_INFO("Editor_open_file: creating new tab");
     Window *slider = tabs_new_tab(editor_frame->tabs);
-    LOG_INFO("Editor_open_file: tab created, slider=%p latestEditorWindow=%p", slider, latestEditorWindow);
     if (latestEditorWindow == NULL) {
         LOG_INFO("Editor_open_file: ERROR latestEditorWindow is NULL!");
         return;
     }
-    LOG_INFO("Editor_open_file: opening file in editor");
     EditorWindow_open_file(latestEditorWindow, file_path);
-    LOG_INFO("Editor_open_file: completed");
 }
 
 void Editor_last_open_file(char *file_path)
@@ -1533,13 +1496,8 @@ void Editor_last_open_file(char *file_path)
         LOG_INFO("Editor_last_open_file: last_frame is still NULL after file_editor_new");
         return;
     }
-    LOG_INFO("Editor_last_open_file: opening %s", file_path);
-    LOG_INFO("Editor_last_open_file: calling Editor_open_file");
     Editor_open_file(last_frame, file_path);
-    LOG_INFO("Editor_last_open_file: Editor_open_file completed");
     // Window_bring_to_bottom(last_frame);
     // root->focused = last_frame;
-    LOG_INFO("Editor_last_open_file: calling TaskBar_switch_frame");
     TaskBar_switch_frame(last_frame);
-    LOG_INFO("Editor_last_open_file: completed");
 }
