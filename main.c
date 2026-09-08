@@ -258,7 +258,8 @@ int start()
     LOG_INFO("read %d", c);
 
     //if (c == 11){ // Ctrl+K
-    if (c == '\t'){ // tab
+    //if (c == '\t'){ // tab
+    if (c == 'm' && insert_mode == 0 && wm != focused){ // m
       //cycle_task();
 	  cycle_tab();
       repaint();
