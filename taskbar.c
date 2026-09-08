@@ -89,10 +89,10 @@ void update_coords(int x, int y){
 }
 
 void file_manager_new(){
-  Window *fm = FileExplorer_new(window_x, -1, window_y, -1, 90, 30);
+  Window *fm = FileExplorer_new(window_x, -1, window_y, -1, root->width/2, 2*root->height/3);
   //window_x += 10;
   //window_y += 3;
-  update_coords(90, 30);
+  update_coords(root->width/2, 2*root->height/3);
   fm->parent = root;
   fm->id = "FileExplorer";
   focused = fm;
@@ -134,8 +134,8 @@ void file_manager_mouse_down(struct Window *w, int x, int y){
 }
 
 void file_editor_new(){
-  Window *fm = Editor_new(window_x, -1, window_y, -1, 80, 30);
-  update_coords(80, 30);
+  Window *fm = Editor_new(window_x, -1, window_y, -1, root->width/2, 2*root->height/3);
+  update_coords(root->width/2, 2*root->height/3);
   //window_x += 10;
   //window_y += 3;
   fm->parent = root;
@@ -198,8 +198,8 @@ void terminal_mouse_down(struct Window *w, int x, int y){
 */
 
 void vterminal_new(){
-  Window *fm = VTermTerminal_new(window_x, -1, window_y, -1, 80, 30);
-  update_coords(80, 30);
+  Window *fm = VTermTerminal_new(window_x, -1, window_y, -1, root->width/2, 2*root->height/3);
+  update_coords(root->width/2, 2*root->height/3);
   //window_x += 10;
   //window_y += 3;
   fm->parent = root;
