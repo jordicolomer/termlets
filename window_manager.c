@@ -103,7 +103,9 @@ Window * wm = NULL;
 Window * WM_show(){
     //LOG_INFO("WM_show");
     if (wm == NULL){
-        wm = WM_create(20, -1, 20, -1, 90, 20);
+        int width = root->width/3;
+        int height = root->height/2;
+        wm = WM_create((root->width - width)/2, -1, (root->height - height)/2, -1, width, height);
         wm->parent = root;
         wm->id = "WindowManager";
         Window_append(root, wm);
