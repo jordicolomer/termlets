@@ -49,7 +49,7 @@ void WM_select(Window *self){
     while (tabs != NULL){
         int bg = 255;
         if (j == selected){
-            select_tab(tabs);
+            select_tab(tabs, 1);
             self->parent->hidden = 1;
             Window_bring_to_top(self->parent);
             self->data = (void*) 1;

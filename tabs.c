@@ -98,12 +98,12 @@ void tab_move_to_front(Tab *self){
     add_to_all_tabs(self);
 }
 
-void select_tab(Tab * selected_tab){
+void select_tab(Tab * selected_tab, int move){
     if (selected_tab != NULL){
         Window * frame = selected_tab->parent->win.parent->parent;
         TaskBar_switch_frame(frame);
         tab_select(selected_tab);
-        tab_move_to_front(selected_tab);
+        if (move == 1) tab_move_to_front(selected_tab);
     }
 }
 
@@ -118,7 +118,7 @@ Window * find_tab(Window * win){
 
 void select_window(Window * win){
   Tabs *tab = (Tabs *) find_tab(win);
-  if (tab != NULL) select_tab(tab->selected_tab);
+  if (tab != NULL) select_tab(tab->selected_tab, 0);
 }
 
 void cycle_tab(){
@@ -126,14 +126,14 @@ void cycle_tab(){
         selected_tab = selected_tab->all_tabs_next;
     }
     if (selected_tab == NULL) selected_tab = all_tabs_head;
-	select_tab(selected_tab);
+	select_tab(selected_tab, 0);
 }
 void cycle_tab_reverse(){
     if (selected_tab != NULL){
         selected_tab = selected_tab->all_tabs_prev;
     }
     if (selected_tab == NULL) selected_tab = all_tabs_tail;
-	select_tab(selected_tab);
+	select_tab(selected_tab, 0);
 }
 
 Window * tabs_new_tab(Tabs *self){
