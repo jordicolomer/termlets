@@ -868,10 +868,10 @@ void EditorWindow_send_key(Window *win, char c)
   EditorWindow *self = win;
   Action action = get_mapping()[c];
 
-  if (action == ACTION_MODE){
+  /*if (action == ACTION_MODE){
 	insert_mode = 1 - insert_mode;
 	return;
-  }
+  }*/
   if (action == ACTION_BACKSPACE){
 	EditorWindow_delete(self);
 	self->selection.n = -1;

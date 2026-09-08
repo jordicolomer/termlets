@@ -287,6 +287,10 @@ int start()
       repaint();
       continue;
     }
+    if (c == ';'){
+      insert_mode = 1 - insert_mode;
+      continue;
+    }
     /*if (insert_mode == 0){
       if (c == 'm'){
         cycle_tab();
