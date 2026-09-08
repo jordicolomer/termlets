@@ -81,10 +81,10 @@ void update_coords(int x, int y){
   window_x += 10;
   window_y += 3;
   if (root->height < window_y + y){
-    window_y = 0;
+    window_y = 1;
   }
   if (root->width < window_x + x){
-    window_x = 0;
+    window_x = 1;
   }
 }
 

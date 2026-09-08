@@ -453,8 +453,10 @@ void Widget_draw(struct Window *current, int hasFocus)
   //                       (current->parent != NULL && strcmp(current->parent->id, "taskBar")==0);
   if (strcmp(current->id, "menu")!=0 && !isTaskBarOrChild){
   //if (strcmp(current->id, "menu")!=0){
-  if (bg >= 232 + 4 && !hasFocus)
-    bg -= 2*framesOverCount;
+	if (bg >= 232 + 4 && !hasFocus){
+	  bg -= 2*framesOverCount;
+	  bg = max(bg, 236);
+	}
     //bg -= 4;
   if (bg == WINDOW_BAR_COLOR && !hasFocus)
   {
