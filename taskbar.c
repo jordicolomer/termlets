@@ -77,10 +77,22 @@ void TaskBar_switch_frame(Window *w){
   focused = w;
 }
 
-void file_manager_new(){
-  Window *fm = FileExplorer_new(window_x, -1, window_y, -1, 90, 30);
+void update_coords(int x, int y){
   window_x += 10;
   window_y += 3;
+  if (root->height < window_y + y){
+    window_y = 0;
+  }
+  if (root->width < window_x + x){
+    window_x = 0;
+  }
+}
+
+void file_manager_new(){
+  Window *fm = FileExplorer_new(window_x, -1, window_y, -1, 90, 30);
+  //window_x += 10;
+  //window_y += 3;
+  update_coords(90, 30);
   fm->parent = root;
   fm->id = "FileExplorer";
   focused = fm;
@@ -123,8 +135,9 @@ void file_manager_mouse_down(struct Window *w, int x, int y){
 
 void file_editor_new(){
   Window *fm = Editor_new(window_x, -1, window_y, -1, 80, 30);
-  window_x += 10;
-  window_y += 3;
+  update_coords(80, 30);
+  //window_x += 10;
+  //window_y += 3;
   fm->parent = root;
   fm->id = "FileEditor";
   focused = fm;
@@ -145,8 +158,9 @@ void file_editor_mouse_down(struct Window *w, int x, int y){
 
 void chess_new(){
   Window *fm = Chess_new(window_x, window_y);
-  window_x += 10;
-  window_y += 3;
+  update_coords(8, 8);
+  //window_x += 10;
+  //window_y += 3;
   fm->parent = root;
   fm->id = "Chess";
   focused = fm;
@@ -185,8 +199,9 @@ void terminal_mouse_down(struct Window *w, int x, int y){
 
 void vterminal_new(){
   Window *fm = VTermTerminal_new(window_x, -1, window_y, -1, 80, 30);
-  window_x += 10;
-  window_y += 3;
+  update_coords(80, 30);
+  //window_x += 10;
+  //window_y += 3;
   fm->parent = root;
   fm->id = "Terminal";
   focused = fm;
@@ -266,4 +281,3 @@ Window * TaskBar_new(){
   //Window *tasks = Window_add_widget(taskBar, 20, -1, -1, 0, 9, 1, , 0, 105);
   
 }
-
