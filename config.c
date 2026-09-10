@@ -6,6 +6,7 @@
 #include "common.h"
 #include "logger.h"
 
+Action * mapping_global;
 Action * mapping;
 Action * mapping_edit;
 Action * mapping_file_manager;
@@ -18,6 +19,7 @@ Action * get_mapping(void) {
 }
 
 Action get_action(char c, WindowType window_type) {
+  if (mapping_global[c] != ACTION_NONE) return mapping_global[c];
   if (window_type == WT_FILE_MANAGER){
 	if (mapping_file_manager[c] != ACTION_NONE) return mapping_file_manager[c];
 	return mapping_edit[c];
@@ -59,6 +61,9 @@ int load_mappings_from_file(void) {
 	Action * map = mapping_edit;
 
     while (fgets(line, sizeof(line), file)) {
+        if (strcmp(line, "[global]\n") == 0){
+            map = mapping_global;
+        }
         if (strcmp(line, "[edit-mode]\n") == 0){
             map = mapping_edit;
         }
@@ -156,6 +161,9 @@ void load_edit_mode_mappings(){
 }
 
 void load_mappings(){
+    mapping_global = malloc(sizeof(Action) * 256);
+    memset(mapping_global, 0, sizeof(Action) * 256);
+	
     mapping = malloc(sizeof(Action) * 256);
     memset(mapping, 0, sizeof(Action) * 256);
 	

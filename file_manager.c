@@ -670,7 +670,7 @@ void FileExplorer_send_key(Window * win, char c)
         }
         return;
     }
-    if (c == ACTION_EDIT){
+    if (action == ACTION_EDIT){
         FileItemWindow * selected = self->selected;
         //item_clicked(selected, 0, 0);
         if (selected != NULL) {
