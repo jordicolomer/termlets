@@ -261,35 +261,39 @@ int start()
 
     //if (c == 11){ // Ctrl+K
     //if (c == '\t'){ // tab
-    if (c == 'm' && insert_mode == 0 && wm != focused){ // m
-      //cycle_task();
-	  cycle_tab();
-      repaint();
-      continue;
-    }
-    if (c == 96){ // Ctrl+space
+    //if (c == 'm' && insert_mode == 0 && wm != focused){ // m
+	if (wm != focused){
+	  if (action == ACTION_PREVIOUS_TAB){ // m
+		//cycle_task();
+		//cycle_tab();
+		select_tab(all_tabs_head->all_tabs_next, 1);
+		repaint();
+		continue;
+	  }
+	  if (action == ACTION_WINDOW_MANAGER){ 
+		//file_manager_new();
+		//repaint();
+		WM_show();
+		repaint();
+		continue;
+	  }
+	}
+    /*if (c == 96){ // Ctrl+space
       cycle_task();
       repaint();
       continue;
-    }
-    if (c == 20){ // Ctrl+T
+	  }*/
+    if (action == ACTION_TERMINAL){ // Ctrl+T
       vterminal_new();
       repaint();
       continue;
     }
-    if (c == 5){ // Ctrl+E
+    if (action == ACTION_FILE_MANAGER){ // Ctrl+E
       file_manager_new();
       repaint();
       continue;
     }
-    if (c == 'a' && insert_mode == 0 && wm != focused){ 
-      //file_manager_new();
-      //repaint();
-      WM_show();
-      repaint();
-      continue;
-    }
-    if (c == ';'){
+    if (action == ACTION_SWITCH_MODE){
       insert_mode = 1 - insert_mode;
       continue;
     }
@@ -305,9 +309,9 @@ int start()
         continue;
       }
 	}*/
-    if (c == 0){ // Ctrl+space then insert tab
+    /*if (action == ACTION_INSERT_TAB){ // Ctrl+space then insert tab
 	  c = '\t';
-    }
+	  }*/
 
     if (c != 27){
       if (focused_cursor != NULL) {

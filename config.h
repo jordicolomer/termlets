@@ -7,7 +7,7 @@
     X(RIGHT) \
     X(NEXT_WORD) \
     X(PREV_WORD) \
-    X(MODE) \
+    X(SWITCH_MODE) \
     X(BACKSPACE) \
     X(ENTER) \
     X(START_OF_LINE) \
@@ -27,7 +27,10 @@
     X(INSERT) \
     X(SEARCH) \
     X(INSERT_SEMICOLON) \
-    X(WINDOW_MANAGER)
+    X(WINDOW_MANAGER) \
+    X(FILE_MANAGER) \
+    X(TERMINAL) \
+    X(PREVIOUS_TAB)
 
 #define MAKE_ENUM(name) ACTION_##name,
 

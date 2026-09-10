@@ -727,7 +727,7 @@ void vterm_send_key(struct Window *wg, char c)
       return;
     }*/
     //if (c == ';')
-    if (action == ACTION_MODE)
+    if (action == ACTION_SWITCH_MODE)
     {
         insert_mode = 1 - insert_mode;
         return;
