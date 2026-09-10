@@ -843,11 +843,11 @@ void vterm_send_sequence(struct Window *wg, const char *seq, int len)
     }
 
     /* parse escape sequence and convert to libvterm keyboard input */
-    if (len >= 3 && seq[0] == 27 && seq[1] == '[') {
+    if (len >= 2 && seq[0] == '[') {
         /* standard CSI sequence */
         VTermKey key = VTERM_KEY_NONE;
 
-        switch (seq[2]) {
+        switch (seq[1]) {
             case 'A': key = VTERM_KEY_UP; break;
             case 'B': key = VTERM_KEY_DOWN; break;
             case 'C': key = VTERM_KEY_RIGHT; break;
@@ -877,6 +877,8 @@ void vterm_send_sequence(struct Window *wg, const char *seq, int len)
     }
 
     /* for non-escape sequences or unhandled ones, write raw */
+	char buf = 27;
+    write(terminal->master, &buf, 1);
     write(terminal->master, seq, len);
 }
 
