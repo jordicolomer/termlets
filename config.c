@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <limits.h>
+#include <ctype.h>
 #include "config.h"
 #include "common.h"
 #include "logger.h"
@@ -39,6 +40,30 @@ Action action_from_string(const char *name)
     }
 
     return ACTION_NONE;
+}
+
+
+int key_string_to_int(const char *key)
+{
+    if (!key)
+        return -1;
+
+    if (strncmp(key, "Ctrl+", 5) == 0 || strncmp(key, "ctrl+", 5) == 0) {
+        char c = (char)toupper((unsigned char)key[5]);
+
+        if (c >= 'A' && c <= 'Z')
+            return c - 'A' + 1;
+
+        if (c == '@') return 0;
+        if (c == '[') return 27;
+        if (c == '\\') return 28;
+        if (c == ']') return 29;
+        if (c == '^') return 30;
+        if (c == '_') return 31;
+        if (c == '?') return 127;
+    }
+
+    return -1;
 }
 
 int load_mappings_from_file(void) {
@@ -90,7 +115,10 @@ int load_mappings_from_file(void) {
 
 		key = atoi(value);
 		if (key == 0){
-            key = (unsigned char)value[0];
+		  key = key_string_to_int(value);
+		  if (key == -1){
+			key = (unsigned char)value[0];
+		  }
 		}
         /*if (strlen(value) == 1) {
             // Single character: d, f, ;, s, g, etc.
