@@ -15,6 +15,16 @@ Action * get_mapping(void) {
   return mapping_edit;
 }
 
+Action action_from_string(const char *name)
+{
+    for (size_t i = 0; i < sizeof(action_names) / sizeof(action_names[0]); i++) {
+        if (strcmp(name, action_names[i]) == 0)
+            return (Action)i;
+    }
+
+    return ACTION_NONE;
+}
+
 int load_mappings_from_file(void) {
     const char *home = getenv("HOME");
     if (!home) return 1;
@@ -66,55 +76,7 @@ int load_mappings_from_file(void) {
 			LOG_INFO("atoi: %d", key);
 		}*/
 
-        if (strcmp(action, "LEFT") == 0) {
-            map[(unsigned char)key] = ACTION_LEFT;
-        } else if (strcmp(action, "RIGHT") == 0) {
-            map[(unsigned char)key] = ACTION_RIGHT;
-        } else if (strcmp(action, "NEXT_WORD") == 0) {
-            map[(unsigned char)key] = ACTION_NEXT_WORD;
-        } else if (strcmp(action, "PREV_WORD") == 0) {
-            map[(unsigned char)key] = ACTION_PREV_WORD;
-        } else if (strcmp(action, "MODE") == 0) {
-            map[(unsigned char)key] = ACTION_MODE;
-        } else if (strcmp(action, "BACKSPACE") == 0) {
-            map[(unsigned char)key] = ACTION_BACKSPACE;
-        } else if (strcmp(action, "ENTER") == 0) {
-            map[(unsigned char)key] = ACTION_ENTER;
-        } else if (strcmp(action, "START_OF_LINE") == 0) {
-            map[(unsigned char)key] = ACTION_START_OF_LINE;
-        } else if (strcmp(action, "END_OF_LINE") == 0) {
-            map[(unsigned char)key] = ACTION_END_OF_LINE;
-        } else if (strcmp(action, "UP") == 0) {
-            map[(unsigned char)key] = ACTION_UP;
-        } else if (strcmp(action, "DOWN") == 0) {
-            map[(unsigned char)key] = ACTION_DOWN;
-        } else if (strcmp(action, "PAGE_UP") == 0) {
-            map[(unsigned char)key] = ACTION_PAGE_UP;
-        } else if (strcmp(action, "PAGE_DOWN") == 0) {
-            map[(unsigned char)key] = ACTION_PAGE_DOWN;
-        } else if (strcmp(action, "FIRST_LINE") == 0) {
-            map[(unsigned char)key] = ACTION_FIRST_LINE;
-        } else if (strcmp(action, "LAST_LINE") == 0) {
-            map[(unsigned char)key] = ACTION_LAST_LINE;
-        } else if (strcmp(action, "START_SELECTION") == 0) {
-            map[(unsigned char)key] = ACTION_START_SELECTION;
-        } else if (strcmp(action, "COPY") == 0) {
-            map[(unsigned char)key] = ACTION_COPY;
-        } else if (strcmp(action, "PASTE") == 0) {
-            map[(unsigned char)key] = ACTION_PASTE;
-        } else if (strcmp(action, "CUT") == 0) {
-            map[(unsigned char)key] = ACTION_CUT;
-        } else if (strcmp(action, "SAVE") == 0) {
-            map[(unsigned char)key] = ACTION_SAVE;
-        } else if (strcmp(action, "SEARCH") == 0) {
-            map[(unsigned char)key] = ACTION_SEARCH;
-        } else if (strcmp(action, "RELOAD") == 0) {
-            map[(unsigned char)key] = ACTION_RELOAD;
-        } else if (strcmp(action, "INSERT_SEMICOLON") == 0) {
-            map[(unsigned char)key] = ACTION_INSERT_SEMICOLON;
-        } else if (strcmp(action, "WINDOW_MANAGER") == 0) {
-            map[(unsigned char)key] = ACTION_WINDOW_MANAGER;
-        }
+		map[(unsigned char)key] = action_from_string(action);
     }
 
     fclose(file);

@@ -1,34 +1,49 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+#define ACTIONS(X) \
+    X(NONE) \
+    X(LEFT) \
+    X(RIGHT) \
+    X(NEXT_WORD) \
+    X(PREV_WORD) \
+    X(MODE) \
+    X(BACKSPACE) \
+    X(ENTER) \
+    X(START_OF_LINE) \
+    X(END_OF_LINE) \
+    X(UP) \
+    X(DOWN) \
+    X(PAGE_UP) \
+    X(PAGE_DOWN) \
+    X(FIRST_LINE) \
+    X(LAST_LINE) \
+    X(START_SELECTION) \
+    X(COPY) \
+    X(PASTE) \
+    X(CUT) \
+    X(SAVE) \
+    X(RELOAD) \
+    X(INSERT) \
+    X(SEARCH) \
+    X(INSERT_SEMICOLON) \
+    X(WINDOW_MANAGER)
+
+#define MAKE_ENUM(name) ACTION_##name,
+
 typedef enum {
-    ACTION_NONE,
-    ACTION_LEFT,
-    ACTION_RIGHT,
-    ACTION_NEXT_WORD,
-    ACTION_PREV_WORD,
-    ACTION_MODE,
-    ACTION_BACKSPACE,
-    ACTION_ENTER,
-    ACTION_START_OF_LINE,
-    ACTION_END_OF_LINE,
-    ACTION_UP,
-    ACTION_DOWN,
-    ACTION_PAGE_UP,
-    ACTION_PAGE_DOWN,
-    ACTION_FIRST_LINE,
-    ACTION_LAST_LINE,
-    ACTION_START_SELECTION,
-    ACTION_COPY,
-    ACTION_PASTE,
-    ACTION_CUT,
-    ACTION_SAVE,
-    ACTION_RELOAD,
-	ACTION_INSERT,
-	ACTION_SEARCH,
-	ACTION_INSERT_SEMICOLON,
-	ACTION_WINDOW_MANAGER,
+    ACTIONS(MAKE_ENUM)
 } Action;
+
+#undef MAKE_ENUM
+
+#define MAKE_ACTION_STRING(name) [ACTION_##name] = #name,
+
+static const char *action_names[] = {
+    ACTIONS(MAKE_ACTION_STRING)
+};
+
+#undef MAKE_ACTION_STRING
 
 extern Action * mapping;
 extern char *config_file;

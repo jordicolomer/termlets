@@ -256,6 +256,8 @@ int start()
       continue;
     }
     LOG_INFO("read %d", c);
+	Action action = get_mapping()[c];
+
 
     //if (c == 11){ // Ctrl+K
     //if (c == '\t'){ // tab
