@@ -256,7 +256,8 @@ int start()
       continue;
     }
     LOG_INFO("read %d", c);
-	Action action = get_mapping()[c];
+	//Action action = get_mapping()[c];
+	Action action = get_action(c, WT_NONE);
 
 
     //if (c == 11){ // Ctrl+K

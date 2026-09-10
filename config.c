@@ -8,11 +8,25 @@
 
 Action * mapping;
 Action * mapping_edit;
+Action * mapping_file_manager;
+Action * mapping_tabs;
 char *config_file = NULL;
 
 Action * get_mapping(void) {
   if (insert_mode == 1) return mapping;
   return mapping_edit;
+}
+
+Action get_action(char c, WindowType window_type) {
+  if (window_type == WT_FILE_MANAGER){
+	if (mapping_file_manager[c] != ACTION_NONE) return mapping_file_manager[c];
+	return mapping_edit[c];
+  }
+  if (window_type == WT_TABS){
+	return mapping_tabs[c];
+  }
+  if (insert_mode == 1) return mapping[c];
+  return mapping_edit[c];
 }
 
 Action action_from_string(const char *name)
@@ -50,6 +64,12 @@ int load_mappings_from_file(void) {
         }
         if (strcmp(line, "[insert-mode]\n") == 0){
             map = mapping;
+        }
+        if (strcmp(line, "[file-manager]\n") == 0){
+            map = mapping_file_manager;
+        }
+        if (strcmp(line, "[tabs]\n") == 0){
+            map = mapping_tabs;
         }
         if (sscanf(line, " %63[^=] = %63s", action, value) != 2)
             continue;
@@ -137,9 +157,17 @@ void load_edit_mode_mappings(){
 
 void load_mappings(){
     mapping = malloc(sizeof(Action) * 256);
-    memset(mapping, 0, sizeof(Action) * 256);  // Zero-initialize to prevent garbage values
+    memset(mapping, 0, sizeof(Action) * 256);
+	
     mapping_edit = malloc(sizeof(Action) * 256);
-    memset(mapping_edit, 0, sizeof(Action) * 256);  // Zero-initialize to prevent garbage values
+    memset(mapping_edit, 0, sizeof(Action) * 256);
+	
+    mapping_file_manager = malloc(sizeof(Action) * 256);
+    memset(mapping_file_manager, 0, sizeof(Action) * 256);
+	
+    mapping_tabs = malloc(sizeof(Action) * 256);
+    memset(mapping_tabs, 0, sizeof(Action) * 256);
+	
     if (load_mappings_from_file()){
         load_default_mappings();
 		load_edit_mode_mappings();

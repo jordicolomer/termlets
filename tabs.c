@@ -6,6 +6,7 @@
 #include "buffer.h"
 #include "common.h"
 #include "taskbar.h"
+#include "config.h"
 
 //#define SELECTED_COLOR 33
 Tab * selected_tab;
@@ -214,12 +215,15 @@ void tabs_send_key(struct Window *wg, char c)
     Tabs *mytab = (Tabs *) wg->data;
     tab_move_to_front(mytab->selected_tab);
 
+	Action action = get_action(c, WT_TABS);
+
     /*if (c == 14){ // Ctrl+N
         Tabs *mytab = (Tabs *) wg->data;
         tabs_new_tab(mytab);
         return;
 		}*/
-    if (c == 12){ // Ctrl+L
+    //if (c == 12){ // Ctrl+L
+	if (action == ACTION_NEXT_TAB){ // Ctrl+L
         Tabs *mytab = (Tabs *) wg->data;
         tabs_cycle(mytab);
         return;

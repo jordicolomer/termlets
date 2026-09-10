@@ -30,7 +30,11 @@
     X(WINDOW_MANAGER) \
     X(FILE_MANAGER) \
     X(TERMINAL) \
-    X(PREVIOUS_TAB)
+    X(PREVIOUS_TAB) \
+    X(PARENT_DIRECTORY) \
+    X(RENAME) \
+    X(EDIT) \
+    X(NEXT_TAB)
 
 #define MAKE_ENUM(name) ACTION_##name,
 
@@ -48,10 +52,14 @@ static const char *action_names[] = {
 
 #undef MAKE_ACTION_STRING
 
+typedef enum { WT_NONE, WT_FILE_MANAGER, WT_TABS } WindowType;
+
 extern Action * mapping;
+extern Action * mapping_edit;
 extern char *config_file;
 
 void load_mappings();
 Action * get_mapping();
+Action get_action(char c, WindowType window_type);
 
 #endif
