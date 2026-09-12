@@ -758,6 +758,7 @@ void EditorWindow_shift_left(EditorWindow *self){
 
 void EditorWindow_next_word(EditorWindow *self){
   int state = 0;
+  self->selection.n = -1;
   while (1){
   Node * node = EditorWindow_get_line_number(self, self->cursor.n);
   if (node->line[self->cursor.ptr] != 0){
@@ -769,6 +770,7 @@ void EditorWindow_next_word(EditorWindow *self){
 	} else if (state == 1){
 	  if (cp == ' ' || cp == '\t') {
 		_EditorWindow_left(self);
+		EditorWindow_make_cursor_visible(self);
 		return;
 	  }
 	}
@@ -779,15 +781,18 @@ void EditorWindow_next_word(EditorWindow *self){
 	  Node * node = EditorWindow_get_line_number(self, self->cursor.n);
 	  self->cursor.ptr = 0;
 	} else {
+	  EditorWindow_make_cursor_visible(self);
 	  return;
 	}
   }
   }
+  EditorWindow_make_cursor_visible(self);
 }
 
 
 void EditorWindow_prev_word(EditorWindow *self){
   int state = 0;
+  self->selection.n = -1;
   while (1){
   if (self->cursor.x == 0){
 	if (self->cursor.n > 0){
@@ -796,6 +801,7 @@ void EditorWindow_prev_word(EditorWindow *self){
 	  self->cursor.x = node->width;
 	  self->cursor.ptr = node->length;
 	} else {
+	  EditorWindow_make_cursor_visible(self);
 	  return;
 	}
   } else {	
@@ -809,11 +815,13 @@ void EditorWindow_prev_word(EditorWindow *self){
 	} else if (state == 1){
 	  if (cp == ' ' || cp == '\t') {
 		_EditorWindow_right(self);
+		EditorWindow_make_cursor_visible(self);
 		return;
 	  }
 	}
   }
   }
+  EditorWindow_make_cursor_visible(self);
 }
 
 void EditorWindow_search(EditorWindow *self, char * query){
