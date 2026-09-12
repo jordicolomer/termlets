@@ -564,8 +564,21 @@ void FileExplorer_terminal(ExplorerWindow * self){
   vterminal_new();
 }
 
+void FileExplorer_up(ExplorerWindow * self){
+  if (self->selected != NULL && self->selected->win.prev != NULL)
+	FileExplorer_select_single_item(self, (FileItemWindow *)self->selected->win.prev);
+}
+
+void FileExplorer_down(ExplorerWindow * self){
+  if (self->selected != NULL && self->selected->win.next != NULL)
+	FileExplorer_select_single_item(self, (FileItemWindow *)self->selected->win.next);
+}
+
 void FileExplorer_send_sequence(struct Window *win, const char *seq, int len){
-  LOG_INFO("FileExplorer_send_sequence: %s", seq);
+  //LOG_INFO("FileExplorer_send_sequence: %s", seq);
+  ExplorerWindow *self = win;
+  if (strcmp(seq, "[A") == 0){ FileExplorer_up(self); return; }
+  if (strcmp(seq, "[B") == 0){ FileExplorer_down(self); return; }
 }
 
 void FileExplorer_scroll_wheel_down(struct Window *w){
@@ -633,15 +646,17 @@ void FileExplorer_send_key(Window * win, char c)
 	Action action = get_action(c, WT_FILE_MANAGER);
 
     if (action == ACTION_DOWN){
+	  FileExplorer_down(self);
 	  //if (c == 106){ // j
-        if (self->selected != NULL && self->selected->win.next != NULL)
-            FileExplorer_select_single_item(self, (FileItemWindow *)self->selected->win.next);
+	  //if (self->selected != NULL && self->selected->win.next != NULL)
+	  //FileExplorer_select_single_item(self, (FileItemWindow *)self->selected->win.next);
         return;
     }
     //if (c == 107){ // k
 	if (action == ACTION_UP){
-        if (self->selected != NULL && self->selected->win.prev != NULL)
-            FileExplorer_select_single_item(self, (FileItemWindow *)self->selected->win.prev);
+	  FileExplorer_up(self);
+	  //if (self->selected != NULL && self->selected->win.prev != NULL)
+	  //    FileExplorer_select_single_item(self, (FileItemWindow *)self->selected->win.prev);
         return;
     }
     if (action == ACTION_PAGE_UP){
