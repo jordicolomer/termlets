@@ -73,75 +73,6 @@ int myatoi(char * c){
   return ret;
 }
 
-int load_mappings_from_file(void) {
-    const char *home = getenv("HOME");
-    if (!home) return 1;
-
-    char path[PATH_MAX];
-	if (config_file == NULL){
-	  snprintf(path, sizeof(path), "%s/.config/termlets/mapping.conf", home);
-	  config_file = path;
-	}
-
-    FILE *file = fopen(config_file, "r");
-    if (!file) return 1;
-
-    char line[256];
-    char action[64];
-    char value[64];
-
-	Action * map = mapping_edit;
-
-    while (fgets(line, sizeof(line), file)) {
-        if (strcmp(line, "[global]\n") == 0){
-            map = mapping_global;
-        }
-        if (strcmp(line, "[edit-mode]\n") == 0){
-            map = mapping_edit;
-        }
-        if (strcmp(line, "[insert-mode]\n") == 0){
-            map = mapping;
-        }
-        if (strcmp(line, "[file-manager]\n") == 0){
-            map = mapping_file_manager;
-        }
-        if (strcmp(line, "[tabs]\n") == 0){
-            map = mapping_tabs;
-        }
-        if (sscanf(line, " %63[^=] = %63s", action, value) != 2)
-            continue;
-
-        // Remove trailing whitespace from action
-        char *end = action + strlen(action) - 1;
-        while (end >= action && (*end == ' ' || *end == '\t')) {
-            *end = '\0';
-            end--;
-        }
-
-        int key;
-
-		key = myatoi(value);
-		if (key == -1){
-		  key = key_string_to_int(value);
-		  if (key == -1){
-			key = (unsigned char)value[0];
-		  }
-		}
-        /*if (strlen(value) == 1) {
-            // Single character: d, f, ;, s, g, etc.
-            key = (unsigned char)value[0];
-        } else {
-            // Integer: 8, 13, etc.
-            key = atoi(value);
-			LOG_INFO("atoi: %d", key);
-		}*/
-
-		map[(unsigned char)key] = action_from_string(action);
-    }
-
-    fclose(file);
-    return 0;
-}
 
 int load_mappings_from_buffer(const char *data, size_t len) {
     size_t pos = 0;
@@ -272,6 +203,57 @@ int load_mappings_from_buffer(const char *data, size_t len) {
     return 0;
 }
 
+char *load_config(const char *filename, size_t *size)
+{
+    FILE *file = fopen(filename, "rb");
+    if (!file)
+        return NULL;
+
+    fseek(file, 0, SEEK_END);
+    long file_size = ftell(file);
+    fseek(file, 0, SEEK_SET);
+
+    if (file_size < 0) {
+        fclose(file);
+        return NULL;
+    }
+
+    char *data = malloc((size_t)file_size + 1);
+    if (!data) {
+        fclose(file);
+        return NULL;
+    }
+
+    size_t bytes_read = fread(data, 1, (size_t)file_size, file);
+    fclose(file);
+
+    if (bytes_read != (size_t)file_size) {
+        free(data);
+        return NULL;
+    }
+
+    data[file_size] = '\0';
+
+    if (size)
+        *size = (size_t)file_size;
+
+    return data;
+}
+
+int load_mappings_from_file(void) {
+  size_t size;
+    const char *home = getenv("HOME");
+    if (!home) return 1;
+
+    char path[PATH_MAX];
+	if (config_file == NULL){
+	  snprintf(path, sizeof(path), "%s/.config/termlets/mapping.conf", home);
+	  config_file = path;
+	}
+
+  char * buf = load_config(config_file, &size);
+  load_mappings_from_buffer(buf, size);
+}
 void load_default_mappings(){
     mapping[6] = ACTION_SEARCH;   // control+f
     mapping[8] = ACTION_BACKSPACE;   // control+h
