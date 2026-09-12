@@ -34,7 +34,8 @@
     X(PARENT_DIRECTORY) \
     X(RENAME) \
     X(EDIT) \
-    X(NEXT_TAB)
+    X(NEXT_TAB) \
+    X(NEXT_WINDOW)
 
 #define MAKE_ENUM(name) ACTION_##name,
 

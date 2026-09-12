@@ -265,6 +265,12 @@ int start()
     //if (c == '\t'){ // tab
     //if (c == 'm' && insert_mode == 0 && wm != focused){ // m
 	if (wm != focused){
+	  if (action == ACTION_NEXT_WINDOW){
+		cycle_task();
+		//cycle_tab();
+		repaint();
+		continue;
+	  }
 	  if (action == ACTION_PREVIOUS_TAB){ // m
 		//cycle_task();
 		//cycle_tab();
