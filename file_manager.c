@@ -647,17 +647,12 @@ void FileExplorer_send_key(Window * win, char c)
 
     if (action == ACTION_DOWN){
 	  FileExplorer_down(self);
-	  //if (c == 106){ // j
-	  //if (self->selected != NULL && self->selected->win.next != NULL)
-	  //FileExplorer_select_single_item(self, (FileItemWindow *)self->selected->win.next);
-        return;
+	  return;
     }
     //if (c == 107){ // k
 	if (action == ACTION_UP){
 	  FileExplorer_up(self);
-	  //if (self->selected != NULL && self->selected->win.prev != NULL)
-	  //    FileExplorer_select_single_item(self, (FileItemWindow *)self->selected->win.prev);
-        return;
+	  return;
     }
     if (action == ACTION_PAGE_UP){
 	  //if (c == 117){ // u

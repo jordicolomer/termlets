@@ -866,7 +866,9 @@ void EditorWindow_send_sequence(Window *win, const char *seq, int len){
 void EditorWindow_send_key(Window *win, char c)
 {
   EditorWindow *self = win;
-  Action action = get_mapping()[c];
+  //Action action = get_mapping()[c];
+  Action action = get_action(c, WT_EDITOR);
+  LOG_INFO("EditorWindow_send_key %d %d", c, action);
 
   /*if (action == ACTION_MODE){
 	insert_mode = 1 - insert_mode;
@@ -980,11 +982,11 @@ void EditorWindow_send_key(Window *win, char c)
 	EditorWindow_search(self);
 	return;
 	}*/
-  //if (insert_mode == 1){
+  if (insert_mode == 1){
 	self->selection.n = -1;
 	EditorWindow_insert(self, c);
 	return;
-  //}
+  }
 }
 
 void EditorWindow_draw_selection(struct Window *w, EditorPointer p1, EditorPointer p2, int color)
