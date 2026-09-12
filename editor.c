@@ -991,7 +991,7 @@ void EditorWindow_send_key(Window *win, char c)
 	EditorWindow_search(self);
 	return;
 	}*/
-  if (insert_mode == 1){
+  if (insert_mode == 1 && (c > 31 || c == '\t') ){
 	self->selection.n = -1;
 	EditorWindow_insert(self, c);
 	return;
