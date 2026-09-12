@@ -1218,7 +1218,7 @@ EditorWindow *EditorWindow_new()
     return self;
 }
 
-Window *EditorWindow_new_tab()
+Window *EditorWindow_new_tab(Tabs *self)
 {
     EditorWindow *editor = EditorWindow_new();
     Window *slider = slider_new(editor);
@@ -1422,7 +1422,7 @@ Window *Editor_new(int left, int right, int top, int bottom, int width, int heig
     frame->send_key = EditorFrame_send_key;
     frame->send_sequence = EditorFrame_send_sequence;
 
-    Window *tabs = Tab_new((Window * (*)(void)) EditorWindow_new_tab, 0);
+    Window *tabs = Tab_new((Window * (*)(Tabs *self)) EditorWindow_new_tab, 0);
     editor_frame->tabs = tabs;
     tabs->top = 2;
     tabs->bottom = 0;

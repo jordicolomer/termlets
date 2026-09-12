@@ -579,7 +579,7 @@ void FileExplorer_edit(ExplorerWindow * self){
 
 void FileExplorer_terminal(ExplorerWindow * self){
   //Editor_last_open_file(self->selected->path);
-  vterminal_new();
+  vterminal_new(self->path);
 }
 
 void FileExplorer_up(ExplorerWindow * self){
@@ -738,7 +738,7 @@ void FileExplorer_shortcut_set_target(ExplorerWindow * self, Window * shortcut, 
   shortcut->on_mouse_down = Window_execute_lambda;
 }
 
-ExplorerWindow *FileExplorer_file_list(){
+ExplorerWindow *FileExplorer_file_list(Tabs *self){
   ExplorerWindow *w = malloc(sizeof *w);
   memset(w, 0, sizeof *w);  // Zero-initialize to prevent garbage values
   Window_init(w, -1, -1, -1, -1, -1, -1);
@@ -1120,7 +1120,7 @@ Window *FileExplorer_new(int left, int right, int top, int bottom, int width, in
   Window * toolbar = FileExplorer_toolbar();
   Window_append(w, toolbar);*/
 
-  Window *tabs = Tab_new((Window *(*)(void))FileExplorer_file_list, 1);
+  Window *tabs = Tab_new((Window *(*)(Tabs *self))FileExplorer_file_list, 1);
   tabs->top = 2;
   tabs->bottom = 0;
   tabs->left = 0;

@@ -556,7 +556,9 @@ Window * Window_get_frame(struct Window *w)
 {
 	Window *current = w;
 	while(current->parent != NULL){
+	  LOG_INFO("Window_get_frame %p %s", current, current->id);
 		current = current->parent;
 		if (current->parent == root) return current;
 	}
+	return current;
 }

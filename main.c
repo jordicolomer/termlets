@@ -292,7 +292,7 @@ int start()
       continue;
 	  }*/
     if (action == ACTION_TERMINAL){ // Ctrl+T
-      vterminal_new();
+      vterminal_new(NULL);
       repaint();
       continue;
     }

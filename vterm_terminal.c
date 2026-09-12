@@ -903,7 +903,7 @@ static int cb_sb_pushline(int cols, const VTermScreenCell *cells, void *user)
 
 
 
-TerminalWindow *VTermTerminal_window(int initial_rows, int initial_cols)
+TerminalWindow *VTermTerminal_window(int initial_rows, int initial_cols, char * cwd)
 {
     TerminalWindow *terminal = malloc(sizeof *terminal);
     memset(terminal, 0, sizeof *terminal);  // Zero-initialize to prevent garbage values
@@ -956,6 +956,7 @@ TerminalWindow *VTermTerminal_window(int initial_rows, int initial_cols)
         /* child process */
         /* set TERM so programs like mc know what terminal type we are */
         setenv("TERM", "xterm-256color", 1);
+		if (cwd != NULL) chdir(cwd);
         execl("/bin/sh", "sh", NULL);
         exit(1);
     }
@@ -976,8 +977,12 @@ TerminalWindow *VTermTerminal_window(int initial_rows, int initial_cols)
 }
 
 
-Window *VTermTerminal_callback(){
-    TerminalWindow *terminal = VTermTerminal_window(24, 80);
+Window *VTermTerminal_callback(Tabs *self){
+  TerminalFrame *frame = Window_get_frame(self->tabs);
+  //LOG_INFO("VTermTerminal_callback %p %p %s", self->tabs, frame, frame->cwd);
+
+  TerminalWindow *terminal = VTermTerminal_window(24, 80, frame->cwd);
+  //TerminalWindow *terminal = VTermTerminal_window(24, 80, NULL);
     Window *slider = slider_new(terminal);
     terminal->slider = slider;
     //slider->id = terminal->cwd;
@@ -1062,16 +1067,18 @@ Window *VTermTerminal_toolbar(TerminalFrame *self)
     return toolbar;
 }
 
-Window *VTermTerminal_new(int left, int right, int top, int bottom, int width, int height)
+Window *VTermTerminal_new(int left, int right, int top, int bottom, int width, int height, char * cwd)
 {
     TerminalFrame *frame = malloc(sizeof *frame);
     memset(frame, 0, sizeof *frame);  // Zero-initialize to prevent garbage values
     Window *w = Frame_init(frame, left, right, top, bottom, width, height, NULL, 1);
+	frame->win.id = "TerminalFrame";
+	frame->cwd = cwd;
     //frame->send_key = vterm_send_key;
     //frame->send_sequence = vterm_send_sequence;
 
     // tabs
-    Window *tabs = Tab_new(VTermTerminal_callback, 1);
+    Window *tabs = Tab_new(VTermTerminal_callback, 0);
     frame->tabs = tabs;
     tabs->top = 2;
     tabs->bottom = 0;
@@ -1079,6 +1086,7 @@ Window *VTermTerminal_new(int left, int right, int top, int bottom, int width, i
     tabs->right = 0;
     Window_append(w, tabs);
     frame->win.focused = tabs;
+	tabs_new_tab(tabs->data);
 
     Window *toolbar = VTermTerminal_toolbar(frame);
     Window_append(w, toolbar);
@@ -1102,9 +1110,9 @@ Window *VTermTerminal_new(int left, int right, int top, int bottom, int width, i
     return w;
 }
 
-Window *VTermTerminal_callback() {
+/*Window *VTermTerminal_callback() {
     return VTermTerminal_new(0, 0, 0, 0, 80, 24);
-}
+	}*/
 
 /* PTY monitoring thread stubs for Windows */
 void start_pty_monitor_thread() {

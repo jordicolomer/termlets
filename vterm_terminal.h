@@ -58,10 +58,11 @@ typedef struct TerminalWindow {
 typedef struct TerminalFrame {
     struct Window win;
     Window *tabs;
+    char * cwd;
 } TerminalFrame;
 
-Window *VTermTerminal_new(int left, int right, int top, int bottom, int width, int height);
-TerminalWindow *VTermTerminal_window(int initial_rows, int initial_cols);
+Window *VTermTerminal_new(int left, int right, int top, int bottom, int width, int height, char * cwd);
+TerminalWindow *VTermTerminal_window(int initial_rows, int initial_cols, char * cwd);
 
 /* PTY monitoring thread functions */
 void start_pty_monitor_thread();

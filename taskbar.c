@@ -197,8 +197,8 @@ void terminal_mouse_down(struct Window *w, int x, int y){
 }
 */
 
-void vterminal_new(){
-  Window *fm = VTermTerminal_new(window_x, -1, window_y, -1, root->width/2, 2*root->height/3);
+void vterminal_new(char * cwd){
+  Window *fm = VTermTerminal_new(window_x, -1, window_y, -1, root->width/2, 2*root->height/3, cwd);
   update_coords(root->width/2, 2*root->height/3);
   //window_x += 10;
   //window_y += 3;
@@ -216,7 +216,7 @@ void vterminal_mouse_down(struct Window *w, int x, int y){
   startMenu->hidden = 1;
   open_menu = NULL;
 
-  vterminal_new();
+  vterminal_new(NULL);
 }
 
 void quit_mouse_down(struct Window *w, int x, int y){

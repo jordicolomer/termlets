@@ -142,7 +142,7 @@ Window * tabs_new_tab(Tabs *self){
     if (self->selected_tab != NULL) prev_tab_label = self->selected_tab->tab_label;
     //change_color_normal(self->selected_tab->tab_label, 0, 0);
 
-    Window *child = self->callback();
+    Window *child = self->callback(self);
     child->left = 0;
     child->right = 0;
     child->top = 1;

@@ -3,10 +3,10 @@
 
 #include "window.h"
 
-typedef Window* (*tab_create_callback)(void);
-
 typedef struct Tabs Tabs;
 typedef struct Tab Tab;
+
+typedef Window* (*tab_create_callback)(Tabs *self);
 
 typedef struct Tab {
     Tabs * parent;
