@@ -62,7 +62,8 @@ void WM_select(Window *self){
 
 void WM_send_key(Window *self, char c)
 {
-    Action action = get_mapping()[c];
+  Action action = get_action(c, WT_WINDOW_MANAGER);
+  //Action action = get_mapping()[c];
 
     if (action == ACTION_DOWN){
 	    WM_down(self);
@@ -72,7 +73,7 @@ void WM_send_key(Window *self, char c)
 	    WM_up(self);
 	    return;
     }
-    if (action == ACTION_WINDOW_MANAGER){
+    if (action == ACTION_WINDOW_MANAGER || action == ACTION_ENTER){
 	    WM_select(self);
 	    return;
     }

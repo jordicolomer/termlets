@@ -66,6 +66,13 @@ int key_string_to_int(const char *key)
     return -1;
 }
 
+int myatoi(char * c){
+  if (strcmp(c, "0") == 0) return 0;
+  int ret = atoi(c);
+  if (ret == 0) return -1;
+  return ret;
+}
+
 int load_mappings_from_file(void) {
     const char *home = getenv("HOME");
     if (!home) return 1;
@@ -113,8 +120,8 @@ int load_mappings_from_file(void) {
 
         int key;
 
-		key = atoi(value);
-		if (key == 0){
+		key = myatoi(value);
+		if (key == -1){
 		  key = key_string_to_int(value);
 		  if (key == -1){
 			key = (unsigned char)value[0];
