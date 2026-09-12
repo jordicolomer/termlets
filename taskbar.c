@@ -238,7 +238,7 @@ Window * TaskBar_new(){
   start->on_mouse_down = start_mouse_down;
 
   Window *startMenu = malloc(sizeof *startMenu);
-  Window_init(startMenu, 0, -1, -1, 1, 18, 6);
+  Window_init(startMenu, 0, -1, -1, 1, 18, 5);
   startMenu->hidden = 1;
   Window_append(root, startMenu);
   startMenu->id = "menu";
@@ -254,9 +254,9 @@ Window * TaskBar_new(){
 
   //file_editor->on_mouse_down = file_editor_mouse_down;
   //file_editor->data = startMenu;
-  Window *win_manager = Window_add_widget(startMenu, 0, -1, idx++, -1, 18, 1, "🪟 Window Manager", 0, taskbar_color);
+  /*Window *win_manager = Window_add_widget(startMenu, 0, -1, idx++, -1, 18, 1, "🪟 Window Manager", 0, taskbar_color);
   win_manager->on_mouse_down = window_manager_mouse_down;
-  win_manager->data = startMenu;
+  win_manager->data = startMenu;*/
 
   Window *file_editor = Window_add_widget(startMenu, 0, -1, idx++, -1, 18, 1, "📝 Editor", 0, taskbar_color);
   file_editor->on_mouse_down = file_editor_mouse_down;

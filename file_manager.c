@@ -1033,13 +1033,13 @@ Window *FileExplorer_menu(ExplorerFrame *self)
     Window *menu = Menu_create_horizontal();
 
     Window *file = Menu_create_vertical(self);
-    Menu_add_element(file, " 📄 New File   Ctrl+N", create_lambda(ExplorerFrame_on_selected, 2, self, FileExplorer_new_file));
-    Menu_add_element(file, " 📁 New Folder Ctrl+N", create_lambda(FileExplorer_menu_new, 1, self));
-    Menu_add_element(file, "    New Window Ctrl+N", create_lambda(file_manager_new, 0));
-    Menu_add_element(file, "    New Tab    Ctrl+N", create_lambda(tabs_new_tab, 1, self->tabs));
+    Menu_add_element(file, " 📄 New File", create_lambda(ExplorerFrame_on_selected, 2, self, FileExplorer_new_file));
+    Menu_add_element(file, " 📁 New Folder", create_lambda(FileExplorer_menu_new, 1, self));
+    Menu_add_element(file, "    New Window", create_lambda(file_manager_new, 0));
+    Menu_add_element(file, "    New Tab", create_lambda(tabs_new_tab, 1, self->tabs));
     Menu_add_element(file, "", NULL);
-    Menu_add_element(file, " ❌ Close Window Ctrl+N", create_lambda(Frame_close, 1, self));
-    Menu_add_element(file, " ❌ Close Tab  Ctrl+W", create_lambda(FileExplorer_menu_new, 1, self));
+    Menu_add_element(file, " ❌ Close Window", create_lambda(Frame_close, 1, self));
+    Menu_add_element(file, " ❌ Close Tab", create_lambda(FileExplorer_menu_new, 1, self));
     Menu_add_element(file, "", NULL);
     Menu_add_submenu(menu, " File ", file);
 
@@ -1051,8 +1051,8 @@ Window *FileExplorer_menu(ExplorerFrame *self)
     Menu_add_element(edit, " 📝 Rename         Ctrl+R", create_lambda(FileExplorer_menu_rename, 1, self));
     Menu_add_element(edit, "", NULL);
     Menu_add_element(edit, " 📋 Copy Name      Ctrl+C", create_lambda(ExplorerFrame_on_selected, 2, self, FileExplorer_copy_name));
-    Menu_add_element(edit, " 📋 Copy Directory Ctrl+C", create_lambda(ExplorerFrame_on_selected, 2, self, FileExplorer_copy_directory));
-    Menu_add_element(edit, " 📋 Copy Path      Ctrl+C", create_lambda(ExplorerFrame_on_selected, 2, self, FileExplorer_copy_path));
+    Menu_add_element(edit, " 📋 Copy Directory", create_lambda(ExplorerFrame_on_selected, 2, self, FileExplorer_copy_directory));
+    Menu_add_element(edit, " 📋 Copy Path", create_lambda(ExplorerFrame_on_selected, 2, self, FileExplorer_copy_path));
     Menu_add_element(edit, "", NULL);
     Menu_add_submenu(menu, " Edit ", edit);
 

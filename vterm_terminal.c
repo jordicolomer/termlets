@@ -38,6 +38,7 @@
 #include "clipboard.h"
 #include "common.h"
 #include "config.h"
+#include "taskbar.h"
 
 #ifndef _WIN32
 /* POSIX-only implementation (Mac/Linux) */
@@ -987,8 +988,19 @@ Window *VTermTerminal_callback(){
 
 Window *VTermTerminal_new_tab(TerminalFrame *self)
 {
-
+  tabs_new_tab(self->tabs->data);
 }
+
+/*TerminalWindow *Editor_get_focused_window(TerminalFrame *self){
+    Tab * tab = self->tabs->selected_tab;
+    return tab->child->head;
+}
+
+void Editor_on_selected(TerminalFrame *self, void fn()){
+    TerminalWindow * term = Editor_get_focused_window(self);
+    fn(term);
+}*/
+
 
 Window *VTermTerminal_menu(TerminalFrame *self)
 {
@@ -997,11 +1009,11 @@ Window *VTermTerminal_menu(TerminalFrame *self)
     Window *file = Menu_create_vertical(self);
     //Menu_add_element(file, " 📄 New File   Ctrl+N", create_lambda(VTermTerminal_new_tab, 1, self));
     //Menu_add_element(file, " 📁 New Folder Ctrl+N", create_lambda(VTermTerminal_new_tab, 1, self));
-    Menu_add_element(file, "    New Window Ctrl+N", create_lambda(VTermTerminal_new_tab, 0));
-    Menu_add_element(file, "    New Tab    Ctrl+N", create_lambda(VTermTerminal_new_tab, 0));
+    Menu_add_element(file, "    New Window", create_lambda(vterminal_new, 0));
+    Menu_add_element(file, "    New Tab", create_lambda(VTermTerminal_new_tab, 1, self));
     Menu_add_element(file, "", NULL);
-    Menu_add_element(file, " ❌ Close Window Ctrl+N", create_lambda(VTermTerminal_new_tab, 0));
-    Menu_add_element(file, " ❌ Close Tab  Ctrl+W", create_lambda(VTermTerminal_new_tab, 0));
+    Menu_add_element(file, " ❌ Close Window", create_lambda(VTermTerminal_new_tab, 0));
+    Menu_add_element(file, " ❌ Close Tab", create_lambda(VTermTerminal_new_tab, 0));
     Menu_add_element(file, "", NULL);
     Menu_add_submenu(menu, " File ", file);
 
@@ -1026,7 +1038,7 @@ Window *VTermTerminal_menu(TerminalFrame *self)
     Menu_add_element(view, "", NULL);
     Menu_add_submenu(menu, " View ", view);*/
 
-    Menu_add_windows(menu, " Tabs ", self->tabs->data, self);
+    Menu_add_windows(menu, " Window ", self->tabs->data, self);
 
     return menu;
 }
