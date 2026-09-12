@@ -995,8 +995,8 @@ Window *VTermTerminal_menu(TerminalFrame *self)
     Window *menu = Menu_create_horizontal();
 
     Window *file = Menu_create_vertical(self);
-    Menu_add_element(file, " 📄 New File   Ctrl+N", create_lambda(VTermTerminal_new_tab, 1, self));
-    Menu_add_element(file, " 📁 New Folder Ctrl+N", create_lambda(VTermTerminal_new_tab, 1, self));
+    //Menu_add_element(file, " 📄 New File   Ctrl+N", create_lambda(VTermTerminal_new_tab, 1, self));
+    //Menu_add_element(file, " 📁 New Folder Ctrl+N", create_lambda(VTermTerminal_new_tab, 1, self));
     Menu_add_element(file, "    New Window Ctrl+N", create_lambda(VTermTerminal_new_tab, 0));
     Menu_add_element(file, "    New Tab    Ctrl+N", create_lambda(VTermTerminal_new_tab, 0));
     Menu_add_element(file, "", NULL);
@@ -1010,21 +1010,21 @@ Window *VTermTerminal_menu(TerminalFrame *self)
     Menu_add_element(edit, " 📋 Copy           Ctrl+C", create_lambda(VTermTerminal_new_tab, 0));
     Menu_add_element(edit, " 📌 Paste          Ctrl+V", create_lambda(VTermTerminal_new_tab, 0));
     Menu_add_element(edit, " ❌ Delete         Backspace", create_lambda(VTermTerminal_new_tab, 0));
-    Menu_add_element(edit, " 📝 Rename         Ctrl+R", create_lambda(VTermTerminal_new_tab, 0));
-    Menu_add_element(edit, "", NULL);
-    Menu_add_element(edit, " 📋 Copy Name      Ctrl+C", create_lambda(VTermTerminal_new_tab, 0));
-    Menu_add_element(edit, " 📋 Copy Directory Ctrl+C", create_lambda(VTermTerminal_new_tab, 0));
-    Menu_add_element(edit, " 📋 Copy Path      Ctrl+C", create_lambda(VTermTerminal_new_tab, 0));
+    //Menu_add_element(edit, " 📝 Rename         Ctrl+R", create_lambda(VTermTerminal_new_tab, 0));
+    //Menu_add_element(edit, "", NULL);
+    //Menu_add_element(edit, " 📋 Copy Name      Ctrl+C", create_lambda(VTermTerminal_new_tab, 0));
+    //Menu_add_element(edit, " 📋 Copy Directory Ctrl+C", create_lambda(VTermTerminal_new_tab, 0));
+    //Menu_add_element(edit, " 📋 Copy Path      Ctrl+C", create_lambda(VTermTerminal_new_tab, 0));
     Menu_add_element(edit, "", NULL);
     Menu_add_submenu(menu, " Edit ", edit);
 
-    Window *view = Menu_create_vertical(self);
+    /*Window *view = Menu_create_vertical(self);
     //Menu_add_element(view, " ⤶ Word wrap", create_lambda(FileExplorer_menu_new, 1, self));
     Menu_add_element(view, " ↓ Sort By Name",          create_lambda(VTermTerminal_new_tab, 0));
     Menu_add_element(view, " ↓ Sort By Date Modified", create_lambda(VTermTerminal_new_tab, 0));
     Menu_add_element(view, " ↓ Sort By Size",          create_lambda(VTermTerminal_new_tab, 0));
     Menu_add_element(view, "", NULL);
-    Menu_add_submenu(menu, " View ", view);
+    Menu_add_submenu(menu, " View ", view);*/
 
     Menu_add_windows(menu, " Tabs ", self->tabs->data, self);
 
