@@ -505,19 +505,17 @@ void FileExplorer_up_one_level(ExplorerWindow * self){
   free(s);
 }
 
-void FileExplorer_new_file(ExplorerWindow * self){
-  // find free filename
-  char path[PATH_MAX];
+void find_free_filename(char * cwd, char * path, char * name_pre, char * name_post){
   int n = 1;
   while (1)
   {
       if (n == 1)
       {
-          snprintf(path, sizeof(path), "%s/new file.txt", self->path);
+		snprintf(path, PATH_MAX, "%s/%s%s", cwd, name_pre, name_post);
       }
       else
       {
-          snprintf(path, sizeof(path), "%s/new file %d.txt", self->path, n);
+		snprintf(path, PATH_MAX, "%s/%s %d%s", cwd, name_pre, n, name_post);
       }
 
       if (!file_exists(path))
@@ -527,7 +525,12 @@ void FileExplorer_new_file(ExplorerWindow * self){
       }
       n++;
   }
+}
 
+void FileExplorer_new_file(ExplorerWindow * self){
+  // find free filename
+  char path[PATH_MAX];
+  find_free_filename(self->path, path, "new file", ".txt");
 
   // create file
   FILE *file = fopen(path, "w");
@@ -538,6 +541,21 @@ void FileExplorer_new_file(ExplorerWindow * self){
   fclose(file);
 
   FileExplorer_refresh(self);
+}
+
+void FileExplorer_new_folder(ExplorerWindow *self)
+{
+    // find free folder name
+    char path[PATH_MAX];
+    find_free_filename(self->path, path, "new folder", "");
+
+    // create folder
+    if (mkdir(path, 0755) != 0) {
+        perror("mkdir");
+        return;
+    }
+
+    FileExplorer_refresh(self);
 }
 
 void FileExplorer_copy_name(ExplorerWindow * self){
@@ -1034,7 +1052,7 @@ Window *FileExplorer_menu(ExplorerFrame *self)
 
     Window *file = Menu_create_vertical(self);
     Menu_add_element(file, " 📄 New File", create_lambda(ExplorerFrame_on_selected, 2, self, FileExplorer_new_file));
-    Menu_add_element(file, " 📁 New Folder", create_lambda(FileExplorer_menu_new, 1, self));
+    Menu_add_element(file, " 📁 New Folder", create_lambda(ExplorerFrame_on_selected, 2, self, FileExplorer_new_folder));
     Menu_add_element(file, "    New Window", create_lambda(file_manager_new, 0));
     Menu_add_element(file, "    New Tab", create_lambda(tabs_new_tab, 1, self->tabs));
     Menu_add_element(file, "", NULL);
