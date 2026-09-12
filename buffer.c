@@ -289,7 +289,7 @@ void Buffer_clear(Buffer *buf)
   int size = buf->width * buf->height;
 
   memset(buf->buffer, 0, size*4);
-  memset(buf->bg, 0, size);
+  memset(buf->bg, BACKGROUND_COLOR, size);
   memset(buf->fg, 0, size);
 }
 

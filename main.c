@@ -28,6 +28,7 @@
 #include "common.h"
 #include "config.h"
 #include "window_manager.h"
+#include "common.h"
 
 // TERMINAL
 
@@ -79,7 +80,7 @@ void repaint()
 #ifdef USE_BUFFER
   Buffer_clear(&main_buf);
 #else
-  set_color256(232, 17);
+  set_color256(BACKGROUND_COLOR, 17);
   clear_screen();
   hide_cursor();
 #endif
