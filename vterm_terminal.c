@@ -721,7 +721,8 @@ void vterm_send_key(struct Window *wg, char c)
 {
     //vterm_terminal_data *vtd = wg->data2;
     TerminalWindow * terminal = wg;
-    Action action = mapping[c];
+    //Action action = mapping[c];
+	Action action = get_action(c, WT_TERMINAL);
 
     /*if (c == 12){ // Ctrl+K
       cycle_tabs();

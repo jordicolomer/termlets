@@ -53,7 +53,7 @@ static const char *action_names[] = {
 
 #undef MAKE_ACTION_STRING
 
-typedef enum { WT_NONE, WT_EDITOR, WT_FILE_MANAGER, WT_TABS, WT_WINDOW_MANAGER } WindowType;
+typedef enum { WT_NONE, WT_EDITOR, WT_FILE_MANAGER, WT_TABS, WT_WINDOW_MANAGER, WT_TERMINAL } WindowType;
 
 extern Action * mapping;
 extern Action * mapping_edit;
