@@ -473,6 +473,7 @@ void EditorWindow_newline(EditorWindow *self){
 	EditorWindow_make_cursor_visible(self);
     self->cursor.x = 0;
     self->cursor.ptr = 0;  // Point to start of new line
+    self->selection.n = -1;
 }
 
 void EditorWindow_fix_cursor_x(EditorWindow *self){
