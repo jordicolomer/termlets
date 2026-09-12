@@ -161,13 +161,21 @@ int load_mappings_from_buffer(const char *data, size_t len) {
         /*
          * Remove trailing whitespace from action.
          */
-        char *end = action + strlen(action) - 1;
+        size_t action_len = strlen(action);
+        if (action_len == 0)
+            continue;
+
+        char *end = action + action_len - 1;
 
         while (end >= action &&
                (*end == ' ' || *end == '\t')) {
             *end = '\0';
             end--;
         }
+
+        // Skip if action is empty after trimming
+        if (action[0] == '\0')
+            continue;
 
         /*
          * Convert the key.
@@ -252,7 +260,10 @@ int load_mappings_from_file(void) {
 	}
 
   char * buf = load_config(config_file, &size);
+  if (buf == NULL) return 1;
   load_mappings_from_buffer(buf, size);
+  free(buf);
+  return 0;
 }
 void load_default_mappings(){
     mapping[6] = ACTION_SEARCH;   // control+f
