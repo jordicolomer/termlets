@@ -143,6 +143,135 @@ int load_mappings_from_file(void) {
     return 0;
 }
 
+int load_mappings_from_buffer(const char *data, size_t len) {
+    size_t pos = 0;
+
+    Action *map = mapping_edit;
+
+    while (pos < len) {
+        /*
+         * Find the end of the current line.
+         */
+        const char *start = data + pos;
+        const char *newline = memchr(start, '\n', len - pos);
+
+        size_t line_len;
+
+        if (newline) {
+            line_len = (size_t)(newline - start);
+        } else {
+            line_len = len - pos;
+        }
+
+        /*
+         * Copy the line into a temporary buffer.
+         */
+        char line[256];
+
+        if (line_len >= sizeof(line))
+            line_len = sizeof(line) - 1;
+
+        memcpy(line, start, line_len);
+        line[line_len] = '\0';
+
+        /*
+         * Remove Windows CR from CRLF.
+         */
+        if (line_len > 0 && line[line_len - 1] == '\r')
+            line[line_len - 1] = '\0';
+
+        /*
+         * Advance to the next line.
+         */
+        pos += line_len;
+
+        if (pos < len && data[pos] == '\n')
+            pos++;
+
+        /*
+         * Section.
+         */
+        if (strcmp(line, "[global]") == 0) {
+            map = mapping_global;
+            continue;
+        }
+
+        if (strcmp(line, "[edit-mode]") == 0) {
+            map = mapping_edit;
+            continue;
+        }
+
+        if (strcmp(line, "[insert-mode]") == 0) {
+            map = mapping;
+            continue;
+        }
+
+        if (strcmp(line, "[file-manager]") == 0) {
+            map = mapping_file_manager;
+            continue;
+        }
+
+        if (strcmp(line, "[tabs]") == 0) {
+            map = mapping_tabs;
+            continue;
+        }
+
+        /*
+         * Parse:
+         *
+         *     ACTION = VALUE
+         */
+        char action[64];
+        char value[64];
+
+        if (sscanf(line, " %63[^=] = %63s", action, value) != 2)
+            continue;
+
+        /*
+         * Remove trailing whitespace from action.
+         */
+        char *end = action + strlen(action) - 1;
+
+        while (end >= action &&
+               (*end == ' ' || *end == '\t')) {
+            *end = '\0';
+            end--;
+        }
+
+        /*
+         * Convert the key.
+         *
+         * First try an integer:
+         *
+         *     ENTER = 13
+         *
+         * Then try a named key:
+         *
+         *     ENTER = KEY_ENTER
+         *
+         * Finally fall back to the first character:
+         *
+         *     X = x
+         */
+        int key = myatoi(value);
+
+        if (key == -1) {
+            key = key_string_to_int(value);
+
+            if (key == -1)
+                key = (unsigned char)value[0];
+        }
+
+        /*
+         * Convert the action name to an Action and
+         * install it in the current mapping.
+         */
+        map[(unsigned char)key] = action_from_string(action);
+    }
+
+    return 0;
+}
+
 void load_default_mappings(){
     mapping[6] = ACTION_SEARCH;   // control+f
     mapping[8] = ACTION_BACKSPACE;   // control+h
@@ -195,6 +324,8 @@ void load_edit_mode_mappings(){
     mapping_edit['r'] = ACTION_RELOAD;
 }
 
+#include "vscode.conf.h"
+
 void load_mappings(){
     mapping_global = malloc(sizeof(Action) * 256);
     memset(mapping_global, 0, sizeof(Action) * 256);
@@ -212,7 +343,8 @@ void load_mappings(){
     memset(mapping_tabs, 0, sizeof(Action) * 256);
 	
     if (load_mappings_from_file()){
-        load_default_mappings();
-		load_edit_mode_mappings();
+	  //load_default_mappings();
+	  //load_edit_mode_mappings();
+	  load_mappings_from_buffer((const char *)vscode_conf, vscode_conf_len);
     }
 }
