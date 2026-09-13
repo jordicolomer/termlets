@@ -12,7 +12,7 @@ It supports common mouse interactions, including clicking, trackpad scrolling, a
 
 It’s implemented entirely in C, with zero external dependencies, resulting in an exceptionally small binary footprint with just **180 KB**. For comparison, even one of the smallest and simplest text editors, **nano**, has a binary size of around **840 KB**.
 
-Currently supported on macOS (with iTerm2), Linux, and Windows.
+Currently supported on macOS, Linux, and Windows.
 
 ![Screenshot](https://github.com/user-attachments/assets/d024501a-0a2b-4a4f-ab94-b5b235528993)
 
