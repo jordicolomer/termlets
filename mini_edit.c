@@ -11,8 +11,25 @@
 #include "buffer.h"
 #include "clipboard.h"
 
+
+void LineEditorWindow_left(LineEditorWindow *self){
+  if (self->cursor > 0){
+	self->cursor--;
+  }
+}
+
+void LineEditorWindow_right(LineEditorWindow *self){
+  int len = strlen(self->buffer);
+  if (self->cursor < len){
+	self->cursor++;
+  }
+}
+
 void LineEditorWindow_send_sequence(struct Window *win, const char *seq, int len){
-  LOG_INFO("LineEditorWindow_send_sequence: %s", seq);
+  LineEditorWindow *self = win;
+  if (strcmp(seq, "[C") == 0){ LineEditorWindow_right(self); return; }
+  if (strcmp(seq, "[D") == 0){ LineEditorWindow_left(self); return; }
+  
 }
 
 void delete_char(char *buffer, size_t pos, size_t len)
@@ -73,23 +90,25 @@ void LineEditorWindow_send_key(Window * win, char c){
         }
         return;
     }
-    if (c == 4) { // Ctrl+D
-        if (self->cursor > 0){
-            self->cursor--;
-        }
+    if (c == 2) { // Ctrl+B
+	  LineEditorWindow_left(self);
+	  //if (self->cursor > 0){
+      //      self->cursor--;
+      //  }
         return;
     }
     if (c == 6) { // Ctrl+F
-        if (self->cursor < len){
-            self->cursor++;
-        }
+	  LineEditorWindow_right(self);
+	  //if (self->cursor < len){
+      //      self->cursor++;
+	  // }
         return;
     }
-    if (c == 19) { // Ctrl+S
+    if (c == 1) { // Ctrl+a
         self->cursor = 0;
         return;
     }
-    if (c == 7) { // Ctrl+G
+    if (c == 5) { // Ctrl+e
         self->cursor = len;
         return;
     }
