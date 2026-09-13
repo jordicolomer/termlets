@@ -59,5 +59,6 @@ typedef struct EditorFrame {
 Window *Editor_new(int left, int right, int top, int bottom, int width, int height);
 void Editor_open_file(EditorFrame * editor_frame, char * file_path);
 void Editor_last_open_file(char * file_path);
-
+void EditorFrame_search(EditorFrame *self);
+  
 #endif

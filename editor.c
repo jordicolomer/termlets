@@ -987,10 +987,12 @@ void EditorWindow_send_key(Window *win, char c)
 	EditorWindow_insert(self, ';');
 	return;
   }
-  /*if (action == ACTION_SEARCH){
-	EditorWindow_search(self);
+  if (action == ACTION_SEARCH){
+	//EditorWindow_search(self);
+	EditorFrame * frame = Window_get_frame(win);
+	EditorFrame_search(frame);
 	return;
-	}*/
+	}
   if (insert_mode == 1 && (c > 31 || c == '\t') ){
 	self->selection.n = -1;
 	EditorWindow_insert(self, c);
