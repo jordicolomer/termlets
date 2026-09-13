@@ -913,7 +913,6 @@ void EditorWindow_send_key(Window *win, char c)
 	return;
   }
   if (action == ACTION_INSERT){
-	restore_insert_mode = insert_mode;
 	insert_mode = 1;
 	return;
   }
@@ -1158,12 +1157,12 @@ void EditorWindow_draw(struct Window *w, int hasFocus)
 
 
 void EditorFrame_escape_search_box(EditorFrame *self){
+  insert_mode = restore_insert_mode;
   if (self->win.focused == self->search_box) {
 	self->win.focused = self->tabs;
 	EditorWindow * editor = self->tabs->win.focused->focused; // this is bad code. fix it
 	editor->highlight_start.n = -1;
 	editor->highlight_end.n = -1;
-	insert_mode = restore_insert_mode;
   }
 }
 
@@ -1384,6 +1383,7 @@ Window *Editor_searchbox_enter(EditorFrame *self){
 }
 
 void EditorFrame_search(EditorFrame *self){
+  restore_insert_mode = insert_mode;
   insert_mode = 1;
   self->win.focused = self->search_box;
 }
