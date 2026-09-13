@@ -36,7 +36,8 @@
     X(EDIT) \
     X(NEXT_TAB) \
     X(NEXT_WINDOW) \
-    X(DELETE)
+    X(DELETE) \
+    X(DELETE_WORD)
 
 #define MAKE_ENUM(name) ACTION_##name,
 

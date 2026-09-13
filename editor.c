@@ -413,12 +413,12 @@ void EditorWindow_delete_region(EditorWindow *self){
 	EditorWindow_update_height(self);
 
     update_lexer_state(node1, 1, self->language);
+	set_modified(self, 1);
 }
 
 void EditorWindow_cut(EditorWindow *self){
     _EditorWindow_copy(self);
     EditorWindow_delete_region(self);
-	set_modified(self, 1);
 }
 
 void EditorWindow_save(EditorWindow *self){
@@ -761,7 +761,7 @@ void EditorWindow_shift_left(EditorWindow *self){
 
 void EditorWindow_next_word(EditorWindow *self){
   int state = 0;
-  self->selection.n = -1;
+  //self->selection.n = -1;
   while (1){
   Node * node = EditorWindow_get_line_number(self, self->cursor.n);
   if (node->line[self->cursor.ptr] != 0){
@@ -769,9 +769,9 @@ void EditorWindow_next_word(EditorWindow *self){
 	int w = cp_width(cp);
 	self->cursor.x += w;
 	if (state == 0){
-	  if (cp != ' ' && cp != '\t') state = 1;
+	  if (cp != ' ' && cp != '\t' && cp != '{' && cp != '}' && cp != '(' && cp != ')') state = 1;
 	} else if (state == 1){
-	  if (cp == ' ' || cp == '\t') {
+	  if (cp == ' ' || cp == '\t' || cp == '{' || cp == '}' || cp == '(' || cp == ')') {
 		_EditorWindow_left(self);
 		EditorWindow_make_cursor_visible(self);
 		return;
@@ -795,7 +795,7 @@ void EditorWindow_next_word(EditorWindow *self){
 
 void EditorWindow_prev_word(EditorWindow *self){
   int state = 0;
-  self->selection.n = -1;
+  //self->selection.n = -1;
   while (1){
   if (self->cursor.x == 0){
 	if (self->cursor.n > 0){
@@ -814,9 +814,9 @@ void EditorWindow_prev_word(EditorWindow *self){
 	self->cursor.x -= w;
 	
 	if (state == 0){
-	  if (cp != ' ' && cp != '\t') state = 1;
+	  if (cp != ' ' && cp != '\t' && cp != '{' && cp != '}' && cp != '(' && cp != ')') state = 1;
 	} else if (state == 1){
-	  if (cp == ' ' || cp == '\t') {
+	  if (cp == ' ' || cp == '\t' || cp == '{' || cp == '}' || cp == '(' || cp == ')') {
 		_EditorWindow_right(self);
 		EditorWindow_make_cursor_visible(self);
 		return;
@@ -825,6 +825,12 @@ void EditorWindow_prev_word(EditorWindow *self){
   }
   }
   EditorWindow_make_cursor_visible(self);
+}
+
+void EditorWindow_delete_word(EditorWindow *self){
+  EditorWindow_start_selection(self);
+  EditorWindow_prev_word(self);
+  EditorWindow_delete_region(self);
 }
 
 void EditorWindow_delete(EditorWindow *self){
@@ -1005,6 +1011,10 @@ void EditorWindow_send_key(Window *win, char c)
 	}
   if (action == ACTION_DELETE){
 	EditorWindow_delete(self);
+	return;
+	}
+  if (action == ACTION_DELETE_WORD){
+	EditorWindow_delete_word(self);
 	return;
 	}
   if (insert_mode == 1 && (c > 31 || c == '\t') ){
