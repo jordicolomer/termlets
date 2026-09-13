@@ -173,7 +173,7 @@ void Node_append(Node *node, char *text)
     node->line[node->length] = '\0';
 }
 
-void EditorWindow_delete(EditorWindow *self){
+void EditorWindow_backspace(EditorWindow *self){
   set_modified(self, 1);
     // delete a character
     if (self->cursor.x == 0){
@@ -827,6 +827,12 @@ void EditorWindow_prev_word(EditorWindow *self){
   EditorWindow_make_cursor_visible(self);
 }
 
+void EditorWindow_delete(EditorWindow *self){
+  EditorWindow_right(self);
+  EditorWindow_backspace(self);
+  self->selection.n = -1;
+}
+
 void EditorWindow_search(EditorWindow *self, char * query){
   EditorPointer ptr = self->highlight_end;
 
@@ -887,7 +893,7 @@ void EditorWindow_send_key(Window *win, char c)
 	return;
   }*/
   if (action == ACTION_BACKSPACE){
-	EditorWindow_delete(self);
+	EditorWindow_backspace(self);
 	self->selection.n = -1;
 	return;
   }
@@ -995,6 +1001,10 @@ void EditorWindow_send_key(Window *win, char c)
 	//EditorWindow_search(self);
 	EditorFrame * frame = Window_get_frame(win);
 	EditorFrame_search(frame);
+	return;
+	}
+  if (action == ACTION_DELETE){
+	EditorWindow_delete(self);
 	return;
 	}
   if (insert_mode == 1 && (c > 31 || c == '\t') ){
@@ -1297,7 +1307,7 @@ Window *Editor_menu(EditorFrame *self)
     Menu_add_submenu(menu, " File ", file);
 
     Window *edit = Menu_create_vertical(self);
-    Menu_add_element(edit, " ❌ Delete Backspace", create_lambda(Editor_on_selected, 2, self, EditorWindow_delete));
+    Menu_add_element(edit, " ❌ Delete Backspace", create_lambda(Editor_on_selected, 2, self, EditorWindow_backspace));
     Menu_add_element(edit, " 🔪 Cut    Ctrl+X", create_lambda(Editor_on_selected, 2, self, EditorWindow_cut));
     Menu_add_element(edit, " 📋 Copy   Ctrl+C", create_lambda(Editor_on_selected, 2, self, EditorWindow_copy));
     Menu_add_element(edit, " 📌 Paste  Ctrl+V", create_lambda(Editor_on_selected, 2, self, EditorWindow_paste));
