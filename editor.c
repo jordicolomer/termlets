@@ -24,6 +24,8 @@
 #include "config.h"
 
 
+int restore_insert_mode;
+
 void set_modified(EditorWindow *self, int modified){
   if (modified == 1){
     Window_set_id_from_path(self, "📝 *", self->file_path);
@@ -416,6 +418,7 @@ void EditorWindow_delete_region(EditorWindow *self){
 void EditorWindow_cut(EditorWindow *self){
     _EditorWindow_copy(self);
     EditorWindow_delete_region(self);
+	set_modified(self, 1);
 }
 
 void EditorWindow_save(EditorWindow *self){
@@ -898,6 +901,7 @@ void EditorWindow_send_key(Window *win, char c)
 	return;
   }
   if (action == ACTION_INSERT){
+	restore_insert_mode = insert_mode;
 	insert_mode = 1;
 	return;
   }
@@ -1139,6 +1143,7 @@ void EditorFrame_escape_search_box(EditorFrame *self){
 	EditorWindow * editor = self->tabs->win.focused->focused; // this is bad code. fix it
 	editor->highlight_start.n = -1;
 	editor->highlight_end.n = -1;
+	insert_mode = restore_insert_mode;
   }
 }
 
@@ -1358,6 +1363,7 @@ Window *Editor_searchbox_enter(EditorFrame *self){
 }
 
 void EditorFrame_search(EditorFrame *self){
+  insert_mode = 1;
   self->win.focused = self->search_box;
 }
 
