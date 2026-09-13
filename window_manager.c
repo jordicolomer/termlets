@@ -13,6 +13,8 @@
 #include "buffer.h"
 #include "config.h"
 #include "logger.h"
+#include "utils.h"
+
 
 void WM_draw(struct Window *w, int hasFocus)
 {
@@ -28,18 +30,20 @@ void WM_draw(struct Window *w, int hasFocus)
         Buffer_print(&main_buf, geo.y + j++, geo.x, geo.width, tabs->child->id, 232, bg);
         tabs = tabs->all_tabs_next;
     }
+	w->data2 = (void*)j;
 
     //w->height = j;
 }
 
 void WM_up(Window *self){
     int selected = (int) self->data;
-    self->data = (void*) selected - 1;
+    self->data = (void*) max(selected - 1, 0);
 }
 
 void WM_down(Window *self){
     int selected = (int) self->data;
-    self->data = (void*) selected + 1;
+    int maximum = (int) self->data2;
+    self->data = (void*) min(maximum-1, selected + 1);
 }
 
 void WM_select(Window *self){
