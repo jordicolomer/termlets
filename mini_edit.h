@@ -1,5 +1,5 @@
-#ifndef TEXT_EDIT_H
-#define TEXT_EDIT_H
+#ifndef MINI_EDIT_H
+#define MINI_EDIT_H
 #include <stdlib.h>
 #include "window.h"
 

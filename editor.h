@@ -2,7 +2,7 @@
 #define FILE_EDITOR_H
 #include "window.h"
 #include "tabs.h"
-#include "text_edit.h"
+#include "mini_edit.h"
 
 typedef struct Node {
     char *line;

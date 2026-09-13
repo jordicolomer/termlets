@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "text_edit.h"
+#include "mini_edit.h"
 #include "logger.h"
 #include "buffer.h"
 

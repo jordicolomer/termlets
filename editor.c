@@ -16,7 +16,7 @@
 #include "taskbar.h"
 #include "lambda.h"
 #include "menu.h"
-#include "text_edit.h"
+#include "mini_edit.h"
 #include "clipboard.h"
 #include "lexer.h"
 #include "utils.h"

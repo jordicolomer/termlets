@@ -107,7 +107,7 @@
 #include "clipboard.h"
 #include "dialog.h"
 #include "file_operations.h"
-#include "text_edit.h"
+#include "mini_edit.h"
 //#include "mystring.h"
 #include "common.h"
 #include "config.h"
