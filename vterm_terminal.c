@@ -1111,7 +1111,7 @@ Window *VTermTerminal_new(int left, int right, int top, int bottom, int width, i
 #else
 /* Windows stub implementations - terminal functionality not yet supported */
 
-Window *VTermTerminal_new(int left, int right, int top, int bottom, int width, int height) {
+Window *VTermTerminal_new(int left, int right, int top, int bottom, int width, int height, char * cwd) {
     (void)left; (void)right; (void)top; (void)bottom; (void)width; (void)height;
     /* Return a simple window with a message */
     Window *w = malloc(sizeof(Window));
