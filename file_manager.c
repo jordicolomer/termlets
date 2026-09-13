@@ -550,7 +550,11 @@ void FileExplorer_new_folder(ExplorerWindow *self)
     find_free_filename(self->path, path, "new folder", "");
 
     // create folder
+#ifdef _WIN32
+    if (mkdir(path) != 0) {
+#else
     if (mkdir(path, 0755) != 0) {
+#endif
         perror("mkdir");
         return;
     }
