@@ -623,10 +623,10 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
     }
 
     // draw cursor
+    int i = terminal->cursor_y - first_visible_line;
 	if (insert_mode != 1){
     int bg = 208;
     if (insert_mode == 1) bg = 27;
-    int i = terminal->cursor_y - first_visible_line;
     if (0 <= i && i <= geo.height){
         Buffer_set_bg(&main_buf, geo.y + i , geo.x+terminal->cursor_x, 1, bg);
     }
@@ -634,7 +634,7 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
 	}
 
     /* Render cursor if this terminal has focus */
-    if (hasFocus) {
+    if (!(0 <= i && i <= geo.height) && hasFocus) {
         VTermState *state = vterm_obtain_state(terminal->vt);
         VTermPos cursor_pos;
         vterm_state_get_cursorpos(state, &cursor_pos);
