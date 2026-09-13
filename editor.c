@@ -1180,6 +1180,7 @@ void EditorWindow_on_hover(Window * win, int x, int y){
 void EditorWindow_on_mouse_up(Window * win){
   EditorWindow * self = win;
   self->selecting = 0;
+  if (self->cursor.n == self->selection.n && self->cursor.x == self->selection.x) self->selection.n = -1;
 }
 
 EditorWindow *latestEditorWindow;
