@@ -304,6 +304,7 @@ int start()
     }
     if (action == ACTION_SWITCH_MODE){
       insert_mode = 1 - insert_mode;
+	  repaint();
       continue;
     }
     /*if (insert_mode == 0){
