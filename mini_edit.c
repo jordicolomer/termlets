@@ -9,6 +9,7 @@
 #include "mini_edit.h"
 #include "logger.h"
 #include "buffer.h"
+#include "clipboard.h"
 
 void LineEditorWindow_send_sequence(struct Window *win, const char *seq, int len){
   LOG_INFO("LineEditorWindow_send_sequence: %s", seq);
@@ -40,6 +41,25 @@ void insert_char(char *buffer, size_t pos, char c,
 
     // Insert the new character
     buffer[pos] = c;
+}
+
+void insert_string(char *buffer, size_t pos, const char *str,
+                   size_t current_len, size_t capacity)
+{
+    size_t str_len = strlen(str);
+
+    // Safety checks
+    if (pos > current_len || current_len + str_len >= capacity) {
+        return;  // Buffer full or invalid position
+    }
+
+    // Shift existing characters to the right
+    memmove(buffer + pos + str_len,
+            buffer + pos,
+            current_len - pos + 1);  // +1 for null terminator
+
+    // Insert the string
+    memcpy(buffer + pos, str, str_len);
 }
 
 void LineEditorWindow_send_key(Window * win, char c){
@@ -77,6 +97,12 @@ void LineEditorWindow_send_key(Window * win, char c){
         //self->cursor = len;
         if (win->lambda != NULL) invoke_lambda(win->lambda);
         return;
+    }
+    if (c == 22) { // Ctrl+V
+	  char * cb = clipboard_paste();
+	  insert_string(self->buffer, self->cursor, cb, len, sizeof(self->buffer));
+	  self->cursor += strlen(cb);
+	  return;
     }
     insert_char(self->buffer, self->cursor, c, len, sizeof(self->buffer));
     self->cursor++;
