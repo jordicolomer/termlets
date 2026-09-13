@@ -40,6 +40,8 @@ typedef struct TerminalWindow {
     int cursor_y;
     int selection_x;
     int selection_y;
+    int term_cursor_x;
+    int term_cursor_y;
 
     ScrollbackLine *last_line;
     int last_line_idx;

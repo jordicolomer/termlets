@@ -633,8 +633,9 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
     draw_selection(terminal);
 	}
 
-    /* Render cursor if this terminal has focus */
-    if (!(0 <= i && i <= geo.height) && hasFocus) {
+    /* Render cursor if this terminal has focus */ 
+    //if (!(0 <= i && i <= geo.height) && hasFocus) { // if we haven't printed the other cursor
+    if (hasFocus) { // if we haven't printed the other cursor
         VTermState *state = vterm_obtain_state(terminal->vt);
         VTermPos cursor_pos;
         vterm_state_get_cursorpos(state, &cursor_pos);
@@ -646,6 +647,8 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
         /* Only draw cursor if it's visible in the viewport */
         if (cursor_viewport_row >= 0 && cursor_viewport_row < geo.height &&
             cursor_pos.col >= 0 && cursor_pos.col < geo.width) {
+		    terminal->term_cursor_x = cursor_pos.col;
+		    terminal->term_cursor_y = first_visible_line + cursor_viewport_row;
             int cursor_y = geo.y + cursor_viewport_row;
             int cursor_x = geo.x + cursor_pos.col;
 
@@ -686,6 +689,7 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
             //LOG_INFO("terminal->insert_mode: %d", terminal->insert_mode);
 
             /* Render cursor with swapped colors (reverse video) */
+			if ((cursor_y == geo.y + i && cursor_x == geo.x+terminal->cursor_x) || insert_mode == 1) 
             Buffer_print(&main_buf, cursor_y, cursor_x, cursor_width, cursor_char, bg, fg);
         }
     }
@@ -752,7 +756,11 @@ void vterm_send_key(struct Window *wg, char c)
         }
         if (action == ACTION_UP)
         {
-            if (terminal->cursor_y < 0) terminal->cursor_y = virtual_height-2;
+		  if (terminal->cursor_y < 0) {
+			//terminal->cursor_y = virtual_height-2;			
+            terminal->cursor_x = terminal->term_cursor_x;
+            terminal->cursor_y = terminal->term_cursor_y;
+		  }
             else{
                 terminal->cursor_y -= 1;
                 terminal->cursor_y = max(terminal->cursor_y, 0);
@@ -816,7 +824,9 @@ void vterm_send_key(struct Window *wg, char c)
         }
         if (action == ACTION_FIRST_LINE)
         {
-            terminal->cursor_y = -1;
+		  //terminal->cursor_y = -1;
+            terminal->cursor_x = terminal->term_cursor_x;
+            terminal->cursor_y = terminal->term_cursor_y;
             make_cursor_visible(terminal);
             return;
         }
