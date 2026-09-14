@@ -859,6 +859,12 @@ void vterm_send_key(struct Window *wg, char c)
             terminal->selection_y = -1;
             return;
         }
+        if (action == ACTION_PASTE)
+        {
+		  char * cb = clipboard_paste();
+		  write(terminal->master, cb, strlen(cb));
+		  return;
+        }
         if (action == ACTION_FIRST_LINE)
         {
 		  //terminal->cursor_y = -1;
