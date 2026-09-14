@@ -622,19 +622,10 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
         }
     }
 
-    // draw cursor
-    int i = terminal->cursor_y - first_visible_line;
-	if (insert_mode != 1){
-    int bg = 208;
-    if (insert_mode == 1) bg = 27;
-    if (0 <= i && i <= geo.height){
-        Buffer_set_bg(&main_buf, geo.y + i , geo.x+terminal->cursor_x, 1, bg);
-    }
-    draw_selection(terminal);
-	}
-
     /* Render cursor if this terminal has focus */ 
     //if (!(0 <= i && i <= geo.height) && hasFocus) { // if we haven't printed the other cursor
+    int i = terminal->cursor_y - first_visible_line;
+	int cursor_drawn = 0;
     if (hasFocus) { // if we haven't printed the other cursor
         VTermState *state = vterm_obtain_state(terminal->vt);
         VTermPos cursor_pos;
@@ -687,12 +678,27 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
             }
 
             //LOG_INFO("terminal->insert_mode: %d", terminal->insert_mode);
+			LOG_INFO("cursor_drawn: %d == %d + %d. terminal->cursor_y:%d - first_visible_line:%d", cursor_y, geo.y, i, terminal->cursor_y, first_visible_line);
 
             /* Render cursor with swapped colors (reverse video) */
-			if ((cursor_y == geo.y + i && cursor_x == geo.x+terminal->cursor_x) || insert_mode == 1) 
-            Buffer_print(&main_buf, cursor_y, cursor_x, cursor_width, cursor_char, bg, fg);
+			if ((cursor_y == geo.y + i) || insert_mode == 1) {
+			  Buffer_print(&main_buf, cursor_y, cursor_x, cursor_width, cursor_char, bg, fg);
+			  cursor_drawn = 1;
+			  terminal->cursor_y = first_visible_line + cursor_viewport_row;
+			  terminal->cursor_x = cursor_x;
+			}
         }
     }
+    // draw cursor
+	if (cursor_drawn == 0){
+	  int bg = 208;
+	  if (insert_mode == 1) bg = 27;
+	  if (0 <= i && i <= geo.height){
+        Buffer_set_bg(&main_buf, geo.y + i , geo.x+terminal->cursor_x, 1, bg);
+	  }
+	  draw_selection(terminal);
+	}
+
     update_tab_label(wg);
 }
 
@@ -748,9 +754,10 @@ void vterm_send_key(struct Window *wg, char c)
         {
             if (terminal->cursor_y == -1) return;
             terminal->cursor_y += 1;
-            if (terminal->cursor_y > virtual_height-2){
-                terminal->cursor_y = -1;
-            }
+			terminal->cursor_y = min(terminal->cursor_y, virtual_height-1);
+            //if (terminal->cursor_y > virtual_height-2){
+            //    terminal->cursor_y = -1;
+            //}
             make_cursor_visible(terminal);
             return;
         }
@@ -923,7 +930,7 @@ TerminalWindow *VTermTerminal_window(int initial_rows, int initial_cols, char * 
     terminal->selection_y = -1;
     terminal->last_line_idx = -1;
     terminal->last_line = NULL;
-    terminal->cursor_y = -1; // no cursor
+    terminal->cursor_y = 0; // no cursor
     Window_init(terminal, 0, 0, 0, 0, -1, -1);
     terminal->win.id = "vterm terminal window";
     terminal->win.send_key = vterm_send_key;

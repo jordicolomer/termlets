@@ -6,8 +6,8 @@
 #include <string.h>
 #include <time.h>
 
-//static LogLevel min_level = LOG_INFO;
-static LogLevel min_level = LOG_WARN;
+static LogLevel min_level = LOG_INFO;
+//static LogLevel min_level = LOG_WARN;
 static FILE* log_file = NULL;
 
 static const char* level_strings[] = {
