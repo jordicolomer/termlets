@@ -137,9 +137,11 @@ int VTermTerminal_get_virtual_height(struct Window *wg);
 void scrollback_add_line(ScrollbackList *sb, int cols, const VTermScreenCell *cells)
 {
     /* create new line node */
-    ScrollbackLine *line = malloc(sizeof(ScrollbackLine));
+    ScrollbackLine *line = my_malloc(sizeof(ScrollbackLine));
     line->cols = cols;
-    line->cells = malloc(cols * sizeof(VTermScreenCell));
+	//LOG_INFO("cols:%d * sizeof(VTermScreenCell:%d)", cols, sizeof(VTermScreenCell));
+	// cols=135 sizeof(VTermScreenCell)=40
+    line->cells = my_malloc(cols * sizeof(VTermScreenCell));
     memcpy(line->cells, cells, cols * sizeof(VTermScreenCell));
     line->next = NULL;
     line->prev = sb->tail;
@@ -487,7 +489,7 @@ void VTermTerminal_copy(TerminalWindow * terminal){
         y2 = terminal->cursor_y;
         y1 = terminal->selection_y;
     }
-    char * line_buf = malloc((y2-y1+1)*terminal->cols*4);
+    char * line_buf = my_malloc((y2-y1+1)*terminal->cols*4);
     int buf_idx = 0;
 
     for (int y=y1;y<=y2;y++){
@@ -518,6 +520,7 @@ void VTermTerminal_copy(TerminalWindow * terminal){
     clipboard_copy(line_buf);
     free(line_buf);
 }
+
 
 void VTermTerminal_draw(struct Window *wg, int hasFocus)
 {
@@ -681,11 +684,11 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
 			LOG_INFO("cursor_drawn: %d == %d + %d. terminal->cursor_y:%d - first_visible_line:%d", cursor_y, geo.y, i, terminal->cursor_y, first_visible_line);
 
             /* Render cursor with swapped colors (reverse video) */
-			if ((cursor_y == geo.y + i) || insert_mode == 1) {
+			if ((cursor_viewport_row == i) || insert_mode == 1) {
 			  Buffer_print(&main_buf, cursor_y, cursor_x, cursor_width, cursor_char, bg, fg);
 			  cursor_drawn = 1;
 			  terminal->cursor_y = first_visible_line + cursor_viewport_row;
-			  terminal->cursor_x = cursor_x;
+			  //terminal->cursor_x = cursor_x;
 			}
         }
     }
@@ -727,6 +730,17 @@ void make_cursor_visible(TerminalWindow * terminal){
     // Clamp shift to valid range
     terminal->win.shift = max(terminal->win.shift, min_shift);
     terminal->win.shift = min(terminal->win.shift, 0);
+}
+
+int VTermTerminal_cursors_same_y(TerminalWindow * terminal){
+  int first_visible_line = -terminal->win.shift;
+  VTermState *state = vterm_obtain_state(terminal->vt);
+  VTermPos cursor_pos;
+  vterm_state_get_cursorpos(state, &cursor_pos);
+  int i = terminal->cursor_y - first_visible_line;
+  int cursor_virtual_line = terminal->scrollback.count + cursor_pos.row;
+  int cursor_viewport_row = cursor_virtual_line - first_visible_line;
+  return cursor_viewport_row == i;
 }
 
 void vterm_send_key(struct Window *wg, char c)
@@ -797,25 +811,41 @@ void vterm_send_key(struct Window *wg, char c)
         }
         if (action == ACTION_RIGHT)
         {
+		  if (VTermTerminal_cursors_same_y(terminal)){
+			write(terminal->master, "\x06", 1);
+		  } else {
             terminal->cursor_x += 1;
             terminal->cursor_x = min(terminal->cursor_x, terminal->cols-1);
-            return;
+		  }
+		  return;
         }
         if (action == ACTION_LEFT)
         {
+		  if (VTermTerminal_cursors_same_y(terminal)){
+			write(terminal->master, "\x02", 1);
+		  } else {
             terminal->cursor_x -= 1;
             terminal->cursor_x = max(terminal->cursor_x, 0);
-            return;
+		  }
+		  return;
         }
         if (action == ACTION_END_OF_LINE)
         {
+		  if (VTermTerminal_cursors_same_y(terminal)){
+			write(terminal->master, "\x05", 1);
+		  } else {
             terminal->cursor_x = terminal->cols-1;
-            return;
+		  }
+		  return;
         }
         if (action == ACTION_START_OF_LINE)
         {
+		  if (VTermTerminal_cursors_same_y(terminal)){
+			write(terminal->master, "\x01", 1);
+		  } else {
             terminal->cursor_x = 0;
-            return;
+		  }
+		  return;
         }
         if (action == ACTION_START_SELECTION)
         {
@@ -924,7 +954,7 @@ static int cb_sb_pushline(int cols, const VTermScreenCell *cells, void *user)
 
 TerminalWindow *VTermTerminal_window(int initial_rows, int initial_cols, char * cwd)
 {
-    TerminalWindow *terminal = malloc(sizeof *terminal);
+    TerminalWindow *terminal = my_malloc(sizeof *terminal);
     memset(terminal, 0, sizeof *terminal);  // Zero-initialize to prevent garbage values
     //terminal->insert_mode = 0;
     terminal->selection_y = -1;
@@ -1005,7 +1035,7 @@ Window *VTermTerminal_callback(Tabs *self){
     Window *slider = slider_new(terminal);
     terminal->slider = slider;
     //slider->id = terminal->cwd;
-    slider->id = malloc(1024);
+    slider->id = my_malloc(1024);
     //Window_set_id_from_path(slider, terminal->cwd);
     update_tab_label(terminal);
     return slider;
@@ -1088,7 +1118,7 @@ Window *VTermTerminal_toolbar(TerminalFrame *self)
 
 Window *VTermTerminal_new(int left, int right, int top, int bottom, int width, int height, char * cwd)
 {
-    TerminalFrame *frame = malloc(sizeof *frame);
+    TerminalFrame *frame = my_malloc(sizeof *frame);
     memset(frame, 0, sizeof *frame);  // Zero-initialize to prevent garbage values
     Window *w = Frame_init(frame, left, right, top, bottom, width, height, NULL, 1);
 	frame->win.id = "TerminalFrame";
@@ -1121,7 +1151,7 @@ Window *VTermTerminal_new(int left, int right, int top, int bottom, int width, i
 Window *VTermTerminal_new(int left, int right, int top, int bottom, int width, int height, char * cwd) {
     (void)left; (void)right; (void)top; (void)bottom; (void)width; (void)height;
     /* Return a simple window with a message */
-    Window *w = malloc(sizeof(Window));
+    Window *w = my_malloc(sizeof(Window));
     if (w) {
         Window_init(w, left, right, top, bottom, width, height);
         w->id = "Terminal (not supported on Windows yet)";

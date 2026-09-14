@@ -1,4 +1,7 @@
+#include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
+#include "logger.h"
 
 int max(int a, int b)
 {
@@ -19,4 +22,11 @@ int ends_with_ignore_case(const char *str, const char *suffix)
         return 0;
 
     return strcasecmp(str + str_len - suffix_len, suffix) == 0;
+}
+
+void * my_malloc(int size){
+  LOG_INFO("my_malloc %d", size);
+  void *ptr = malloc(size);
+  memset(ptr, 0, size);  // Zero-initialize to prevent garbage values
+  return ptr;
 }
