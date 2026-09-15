@@ -17,6 +17,8 @@
 #endif
 
 typedef struct ScrollbackLine {
+    char * utf8;
+    int utf8_size;
     VTermScreenCell *cells;
     int cols;
     struct ScrollbackLine *prev;

@@ -30,3 +30,35 @@ void * my_malloc(int size){
   memset(ptr, 0, size);  // Zero-initialize to prevent garbage values
   return ptr;
 }
+
+
+/* Helper function to encode a unicode codepoint to UTF-8 */
+int encode_utf8(uint32_t c, char *buf)
+{
+    if (c == 0) {
+        buf[0] = ' ';
+        return 1;
+    } else if (c == (uint32_t)-1) {
+        /* skip continuation cell for wide characters */
+        return 0;
+    } else if (c < 0x80) {
+        buf[0] = (char)c;
+        return 1;
+    } else if (c < 0x800) {
+        buf[0] = 0xC0 | (c >> 6);
+        buf[1] = 0x80 | (c & 0x3F);
+        return 2;
+    } else if (c < 0x10000) {
+        buf[0] = 0xE0 | (c >> 12);
+        buf[1] = 0x80 | ((c >> 6) & 0x3F);
+        buf[2] = 0x80 | (c & 0x3F);
+        return 3;
+    } else {
+        buf[0] = 0xF0 | (c >> 18);
+        buf[1] = 0x80 | ((c >> 12) & 0x3F);
+        buf[2] = 0x80 | ((c >> 6) & 0x3F);
+        buf[3] = 0x80 | (c & 0x3F);
+        return 4;
+    }
+}
+

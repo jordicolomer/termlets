@@ -79,6 +79,47 @@ typedef struct vterm_terminal_data {
     VTermScreenCallbacks callbacks;
 } vterm_terminal_data;*/
 
+
+/* convert VTermColor to 256-color palette index */
+static int vterm_color_to_256(VTermColor color)
+{
+    /* if it's an indexed color, use it directly */
+    if (VTERM_COLOR_IS_INDEXED(&color)) {
+        return color.indexed.idx;
+    }
+
+    /* if it's RGB, convert to nearest 256-color */
+    if (VTERM_COLOR_IS_RGB(&color)) {
+        int r = color.rgb.red;
+        int g = color.rgb.green;
+        int b = color.rgb.blue;
+
+        /* check for grayscale (232-255) */
+        if (r == g && g == b) {
+            if (r < 8) return 16;  /* black */
+            if (r > 247) return 231;  /* white */
+            return 232 + (r - 8) / 10;
+        }
+
+        /* convert to 6x6x6 color cube (16-231) */
+        int ir = (r * 6) / 256;
+        int ig = (g * 6) / 256;
+        int ib = (b * 6) / 256;
+        return 16 + 36 * ir + 6 * ig + ib;
+    }
+
+    /* default colors */
+    if (VTERM_COLOR_IS_DEFAULT_FG(&color)) {
+        return 7;  /* default foreground */
+    }
+    if (VTERM_COLOR_IS_DEFAULT_BG(&color)) {
+        return 0;  /* default background */
+    }
+
+    return 7;  /* fallback */
+}
+
+
 void VTermTerminal_scroll_wheel_down(struct Window *w){
   TerminalWindow * self = w;
   Slider_scroll_down(self->slider);
@@ -134,15 +175,34 @@ void update_tab_label(TerminalWindow * terminal){
 /* Forward declarations */
 int VTermTerminal_get_virtual_height(struct Window *wg);
 
-void scrollback_add_line(ScrollbackList *sb, int cols, const VTermScreenCell *cells)
-{
-    /* create new line node */
+
+void scrollback_add_line_cells(ScrollbackLine *line, int cols, const VTermScreenCell *cells){
+    line->cells = my_malloc(cols * sizeof(VTermScreenCell));
+    memcpy(line->cells, cells, cols * sizeof(VTermScreenCell));
+}
+
+void scrollback_add_line_utf8(ScrollbackLine *line, int cols, const VTermScreenCell *cells){
+  char * line_buf = my_malloc(cols * 4+20);
+  int buf_idx = 0;
+  for (int col = 0; col < cols; col++){
+	VTermScreenCell *cell_ptr = &cells[col];
+	buf_idx += encode_utf8(cell_ptr->chars[0], &line_buf[buf_idx]);
+  }
+  line_buf[buf_idx] = '\0';
+}
+
+
+void scrollback_add_line(ScrollbackList *sb, int cols, const VTermScreenCell *cells){
     ScrollbackLine *line = my_malloc(sizeof(ScrollbackLine));
     line->cols = cols;
 	//LOG_INFO("cols:%d * sizeof(VTermScreenCell:%d)", cols, sizeof(VTermScreenCell));
 	// cols=135 sizeof(VTermScreenCell)=40
-    line->cells = my_malloc(cols * sizeof(VTermScreenCell));
-    memcpy(line->cells, cells, cols * sizeof(VTermScreenCell));
+
+	scrollback_add_line_cells(line, cols, cells);
+	scrollback_add_line_utf8(line, cols, cells);
+
+
+	
     line->next = NULL;
     line->prev = sb->tail;
 
@@ -331,75 +391,6 @@ int VTermTerminal_get_virtual_height(struct Window *wg)
     return terminal->scrollback.count + terminal->rows;
 }
 
-/* convert VTermColor to 256-color palette index */
-static int vterm_color_to_256(VTermColor color)
-{
-    /* if it's an indexed color, use it directly */
-    if (VTERM_COLOR_IS_INDEXED(&color)) {
-        return color.indexed.idx;
-    }
-
-    /* if it's RGB, convert to nearest 256-color */
-    if (VTERM_COLOR_IS_RGB(&color)) {
-        int r = color.rgb.red;
-        int g = color.rgb.green;
-        int b = color.rgb.blue;
-
-        /* check for grayscale (232-255) */
-        if (r == g && g == b) {
-            if (r < 8) return 16;  /* black */
-            if (r > 247) return 231;  /* white */
-            return 232 + (r - 8) / 10;
-        }
-
-        /* convert to 6x6x6 color cube (16-231) */
-        int ir = (r * 6) / 256;
-        int ig = (g * 6) / 256;
-        int ib = (b * 6) / 256;
-        return 16 + 36 * ir + 6 * ig + ib;
-    }
-
-    /* default colors */
-    if (VTERM_COLOR_IS_DEFAULT_FG(&color)) {
-        return 7;  /* default foreground */
-    }
-    if (VTERM_COLOR_IS_DEFAULT_BG(&color)) {
-        return 0;  /* default background */
-    }
-
-    return 7;  /* fallback */
-}
-
-/* Helper function to encode a unicode codepoint to UTF-8 */
-static int encode_utf8(uint32_t c, char *buf)
-{
-    if (c == 0) {
-        buf[0] = ' ';
-        return 1;
-    } else if (c == (uint32_t)-1) {
-        /* skip continuation cell for wide characters */
-        return 0;
-    } else if (c < 0x80) {
-        buf[0] = (char)c;
-        return 1;
-    } else if (c < 0x800) {
-        buf[0] = 0xC0 | (c >> 6);
-        buf[1] = 0x80 | (c & 0x3F);
-        return 2;
-    } else if (c < 0x10000) {
-        buf[0] = 0xE0 | (c >> 12);
-        buf[1] = 0x80 | ((c >> 6) & 0x3F);
-        buf[2] = 0x80 | (c & 0x3F);
-        return 3;
-    } else {
-        buf[0] = 0xF0 | (c >> 18);
-        buf[1] = 0x80 | ((c >> 12) & 0x3F);
-        buf[2] = 0x80 | ((c >> 6) & 0x3F);
-        buf[3] = 0x80 | (c & 0x3F);
-        return 4;
-    }
-}
-
 void draw_selection(TerminalWindow * terminal)
 {
     if (terminal->selection_y == -1) return;
@@ -583,11 +574,12 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
             bg = vterm_color_to_256(first_cell.bg);
 
             /* handle reverse video attribute */
+			/*first_cell.attrs.reverse = 0;
             if (first_cell.attrs.reverse) {
                 int temp = fg;
                 fg = bg;
                 bg = temp;
-            }
+				}*/
 
             /* collect consecutive cells with same colors */
             int batch_start = col;
@@ -600,11 +592,12 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
                 cell_bg = vterm_color_to_256(cell_ptr.bg);
 
                 /* handle reverse video attribute */
+				/*cell.attrs.reverse = 0;
                 if (cell_ptr.attrs.reverse) {
                     int temp = cell_fg;
                     cell_fg = cell_bg;
                     cell_bg = temp;
-                }
+					}*/
 
                 /* break batch if colors changed */
                 if (cell_fg != fg || cell_bg != bg) {
