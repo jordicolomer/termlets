@@ -684,10 +684,10 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
 			LOG_INFO("cursor_drawn: %d == %d + %d. terminal->cursor_y:%d - first_visible_line:%d", cursor_y, geo.y, i, terminal->cursor_y, first_visible_line);
 
             /* Render cursor with swapped colors (reverse video) */
-			if ((cursor_viewport_row == i) || insert_mode == 1) {
+			if (terminal->cursor_y == -1 || insert_mode == 1) {
 			  Buffer_print(&main_buf, cursor_y, cursor_x, cursor_width, cursor_char, bg, fg);
 			  cursor_drawn = 1;
-			  terminal->cursor_y = first_visible_line + cursor_viewport_row;
+			  //terminal->cursor_y = first_visible_line + cursor_viewport_row;
 			  //terminal->cursor_x = cursor_x;
 			}
         }
@@ -743,6 +743,17 @@ int VTermTerminal_cursors_same_y(TerminalWindow * terminal){
   return cursor_viewport_row == i;
 }
 
+int VTermTerminal_cursor_y(TerminalWindow * terminal){
+  int first_visible_line = -terminal->win.shift;
+  VTermState *state = vterm_obtain_state(terminal->vt);
+  VTermPos cursor_pos;
+  vterm_state_get_cursorpos(state, &cursor_pos);
+  //int i = terminal->cursor_y - first_visible_line;
+  int cursor_virtual_line = terminal->scrollback.count + cursor_pos.row;
+  int cursor_viewport_row = cursor_virtual_line - first_visible_line;
+  return cursor_viewport_row + first_visible_line;
+}
+
 void vterm_send_key(struct Window *wg, char c)
 {
     //vterm_terminal_data *vtd = wg->data2;
@@ -768,34 +779,37 @@ void vterm_send_key(struct Window *wg, char c)
         {
             if (terminal->cursor_y == -1) return;
             terminal->cursor_y += 1;
-			terminal->cursor_y = min(terminal->cursor_y, virtual_height-1);
-            //if (terminal->cursor_y > virtual_height-2){
-            //    terminal->cursor_y = -1;
-            //}
+			//terminal->cursor_y = min(terminal->cursor_y, virtual_height-1);
+			if (VTermTerminal_cursors_same_y(terminal)) terminal->cursor_y = -1;
             make_cursor_visible(terminal);
             return;
         }
         if (action == ACTION_UP)
         {
-		  if (terminal->cursor_y < 0) {
+		  if (terminal->cursor_y == -1){
+			//if (VTermTerminal_cursors_same_y(terminal)) {
 			//terminal->cursor_y = virtual_height-2;			
             terminal->cursor_x = terminal->term_cursor_x;
-            terminal->cursor_y = terminal->term_cursor_y;
+            //terminal->cursor_y = terminal->term_cursor_y + terminal->win.shift - 1;
+			terminal->cursor_y = VTermTerminal_cursor_y(terminal);
 		  }
-            else{
-                terminal->cursor_y -= 1;
-                terminal->cursor_y = max(terminal->cursor_y, 0);
-            }
-            make_cursor_visible(terminal);
-            return;
+		  //else{
+			terminal->cursor_y -= 1;
+			terminal->cursor_y = max(terminal->cursor_y, 0);
+			//}
+			if (VTermTerminal_cursors_same_y(terminal)) terminal->cursor_y = -1;
+		  make_cursor_visible(terminal);
+		  return;
         }
         if (action == ACTION_PAGE_UP)
         {
             if (terminal->cursor_y == -1) return;
             terminal->cursor_y += terminal->win.calculated.height;
-            if (terminal->cursor_y > terminal->scrollback.count){
-                terminal->cursor_y = -1;
-            }
+			terminal->cursor_y = min(terminal->cursor_y, virtual_height-1);
+            //if (terminal->cursor_y > terminal->scrollback.count){
+            //    terminal->cursor_y = -1;
+            //}
+			if (VTermTerminal_cursors_same_y(terminal)) terminal->cursor_y = -1;
             make_cursor_visible(terminal);
             return;
         }
@@ -806,12 +820,13 @@ void vterm_send_key(struct Window *wg, char c)
                 terminal->cursor_y -= terminal->win.calculated.height;
                 terminal->cursor_y = max(terminal->cursor_y, 0);
             }
+			if (VTermTerminal_cursors_same_y(terminal)) terminal->cursor_y = -1;
             make_cursor_visible(terminal);
             return;
         }
         if (action == ACTION_RIGHT)
         {
-		  if (VTermTerminal_cursors_same_y(terminal)){
+		  if (terminal->cursor_y == -1){
 			write(terminal->master, "\x06", 1);
 		  } else {
             terminal->cursor_x += 1;
@@ -821,7 +836,7 @@ void vterm_send_key(struct Window *wg, char c)
         }
         if (action == ACTION_LEFT)
         {
-		  if (VTermTerminal_cursors_same_y(terminal)){
+		  if (terminal->cursor_y == -1){
 			write(terminal->master, "\x02", 1);
 		  } else {
             terminal->cursor_x -= 1;
@@ -831,7 +846,7 @@ void vterm_send_key(struct Window *wg, char c)
         }
         if (action == ACTION_END_OF_LINE)
         {
-		  if (VTermTerminal_cursors_same_y(terminal)){
+		  if (terminal->cursor_y == -1){
 			write(terminal->master, "\x05", 1);
 		  } else {
             terminal->cursor_x = terminal->cols-1;
@@ -840,7 +855,7 @@ void vterm_send_key(struct Window *wg, char c)
         }
         if (action == ACTION_START_OF_LINE)
         {
-		  if (VTermTerminal_cursors_same_y(terminal)){
+		  if (terminal->cursor_y == -1){
 			write(terminal->master, "\x01", 1);
 		  } else {
             terminal->cursor_x = 0;
@@ -870,12 +885,14 @@ void vterm_send_key(struct Window *wg, char c)
 		  //terminal->cursor_y = -1;
             terminal->cursor_x = terminal->term_cursor_x;
             terminal->cursor_y = terminal->term_cursor_y;
+			if (VTermTerminal_cursors_same_y(terminal)) terminal->cursor_y = -1;
             make_cursor_visible(terminal);
             return;
         }
         if (action == ACTION_LAST_LINE)
         {
             terminal->cursor_y = 0;
+			if (VTermTerminal_cursors_same_y(terminal)) terminal->cursor_y = -1;
             make_cursor_visible(terminal);
             return;
         }
@@ -966,7 +983,7 @@ TerminalWindow *VTermTerminal_window(int initial_rows, int initial_cols, char * 
     terminal->selection_y = -1;
     terminal->last_line_idx = -1;
     terminal->last_line = NULL;
-    terminal->cursor_y = 0; // no cursor
+    terminal->cursor_y = -1; // no cursor
     Window_init(terminal, 0, 0, 0, 0, -1, -1);
     terminal->win.id = "vterm terminal window";
     terminal->win.send_key = vterm_send_key;
