@@ -181,6 +181,15 @@ void scrollback_add_line_cells(ScrollbackLine *line, int cols, const VTermScreen
     memcpy(line->cells, cells, cols * sizeof(VTermScreenCell));
 }
 
+void rtrim_spaces(char *str)
+{
+    size_t len = strlen(str);
+
+    while (len > 0 && str[len - 1] == ' ') {
+        str[--len] = '\0';
+    }
+}
+
 void scrollback_add_line_utf8(ScrollbackLine *line, int cols, const VTermScreenCell *cells){
   char * line_buf = my_malloc(cols * 4+20);
   int buf_idx = 0;
@@ -189,6 +198,10 @@ void scrollback_add_line_utf8(ScrollbackLine *line, int cols, const VTermScreenC
 	buf_idx += encode_utf8(cell_ptr->chars[0], &line_buf[buf_idx]);
   }
   line_buf[buf_idx] = '\0';
+  rtrim_spaces(line_buf);
+  //LOG_INFO("scrollback_add_line_utf8: %s", line_buf);
+  line->utf8 = strdup(line_buf);
+  free(line_buf);
 }
 
 
@@ -198,7 +211,7 @@ void scrollback_add_line(ScrollbackList *sb, int cols, const VTermScreenCell *ce
 	//LOG_INFO("cols:%d * sizeof(VTermScreenCell:%d)", cols, sizeof(VTermScreenCell));
 	// cols=135 sizeof(VTermScreenCell)=40
 
-	scrollback_add_line_cells(line, cols, cells);
+	//scrollback_add_line_cells(line, cols, cells);
 	scrollback_add_line_utf8(line, cols, cells);
 
 
@@ -442,10 +455,25 @@ ScrollbackLine * get_line(TerminalWindow * terminal, int virtual_line){
 VTermScreenCell VTermTerminal_get_cell(TerminalWindow * terminal, int virtual_line, int col){
     if (virtual_line < terminal->scrollback.count) {
         ScrollbackLine *line = get_line(terminal, virtual_line);
-        if (line && col < line->cols) {
-            VTermScreenCell *cell_ptr = &line->cells[col];
-            return *cell_ptr;
-        }
+		int width;
+		if (line != NULL && line->utf8 != NULL && col < line->cols){
+		char * chr = char_at(line->utf8, col, &width);
+		if (chr != NULL){
+		  uint32_t cp = utf8_decode(&chr);
+
+		  VTermScreenCell cell = {0};
+
+		  cell.chars[0] = cp;
+
+		  cell.fg.type = VTERM_COLOR_INDEXED;
+		  cell.fg.indexed.idx = 15;
+
+		  cell.bg.type = VTERM_COLOR_INDEXED;
+		  cell.bg.indexed.idx = 16;
+
+		  return cell;
+		}
+		}
     } else {
         /* this is a current screen line */
         int screen_row = virtual_line - terminal->scrollback.count;
