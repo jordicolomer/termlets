@@ -137,12 +137,21 @@ void FileExplorer_bg_set_item(Window * item, int bg){
 
 void FileExplorer_paint_selection_item(FileItemWindow * item){
   if (item == NULL) return;
-  if (item->is_marked == 1 && item->is_selected == 0) {
-	FileExplorer_bg_set_item((Window *)item, 228);
-	return;
+  int bg = 0;
+  if (item->is_marked == 1 ) {
+	if (item->is_selected == 0){
+	  bg = 230;
+	} else {
+	  bg = 227;
+	}
+  } else {
+	if (item->is_selected == 0){
+	  bg = 255;
+	} else {
+	  bg = 27;
+	}
   }
-  if (item->is_selected == 0) FileExplorer_bg_set_item((Window *)item, 255);
-  if (item->is_selected == 1) FileExplorer_bg_set_item((Window *)item, 27);
+  FileExplorer_bg_set_item((Window *)item, bg);
 }
 
 void FileExplorer_unselect_item(FileItemWindow * item){
@@ -663,15 +672,25 @@ void ExplorerWindow_make_item_visible(ExplorerWindow *self, FileItemWindow * ite
 
 // Begin Search
 
-void ExplorerWindow_search(ExplorerWindow *self, char * query, FileItemWindow * current){
+void ExplorerWindow_search(ExplorerWindow *self, char * query, FileItemWindow * since_from){
   int count = 0;
+  FileItemWindow * current = self->fm->head;
+  int found = 0;
   while (current != NULL){
-	char *p = strcasestr(current->name, query);
-	if (p != NULL) {
-	  if (count == 0) self->first_occurrence = current;
-	  count++;
+	if (current == since_from) found = 1;
+	current->is_selected = 0;
+
+	if (found){
+	  char *p = strcasestr(current->name, query);
+	  if (p != NULL) {
+		if (count == 0) {
+		  self->first_occurrence = current;
+		  current->is_selected = 1;
+		}
+		count++;
+	  }
+	  current->is_marked = (p != NULL);
 	}
-	current->is_marked = (p != NULL);
 	FileExplorer_paint_selection_item(current);
     current = (FileItemWindow *)current->win.next;
   }
@@ -680,10 +699,21 @@ void ExplorerWindow_search(ExplorerWindow *self, char * query, FileItemWindow * 
 
 }
 
+void ExplorerWindow_unmark_all(ExplorerWindow *self){
+  FileItemWindow * current = self->fm->head;
+  while (current != NULL){
+	current->is_marked = 0;
+	FileExplorer_paint_selection_item(current);
+    current = (FileItemWindow *)current->win.next;
+  }
+}
+
 void ExplorerWindow_searchbox_exit(ExplorerWindow *self){
   self->search_box->win.hidden = 1;
   search_mode = 0;
   self->win.focused = NULL;
+  ExplorerWindow_unmark_all(self);
+  FileExplorer_select_single_item(self, self->selected);
 }
 
 void ExplorerWindow_searchbox_on_modify(ExplorerWindow *self){
@@ -695,6 +725,8 @@ void ExplorerWindow_searchbox_on_enter(ExplorerWindow *self){
   search_mode = 0;
   self->win.focused = NULL;
   FileExplorer_select_single_item(self, self->first_occurrence);
+
+  ExplorerWindow_unmark_all(self);	
 }
 
 Window *ExplorerWindow_searchbox(ExplorerWindow *self)
@@ -727,6 +759,7 @@ void ExplorerWindow_action_search(ExplorerWindow *self){
 	self->first_occurrence = NULL;
   } else {
 	if (self->first_occurrence)
+	  //self->first_occurrence->is_selected = 0;
 	  ExplorerWindow_search(self, self->search_box->buffer, self->first_occurrence->win.next);
   }
 }
@@ -783,6 +816,14 @@ void FileExplorer_send_key(Window * win, char c)
         }
         return;
     }
+	if (action == ACTION_FIRST_LINE){
+	  FileExplorer_select_single_item(self, self->fm->tail);
+	  return;
+	}
+	if (action == ACTION_LAST_LINE){
+	  FileExplorer_select_single_item(self, self->fm->head);
+	  return;
+	}
     if (action == ACTION_ENTER){
     //if (c == 13){ // CR
         FileItemWindow * selected = self->selected;
