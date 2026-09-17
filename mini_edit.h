@@ -4,10 +4,12 @@
 #include "window.h"
 
 typedef struct LineEditorWindow {
-    struct Window win;
-    char * empty_label;
-    char buffer[1024];
-    int cursor;
+  struct Window win;
+  char * empty_label;
+  char buffer[1024];
+  int cursor;
+  Lambda * on_modify;
+  Lambda * on_exit;
 } LineEditorWindow;
 
 LineEditorWindow * LineEditorWindow_new(char * c, char * empty_label);

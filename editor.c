@@ -897,18 +897,29 @@ void EditorWindow_send_key(Window *win, char c)
   //LOG_INFO("EditorWindow_send_key %d %d", c, action);
 
   if (action == ACTION_SEARCH){
-	self->search_box->win.hidden = 1-self->search_box->win.hidden;
-	if (self->search_box->win.hidden == 0){
+	//self->search_box->win.hidden = 1-self->search_box->win.hidden;
+	if (self->search_box->win.hidden == 1){
+	  self->search_box->win.hidden = 0;
 	  search_mode = 1;
 	  self->win.focused = self->search_box;
 	} else {
-	  search_mode = 0;
-	  self->win.focused = NULL;
+	  //search_mode = 0;
+	  //self->win.focused = NULL;
+	  EditorWindow_search(self, self->search_box->buffer);
 	}
 
 	//LOG_INFO("ACTION_SEARCH %d", self->search_box->win.hidden);
 	return;
+  }
+
+  /*if (self->win.focused == self->search_box){
+	if (c == 7){
+	  self->search_box->win.hidden = 1;
+	  search_mode = 0;
+	  self->win.focused = NULL;	  
+	  return;
 	}
+	}*/
 
     Window *focused_cursor = win->focused;
     if (focused_cursor != NULL) while (focused_cursor->send_key == NULL && focused_cursor->focused != NULL) focused_cursor = focused_cursor->focused;
@@ -1144,14 +1155,11 @@ void EditorWindow_draw(struct Window *w, int hasFocus)
         Buffer_print(&main_buf, geo.y + i, geo.x, geo.width, str, 16, bg);
 
         
-        if (-self->win.shift + i == self->cursor.n){ // show cursor
+        /*if (-self->win.shift + i == self->cursor.n){ // show cursor
             bg = 208;
             if (insert_mode == 1) bg = 27;
-            //Buffer_print(&main_buf, geo.y + i, geo.x+self->cursor_x, 1, str+self->cursor_x, 16, bg);
-			//int idx = get_idx_pos(str, self->cursor_x);
-            //Buffer_set_bg(&main_buf, geo.y + i, geo.x+idx, 1, bg);
 			Buffer_set_bg(&main_buf, geo.y + i, geo.x+self->cursor.x, 1, bg);
-        }
+			}*/
 
         // syntax highlighter
 
@@ -1176,7 +1184,13 @@ void EditorWindow_draw(struct Window *w, int hasFocus)
             current = current->next;
     }
 	EditorWindow_draw_selection(w, self->cursor, self->selection, 117);
-	EditorWindow_draw_selection(w, self->highlight_start, self->highlight_end, 11);
+	EditorWindow_draw_selection(w, self->highlight_start, self->highlight_end, 227);
+
+	// draw cursor
+	int bg = 208;
+	if (insert_mode == 1) bg = 27;
+	Buffer_set_bg(&main_buf, geo.y + (self->cursor.n+self->win.shift), geo.x+self->cursor.x, 1, bg);
+
 }
 
 
@@ -1227,6 +1241,12 @@ void EditorWindow_on_mouse_up(Window * win){
   if (self->cursor.n == self->selection.n && self->cursor.x == self->selection.x) self->selection.n = -1;
 }
 
+void EditorWindow_searchbox_exit(EditorWindow *self){
+  self->search_box->win.hidden = 1;
+  search_mode = 0;
+  self->win.focused = NULL;
+}
+
 Window *EditorWindow_searchbox(EditorWindow *self)
 {
   LineEditorWindow * line_edit = LineEditorWindow_new(NULL, "Search");
@@ -1236,10 +1256,11 @@ Window *EditorWindow_searchbox(EditorWindow *self)
   line_edit->win.right = 3;
   line_edit->win.width = 15;
   line_edit->win.height = 1;
-  line_edit->win.bg = 247;
+  line_edit->win.bg = 229;
   line_edit->win.fg = 16;
   line_edit->win.hidden = 1;
   line_edit->win.id = "EditorWindow_searchbox";
+  line_edit->on_exit = create_lambda(EditorWindow_searchbox_exit, 1, self);
   //line_edit->win.lambda = create_lambda(Editor_searchbox_enter, 1, self);
   //line_edit->win.data = self;
   //line_edit->win.on_mouse_down = Editor_searchbox_on_mouse_down; // this should be a lambda
@@ -1301,7 +1322,7 @@ Window *EditorWindow_new_tab(Tabs *self)
     editor->win.id = malloc(ID_LENGTH*4);
     slider->id = editor->win.id;
 
-	Window * searchbox = EditorWindow_searchbox(self);
+	Window * searchbox = EditorWindow_searchbox(editor);
 	Window_append(slider, searchbox);
 	editor->search_box = searchbox;
 

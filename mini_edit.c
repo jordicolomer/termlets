@@ -117,6 +117,11 @@ void LineEditorWindow_send_key(Window * win, char c){
         if (win->lambda != NULL) invoke_lambda(win->lambda);
         return;
     }
+    if (c == 7) { // Ctrl+G
+        //self->cursor = len;
+        if (self->on_exit != NULL) invoke_lambda(self->on_exit);
+        return;
+    }
     if (c == 22) { // Ctrl+V
 	  char * cb = clipboard_paste();
 	  insert_string(self->buffer, self->cursor, cb, len, sizeof(self->buffer));
