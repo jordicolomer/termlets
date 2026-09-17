@@ -137,6 +137,10 @@ void FileExplorer_bg_set_item(Window * item, int bg){
 
 void FileExplorer_paint_selection_item(FileItemWindow * item){
   if (item == NULL) return;
+  if (item->is_marked == 1 && item->is_selected == 0) {
+	FileExplorer_bg_set_item((Window *)item, 228);
+	return;
+  }
   if (item->is_selected == 0) FileExplorer_bg_set_item((Window *)item, 255);
   if (item->is_selected == 1) FileExplorer_bg_set_item((Window *)item, 27);
 }
@@ -652,20 +656,105 @@ Window *ExplorerWindow_rename(ExplorerWindow *self)
   Window_append(self->fm, line_edit);
 }
 
+void ExplorerWindow_make_item_visible(ExplorerWindow *self, FileItemWindow * item){
+  if (item == NULL) return;
+  Slider_make_visible(self->slider, &item->win);
+}
+
+// Begin Search
+
+void ExplorerWindow_search(ExplorerWindow *self, char * query, FileItemWindow * current){
+  int count = 0;
+  while (current != NULL){
+	char *p = strcasestr(current->name, query);
+	if (p != NULL) {
+	  if (count == 0) self->first_occurrence = current;
+	  count++;
+	}
+	current->is_marked = (p != NULL);
+	FileExplorer_paint_selection_item(current);
+    current = (FileItemWindow *)current->win.next;
+  }
+
+  ExplorerWindow_make_item_visible(self, self->first_occurrence);
+
+}
+
+void ExplorerWindow_searchbox_exit(ExplorerWindow *self){
+  self->search_box->win.hidden = 1;
+  search_mode = 0;
+  self->win.focused = NULL;
+}
+
+void ExplorerWindow_searchbox_on_modify(ExplorerWindow *self){
+  ExplorerWindow_search(self, self->search_box->buffer, self->fm->head);
+}
+
+void ExplorerWindow_searchbox_on_enter(ExplorerWindow *self){
+  self->search_box->win.hidden = 1;
+  search_mode = 0;
+  self->win.focused = NULL;
+  FileExplorer_select_single_item(self, self->first_occurrence);
+}
+
+Window *ExplorerWindow_searchbox(ExplorerWindow *self)
+{
+  LineEditorWindow * line_edit = LineEditorWindow_new(NULL, "Search");
+  line_edit->win.top = 1;
+  line_edit->win.bottom = -1;
+  line_edit->win.left = -1;
+  line_edit->win.right = 3;
+  line_edit->win.width = 15;
+  line_edit->win.height = 1;
+  line_edit->win.bg = 229;
+  line_edit->win.fg = 16;
+  line_edit->win.hidden = 1;
+  line_edit->win.id = "ExplorerWindow_searchbox";
+  line_edit->on_exit = create_lambda(ExplorerWindow_searchbox_exit, 1, self);
+  line_edit->on_modify = create_lambda(ExplorerWindow_searchbox_on_modify, 1, self);
+  line_edit->win.lambda = create_lambda(ExplorerWindow_searchbox_on_enter, 1, self);
+  //line_edit->win.data = self;
+  //line_edit->win.on_mouse_down = Editor_searchbox_on_mouse_down; // this should be a lambda
+  return line_edit;
+}
+
+void ExplorerWindow_action_search(ExplorerWindow *self){
+  if (self->search_box->win.hidden == 1){
+	self->search_box->win.hidden = 0;
+	search_mode = 1;
+	self->win.focused = self->search_box;
+	LineEditorWindow_reset(self->search_box);
+	self->first_occurrence = NULL;
+  } else {
+	if (self->first_occurrence)
+	  ExplorerWindow_search(self, self->search_box->buffer, self->first_occurrence->win.next);
+  }
+}
+
+ 
+// End Search
+ 
 void FileExplorer_send_key(Window * win, char c)
 {
     ExplorerWindow * self = win;
+	Action action = get_action(c, WT_FILE_MANAGER);
+	
+
+	if (action == ACTION_SEARCH){
+	  ExplorerWindow_action_search(self);
+	  return;
+	}
 
     Window *focused_cursor = win->focused;
     if (focused_cursor != NULL) while (focused_cursor->send_key == NULL && focused_cursor->focused != NULL) focused_cursor = focused_cursor->focused;
 
     if (focused_cursor != NULL && focused_cursor->send_key != NULL) {
+  LOG_INFO("FileExplorer_send_key %p %p", self, self->search_box);
         focused_cursor->send_key(focused_cursor, c);
         return;
     }
     //Action action = mapping_edit[c];
 	//Action action = get_mapping()[c];
-	Action action = get_action(c, WT_FILE_MANAGER);
 
     if (action == ACTION_DOWN){
 	  FileExplorer_down(self);
@@ -742,6 +831,8 @@ void FileExplorer_shortcut_set_target(ExplorerWindow * self, Window * shortcut, 
   shortcut->on_mouse_down = Window_execute_lambda;
 }
 
+
+ 
 ExplorerWindow *FileExplorer_file_list(Tabs *self){
   ExplorerWindow *w = malloc(sizeof *w);
   memset(w, 0, sizeof *w);  // Zero-initialize to prevent garbage values
@@ -925,6 +1016,11 @@ ExplorerWindow *FileExplorer_file_list(Tabs *self){
 
   w->win.bg = 255;
   w->win.fill = 1;
+
+  Window * searchbox = ExplorerWindow_searchbox(w);
+  Window_append(w, searchbox);
+  w->search_box = searchbox;
+  LOG_INFO("FileExplorer_file_list %p %p", w, w->search_box);
 
   return w;
 }

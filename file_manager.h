@@ -1,6 +1,7 @@
 #ifndef FILE_MANAGER_H
 #define FILE_MANAGER_H
 #include "window.h"
+#include "mini_edit.h"
 #include <sys/stat.h>
 
 typedef struct FileItemWindow {
@@ -11,6 +12,7 @@ typedef struct FileItemWindow {
     time_t date;
     int is_dir;
     int is_selected;
+    int is_marked;;
 } FileItemWindow;
 
 typedef struct ExplorerWindow {
@@ -19,11 +21,13 @@ typedef struct ExplorerWindow {
     Window *slider;
     //int selected;
     FileItemWindow *selected;
+    FileItemWindow *first_occurrence;
     char * path;
     char path_label[1024];
     int sort_by;
     int reversed[3];
     Window * sort_marker[6];
+    LineEditorWindow *search_box;
 } ExplorerWindow;
 
 typedef struct ExplorerFrame {

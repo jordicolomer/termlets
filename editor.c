@@ -1256,7 +1256,6 @@ void EditorWindow_searchbox_on_modify(EditorWindow *self){
 }
 
 void Editor_searchbox_on_enter(EditorWindow *self){
-  //EditorWindow_searchbox_exit(self);
   self->search_box->win.hidden = 1;
   search_mode = 0;
   self->win.focused = NULL;
