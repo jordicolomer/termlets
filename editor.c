@@ -1195,7 +1195,7 @@ void EditorWindow_draw(struct Window *w, int hasFocus)
 
 }
 
-
+/*
 void EditorFrame_escape_search_box(EditorFrame *self){
   //insert_mode = restore_insert_mode;
   search_mode = 0;
@@ -1206,11 +1206,11 @@ void EditorFrame_escape_search_box(EditorFrame *self){
 	editor->highlight_end.n = -1;
   }
 }
-
+*/
 
 void EditorWindow_on_mouse_down(Window *win, int x, int y){
   EditorFrame *frame = Window_get_frame(win);
-  EditorFrame_escape_search_box(frame);
+  //EditorFrame_escape_search_box(frame);
   
   EditorWindow *self = win;
   self->cursor.n = y - win->shift - win->calculated.y;
@@ -1465,7 +1465,7 @@ Window *_Editor_searchbox(EditorFrame *self)
   return search_box;
 }
 
-  
+/*
 Window *Editor_searchbox_enter(EditorFrame *self){
   EditorWindow * editor = self->tabs->win.focused->focused; // this is bad code. fix it
   EditorWindow_search(editor, self->search_box->buffer);
@@ -1529,6 +1529,7 @@ void EditorFrame_send_sequence(struct Window *wg, const char *seq, int len)
 	  focused_cursor->send_sequence(focused_cursor, seq, len);
     }
 }
+*/
 
 
 Window *Editor_new(int left, int right, int top, int bottom, int width, int height)
@@ -1538,8 +1539,8 @@ Window *Editor_new(int left, int right, int top, int bottom, int width, int heig
     Window *frame = editor_frame;
     // Window *frame = malloc(sizeof *frame);
     Window *w = Frame_init(frame, left, right, top, bottom, width, height, NULL, 0);
-    frame->send_key = EditorFrame_send_key;
-    frame->send_sequence = EditorFrame_send_sequence;
+    //frame->send_key = EditorFrame_send_key;
+    //frame->send_sequence = EditorFrame_send_sequence;
 
     Window *tabs = Tab_new((Window * (*)(Tabs *self)) EditorWindow_new_tab, 0);
     editor_frame->tabs = tabs;
@@ -1555,9 +1556,9 @@ Window *Editor_new(int left, int right, int top, int bottom, int width, int heig
     Window *menu = Editor_menu(editor_frame);
     Window_append(w, menu);
 
-	EditorWindow * search_box = Editor_searchbox(editor_frame);
-	editor_frame->search_box = search_box;
-    Window_append(w, search_box);
+	//EditorWindow * search_box = Editor_searchbox(editor_frame);
+	//editor_frame->search_box = search_box;
+    //Window_append(w, search_box);
 
     last_frame = frame;
 

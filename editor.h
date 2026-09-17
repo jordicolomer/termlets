@@ -52,7 +52,7 @@ typedef struct EditorWindow {
 typedef struct EditorFrame {
   struct Window win;
   Tabs *tabs;
-  LineEditorWindow *search_box;
+  //LineEditorWindow *search_box;
   //int show_tabs;
   //Window *syntax;
 } EditorFrame;
