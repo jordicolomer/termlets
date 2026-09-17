@@ -17,5 +17,6 @@ LineEditorWindow * LineEditorWindow_new(char * c, char * empty_label);
 void insert_char(char *buffer, size_t pos, char c, 
                  size_t current_len, size_t capacity);
 void delete_char(char *buffer, size_t pos, size_t len);
+void LineEditorWindow_reset(LineEditorWindow * self);
 
 #endif

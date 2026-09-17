@@ -88,6 +88,7 @@ void LineEditorWindow_send_key(Window * win, char c){
             delete_char(self->buffer, self->cursor-1, len);
             self->cursor--;
         }
+		invoke_lambda(self->on_modify);
         return;
     }
     if (c == 2) { // Ctrl+B
@@ -114,21 +115,23 @@ void LineEditorWindow_send_key(Window * win, char c){
     }
     if (c == 13) { // Ctrl+M
         //self->cursor = len;
-        if (win->lambda != NULL) invoke_lambda(win->lambda);
+        invoke_lambda(win->lambda);
         return;
     }
     if (c == 7) { // Ctrl+G
         //self->cursor = len;
-        if (self->on_exit != NULL) invoke_lambda(self->on_exit);
+        invoke_lambda(self->on_exit);
         return;
     }
     if (c == 22) { // Ctrl+V
 	  char * cb = clipboard_paste();
 	  insert_string(self->buffer, self->cursor, cb, len, sizeof(self->buffer));
 	  self->cursor += strlen(cb);
+	  invoke_lambda(self->on_modify);
 	  return;
     }
     insert_char(self->buffer, self->cursor, c, len, sizeof(self->buffer));
+	invoke_lambda(self->on_modify);
     self->cursor++;
 }
 
@@ -140,7 +143,7 @@ void LineEditorWindow_draw(struct Window *current, int hasFocus)
     Geometry geo = current->calculated;
     int fg = current->fg;
     int bg = current->bg;
-	char * label = current->c;
+	char * label = self->buffer;
 	if (label[0] == 0){
 	  label = self->empty_label;
 	  fg = 7;
@@ -161,7 +164,7 @@ LineEditorWindow * LineEditorWindow_new(char * c, char * empty_label){
     self->win.left = 0;
     self->win.right = 0;
     self->win.bg = 27;
-    self->win.c = &self->buffer;
+    //self->win.c = &self->buffer;
     self->win.id = "line editor";
     self->win.send_key = LineEditorWindow_send_key;
     self->win.send_sequence = LineEditorWindow_send_sequence;
@@ -173,4 +176,9 @@ LineEditorWindow * LineEditorWindow_new(char * c, char * empty_label){
     self->empty_label = empty_label;
 
     return self;
+}
+
+void LineEditorWindow_reset(LineEditorWindow * self){
+  self->buffer[0] = '\0';
+  self->cursor = 0;
 }

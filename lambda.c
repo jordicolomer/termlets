@@ -40,6 +40,7 @@ int invoke_lambda(Lambda *l)
     typedef int (*Func8)(void*, void*, void*, void*, void*, void*, void*, void*);
     typedef int (*Func9)(void*, void*, void*, void*, void*, void*, void*, void*, void*);
     typedef int (*Func10)(void*, void*, void*, void*, void*, void*, void*, void*, void*, void*);
+	if (l->func == NULL) return 0;
 
     switch (l->argc) {
         case 0:

@@ -866,8 +866,9 @@ void EditorWindow_search(EditorWindow *self, char * query){
 	self->highlight_end.ptr = self->highlight_start.x + calculate_width(query);
 
 	//EditorWindow_show_line(self, self->highlight_start.n);
-	self->cursor = self->highlight_start;
-	EditorWindow_make_cursor_visible(self);
+	//self->cursor = self->highlight_start;
+	//EditorWindow_make_cursor_visible(self);
+	EditorWindow_show_line(self, self->highlight_end.n);
   }
   
 }
@@ -902,6 +903,7 @@ void EditorWindow_send_key(Window *win, char c)
 	  self->search_box->win.hidden = 0;
 	  search_mode = 1;
 	  self->win.focused = self->search_box;
+	  LineEditorWindow_reset(self->search_box);
 	} else {
 	  //search_mode = 0;
 	  //self->win.focused = NULL;
@@ -1245,6 +1247,21 @@ void EditorWindow_searchbox_exit(EditorWindow *self){
   self->search_box->win.hidden = 1;
   search_mode = 0;
   self->win.focused = NULL;
+  self->highlight_start.n = -1;
+}
+
+void EditorWindow_searchbox_on_modify(EditorWindow *self){
+  self->highlight_end.n = -1;
+  EditorWindow_search(self, self->search_box->buffer);
+}
+
+void Editor_searchbox_on_enter(EditorWindow *self){
+  //EditorWindow_searchbox_exit(self);
+  self->search_box->win.hidden = 1;
+  search_mode = 0;
+  self->win.focused = NULL;
+  self->cursor = self->highlight_end;
+  self->highlight_start.n = -1;
 }
 
 Window *EditorWindow_searchbox(EditorWindow *self)
@@ -1261,7 +1278,8 @@ Window *EditorWindow_searchbox(EditorWindow *self)
   line_edit->win.hidden = 1;
   line_edit->win.id = "EditorWindow_searchbox";
   line_edit->on_exit = create_lambda(EditorWindow_searchbox_exit, 1, self);
-  //line_edit->win.lambda = create_lambda(Editor_searchbox_enter, 1, self);
+  line_edit->on_modify = create_lambda(EditorWindow_searchbox_on_modify, 1, self);
+  line_edit->win.lambda = create_lambda(Editor_searchbox_on_enter, 1, self);
   //line_edit->win.data = self;
   //line_edit->win.on_mouse_down = Editor_searchbox_on_mouse_down; // this should be a lambda
   return line_edit;
