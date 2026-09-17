@@ -46,6 +46,7 @@ typedef struct EditorWindow {
     int language; // specifies the syntax highlighting language
     int modified;
     int selecting;
+  LineEditorWindow *search_box;
 } EditorWindow;
 
 typedef struct EditorFrame {

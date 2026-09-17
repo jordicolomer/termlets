@@ -6,6 +6,7 @@
 #define BACKGROUND_COLOR 235
 
 extern int insert_mode;
+extern int search_mode;
 extern int tab_width;
 extern int show_tabs;
 

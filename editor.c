@@ -24,7 +24,7 @@
 #include "config.h"
 
 
-int restore_insert_mode;
+//int restore_insert_mode;
 
 void set_modified(EditorWindow *self, int modified){
   if (modified == 1){
@@ -889,11 +889,36 @@ void EditorWindow_send_sequence(Window *win, const char *seq, int len){
 
 void EditorWindow_send_key(Window *win, char c)
 {
+
+
   EditorWindow *self = win;
   //Action action = get_mapping()[c];
   Action action = get_action(c, WT_EDITOR);
-  LOG_INFO("EditorWindow_send_key %d %d", c, action);
+  //LOG_INFO("EditorWindow_send_key %d %d", c, action);
 
+  if (action == ACTION_SEARCH){
+	self->search_box->win.hidden = 1-self->search_box->win.hidden;
+	if (self->search_box->win.hidden == 0){
+	  search_mode = 1;
+	  self->win.focused = self->search_box;
+	} else {
+	  search_mode = 0;
+	  self->win.focused = NULL;
+	}
+
+	//LOG_INFO("ACTION_SEARCH %d", self->search_box->win.hidden);
+	return;
+	}
+
+    Window *focused_cursor = win->focused;
+    if (focused_cursor != NULL) while (focused_cursor->send_key == NULL && focused_cursor->focused != NULL) focused_cursor = focused_cursor->focused;
+
+    if (focused_cursor != NULL && focused_cursor->send_key != NULL) {
+        //tab_move_to_front(focused_cursor);
+        focused_cursor->send_key(focused_cursor, c);
+		return;
+    }
+  
   /*if (action == ACTION_MODE){
 	insert_mode = 1 - insert_mode;
 	return;
@@ -1002,12 +1027,11 @@ void EditorWindow_send_key(Window *win, char c)
 	EditorWindow_insert(self, ';');
 	return;
   }
-  if (action == ACTION_SEARCH){
-	//EditorWindow_search(self);
+  /*if (action == ACTION_SEARCH){
 	EditorFrame * frame = Window_get_frame(win);
 	EditorFrame_search(frame);
 	return;
-	}
+	}*/
   if (action == ACTION_DELETE){
 	EditorWindow_delete(self);
 	return;
@@ -1157,7 +1181,8 @@ void EditorWindow_draw(struct Window *w, int hasFocus)
 
 
 void EditorFrame_escape_search_box(EditorFrame *self){
-  insert_mode = restore_insert_mode;
+  //insert_mode = restore_insert_mode;
+  search_mode = 0;
   if (self->win.focused == self->search_box) {
 	self->win.focused = self->tabs;
 	EditorWindow * editor = self->tabs->win.focused->focused; // this is bad code. fix it
@@ -1202,6 +1227,26 @@ void EditorWindow_on_mouse_up(Window * win){
   if (self->cursor.n == self->selection.n && self->cursor.x == self->selection.x) self->selection.n = -1;
 }
 
+Window *EditorWindow_searchbox(EditorWindow *self)
+{
+  LineEditorWindow * line_edit = LineEditorWindow_new(NULL, "Search");
+  line_edit->win.top = 1;
+  line_edit->win.bottom = -1;
+  line_edit->win.left = -1;
+  line_edit->win.right = 3;
+  line_edit->win.width = 15;
+  line_edit->win.height = 1;
+  line_edit->win.bg = 247;
+  line_edit->win.fg = 16;
+  line_edit->win.hidden = 1;
+  line_edit->win.id = "EditorWindow_searchbox";
+  //line_edit->win.lambda = create_lambda(Editor_searchbox_enter, 1, self);
+  //line_edit->win.data = self;
+  //line_edit->win.on_mouse_down = Editor_searchbox_on_mouse_down; // this should be a lambda
+  return line_edit;
+}
+
+
 EditorWindow *latestEditorWindow;
 EditorWindow *EditorWindow_new()
 {
@@ -1242,6 +1287,7 @@ EditorWindow *EditorWindow_new()
 
     latestEditorWindow = self;
 
+
     return self;
 }
 
@@ -1254,6 +1300,10 @@ Window *EditorWindow_new_tab(Tabs *self)
 
     editor->win.id = malloc(ID_LENGTH*4);
     slider->id = editor->win.id;
+
+	Window * searchbox = EditorWindow_searchbox(self);
+	Window_append(slider, searchbox);
+	editor->search_box = searchbox;
 
     return slider;
 }
@@ -1383,8 +1433,9 @@ Window *Editor_searchbox_enter(EditorFrame *self){
 }
 
 void EditorFrame_search(EditorFrame *self){
-  restore_insert_mode = insert_mode;
-  insert_mode = 1;
+  //restore_insert_mode = insert_mode;
+  //insert_mode = 1;
+  search_mode = 1;
   self->win.focused = self->search_box;
 }
 

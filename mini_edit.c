@@ -129,6 +129,8 @@ void LineEditorWindow_send_key(Window * win, char c){
 
 void LineEditorWindow_draw(struct Window *current, int hasFocus)
 {
+  if (current->hidden) return;
+  //LOG_INFO("LineEditorWindow_draw");
     LineEditorWindow *self = current;
     Geometry geo = current->calculated;
     int fg = current->fg;

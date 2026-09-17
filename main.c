@@ -265,7 +265,7 @@ int start()
     //if (c == 11){ // Ctrl+K
     //if (c == '\t'){ // tab
     //if (c == 'm' && insert_mode == 0 && wm != focused){ // m
-	if (wm != focused){
+	if (wm != focused & search_mode == 0){
 	  if (action == ACTION_NEXT_WINDOW){
 		cycle_task();
 		//cycle_tab();
