@@ -148,7 +148,11 @@ void FileExplorer_paint_selection_item(FileItemWindow * item){
 	if (item->is_selected == 0){
 	  bg = 255;
 	} else {
-	  bg = 27;
+	  if (insert_mode == 1){
+		bg = 27;
+	  } else {
+		bg = 208;
+	  }
 	}
   }
   FileExplorer_bg_set_item((Window *)item, bg);
@@ -872,12 +876,18 @@ void FileExplorer_shortcut_set_target(ExplorerWindow * self, Window * shortcut, 
   shortcut->on_mouse_down = Window_execute_lambda;
 }
 
-
+void FileExplorer_draw(Window *w, int hasFocus){
+  ExplorerWindow * self = w;
+  FileExplorer_paint_selection_item(self->selected);
+  return Window_draw(self, hasFocus);
+}
  
 ExplorerWindow *FileExplorer_file_list(Tabs *self){
   ExplorerWindow *w = malloc(sizeof *w);
   memset(w, 0, sizeof *w);  // Zero-initialize to prevent garbage values
   Window_init(w, -1, -1, -1, -1, -1, -1);
+  w->win.draw = FileExplorer_draw;
+  
   w->win.id = malloc(ID_LENGTH*4);
   snprintf(w->win.id, ID_LENGTH*4, "file list");
   //strcpy(w->win.id, "file.txt");
