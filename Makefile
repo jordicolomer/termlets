@@ -1,5 +1,5 @@
 # Compiler and flags
-CC := gcc
+CC := gcc -g
 #CFLAGS := -Wall -Wextra -Werror -std=c11 -g
 #CFLAGS := -Wall -Wextra -std=c11 -g -I/opt/homebrew/opt/libvterm/include
 #LDFLAGS := -L/opt/homebrew/opt/libvterm/lib -lvterm -lpthread

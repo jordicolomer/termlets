@@ -1227,8 +1227,9 @@ void EditorWindow_draw(struct Window *w, int hasFocus)
 	// draw cursor
 	int bg = 208;
 	if (insert_mode == 1) bg = 27;
-	Buffer_set_bg(&main_buf, geo.y + (self->cursor.n+self->win.shift), geo.x+self->cursor.x, 1, bg);
-
+	i = self->cursor.n+self->win.shift;
+	if (0 <= i && i < geo.height)
+	  Buffer_set_bg(&main_buf, geo.y + i, geo.x+self->cursor.x, 1, bg);
 }
 
 /*
