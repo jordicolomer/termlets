@@ -888,6 +888,37 @@ void EditorWindow_send_sequence(Window *win, const char *seq, int len){
   if (strcmp(seq, "[1;3C") == 0){ EditorWindow_next_word(self); return; }
 }
 
+void EditorWindow_action_start_of_line(EditorWindow *self){
+  	self->cursor.x = 0;
+	EditorWindow_fix_cursor_x(self);
+}
+
+int count_tabs(EditorWindow *self, int line_number){
+  if (line_number < 0) return 0;
+  int tabs = 0;
+  if (self->cursor.n > 0){
+	Node * node = EditorWindow_get_line_number(self, line_number);
+	while (tabs < node->length){
+	  if (node->line[tabs] != '\t') break;
+	  tabs++;
+	}
+  }
+  return tabs;
+}
+
+void EditorWindow_action_indent(EditorWindow *self){
+  int prev_tabs = count_tabs(self, self->cursor.n - 1);
+  int current_tabs = count_tabs(self, self->cursor.n);
+  
+  int x = self->cursor.x;
+  EditorWindow_action_start_of_line(self);
+  for (int i = 0; i < (prev_tabs - current_tabs); i++){
+	EditorWindow_insert(self, '\t');
+	x += tab_width;
+  }
+  self->cursor.x = x;
+}
+
 void EditorWindow_send_key(Window *win, char c)
 {
 
@@ -936,6 +967,10 @@ void EditorWindow_send_key(Window *win, char c)
 	insert_mode = 1 - insert_mode;
 	return;
   }*/
+  if (action == ACTION_INDENT){
+	EditorWindow_action_indent(self);
+	return;
+  }
   if (action == ACTION_BACKSPACE){
 	EditorWindow_backspace(self);
 	self->selection.n = -1;
@@ -946,8 +981,9 @@ void EditorWindow_send_key(Window *win, char c)
 	return;
   }
   if (action == ACTION_START_OF_LINE){
-	self->cursor.x = 0;
-	EditorWindow_fix_cursor_x(self);
+	//self->cursor.x = 0;
+	//EditorWindow_fix_cursor_x(self);
+	EditorWindow_action_start_of_line(self);
 	return;
   }
   if (action == ACTION_INSERT){
