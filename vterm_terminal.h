@@ -2,6 +2,7 @@
 #define VTERM_TERMINAL_H
 
 #include "window.h"
+#include "mini_edit.h"
 
 #ifdef _WIN32
     /* Windows: Include sys/types.h for pid_t, define dummy VTerm types */
@@ -53,6 +54,8 @@ typedef struct TerminalWindow {
   struct TerminalPointer cursor;
   struct TerminalPointer selection;
   struct TerminalPointer term_cursor;
+  struct TerminalPointer highlight_start;
+  struct TerminalPointer highlight_end;
 
 
     ScrollbackLine *last_line;
@@ -67,6 +70,7 @@ typedef struct TerminalWindow {
     int cols;
     ScrollbackList scrollback;
     VTermScreenCallbacks callbacks;
+  LineEditorWindow *search_box;
 } TerminalWindow;
 
 typedef struct TerminalFrame {

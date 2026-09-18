@@ -839,39 +839,6 @@ void EditorWindow_delete(EditorWindow *self){
   self->selection.n = -1;
 }
 
-void EditorWindow_search(EditorWindow *self, char * query){
-  EditorPointer ptr = self->highlight_end;
-
-  if (ptr.n == -1){
-	ptr = self->cursor;
-  }
-  
-  int n = ptr.n;
-  
-  Node * node = EditorWindow_get_line_number(self, n);
-  char *p = strstr(node->line + ptr.ptr, query);
-  while (p == NULL && n < self->n_lines-1){
-	n+=1;
-	node = EditorWindow_get_line_number(self, n);
-	p = strstr(node->line, query);
-  }
-
-  if (p != NULL){
-	self->highlight_start.n = n;
-	self->highlight_start.x = calculate_width_n(node->line, p - node->line);
-	self->highlight_start.ptr = p - node->line;
-	
-	self->highlight_end.n = n;
-	self->highlight_end.x = self->highlight_start.x + strlen(query);
-	self->highlight_end.ptr = self->highlight_start.x + calculate_width(query);
-
-	//EditorWindow_show_line(self, self->highlight_start.n);
-	//self->cursor = self->highlight_start;
-	//EditorWindow_make_cursor_visible(self);
-	EditorWindow_show_line(self, self->highlight_end.n);
-  }
-  
-}
 
 void EditorWindow_send_sequence(Window *win, const char *seq, int len){
   EditorWindow *self = win;
@@ -919,6 +886,92 @@ void EditorWindow_action_indent(EditorWindow *self){
   self->cursor.x = x;
 }
 
+// start of search
+
+void EditorWindow_search(EditorWindow *self, char * query){
+  EditorPointer ptr = self->highlight_end;
+
+  if (ptr.n == -1){
+	ptr = self->cursor;
+  }
+  
+  int n = ptr.n;
+  
+  Node * node = EditorWindow_get_line_number(self, n);
+  char *p = strstr(node->line + ptr.ptr, query);
+  while (p == NULL && n < self->n_lines-1){
+	n+=1;
+	node = EditorWindow_get_line_number(self, n);
+	p = strstr(node->line, query);
+  }
+
+  if (p != NULL){
+	self->highlight_start.n = n;
+	self->highlight_start.x = calculate_width_n(node->line, p - node->line);
+	self->highlight_start.ptr = p - node->line;
+	
+	self->highlight_end.n = n;
+	self->highlight_end.x = self->highlight_start.x + strlen(query);
+	self->highlight_end.ptr = self->highlight_start.x + calculate_width(query);
+
+	EditorWindow_show_line(self, self->highlight_end.n);
+  }
+  
+}
+
+void EditorWindow_searchbox_exit(EditorWindow *self){
+  self->search_box->win.hidden = 1;
+  search_mode = 0;
+  self->win.focused = NULL;
+  self->highlight_start.n = -1;
+}
+
+void EditorWindow_searchbox_on_modify(EditorWindow *self){
+  self->highlight_end.n = -1;
+  EditorWindow_search(self, self->search_box->buffer);
+}
+
+void Editor_searchbox_on_enter(EditorWindow *self){
+  self->search_box->win.hidden = 1;
+  search_mode = 0;
+  self->win.focused = NULL;
+  self->cursor = self->highlight_end;
+  self->highlight_start.n = -1;
+}
+
+Window *EditorWindow_searchbox(EditorWindow *self)
+{
+  LineEditorWindow * line_edit = LineEditorWindow_new(NULL, "Search");
+  line_edit->win.top = 1;
+  line_edit->win.bottom = -1;
+  line_edit->win.left = -1;
+  line_edit->win.right = 3;
+  line_edit->win.width = 15;
+  line_edit->win.height = 1;
+  line_edit->win.bg = 229;
+  line_edit->win.fg = 16;
+  line_edit->win.hidden = 1;
+  line_edit->win.id = "EditorWindow_searchbox";
+  line_edit->on_exit = create_lambda(EditorWindow_searchbox_exit, 1, self);
+  line_edit->on_modify = create_lambda(EditorWindow_searchbox_on_modify, 1, self);
+  line_edit->win.lambda = create_lambda(Editor_searchbox_on_enter, 1, self);
+  return line_edit;
+}
+
+
+void EditorWindow_action_search(EditorWindow *self){
+  if (self->search_box->win.hidden == 1){
+	self->search_box->win.hidden = 0;
+	search_mode = 1;
+	self->win.focused = self->search_box;
+	LineEditorWindow_reset(self->search_box);
+  } else {
+	EditorWindow_search(self, self->search_box->buffer);
+  }
+}
+
+// end of search
+
 void EditorWindow_send_key(Window *win, char c)
 {
 
@@ -929,19 +982,7 @@ void EditorWindow_send_key(Window *win, char c)
   //LOG_INFO("EditorWindow_send_key %d %d", c, action);
 
   if (action == ACTION_SEARCH){
-	//self->search_box->win.hidden = 1-self->search_box->win.hidden;
-	if (self->search_box->win.hidden == 1){
-	  self->search_box->win.hidden = 0;
-	  search_mode = 1;
-	  self->win.focused = self->search_box;
-	  LineEditorWindow_reset(self->search_box);
-	} else {
-	  //search_mode = 0;
-	  //self->win.focused = NULL;
-	  EditorWindow_search(self, self->search_box->buffer);
-	}
-
-	//LOG_INFO("ACTION_SEARCH %d", self->search_box->win.hidden);
+	EditorWindow_action_search(self);
 	return;
   }
 
@@ -1280,46 +1321,6 @@ void EditorWindow_on_mouse_up(Window * win){
   if (self->cursor.n == self->selection.n && self->cursor.x == self->selection.x) self->selection.n = -1;
 }
 
-void EditorWindow_searchbox_exit(EditorWindow *self){
-  self->search_box->win.hidden = 1;
-  search_mode = 0;
-  self->win.focused = NULL;
-  self->highlight_start.n = -1;
-}
-
-void EditorWindow_searchbox_on_modify(EditorWindow *self){
-  self->highlight_end.n = -1;
-  EditorWindow_search(self, self->search_box->buffer);
-}
-
-void Editor_searchbox_on_enter(EditorWindow *self){
-  self->search_box->win.hidden = 1;
-  search_mode = 0;
-  self->win.focused = NULL;
-  self->cursor = self->highlight_end;
-  self->highlight_start.n = -1;
-}
-
-Window *EditorWindow_searchbox(EditorWindow *self)
-{
-  LineEditorWindow * line_edit = LineEditorWindow_new(NULL, "Search");
-  line_edit->win.top = 1;
-  line_edit->win.bottom = -1;
-  line_edit->win.left = -1;
-  line_edit->win.right = 3;
-  line_edit->win.width = 15;
-  line_edit->win.height = 1;
-  line_edit->win.bg = 229;
-  line_edit->win.fg = 16;
-  line_edit->win.hidden = 1;
-  line_edit->win.id = "EditorWindow_searchbox";
-  line_edit->on_exit = create_lambda(EditorWindow_searchbox_exit, 1, self);
-  line_edit->on_modify = create_lambda(EditorWindow_searchbox_on_modify, 1, self);
-  line_edit->win.lambda = create_lambda(Editor_searchbox_on_enter, 1, self);
-  //line_edit->win.data = self;
-  //line_edit->win.on_mouse_down = Editor_searchbox_on_mouse_down; // this should be a lambda
-  return line_edit;
-}
 
 
 EditorWindow *latestEditorWindow;

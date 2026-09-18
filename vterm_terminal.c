@@ -39,6 +39,7 @@
 #include "common.h"
 #include "config.h"
 #include "taskbar.h"
+#include "mini_edit.h"
 
 #ifndef _WIN32
 /* POSIX-only implementation (Mac/Linux) */
@@ -775,6 +776,99 @@ int VTermTerminal_cursor_y(TerminalWindow * terminal){
   return cursor_viewport_row + first_visible_line;
 }
 
+// start of search
+
+void TerminalWindow_search(TerminalWindow *self, char * query){
+  /*
+  EditorPointer ptr = self->highlight_end;
+
+  if (ptr.n == -1){
+	ptr = self->cursor;
+  }
+  
+  int n = ptr.n;
+  
+  Node * node = TerminalWindow_get_line_number(self, n);
+  char *p = strstr(node->line + ptr.ptr, query);
+  while (p == NULL && n < self->n_lines-1){
+	n+=1;
+	node = TerminalWindow_get_line_number(self, n);
+	p = strstr(node->line, query);
+  }
+
+  if (p != NULL){
+	self->highlight_start.n = n;
+	self->highlight_start.x = calculate_width_n(node->line, p - node->line);
+	self->highlight_start.ptr = p - node->line;
+	
+	self->highlight_end.n = n;
+	self->highlight_end.x = self->highlight_start.x + strlen(query);
+	self->highlight_end.ptr = self->highlight_start.x + calculate_width(query);
+
+	TerminalWindow_show_line(self, self->highlight_end.n);
+  }
+  */  
+}
+
+void TerminalWindow_searchbox_exit(TerminalWindow *self){
+  /*
+  self->search_box->win.hidden = 1;
+  search_mode = 0;
+  self->win.focused = NULL;
+  self->highlight_start.n = -1;
+  */
+}
+
+void TerminalWindow_searchbox_on_modify(TerminalWindow *self){
+  /*
+  self->highlight_end.n = -1;
+  TerminalWindow_search(self, self->search_box->buffer);
+  */
+}
+
+void TerminalWindow_searchbox_on_enter(TerminalWindow *self){
+  /*
+  self->search_box->win.hidden = 1;
+  search_mode = 0;
+  self->win.focused = NULL;
+  self->cursor = self->highlight_end;
+  self->highlight_start.n = -1;
+  */
+}
+
+Window *TerminalWindow_searchbox(TerminalWindow *self)
+{
+  LineEditorWindow * line_edit = LineEditorWindow_new(NULL, "Search");
+  line_edit->win.top = 1;
+  line_edit->win.bottom = -1;
+  line_edit->win.left = -1;
+  line_edit->win.right = 3;
+  line_edit->win.width = 15;
+  line_edit->win.height = 1;
+  line_edit->win.bg = 229;
+  line_edit->win.fg = 16;
+  line_edit->win.hidden = 1;
+  line_edit->win.id = "TerminalWindow_searchbox";
+  line_edit->on_exit = create_lambda(TerminalWindow_searchbox_exit, 1, self);
+  line_edit->on_modify = create_lambda(TerminalWindow_searchbox_on_modify, 1, self);
+  line_edit->win.lambda = create_lambda(TerminalWindow_searchbox_on_enter, 1, self);
+  return line_edit;
+}
+
+
+void TerminalWindow_action_search(TerminalWindow *self){
+  /*if (self->search_box->win.hidden == 1){
+	self->search_box->win.hidden = 0;
+	search_mode = 1;
+	self->win.focused = self->search_box;
+	LineTerminalWindow_reset(self->search_box);
+  } else {
+	TerminalWindow_search(self, self->search_box->buffer);
+  }
+  */
+}
+
+// end of search
 
 
 void vterm_send_key(struct Window *wg, char c)
@@ -783,6 +877,19 @@ void vterm_send_key(struct Window *wg, char c)
     TerminalWindow * terminal = wg;
     //Action action = mapping[c];
 	Action action = get_action(c, WT_TERMINAL);
+	
+  if (action == ACTION_SEARCH){
+	TerminalWindow_action_search(terminal);
+	return;
+  }
+    Window *focused_cursor = wg->focused;
+    if (focused_cursor != NULL) while (focused_cursor->send_key == NULL && focused_cursor->focused != NULL) focused_cursor = focused_cursor->focused;
+
+    if (focused_cursor != NULL && focused_cursor->send_key != NULL) {
+        //tab_move_to_front(focused_cursor);
+        focused_cursor->send_key(focused_cursor, c);
+		return;
+    }
 
     /*if (c == 12){ // Ctrl+K
       cycle_tabs();
@@ -1084,6 +1191,11 @@ Window *VTermTerminal_callback(Tabs *self){
     slider->id = my_malloc(1024);
     //Window_set_id_from_path(slider, terminal->cwd);
     update_tab_label(terminal);
+
+	Window * searchbox = TerminalWindow_searchbox(terminal);
+	Window_append(slider, searchbox);
+	terminal->search_box = searchbox;
+
     return slider;
 }
 
