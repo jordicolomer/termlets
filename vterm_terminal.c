@@ -406,19 +406,19 @@ int VTermTerminal_get_virtual_height(struct Window *wg)
 
 void draw_selection(TerminalWindow * terminal)
 {
-    if (terminal->selection_y == -1) return;
+    if (terminal->selection.y == -1) return;
     Geometry geo = terminal->win.calculated;
     int virtual_height = VTermTerminal_get_virtual_height(terminal);
     int first_visible_line = -terminal->win.shift;
-    int x1 = terminal->cursor_x;
-    int x2 = terminal->selection_x;
-    int y1 = terminal->cursor_y;
-    int y2 = terminal->selection_y;
+    int x1 = terminal->cursor.x;
+    int x2 = terminal->selection.x;
+    int y1 = terminal->cursor.y;
+    int y2 = terminal->selection.y;
     if (y2 < y1 || (y1 == y2 && x2 < x1)){
-        x2 = terminal->cursor_x;
-        x1 = terminal->selection_x;
-        y2 = terminal->cursor_y;
-        y1 = terminal->selection_y;
+        x2 = terminal->cursor.x;
+        x1 = terminal->selection.x;
+        y2 = terminal->cursor.y;
+        y1 = terminal->selection.y;
     }
     for (int y=y1;y<=y2;y++){
         int view_y = y - first_visible_line;
@@ -494,19 +494,19 @@ VTermScreenCell VTermTerminal_get_cell(TerminalWindow * terminal, int virtual_li
 }
 
 void VTermTerminal_copy(TerminalWindow * terminal){
-    if (terminal->selection_y == -1) return;
+    if (terminal->selection.y == -1) return;
     Geometry geo = terminal->win.calculated;
     int virtual_height = VTermTerminal_get_virtual_height(terminal);
     int first_visible_line = -terminal->win.shift;
-    int x1 = terminal->cursor_x;
-    int x2 = terminal->selection_x;
-    int y1 = terminal->cursor_y;
-    int y2 = terminal->selection_y;
+    int x1 = terminal->cursor.x;
+    int x2 = terminal->selection.x;
+    int y1 = terminal->cursor.y;
+    int y2 = terminal->selection.y;
     if (y2 < y1 || (y1 == y2 && x2 < x1)){
-        x2 = terminal->cursor_x;
-        x1 = terminal->selection_x;
-        y2 = terminal->cursor_y;
-        y1 = terminal->selection_y;
+        x2 = terminal->cursor.x;
+        x1 = terminal->selection.x;
+        y2 = terminal->cursor.y;
+        y1 = terminal->selection.y;
     }
     char * line_buf = my_malloc((y2-y1+1)*terminal->cols*4);
     int buf_idx = 0;
@@ -648,7 +648,7 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
 
     /* Render cursor if this terminal has focus */ 
     //if (!(0 <= i && i <= geo.height) && hasFocus) { // if we haven't printed the other cursor
-    int i = terminal->cursor_y - first_visible_line;
+    int i = terminal->cursor.y - first_visible_line;
 	int cursor_drawn = 0;
     if (hasFocus) { // if we haven't printed the other cursor
         VTermState *state = vterm_obtain_state(terminal->vt);
@@ -662,8 +662,8 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
         /* Only draw cursor if it's visible in the viewport */
         if (cursor_viewport_row >= 0 && cursor_viewport_row < geo.height &&
             cursor_pos.col >= 0 && cursor_pos.col < geo.width) {
-		    terminal->term_cursor_x = cursor_pos.col;
-		    terminal->term_cursor_y = first_visible_line + cursor_viewport_row;
+		    terminal->term_cursor.x = cursor_pos.col;
+		    terminal->term_cursor.y = first_visible_line + cursor_viewport_row;
             int cursor_y = geo.y + cursor_viewport_row;
             int cursor_x = geo.x + cursor_pos.col;
 
@@ -702,10 +702,10 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
             }
 
             //LOG_INFO("terminal->insert_mode: %d", terminal->insert_mode);
-			LOG_INFO("cursor_drawn: %d == %d + %d. terminal->cursor_y:%d - first_visible_line:%d", cursor_y, geo.y, i, terminal->cursor_y, first_visible_line);
+			LOG_INFO("cursor_drawn: %d == %d + %d. terminal->cursor_y:%d - first_visible_line:%d", cursor_y, geo.y, i, terminal->cursor.y, first_visible_line);
 
             /* Render cursor with swapped colors (reverse video) */
-			if (terminal->cursor_y == -1 || insert_mode == 1) {
+			if (terminal->cursor.y == -1 || insert_mode == 1) {
 			  Buffer_print(&main_buf, cursor_y, cursor_x, cursor_width, cursor_char, bg, fg);
 			  cursor_drawn = 1;
 			  //terminal->cursor_y = first_visible_line + cursor_viewport_row;
@@ -718,7 +718,7 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
 	  int bg = 208;
 	  if (insert_mode == 1) bg = 27;
 	  if (0 <= i && i <= geo.height){
-        Buffer_set_bg(&main_buf, geo.y + i , geo.x+terminal->cursor_x, 1, bg);
+        Buffer_set_bg(&main_buf, geo.y + i , geo.x+terminal->cursor.x, 1, bg);
 	  }
 	  draw_selection(terminal);
 	}
@@ -735,16 +735,16 @@ void make_cursor_visible(TerminalWindow * terminal){
     int min_shift = -(virtual_height - visible_height);
 
     // If cursor_y is -1, scroll to bottom of virtual screen
-    if (terminal->cursor_y == -1) {
+    if (terminal->cursor.y == -1) {
         terminal->win.shift = -(virtual_height - visible_height);
     } else{
         // If cursor is above visible area, scroll up to show it
-        if (terminal->cursor_y < first_visible_line) {
-            terminal->win.shift = -terminal->cursor_y;
+        if (terminal->cursor.y < first_visible_line) {
+            terminal->win.shift = -terminal->cursor.y;
         }
         // If cursor is below visible area, scroll down to show it
-        else if (terminal->cursor_y > last_visible_line) {
-            terminal->win.shift = -(terminal->cursor_y - visible_height + 1);
+        else if (terminal->cursor.y > last_visible_line) {
+            terminal->win.shift = -(terminal->cursor.y - visible_height + 1);
         }
     }
 
@@ -758,7 +758,7 @@ int VTermTerminal_cursors_same_y(TerminalWindow * terminal){
   VTermState *state = vterm_obtain_state(terminal->vt);
   VTermPos cursor_pos;
   vterm_state_get_cursorpos(state, &cursor_pos);
-  int i = terminal->cursor_y - first_visible_line;
+  int i = terminal->cursor.y - first_visible_line;
   int cursor_virtual_line = terminal->scrollback.count + cursor_pos.row;
   int cursor_viewport_row = cursor_virtual_line - first_visible_line;
   return cursor_viewport_row == i;
@@ -774,6 +774,8 @@ int VTermTerminal_cursor_y(TerminalWindow * terminal){
   int cursor_viewport_row = cursor_virtual_line - first_visible_line;
   return cursor_viewport_row + first_visible_line;
 }
+
+
 
 void vterm_send_key(struct Window *wg, char c)
 {
@@ -798,101 +800,101 @@ void vterm_send_key(struct Window *wg, char c)
         int min_shift = -(virtual_height - terminal->win.calculated.height);
         if (action == ACTION_DOWN)
         {
-            if (terminal->cursor_y == -1) return;
-            terminal->cursor_y += 1;
+            if (terminal->cursor.y == -1) return;
+            terminal->cursor.y += 1;
 			//terminal->cursor_y = min(terminal->cursor_y, virtual_height-1);
-			if (VTermTerminal_cursors_same_y(terminal)) terminal->cursor_y = -1;
+			if (VTermTerminal_cursors_same_y(terminal)) terminal->cursor.y = -1;
             make_cursor_visible(terminal);
             return;
         }
         if (action == ACTION_UP)
         {
-		  if (terminal->cursor_y == -1){
+		  if (terminal->cursor.y == -1){
 			//if (VTermTerminal_cursors_same_y(terminal)) {
 			//terminal->cursor_y = virtual_height-2;			
-            terminal->cursor_x = terminal->term_cursor_x;
+            terminal->cursor.x = terminal->term_cursor.x;
             //terminal->cursor_y = terminal->term_cursor_y + terminal->win.shift - 1;
-			terminal->cursor_y = VTermTerminal_cursor_y(terminal);
+			terminal->cursor.y = VTermTerminal_cursor_y(terminal);
 		  }
 		  //else{
-			terminal->cursor_y -= 1;
-			terminal->cursor_y = max(terminal->cursor_y, 0);
+			terminal->cursor.y -= 1;
+			terminal->cursor.y = max(terminal->cursor.y, 0);
 			//}
-			if (VTermTerminal_cursors_same_y(terminal)) terminal->cursor_y = -1;
+			if (VTermTerminal_cursors_same_y(terminal)) terminal->cursor.y = -1;
 		  make_cursor_visible(terminal);
 		  return;
         }
         if (action == ACTION_PAGE_UP)
         {
-            if (terminal->cursor_y == -1) return;
-            terminal->cursor_y += terminal->win.calculated.height;
-			terminal->cursor_y = min(terminal->cursor_y, virtual_height-1);
+            if (terminal->cursor.y == -1) return;
+            terminal->cursor.y += terminal->win.calculated.height;
+			terminal->cursor.y = min(terminal->cursor.y, virtual_height-1);
             //if (terminal->cursor_y > terminal->scrollback.count){
             //    terminal->cursor_y = -1;
             //}
-			if (VTermTerminal_cursors_same_y(terminal)) terminal->cursor_y = -1;
+			if (VTermTerminal_cursors_same_y(terminal)) terminal->cursor.y = -1;
             make_cursor_visible(terminal);
             return;
         }
         if (action == ACTION_PAGE_DOWN)
         {
-            if (terminal->cursor_y < 0) terminal->cursor_y = terminal->scrollback.count;
+            if (terminal->cursor.y < 0) terminal->cursor.y = terminal->scrollback.count;
             else{
-                terminal->cursor_y -= terminal->win.calculated.height;
-                terminal->cursor_y = max(terminal->cursor_y, 0);
+                terminal->cursor.y -= terminal->win.calculated.height;
+                terminal->cursor.y = max(terminal->cursor.y, 0);
             }
-			if (VTermTerminal_cursors_same_y(terminal)) terminal->cursor_y = -1;
+			if (VTermTerminal_cursors_same_y(terminal)) terminal->cursor.y = -1;
             make_cursor_visible(terminal);
             return;
         }
         if (action == ACTION_RIGHT)
         {
-		  if (terminal->cursor_y == -1){
+		  if (terminal->cursor.y == -1){
 			write(terminal->master, "\x06", 1);
 		  } else {
-            terminal->cursor_x += 1;
-            terminal->cursor_x = min(terminal->cursor_x, terminal->cols-1);
+            terminal->cursor.x += 1;
+            terminal->cursor.x = min(terminal->cursor.x, terminal->cols-1);
 		  }
 		  return;
         }
         if (action == ACTION_LEFT)
         {
-		  if (terminal->cursor_y == -1){
+		  if (terminal->cursor.y == -1){
 			write(terminal->master, "\x02", 1);
 		  } else {
-            terminal->cursor_x -= 1;
-            terminal->cursor_x = max(terminal->cursor_x, 0);
+            terminal->cursor.x -= 1;
+            terminal->cursor.x = max(terminal->cursor.x, 0);
 		  }
 		  return;
         }
         if (action == ACTION_END_OF_LINE)
         {
-		  if (terminal->cursor_y == -1){
+		  if (terminal->cursor.y == -1){
 			write(terminal->master, "\x05", 1);
 		  } else {
-            terminal->cursor_x = terminal->cols-1;
+            terminal->cursor.x = terminal->cols-1;
 		  }
 		  return;
         }
         if (action == ACTION_START_OF_LINE)
         {
-		  if (terminal->cursor_y == -1){
+		  if (terminal->cursor.y == -1){
 			write(terminal->master, "\x01", 1);
 		  } else {
-            terminal->cursor_x = 0;
+            terminal->cursor.x = 0;
 		  }
 		  return;
         }
         if (action == ACTION_START_SELECTION)
         {
-            terminal->selection_y = terminal->cursor_y;
-            terminal->selection_x = terminal->cursor_x;
+            terminal->selection.y = terminal->cursor.y;
+            terminal->selection.x = terminal->cursor.x;
             return;
         }
         if (action == ACTION_COPY)
         {
             VTermTerminal_copy(terminal);
-            terminal->selection_y = -1;
+            terminal->selection.y = -1;
             return;
         }
         if (action == ACTION_PASTE)
@@ -904,16 +906,16 @@ void vterm_send_key(struct Window *wg, char c)
         if (action == ACTION_FIRST_LINE)
         {
 		  //terminal->cursor_y = -1;
-            terminal->cursor_x = terminal->term_cursor_x;
-            terminal->cursor_y = terminal->term_cursor_y;
-			if (VTermTerminal_cursors_same_y(terminal)) terminal->cursor_y = -1;
+            terminal->cursor.x = terminal->term_cursor.x;
+            terminal->cursor.y = terminal->term_cursor.y;
+			if (VTermTerminal_cursors_same_y(terminal)) terminal->cursor.y = -1;
             make_cursor_visible(terminal);
             return;
         }
         if (action == ACTION_LAST_LINE)
         {
-            terminal->cursor_y = 0;
-			if (VTermTerminal_cursors_same_y(terminal)) terminal->cursor_y = -1;
+            terminal->cursor.y = 0;
+			if (VTermTerminal_cursors_same_y(terminal)) terminal->cursor.y = -1;
             make_cursor_visible(terminal);
             return;
         }
@@ -1001,10 +1003,10 @@ TerminalWindow *VTermTerminal_window(int initial_rows, int initial_cols, char * 
     TerminalWindow *terminal = my_malloc(sizeof *terminal);
     memset(terminal, 0, sizeof *terminal);  // Zero-initialize to prevent garbage values
     //terminal->insert_mode = 0;
-    terminal->selection_y = -1;
+    terminal->selection.y = -1;
     terminal->last_line_idx = -1;
     terminal->last_line = NULL;
-    terminal->cursor_y = -1; // no cursor
+    terminal->cursor.y = -1; // no cursor
     Window_init(terminal, 0, 0, 0, 0, -1, -1);
     terminal->win.id = "vterm terminal window";
     terminal->win.send_key = vterm_send_key;

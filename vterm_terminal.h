@@ -32,18 +32,28 @@ typedef struct ScrollbackList {
     int max_size;
 } ScrollbackList;
 
+typedef struct TerminalPointer {
+    int y;
+    int x;
+  //int ptr;
+} TerminalPointer;
+
 typedef struct TerminalWindow {
     struct Window win;
     char * cwd;
     Window * slider;
     pid_t pid;
 
-    int cursor_x;
+  /*int cursor_x;
     int cursor_y;
     int selection_x;
     int selection_y;
     int term_cursor_x;
-    int term_cursor_y;
+    int term_cursor_y;*/
+  struct TerminalPointer cursor;
+  struct TerminalPointer selection;
+  struct TerminalPointer term_cursor;
+
 
     ScrollbackLine *last_line;
     int last_line_idx;
