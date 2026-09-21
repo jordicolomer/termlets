@@ -15,7 +15,7 @@ typedef struct Node {
 } Node;
 
 typedef struct EditorPointer {
-    int n;
+    int y;
     int x;
     int ptr;
 } EditorPointer;
