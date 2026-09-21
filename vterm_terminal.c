@@ -770,8 +770,7 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
     update_tab_label(wg);
 }
 
-
-void make_cursor_visible(TerminalWindow * terminal){
+void make_line_visible(TerminalWindow * terminal, int y){
     int first_visible_line = -terminal->win.shift;
     int visible_height = terminal->win.calculated.height;
     int last_visible_line = first_visible_line + visible_height - 1;
@@ -779,22 +778,26 @@ void make_cursor_visible(TerminalWindow * terminal){
     int min_shift = -(virtual_height - visible_height);
 
     // If cursor_y is -1, scroll to bottom of virtual screen
-    if (terminal->cursor.y == -1) {
+    if (y == -1) {
         terminal->win.shift = -(virtual_height - visible_height);
     } else{
         // If cursor is above visible area, scroll up to show it
-        if (terminal->cursor.y < first_visible_line) {
-            terminal->win.shift = -terminal->cursor.y;
+        if (y < first_visible_line) {
+            terminal->win.shift = -y;
         }
         // If cursor is below visible area, scroll down to show it
-        else if (terminal->cursor.y > last_visible_line) {
-            terminal->win.shift = -(terminal->cursor.y - visible_height + 1);
+        else if (y > last_visible_line) {
+            terminal->win.shift = -(y - visible_height + 1);
         }
     }
 
     // Clamp shift to valid range
     terminal->win.shift = max(terminal->win.shift, min_shift);
     terminal->win.shift = min(terminal->win.shift, 0);
+}
+
+void make_cursor_visible(TerminalWindow * terminal){
+  make_line_visible(terminal, terminal->cursor.y);
 }
 
 int VTermTerminal_cursors_same_y(TerminalWindow * terminal){
@@ -849,6 +852,7 @@ void TerminalWindow_search(TerminalWindow *self, char * query){
 	//self->highlight_end.ptr = self->highlight_start.x + calculate_width(query);
 
 	//TerminalWindow_show_line(self, self->highlight_end.n);
+	make_line_visible(self, self->highlight_end.y);
   }
 }
 
