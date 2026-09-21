@@ -405,21 +405,21 @@ int VTermTerminal_get_virtual_height(struct Window *wg)
     return terminal->scrollback.count + terminal->rows;
 }
 
-void draw_selection(TerminalWindow * terminal)
-{
-    if (terminal->selection.y == -1) return;
+void draw_pointers(TerminalWindow * terminal, TerminalPointer p1, TerminalPointer p2, int color){
+    if (p1.y == -1) return;
+    if (p2.y == -1) return;
     Geometry geo = terminal->win.calculated;
     int virtual_height = VTermTerminal_get_virtual_height(terminal);
     int first_visible_line = -terminal->win.shift;
-    int x1 = terminal->cursor.x;
-    int x2 = terminal->selection.x;
-    int y1 = terminal->cursor.y;
-    int y2 = terminal->selection.y;
+    int x1 = p1.x;
+    int x2 = p2.x;
+    int y1 = p1.y;
+    int y2 = p2.y;
     if (y2 < y1 || (y1 == y2 && x2 < x1)){
-        x2 = terminal->cursor.x;
-        x1 = terminal->selection.x;
-        y2 = terminal->cursor.y;
-        y1 = terminal->selection.y;
+        x2 = p1.x;
+        x1 = p2.x;
+        y2 = p1.y;
+        y1 = p2.y;
     }
     for (int y=y1;y<=y2;y++){
         int view_y = y - first_visible_line;
@@ -432,9 +432,15 @@ void draw_selection(TerminalWindow * terminal)
             if (y == y2){
                 width = x2 - x;
             }
-            Buffer_set_bg(&main_buf, geo.y + view_y, geo.x + x, width, 27);
+            Buffer_set_bg(&main_buf, geo.y + view_y, geo.x + x, width, color);
         }
     }
+}
+  
+
+void draw_selection(TerminalWindow * terminal)
+{
+  draw_pointers(terminal, terminal->cursor, terminal->selection, 27);
 }
 
 ScrollbackLine * get_line(TerminalWindow * terminal, int virtual_line){
@@ -451,6 +457,40 @@ ScrollbackLine * get_line(TerminalWindow * terminal, int virtual_line){
         terminal->last_line_idx = virtual_line;
     }
     return line;
+}
+
+
+char get_line_buf[4096];
+char * VTermTerminal_get_line(TerminalWindow * terminal, int virtual_line){
+    if (virtual_line < terminal->scrollback.count) {
+        ScrollbackLine *line = get_line(terminal, virtual_line);
+		return line->utf8;
+	} else {
+        int screen_row = virtual_line - terminal->scrollback.count;
+		int col = 0;
+		int buf_idx = 0;
+		while (col < terminal->cols) {
+		  //VTermScreenCell cell_ptr = VTermTerminal_get_cell(terminal, virtual_line, col);
+		  int screen_row = virtual_line - terminal->scrollback.count;
+
+		  if (screen_row >= 0 && screen_row < terminal->rows) {
+            /* render current screen line with color batching */
+            VTermPos pos;
+            VTermScreenCell cell;
+
+            /* get colors from first cell in batch */
+            pos.row = screen_row;
+            pos.col = col;
+            vterm_screen_get_cell(terminal->vts, pos, &cell);
+			buf_idx += encode_utf8(cell.chars[0], &get_line_buf[buf_idx]);
+            //return cell;
+		  }
+		  col++;
+
+		}
+		get_line_buf[buf_idx] = '\0';
+		return get_line_buf;
+	}
 }
 
 VTermScreenCell VTermTerminal_get_cell(TerminalWindow * terminal, int virtual_line, int col){
@@ -724,6 +764,9 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
 	  draw_selection(terminal);
 	}
 
+	// highlight search results
+	draw_pointers(terminal, terminal->highlight_start, terminal->highlight_end, 227);
+
     update_tab_label(wg);
 }
 
@@ -779,61 +822,54 @@ int VTermTerminal_cursor_y(TerminalWindow * terminal){
 // start of search
 
 void TerminalWindow_search(TerminalWindow *self, char * query){
-  /*
-  EditorPointer ptr = self->highlight_end;
+  TerminalPointer ptr = self->highlight_end;
 
-  if (ptr.n == -1){
+  if (ptr.y == -1){
 	ptr = self->cursor;
   }
   
-  int n = ptr.n;
+  int n = ptr.y;
   
-  Node * node = TerminalWindow_get_line_number(self, n);
-  char *p = strstr(node->line + ptr.ptr, query);
-  while (p == NULL && n < self->n_lines-1){
+  char * line = VTermTerminal_get_line(self, n);
+  char *p = strstr(line+ptr.x, query);
+  int height = VTermTerminal_get_virtual_height(self);
+  while (p == NULL && n < height-1){
 	n+=1;
-	node = TerminalWindow_get_line_number(self, n);
-	p = strstr(node->line, query);
+	line = VTermTerminal_get_line(self, n);
+	p = strstr(line, query);
   }
-
   if (p != NULL){
-	self->highlight_start.n = n;
-	self->highlight_start.x = calculate_width_n(node->line, p - node->line);
-	self->highlight_start.ptr = p - node->line;
+	self->highlight_start.y = n;
+	//self->highlight_start.x = calculate_width_n(line, p - line);
+	//self->highlight_start.ptr = p - node->line;
+	self->highlight_start.x = p - line;
 	
-	self->highlight_end.n = n;
+	self->highlight_end.y = n;
 	self->highlight_end.x = self->highlight_start.x + strlen(query);
-	self->highlight_end.ptr = self->highlight_start.x + calculate_width(query);
+	//self->highlight_end.ptr = self->highlight_start.x + calculate_width(query);
 
-	TerminalWindow_show_line(self, self->highlight_end.n);
+	//TerminalWindow_show_line(self, self->highlight_end.n);
   }
-  */  
 }
 
 void TerminalWindow_searchbox_exit(TerminalWindow *self){
-  /*
   self->search_box->win.hidden = 1;
   search_mode = 0;
   self->win.focused = NULL;
-  self->highlight_start.n = -1;
-  */
+  self->highlight_start.y = -1;
 }
 
 void TerminalWindow_searchbox_on_modify(TerminalWindow *self){
-  /*
-  self->highlight_end.n = -1;
+  self->highlight_end.y = -1;
   TerminalWindow_search(self, self->search_box->buffer);
-  */
 }
 
 void TerminalWindow_searchbox_on_enter(TerminalWindow *self){
-  /*
   self->search_box->win.hidden = 1;
   search_mode = 0;
   self->win.focused = NULL;
   self->cursor = self->highlight_end;
-  self->highlight_start.n = -1;
-  */
+  self->highlight_start.y = -1;
 }
 
 Window *TerminalWindow_searchbox(TerminalWindow *self)
@@ -857,15 +893,14 @@ Window *TerminalWindow_searchbox(TerminalWindow *self)
 
 
 void TerminalWindow_action_search(TerminalWindow *self){
-  /*if (self->search_box->win.hidden == 1){
+  if (self->search_box->win.hidden == 1){
 	self->search_box->win.hidden = 0;
 	search_mode = 1;
 	self->win.focused = self->search_box;
-	LineTerminalWindow_reset(self->search_box);
+	LineEditorWindow_reset(self->search_box);
   } else {
 	TerminalWindow_search(self, self->search_box->buffer);
   }
-  */
 }
 
 // end of search
