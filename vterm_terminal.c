@@ -489,6 +489,7 @@ char * VTermTerminal_get_line(TerminalWindow * terminal, int virtual_line){
 
 		}
 		get_line_buf[buf_idx] = '\0';
+		rtrim_spaces(get_line_buf);
 		return get_line_buf;
 	}
 }
@@ -1017,8 +1018,10 @@ void vterm_send_key(struct Window *wg, char c)
         {
 		  if (terminal->cursor.y == -1){
 			write(terminal->master, "\x05", 1);
-		  } else {
-            terminal->cursor.x = terminal->cols-1;
+		} else {
+			char * line = VTermTerminal_get_line(terminal, terminal->cursor.y);
+			terminal->cursor.x = strlen(line);
+			//terminal->cursor.x = terminal->cols-1;
 		  }
 		  return;
         }
