@@ -236,6 +236,7 @@ Window *Window_init(Window *w, int left, int right, int top, int bottom, int wid
   w->c = NULL;
 
   w->on_mouse_up = NULL;
+  w->focused = NULL;
 
   return w;
 }
