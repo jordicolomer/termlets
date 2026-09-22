@@ -15,10 +15,11 @@ typedef struct Tab {
     Window *child;
     char str[20];
     Tab * next;
+    Tab * prev;
 
     // this allows navigating all tabs in a single list
-    Tab * all_tabs_next;
     Tab * all_tabs_prev;
+    Tab * all_tabs_next;
 } Tab;
 
 extern Tab * all_tabs_head;
@@ -45,5 +46,6 @@ void select_tab(Tab * selected_tab, int move);
 void cycle_tab();
 void cycle_tab_reverse();
 void select_window(Window * win);
+void tabs_remove_tab(Tab *self);
 
 #endif

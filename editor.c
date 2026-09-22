@@ -438,6 +438,7 @@ void EditorWindow_save(EditorWindow *self){
 	set_modified(self, 0);
 }
 
+
 void EditorWindow_newline(EditorWindow *self){
   set_modified(self, 1);
     Node * node = EditorWindow_get_line_number(self, self->cursor.y);
@@ -1475,6 +1476,11 @@ void Editor_show_tabs(EditorFrame *self, char * show_tabs_label){
   }
 }
 
+void EditorWindow_close(EditorFrame *self){
+  Tab * tab = self->tabs->selected_tab;
+  tabs_remove_tab(tab);
+}
+
 Window *Editor_menu(EditorFrame *self)
 {
     Window *menu = Menu_create_horizontal();
@@ -1483,7 +1489,7 @@ Window *Editor_menu(EditorFrame *self)
     //Menu_add_element(file, " 📄 New    Ctrl+N", create_lambda(Editor_menu_new, 1, self));
     Menu_add_element(file, " 🔄 Reload Ctrl+R", create_lambda(Editor_on_selected, 2, self, EditorWindow_reload));
     Menu_add_element(file, " 💾 Save   Ctrl+S", create_lambda(Editor_on_selected, 2, self, EditorWindow_save));
-    Menu_add_element(file, " ❌ Close", create_lambda(Editor_menu_new, 1, self));
+    Menu_add_element(file, " ❌ Close", create_lambda(EditorWindow_close, 1, self));
     Menu_add_element(file, "", NULL);
     Menu_add_submenu(menu, " File ", file);
 

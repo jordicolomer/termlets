@@ -137,6 +137,35 @@ void cycle_tab_reverse(){
 	select_tab(selected_tab, 0);
 }
 
+void recalculate_xoffset(Tabs * self){
+  self->x_offset = 0;
+  Tab * current = self->first;
+  self->x_offset = 0;
+  while (current){
+	Window * tab = current->tab_label;
+    tab->left = self->x_offset;
+    self->x_offset += tab->width;	
+	current = current->next;
+  }
+}
+
+void tabs_remove_tab(Tab *self){
+  if (! self) return;
+  if (self->prev)
+	self->prev->next = self->next;
+  if (self->next)
+	self->next->prev = self->prev;
+  
+  remove_from_all_tabs(self);
+  
+  Window_remove(self->tab_label);
+
+  Tabs * tabs = self->parent;
+  recalculate_xoffset(tabs);
+  
+  tab_select(tabs->first);
+}
+
 Window * tabs_new_tab(Tabs *self){
     Window * prev_tab_label = NULL;
     if (self->selected_tab != NULL) prev_tab_label = self->selected_tab->tab_label;
@@ -156,6 +185,7 @@ Window * tabs_new_tab(Tabs *self){
     self->selected_tab = mytab;
     if (self->first == NULL) self->first = mytab;
     if (self->last != NULL) self->last->next = mytab;
+	mytab->prev = self->last;	
     self->last = mytab;
     //snprintf(mytab->str, sizeof(mytab->str), " %d ", self->idx+1);
     //snprintf(mytab->str, sizeof(mytab->str), " %s ", child->id);
