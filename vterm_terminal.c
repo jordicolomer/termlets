@@ -910,6 +910,53 @@ void TerminalWindow_action_search(TerminalWindow *self){
 
 // end of search
 
+void TerminalWindow_left(TerminalWindow *terminal){
+		  if (terminal->cursor.y == -1){
+			write(terminal->master, "\x02", 1);
+		  } else {
+            terminal->cursor.x -= 1;
+            terminal->cursor.x = max(terminal->cursor.x, 0);
+		  }
+}
+
+void TerminalWindow_next_word(TerminalWindow *self){
+  int state = 0;
+  //self->selection.y = -1;
+  while (1){
+  //Node * node = EditorWindow_get_line_number(self, self->cursor.y);
+  char * line = VTermTerminal_get_line(self, self->cursor.y);
+  int n_lines = VTermTerminal_get_virtual_height(self);
+  if (line[self->cursor.x] != 0){
+	uint32_t cp = utf8_decode2(line, &self->cursor.x);
+	int w = cp_width(cp);
+	self->cursor.x += w;
+	if (state == 0){
+	  if (cp != ' ' && cp != '\t' && cp != '{' && cp != '}' && cp != '(' && cp != ')') state = 1;
+	} else if (state == 1){
+	  if (cp == ' ' || cp == '\t' || cp == '{' || cp == '}' || cp == '(' || cp == ')') {
+		TerminalWindow_left(self);
+		//EditorWindow_make_cursor_visible(self);
+		make_cursor_visible(self);
+		return;
+	  }
+	}
+  } else {
+	if (self->cursor.y < n_lines-1){
+	  self->cursor.y += 1;
+	  self->cursor.x = 0;
+	  //Node * node = EditorWindow_get_line_number(self, self->cursor.y);
+	  char * line = VTermTerminal_get_line(self, self->cursor.y);
+	  //self->cursor.ptr = 0;
+	} else {
+	  //EditorWindow_make_cursor_visible(self);
+		make_cursor_visible(self);
+	  return;
+	}
+  }
+  }
+		make_cursor_visible(self);
+}
+
 
 void vterm_send_key(struct Window *wg, char c)
 {
@@ -936,6 +983,10 @@ void vterm_send_key(struct Window *wg, char c)
       return;
     }*/
     //if (c == ';')
+  if (action == ACTION_NEXT_WORD){
+	TerminalWindow_next_word(terminal);
+	return;
+  }
     if (action == ACTION_SWITCH_MODE)
     {
         insert_mode = 1 - insert_mode;
@@ -1006,12 +1057,7 @@ void vterm_send_key(struct Window *wg, char c)
         }
         if (action == ACTION_LEFT)
         {
-		  if (terminal->cursor.y == -1){
-			write(terminal->master, "\x02", 1);
-		  } else {
-            terminal->cursor.x -= 1;
-            terminal->cursor.x = max(terminal->cursor.x, 0);
-		  }
+			TerminalWindow_left(terminal);
 		  return;
         }
         if (action == ACTION_END_OF_LINE)
