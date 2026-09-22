@@ -860,30 +860,74 @@ void EditorWindow_action_start_of_line(EditorWindow *self){
 	EditorWindow_fix_cursor_x(self);
 }
 
-int count_tabs(EditorWindow *self, int line_number){
-  if (line_number < 0) return 0;
+int count_tabs(EditorWindow *self, Node * node){
   int tabs = 0;
-  if (self->cursor.y > 0){
-	Node * node = EditorWindow_get_line_number(self, line_number);
-	while (tabs < node->length){
-	  if (node->line[tabs] != '\t') break;
-	  tabs++;
-	}
+  while (tabs < node->length){
+	if (node->line[tabs] != '\t') break;
+	tabs++;
   }
   return tabs;
 }
 
+int count_leading_tabs_or_spaces(EditorWindow *self, Node * node){
+  int tabs = 0;
+  while (tabs < node->length){
+	if (node->line[tabs] != '\t' && node->line[tabs] != ' ') break;
+	tabs++;
+  }
+  return tabs;
+}
+
+int is_empty(Node * node){
+  int tabs = 0;
+  while (tabs < node->length){
+	if (node->line[tabs] != '\t' && node->line[tabs] != ' ') return 0;
+	tabs++;
+  }
+  return 1;
+}
+
+Node * get_previous_line(Node * node){
+  Node * current = node->prev;
+  while (current != NULL && is_empty(current)){
+	current = current->prev;
+  }
+  return current;
+}
+
 void EditorWindow_action_indent(EditorWindow *self){
-  int prev_tabs = count_tabs(self, self->cursor.y - 1);
-  int current_tabs = count_tabs(self, self->cursor.y);
+  int open_bracket = 0;
+  int close_bracket = 0;
+  int prev_tabs = 0;
+  Node * current_node = EditorWindow_get_line_number(self, self->cursor.y);
+  int current_tabs = count_tabs(self, current_node);
+  close_bracket = current_node->line[strlen(current_node->line) - 1] == '}';
+
+  Node * prev_node = get_previous_line(current_node);
+  if (prev_node != NULL){
+	prev_tabs = count_tabs(self, prev_node);
+	open_bracket = prev_node->line[strlen(prev_node->line) - 1] == '{';
+  }
   
   int x = self->cursor.x;
+  
+  int leading_tabs_or_spaces = count_leading_tabs_or_spaces(self, current_node);
+  //LOG_INFO("EditorWindow_action_indent leading_tabs_or_spaces:%d", leading_tabs_or_spaces);
+  if (leading_tabs_or_spaces > 0){
+	self->cursor.x = leading_tabs_or_spaces;
+	self->cursor.ptr = leading_tabs_or_spaces;
+	self->selection.y = self->cursor.y;
+	self->selection.x = 0;
+	self->selection.ptr = 0;
+	EditorWindow_delete_region(self);
+  }
+  
   EditorWindow_action_start_of_line(self);
-  for (int i = 0; i < (prev_tabs - current_tabs); i++){
+  int diff = prev_tabs + open_bracket - close_bracket;
+  for (int i = 0; i < diff; i++){
 	EditorWindow_insert(self, '\t');
 	x += tab_width;
   }
-  self->cursor.x = x;
 }
 
 // start of search
