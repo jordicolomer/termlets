@@ -162,8 +162,9 @@ void tabs_remove_tab(Tab *self){
 
   Tabs * tabs = self->parent;
   recalculate_xoffset(tabs);
-  
-  tab_select(tabs->first);
+
+  //tab_select(all_tabs_head); // this might leave tabs unselected. this keeps the deleted window in window_manager
+  select_tab(all_tabs_head, 1); // this might bring another window to the front
 }
 
 Window * tabs_new_tab(Tabs *self){
