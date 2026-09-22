@@ -1349,6 +1349,12 @@ void Editor_on_selected(TerminalFrame *self, void fn()){
     fn(term);
 }*/
 
+void VTermTerminal_close(TerminalFrame *self){
+  Tabs * tabs = self->tabs;
+  Tab * tab = tabs->selected_tab;
+  tabs_remove_tab(tab);
+}
+
 
 Window *VTermTerminal_menu(TerminalFrame *self)
 {
@@ -1361,7 +1367,7 @@ Window *VTermTerminal_menu(TerminalFrame *self)
     Menu_add_element(file, "    New Tab", create_lambda(VTermTerminal_new_tab, 1, self));
     Menu_add_element(file, "", NULL);
     Menu_add_element(file, " ❌ Close Window", create_lambda(VTermTerminal_new_tab, 0));
-    Menu_add_element(file, " ❌ Close Tab", create_lambda(VTermTerminal_new_tab, 0));
+    Menu_add_element(file, " ❌ Close Tab", create_lambda(VTermTerminal_close, 1, self));
     Menu_add_element(file, "", NULL);
     Menu_add_submenu(menu, " File ", file);
 
