@@ -954,7 +954,55 @@ void TerminalWindow_next_word(TerminalWindow *self){
 	}
   }
   }
+	make_cursor_visible(self);
+}
+
+void TerminalWindow_right(TerminalWindow *terminal){
+		  if (terminal->cursor.y == -1){
+			write(terminal->master, "\x06", 1);
+		  } else {
+            terminal->cursor.x += 1;
+            terminal->cursor.x = min(terminal->cursor.x, terminal->cols-1);
+		  }
+}
+
+void TerminalWindow_prev_word(TerminalWindow *self){
+  int state = 0;
+  //self->selection.y = -1;
+  while (1){
+  if (self->cursor.x == 0){
+	if (self->cursor.y > 0){
+	  self->cursor.y -= 1;
+	  char * line = VTermTerminal_get_line(self, self->cursor.y);
+	  //Node * node = EditorWindow_get_line_number(self, self->cursor.y);
+	  self->cursor.x = strlen(line);
+	  //self->cursor.ptr = node->length;
+	} else {
 		make_cursor_visible(self);
+	  //EditorWindow_make_cursor_visible(self);
+	  return;
+	}
+  } else {	
+	  char * line = VTermTerminal_get_line(self, self->cursor.y);
+	//Node * node = EditorWindow_get_line_number(self, self->cursor.y);
+	uint32_t cp = utf8_decode_left2(line, &self->cursor.x);
+	int w = cp_width(cp);
+	self->cursor.x -= w;
+	
+	if (state == 0){
+	  if (cp != ' ' && cp != '\t' && cp != '{' && cp != '}' && cp != '(' && cp != ')') state = 1;
+	} else if (state == 1){
+	  if (cp == ' ' || cp == '\t' || cp == '{' || cp == '}' || cp == '(' || cp == ')') {
+		TerminalWindow_right(self);
+		make_cursor_visible(self);
+		//EditorWindow_make_cursor_visible(self);
+		return;
+	  }
+	}
+  }
+  }
+  //EditorWindow_make_cursor_visible(self);
+	make_cursor_visible(self);
 }
 
 
@@ -985,6 +1033,10 @@ void vterm_send_key(struct Window *wg, char c)
     //if (c == ';')
   if (action == ACTION_NEXT_WORD){
 	TerminalWindow_next_word(terminal);
+	return;
+  }
+  if (action == ACTION_PREV_WORD){
+	TerminalWindow_prev_word(terminal);
 	return;
   }
     if (action == ACTION_SWITCH_MODE)
@@ -1047,12 +1099,7 @@ void vterm_send_key(struct Window *wg, char c)
         }
         if (action == ACTION_RIGHT)
         {
-		  if (terminal->cursor.y == -1){
-			write(terminal->master, "\x06", 1);
-		  } else {
-            terminal->cursor.x += 1;
-            terminal->cursor.x = min(terminal->cursor.x, terminal->cols-1);
-		  }
+          TerminalWindow_right(terminal);
 		  return;
         }
         if (action == ACTION_LEFT)
