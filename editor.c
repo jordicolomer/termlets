@@ -921,6 +921,8 @@ void EditorWindow_action_indent(EditorWindow *self){
 	self->selection.ptr = 0;
 	EditorWindow_delete_region(self);
   }
+
+  if (is_empty(current_node)) return;
   
   EditorWindow_action_start_of_line(self);
   int diff = prev_tabs + open_bracket - close_bracket;
