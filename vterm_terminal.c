@@ -168,9 +168,10 @@ char *get_shell_cwd(pid_t pid)
 #endif
 
 
-void update_tab_label(TerminalWindow * terminal){
-    char * cwd = get_shell_cwd(terminal->pid);
-    Window_set_id_from_path(terminal->slider, "💻", cwd);
+void update_tab_label(TerminalWindow * self){
+    char * cwd = get_shell_cwd(self->pid);
+    Window_set_id_from_path(self->slider, "💻", cwd);
+	snprintf(self->tab.str, sizeof(self->tab.str), " 💻 %s", cwd);
 }
 
 /* Forward declarations */

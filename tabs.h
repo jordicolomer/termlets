@@ -13,7 +13,7 @@ typedef struct Tab {
     //Window *terminal;
     Window *tab_label;
     Window *child;
-    char str[20];
+    char str[1024];
     Tab * next;
     Tab * prev;
 

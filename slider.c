@@ -128,6 +128,7 @@ Window *slider_new(Window *fm){
   Window *fm_slider = malloc(sizeof *fm_slider);
   Window_init(fm_slider, -1, -1, -1, -1, -1, -1);
   fm_slider->id = "fm_slider";
+  fm_slider->window_type = 'sldr';
   Window_append(fm_slider, fm);
 
   Window *slider = malloc(sizeof *slider);
