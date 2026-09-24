@@ -3,6 +3,7 @@
 
 #include "window.h"
 #include "mini_edit.h"
+#include "tabs.h"
 
 #ifdef _WIN32
     /* Windows: Include sys/types.h for pid_t, define dummy VTerm types */
@@ -41,6 +42,7 @@ typedef struct TerminalPointer {
 
 typedef struct TerminalWindow {
     struct Window win;
+    struct Tab tab;
     char * cwd;
     Window * slider;
     pid_t pid;

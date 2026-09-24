@@ -22,6 +22,7 @@ typedef struct EditorPointer {
 
 typedef struct EditorWindow {
     struct Window win;
+    struct Tab tab;
     Window *slider;
     Node *head;
     Node *tail;

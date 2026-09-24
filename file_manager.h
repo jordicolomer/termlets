@@ -1,6 +1,7 @@
 #ifndef FILE_MANAGER_H
 #define FILE_MANAGER_H
 #include "window.h"
+#include "tabs.h"
 #include "mini_edit.h"
 #include <sys/stat.h>
 
@@ -17,6 +18,7 @@ typedef struct FileItemWindow {
 
 typedef struct ExplorerWindow {
     struct Window win;
+    struct Tab tab;
     Window *fm;
     Window *slider;
     //int selected;

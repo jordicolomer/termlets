@@ -22,6 +22,11 @@ typedef struct Tab {
     Tab * all_tabs_next;
 } Tab;
 
+typedef struct TabWindow {
+  struct Window win;
+  struct Tab tab;
+} TabWindow;
+
 extern Tab * all_tabs_head;
 extern Tab * all_tabs_tail;
 

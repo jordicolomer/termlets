@@ -181,7 +181,8 @@ Window * tabs_new_tab(Tabs *self){
 
     Window_append(self->tabs, child);
 
-    Tab *mytab = malloc(sizeof *mytab);
+    //Tab *mytab = malloc(sizeof *mytab);
+	Tab *mytab = &((TabWindow*)child)->tab;
     memset(mytab, 0, sizeof *mytab);  // Zero-initialize to prevent garbage pointers
     self->selected_tab = mytab;
     if (self->first == NULL) self->first = mytab;
