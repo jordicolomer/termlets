@@ -17,7 +17,7 @@ jobs:
         run: brew install libvterm pkg-config
 
       - name: Build
-        run: make
+        run: make BUILD=release
 
       - name: Rename binary
         run: mv termlets termlets-macos-arm64

@@ -1,5 +1,5 @@
 # Compiler and flags
-CC := gcc -g
+CC := gcc
 #CFLAGS := -Wall -Wextra -Werror -std=c11 -g
 #CFLAGS := -Wall -Wextra -std=c11 -g -I/opt/homebrew/opt/libvterm/include
 #LDFLAGS := -L/opt/homebrew/opt/libvterm/lib -lvterm -lpthread
@@ -13,9 +13,18 @@ CC := gcc -g
 
 #LDFLAGS = -L$(LIBVTERM_PREFIX)/lib -lvterm
 
+# Build type (debug or release)
+BUILD ?= debug
+
 UNAME_S := $(shell uname -s)
 
-CFLAGS = -Wall -Wextra -std=gnu11 -g
+CFLAGS = -Wall -Wextra -std=gnu11
+
+ifeq ($(BUILD),debug)
+    CFLAGS += -g
+else ifeq ($(BUILD),release)
+    CFLAGS += -O2
+endif
 
 ifeq ($(UNAME_S),Darwin)
     LIBVTERM_PREFIX := $(shell brew --prefix libvterm)

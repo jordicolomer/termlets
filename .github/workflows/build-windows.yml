@@ -30,7 +30,7 @@ jobs:
         run: |
           which gcc
           which make
-          make
+          make BUILD=release
 
       - name: Rename binary
         shell: msys2 {0}
