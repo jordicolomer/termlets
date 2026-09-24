@@ -7,13 +7,14 @@
 
 typedef struct FileItemWindow {
     struct Window win;
-    char * name;
-    char * path;
+    char *name;
+    char *path;
     off_t size;
     time_t date;
     int is_dir;
     int is_selected;
-    int is_marked;;
+    int is_marked;
+    ;
 } FileItemWindow;
 
 typedef struct ExplorerWindow {
@@ -21,14 +22,14 @@ typedef struct ExplorerWindow {
     struct Tab tab;
     Window *fm;
     Window *slider;
-    //int selected;
+    // int selected;
     FileItemWindow *selected;
     FileItemWindow *first_occurrence;
-    char * path;
+    char *path;
     char path_label[1024];
     int sort_by;
     int reversed[3];
-    Window * sort_marker[6];
+    Window *sort_marker[6];
     LineEditorWindow *search_box;
 } ExplorerWindow;
 
@@ -37,8 +38,7 @@ typedef struct ExplorerFrame {
     Window *tabs;
 } ExplorerFrame;
 
-
 Window *FileExplorer_new(int left, int right, int top, int bottom, int width, int height);
-void FileExplorer_list_files(ExplorerWindow * self, char * dire);
+void FileExplorer_list_files(ExplorerWindow *self, char *dire);
 
 #endif

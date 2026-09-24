@@ -1,13 +1,11 @@
 #ifndef SLIDER_H
 #define SLIDER_H
 
-
-typedef struct Slider_data
-{
-  Window *slider_grip;
-  Window *child;
-  //int height;
-  //int virtual_height;
+typedef struct Slider_data {
+    Window *slider_grip;
+    Window *child;
+    // int height;
+    // int virtual_height;
 } Slider_data;
 
 /*
@@ -31,7 +29,7 @@ void Slider_set_top(struct Window *w, int top);
 void Slider_update_top(struct Window *w);
 Window *slider_new(Window *fm);
 void Slider_reset(Window *wg);
-void Slider_make_visible(Window *w, Window * wg);
+void Slider_make_visible(Window *w, Window *wg);
 void Slider_show_grip(Window *w);
 void Slider_scroll_up(struct Window *w);
 void Slider_scroll_down(struct Window *w);

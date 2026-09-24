@@ -3,6 +3,6 @@
 #include "window.h"
 #include "lambda.h"
 
-int open_dialog(Window * parent, char * message, Lambda * lambda);
+int open_dialog(Window *parent, char *message, Lambda *lambda);
 
 #endif

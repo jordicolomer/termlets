@@ -1,6 +1,6 @@
 #ifdef _WIN32
-    /* Disable strict pointer type warnings on Windows for this file */
-    #pragma GCC diagnostic ignored "-Wincompatible-pointer-types"
+/* Disable strict pointer type warnings on Windows for this file */
+#pragma GCC diagnostic ignored "-Wincompatible-pointer-types"
 #endif
 
 #include <stdio.h>
@@ -11,98 +11,96 @@
 #include "buffer.h"
 #include "clipboard.h"
 
-
-void LineEditorWindow_left(LineEditorWindow *self){
-  if (self->cursor > 0){
-	self->cursor--;
-  }
+void LineEditorWindow_left(LineEditorWindow *self) {
+    if (self->cursor > 0) {
+        self->cursor--;
+    }
 }
 
-void LineEditorWindow_right(LineEditorWindow *self){
-  int len = strlen(self->buffer);
-  if (self->cursor < len){
-	self->cursor++;
-  }
+void LineEditorWindow_right(LineEditorWindow *self) {
+    int len = strlen(self->buffer);
+    if (self->cursor < len) {
+        self->cursor++;
+    }
 }
 
-void LineEditorWindow_send_sequence(struct Window *win, const char *seq, int len){
-  LineEditorWindow *self = win;
-  if (strcmp(seq, "[C") == 0){ LineEditorWindow_right(self); return; }
-  if (strcmp(seq, "[D") == 0){ LineEditorWindow_left(self); return; }
-  
+void LineEditorWindow_send_sequence(struct Window *win, const char *seq, int len) {
+    LineEditorWindow *self = win;
+    if (strcmp(seq, "[C") == 0) {
+        LineEditorWindow_right(self);
+        return;
+    }
+    if (strcmp(seq, "[D") == 0) {
+        LineEditorWindow_left(self);
+        return;
+    }
 }
 
-void delete_char(char *buffer, size_t pos, size_t len)
-{
-    if (pos >= len) return;                    // safety check
-    
+void delete_char(char *buffer, size_t pos, size_t len) {
+    if (pos >= len)
+        return; // safety check
+
     // Shift everything after pos one position to the left
     memmove(buffer + pos, buffer + pos + 1, len - pos);
-    
+
     // If it's a null-terminated string, update the length
     buffer[len - 1] = '\0';
 }
 
-void insert_char(char *buffer, size_t pos, char c, 
-                 size_t current_len, size_t capacity)
-{
+void insert_char(char *buffer, size_t pos, char c, size_t current_len, size_t capacity) {
     // Safety checks
     if (pos > current_len || current_len + 1 >= capacity) {
-        return;  // Buffer full or invalid position
+        return; // Buffer full or invalid position
     }
 
     // Shift characters to the right to make space
-    memmove(buffer + pos + 1, 
-            buffer + pos, 
-            current_len - pos + 1);  // +1 to include null terminator
+    memmove(buffer + pos + 1, buffer + pos,
+            current_len - pos + 1); // +1 to include null terminator
 
     // Insert the new character
     buffer[pos] = c;
 }
 
-void insert_string(char *buffer, size_t pos, const char *str,
-                   size_t current_len, size_t capacity)
-{
+void insert_string(char *buffer, size_t pos, const char *str, size_t current_len, size_t capacity) {
     size_t str_len = strlen(str);
 
     // Safety checks
     if (pos > current_len || current_len + str_len >= capacity) {
-        return;  // Buffer full or invalid position
+        return; // Buffer full or invalid position
     }
 
     // Shift existing characters to the right
-    memmove(buffer + pos + str_len,
-            buffer + pos,
-            current_len - pos + 1);  // +1 for null terminator
+    memmove(buffer + pos + str_len, buffer + pos,
+            current_len - pos + 1); // +1 for null terminator
 
     // Insert the string
     memcpy(buffer + pos, str, str_len);
 }
 
-void LineEditorWindow_send_key(Window * win, char c){
+void LineEditorWindow_send_key(Window *win, char c) {
     LineEditorWindow *self = win;
     int len = strlen(self->buffer);
     LOG_INFO("LineEditorWindow_send_key: %c %d", c, c);
     if (c == 8 || c == 127) { // Control+H
-        if (self->cursor > 0){
-            delete_char(self->buffer, self->cursor-1, len);
+        if (self->cursor > 0) {
+            delete_char(self->buffer, self->cursor - 1, len);
             self->cursor--;
         }
-		invoke_lambda(self->on_modify);
+        invoke_lambda(self->on_modify);
         return;
     }
     if (c == 2) { // Ctrl+B
-	  LineEditorWindow_left(self);
-	  //if (self->cursor > 0){
-      //      self->cursor--;
-      //  }
+        LineEditorWindow_left(self);
+        // if (self->cursor > 0){
+        //      self->cursor--;
+        //  }
         return;
     }
     if (c == 6) { // Ctrl+F
-	  LineEditorWindow_right(self);
-	  //if (self->cursor < len){
-      //      self->cursor++;
-	  // }
+        LineEditorWindow_right(self);
+        // if (self->cursor < len){
+        //      self->cursor++;
+        // }
         return;
     }
     if (c == 1) { // Ctrl+a
@@ -114,48 +112,48 @@ void LineEditorWindow_send_key(Window * win, char c){
         return;
     }
     if (c == 13) { // Ctrl+M
-        //self->cursor = len;
+        // self->cursor = len;
         invoke_lambda(win->lambda);
         return;
     }
     if (c == 7) { // Ctrl+G
-        //self->cursor = len;
+        // self->cursor = len;
         invoke_lambda(self->on_exit);
         return;
     }
     if (c == 22) { // Ctrl+V
-	  char * cb = clipboard_paste();
-	  insert_string(self->buffer, self->cursor, cb, len, sizeof(self->buffer));
-	  self->cursor += strlen(cb);
-	  invoke_lambda(self->on_modify);
-	  return;
+        char *cb = clipboard_paste();
+        insert_string(self->buffer, self->cursor, cb, len, sizeof(self->buffer));
+        self->cursor += strlen(cb);
+        invoke_lambda(self->on_modify);
+        return;
     }
     insert_char(self->buffer, self->cursor, c, len, sizeof(self->buffer));
-	invoke_lambda(self->on_modify);
+    invoke_lambda(self->on_modify);
     self->cursor++;
 }
 
-void LineEditorWindow_draw(struct Window *current, int hasFocus)
-{
-  if (current->hidden) return;
-  //LOG_INFO("LineEditorWindow_draw");
+void LineEditorWindow_draw(struct Window *current, int hasFocus) {
+    if (current->hidden)
+        return;
+    // LOG_INFO("LineEditorWindow_draw");
     LineEditorWindow *self = current;
     Geometry geo = current->calculated;
     int fg = current->fg;
     int bg = current->bg;
-	char * label = self->buffer;
-	if (label[0] == 0){
-	  label = self->empty_label;
-	  fg = 7;
-	}
+    char *label = self->buffer;
+    if (label[0] == 0) {
+        label = self->empty_label;
+        fg = 7;
+    }
     Buffer_print(&main_buf, geo.y, geo.x, geo.width, label, fg, bg);
-	if (current->parent->parent->focused == current)
-	  Buffer_print(&main_buf, geo.y, geo.x+self->cursor, 1, current->c+self->cursor, fg, 73);
+    if (current->parent->parent->focused == current)
+        Buffer_print(&main_buf, geo.y, geo.x + self->cursor, 1, current->c + self->cursor, fg, 73);
 }
 
-LineEditorWindow * LineEditorWindow_new(char * c, char * empty_label){
+LineEditorWindow *LineEditorWindow_new(char *c, char *empty_label) {
     LineEditorWindow *self = malloc(sizeof *self);
-	memset(self, 0, sizeof *self);  // Zero-initialize to prevent garbage values
+    memset(self, 0, sizeof *self); // Zero-initialize to prevent garbage values
     Window_init(self, -1, -1, -1, -1, -1, -1);
     self->win.draw = LineEditorWindow_draw;
 
@@ -164,21 +162,21 @@ LineEditorWindow * LineEditorWindow_new(char * c, char * empty_label){
     self->win.left = 0;
     self->win.right = 0;
     self->win.bg = 27;
-    //self->win.c = &self->buffer;
+    // self->win.c = &self->buffer;
     self->win.id = "line editor";
     self->win.send_key = LineEditorWindow_send_key;
     self->win.send_sequence = LineEditorWindow_send_sequence;
     self->win.scroll_wheel_up = NULL;
     self->win.scroll_wheel_down = NULL;
-	if (c != NULL)
-	  snprintf(self->buffer, sizeof(self->buffer), "%s", c);
+    if (c != NULL)
+        snprintf(self->buffer, sizeof(self->buffer), "%s", c);
     self->cursor = strlen(self->buffer);
     self->empty_label = empty_label;
 
     return self;
 }
 
-void LineEditorWindow_reset(LineEditorWindow * self){
-  self->buffer[0] = '\0';
-  self->cursor = 0;
+void LineEditorWindow_reset(LineEditorWindow *self) {
+    self->buffer[0] = '\0';
+    self->cursor = 0;
 }

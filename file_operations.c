@@ -1,8 +1,7 @@
 #include <stdio.h>
 #include <sys/stat.h>
 
-int copy_file(const char *src, const char *dst)
-{
+int copy_file(const char *src, const char *dst) {
     FILE *in = fopen(src, "rb");
     if (!in)
         return -1;
@@ -30,8 +29,7 @@ int copy_file(const char *src, const char *dst)
     return ferror(in) ? -1 : 0;
 }
 
-int file_exists(const char *path)
-{
+int file_exists(const char *path) {
     struct stat st;
     return stat(path, &st) == 0;
 }

@@ -6,19 +6,16 @@
 
 #define USE_BUFFER
 
-
-typedef struct Buffer
-{
-  int width;
-  int height;
-  uint32_t *buffer;
-  unsigned char *bg;
-  unsigned char *fg;
-  uint32_t *buffer2;
-  unsigned char *bg2;
-  unsigned char *fg2;
+typedef struct Buffer {
+    int width;
+    int height;
+    uint32_t *buffer;
+    unsigned char *bg;
+    unsigned char *fg;
+    uint32_t *buffer2;
+    unsigned char *bg2;
+    unsigned char *fg2;
 } Buffer;
-
 
 void Buffer_init(Buffer *buf, int width, int height);
 void Buffer_clear(Buffer *buf);
@@ -30,16 +27,15 @@ void Buffer_reset();
 void Buffer_print_to_screen(Buffer *buf);
 int calculate_width(char *s);
 int calculate_width_n(char *s, size_t byte_len);
-char * char_at(char *s, int i, int * width);
-char * char_at_prev(char *s, int i);
+char *char_at(char *s, int i, int *width);
+char *char_at_prev(char *s, int i);
 int get_idx_pos(char *s, int i);
 int count_chars(char *s);
 uint32_t utf8_decode(const uint8_t **s);
 uint32_t utf8_decode_left(const uint8_t **s, const uint8_t *start);
-uint32_t utf8_decode2(const uint8_t *s, int * idx);
-uint32_t utf8_decode_left2(const uint8_t *start, int * idx);
+uint32_t utf8_decode2(const uint8_t *s, int *idx);
+uint32_t utf8_decode_left2(const uint8_t *start, int *idx);
 int cp_width(int cp);
-
 
 extern Buffer main_buf;
 

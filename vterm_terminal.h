@@ -6,20 +6,28 @@
 #include "tabs.h"
 
 #ifdef _WIN32
-    /* Windows: Include sys/types.h for pid_t, define dummy VTerm types */
-    #include <sys/types.h>
+/* Windows: Include sys/types.h for pid_t, define dummy VTerm types */
+#include <sys/types.h>
 
-    typedef struct { int dummy; } VTerm;
-    typedef struct { int dummy; } VTermScreen;
-    typedef struct { int dummy; } VTermScreenCell;
-    typedef struct { int dummy; } VTermScreenCallbacks;
+typedef struct {
+    int dummy;
+} VTerm;
+typedef struct {
+    int dummy;
+} VTermScreen;
+typedef struct {
+    int dummy;
+} VTermScreenCell;
+typedef struct {
+    int dummy;
+} VTermScreenCallbacks;
 #else
-    #include <vterm.h>
-    #include <sys/types.h>
+#include <vterm.h>
+#include <sys/types.h>
 #endif
 
 typedef struct ScrollbackLine {
-    char * utf8;
+    char *utf8;
     int utf8_size;
     VTermScreenCell *cells;
     int cols;
@@ -37,28 +45,27 @@ typedef struct ScrollbackList {
 typedef struct TerminalPointer {
     int y;
     int x;
-  //int ptr;
+    // int ptr;
 } TerminalPointer;
 
 typedef struct TerminalWindow {
     struct Window win;
     struct Tab tab;
-    char * cwd;
-    Window * slider;
+    char *cwd;
+    Window *slider;
     pid_t pid;
 
-  /*int cursor_x;
-    int cursor_y;
-    int selection_x;
-    int selection_y;
-    int term_cursor_x;
-    int term_cursor_y;*/
-  struct TerminalPointer cursor;
-  struct TerminalPointer selection;
-  struct TerminalPointer term_cursor;
-  struct TerminalPointer highlight_start;
-  struct TerminalPointer highlight_end;
-
+    /*int cursor_x;
+      int cursor_y;
+      int selection_x;
+      int selection_y;
+      int term_cursor_x;
+      int term_cursor_y;*/
+    struct TerminalPointer cursor;
+    struct TerminalPointer selection;
+    struct TerminalPointer term_cursor;
+    struct TerminalPointer highlight_start;
+    struct TerminalPointer highlight_end;
 
     ScrollbackLine *last_line;
     int last_line_idx;
@@ -72,17 +79,18 @@ typedef struct TerminalWindow {
     int cols;
     ScrollbackList scrollback;
     VTermScreenCallbacks callbacks;
-  LineEditorWindow *search_box;
+    LineEditorWindow *search_box;
 } TerminalWindow;
 
 typedef struct TerminalFrame {
     struct Window win;
     Window *tabs;
-    char * cwd;
+    char *cwd;
 } TerminalFrame;
 
-Window *VTermTerminal_new(int left, int right, int top, int bottom, int width, int height, char * cwd);
-TerminalWindow *VTermTerminal_window(int initial_rows, int initial_cols, char * cwd);
+Window *VTermTerminal_new(int left, int right, int top, int bottom, int width, int height,
+                          char *cwd);
+TerminalWindow *VTermTerminal_window(int initial_rows, int initial_cols, char *cwd);
 
 /* PTY monitoring thread functions */
 void start_pty_monitor_thread();

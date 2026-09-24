@@ -8,58 +8,59 @@
 #include "taskbar.h"
 #include "config.h"
 
-//#define SELECTED_COLOR 33
-Tab * selected_tab;
-Tab * all_tabs_head;
-Tab * all_tabs_tail;
+// #define SELECTED_COLOR 33
+Tab *selected_tab;
+Tab *all_tabs_head;
+Tab *all_tabs_tail;
 
+void change_color_hover(Window *wg, int x, int y) {
 
-void change_color_hover(Window *wg, int x, int y)
-{
-
-    //LOG_INFO("change_color_hover");
+    // LOG_INFO("change_color_hover");
     wg->fg = 236;
     wg->bg = 250;
 
     Tab *tab = wg->data;
-    if (tab->parent->selected_tab == tab){
+    if (tab->parent->selected_tab == tab) {
         wg->bg = SELECTED_COLOR;
     }
 }
 
-void change_color_normal(Window *wg, int x, int y)
-{
-    //LOG_INFO("change_color_normal");
+void change_color_normal(Window *wg, int x, int y) {
+    // LOG_INFO("change_color_normal");
     wg->fg = 232;
     wg->bg = 254;
 
     Tab *tab = wg->data;
-    if (tab->parent->selected_tab == tab){
+    if (tab->parent->selected_tab == tab) {
         wg->bg = SELECTED_COLOR;
     }
 }
 
-void make_visible(Tab *tab){
-    Window * label = tab->tab_label;
-    //Window * shiftable_tabs = label->parent;
-    Window * shiftable_tabs = tab->parent->shiftable_tabs;
-    if (shiftable_tabs->calculated.width == 0) return; // if we haven't drawn yet
-    //LOG_INFO("make_visible %s label->left:%d shiftable_tabs->calculated.width:%d label->width:%d label->calculated.width:%d shiftable_tabs->shift_x:%d", shiftable_tabs->id, label->left, shiftable_tabs->calculated.width, label->width, label->calculated.width, shiftable_tabs->shift_x);
-    if (label->left + shiftable_tabs->shift_x < 0){
+void make_visible(Tab *tab) {
+    Window *label = tab->tab_label;
+    // Window * shiftable_tabs = label->parent;
+    Window *shiftable_tabs = tab->parent->shiftable_tabs;
+    if (shiftable_tabs->calculated.width == 0)
+        return; // if we haven't drawn yet
+    // LOG_INFO("make_visible %s label->left:%d shiftable_tabs->calculated.width:%d label->width:%d
+    // label->calculated.width:%d shiftable_tabs->shift_x:%d", shiftable_tabs->id, label->left,
+    // shiftable_tabs->calculated.width, label->width, label->calculated.width,
+    // shiftable_tabs->shift_x);
+    if (label->left + shiftable_tabs->shift_x < 0) {
         shiftable_tabs->shift_x = -label->left;
-        //LOG_INFO("if1 shiftable_tabs->shift_x %d", shiftable_tabs->shift_x);
+        // LOG_INFO("if1 shiftable_tabs->shift_x %d", shiftable_tabs->shift_x);
         return;
     }
-    if (shiftable_tabs->calculated.width < label->left + label->width + shiftable_tabs->shift_x){
-        shiftable_tabs->shift_x = - (label->left - shiftable_tabs->calculated.width + label->width);
-        //LOG_INFO("if2 shiftable_tabs->shift_x %d", shiftable_tabs->shift_x);
+    if (shiftable_tabs->calculated.width < label->left + label->width + shiftable_tabs->shift_x) {
+        shiftable_tabs->shift_x = -(label->left - shiftable_tabs->calculated.width + label->width);
+        // LOG_INFO("if2 shiftable_tabs->shift_x %d", shiftable_tabs->shift_x);
     }
 }
 
-void tab_select(Tab *tab){
-    Window * prev = tab->parent->selected_tab->tab_label;
-    //change_color_normal(tab->parent->selected_tab->tab_label, 0, 0);
-    //change_color_hover(tab->tab_label, 0, 0);
+void tab_select(Tab *tab) {
+    Window *prev = tab->parent->selected_tab->tab_label;
+    // change_color_normal(tab->parent->selected_tab->tab_label, 0, 0);
+    // change_color_hover(tab->tab_label, 0, 0);
     tab->parent->tabs->focused = tab->child;
     Window_bring_to_bottom(tab->child);
     tab->parent->selected_tab = tab;
@@ -70,107 +71,120 @@ void tab_select(Tab *tab){
     selected_tab = tab;
 }
 
-void tab_clicked(Window *wg, int x, int y)
-{
-    Tab *tab = (Tab *) wg->data;
+void tab_clicked(Window *wg, int x, int y) {
+    Tab *tab = (Tab *)wg->data;
     tab_select(tab);
 }
 
-void add_to_all_tabs(Tab *self){
-    if (all_tabs_head != NULL) all_tabs_head->all_tabs_prev = self;
+void add_to_all_tabs(Tab *self) {
+    if (all_tabs_head != NULL)
+        all_tabs_head->all_tabs_prev = self;
     self->all_tabs_next = all_tabs_head;
     all_tabs_head = self;
-    if (all_tabs_tail == NULL) all_tabs_tail = self;
+    if (all_tabs_tail == NULL)
+        all_tabs_tail = self;
 }
 
-void remove_from_all_tabs(Tab *self){
-    if (all_tabs_head == self) all_tabs_head = self->all_tabs_next;
-    if (all_tabs_tail == self) all_tabs_tail = self->all_tabs_prev;
+void remove_from_all_tabs(Tab *self) {
+    if (all_tabs_head == self)
+        all_tabs_head = self->all_tabs_next;
+    if (all_tabs_tail == self)
+        all_tabs_tail = self->all_tabs_prev;
 
-    if (self->all_tabs_prev != NULL) self->all_tabs_prev->all_tabs_next = self->all_tabs_next;
-    if (self->all_tabs_next != NULL) self->all_tabs_next->all_tabs_prev = self->all_tabs_prev;
+    if (self->all_tabs_prev != NULL)
+        self->all_tabs_prev->all_tabs_next = self->all_tabs_next;
+    if (self->all_tabs_next != NULL)
+        self->all_tabs_next->all_tabs_prev = self->all_tabs_prev;
 
     self->all_tabs_next = NULL;
     self->all_tabs_prev = NULL;
 }
 
-void tab_move_to_front(Tab *self){
+void tab_move_to_front(Tab *self) {
     remove_from_all_tabs(self);
     add_to_all_tabs(self);
 }
 
-void select_tab(Tab * selected_tab, int move){
-    if (selected_tab != NULL){
-        Window * frame = selected_tab->parent->win.parent->parent;
+void select_tab(Tab *selected_tab, int move) {
+    if (selected_tab != NULL) {
+        Window *frame = selected_tab->parent->win.parent->parent;
         TaskBar_switch_frame(frame);
         tab_select(selected_tab);
-        if (move == 1) tab_move_to_front(selected_tab);
+        if (move == 1)
+            tab_move_to_front(selected_tab);
     }
 }
 
-Window * find_tab(Window * win){
-  	Window *current = win;
-	while(current != NULL){
-	  if (current->id != NULL && strcmp(current->id, "tabs") == 0) return current;
-		current = current->parent;
-	}
-	return NULL;
+Window *find_tab(Window *win) {
+    Window *current = win;
+    while (current != NULL) {
+        if (current->id != NULL && strcmp(current->id, "tabs") == 0)
+            return current;
+        current = current->parent;
+    }
+    return NULL;
 }
 
-void select_window(Window * win){
-  Tabs *tab = (Tabs *) find_tab(win);
-  if (tab != NULL) select_tab(tab->selected_tab, 0);
+void select_window(Window *win) {
+    Tabs *tab = (Tabs *)find_tab(win);
+    if (tab != NULL)
+        select_tab(tab->selected_tab, 0);
 }
 
-void cycle_tab(){
-    if (selected_tab != NULL){
+void cycle_tab() {
+    if (selected_tab != NULL) {
         selected_tab = selected_tab->all_tabs_next;
     }
-    if (selected_tab == NULL) selected_tab = all_tabs_head;
-	select_tab(selected_tab, 0);
+    if (selected_tab == NULL)
+        selected_tab = all_tabs_head;
+    select_tab(selected_tab, 0);
 }
-void cycle_tab_reverse(){
-    if (selected_tab != NULL){
+void cycle_tab_reverse() {
+    if (selected_tab != NULL) {
         selected_tab = selected_tab->all_tabs_prev;
     }
-    if (selected_tab == NULL) selected_tab = all_tabs_tail;
-	select_tab(selected_tab, 0);
+    if (selected_tab == NULL)
+        selected_tab = all_tabs_tail;
+    select_tab(selected_tab, 0);
 }
 
-void recalculate_xoffset(Tabs * self){
-  self->x_offset = 0;
-  Tab * current = self->first;
-  self->x_offset = 0;
-  while (current){
-	Window * tab = current->tab_label;
-    tab->left = self->x_offset;
-    self->x_offset += tab->width;	
-	current = current->next;
-  }
+void recalculate_xoffset(Tabs *self) {
+    self->x_offset = 0;
+    Tab *current = self->first;
+    self->x_offset = 0;
+    while (current) {
+        Window *tab = current->tab_label;
+        tab->left = self->x_offset;
+        self->x_offset += tab->width;
+        current = current->next;
+    }
 }
 
-void tabs_remove_tab(Tab *self){
-  if (! self) return;
-  if (self->prev)
-	self->prev->next = self->next;
-  if (self->next)
-	self->next->prev = self->prev;
-  
-  remove_from_all_tabs(self);
-  
-  Window_remove(self->tab_label);
+void tabs_remove_tab(Tab *self) {
+    if (!self)
+        return;
+    if (self->prev)
+        self->prev->next = self->next;
+    if (self->next)
+        self->next->prev = self->prev;
 
-  Tabs * tabs = self->parent;
-  recalculate_xoffset(tabs);
+    remove_from_all_tabs(self);
 
-  //tab_select(all_tabs_head); // this might leave tabs unselected. this keeps the deleted window in window_manager
-  select_tab(all_tabs_head, 1); // this might bring another window to the front
+    Window_remove(self->tab_label);
+
+    Tabs *tabs = self->parent;
+    recalculate_xoffset(tabs);
+
+    // tab_select(all_tabs_head); // this might leave tabs unselected. this keeps the deleted window
+    // in window_manager
+    select_tab(all_tabs_head, 1); // this might bring another window to the front
 }
 
-Window * tabs_new_tab(Tabs *self){
-    Window * prev_tab_label = NULL;
-    if (self->selected_tab != NULL) prev_tab_label = self->selected_tab->tab_label;
-    //change_color_normal(self->selected_tab->tab_label, 0, 0);
+Window *tabs_new_tab(Tabs *self) {
+    Window *prev_tab_label = NULL;
+    if (self->selected_tab != NULL)
+        prev_tab_label = self->selected_tab->tab_label;
+    // change_color_normal(self->selected_tab->tab_label, 0, 0);
 
     Window *child = self->callback(self);
     child->left = 0;
@@ -181,41 +195,43 @@ Window * tabs_new_tab(Tabs *self){
 
     Window_append(self->tabs, child);
 
-    //Tab *mytab = malloc(sizeof *mytab);
-	TabWindow * tab_window = child;
-	LOG_INFO("tabs_new_tab1 %s", child->id);
-	if (child->window_type == 'sldr'){
-	  tab_window = child->head;
-	  LOG_INFO("tabs_new_tab2 %s", tab_window->win.id);
-	}
-	Tab *mytab = &tab_window->tab;
-    //memset(mytab, 0, sizeof *mytab);  // Zero-initialize to prevent garbage pointers
+    // Tab *mytab = malloc(sizeof *mytab);
+    TabWindow *tab_window = child;
+    LOG_INFO("tabs_new_tab1 %s", child->id);
+    if (child->window_type == 'sldr') {
+        tab_window = child->head;
+        LOG_INFO("tabs_new_tab2 %s", tab_window->win.id);
+    }
+    Tab *mytab = &tab_window->tab;
+    // memset(mytab, 0, sizeof *mytab);  // Zero-initialize to prevent garbage pointers
     self->selected_tab = mytab;
-    if (self->first == NULL) self->first = mytab;
-    if (self->last != NULL) self->last->next = mytab;
-	mytab->prev = self->last;	
+    if (self->first == NULL)
+        self->first = mytab;
+    if (self->last != NULL)
+        self->last->next = mytab;
+    mytab->prev = self->last;
     self->last = mytab;
-    //snprintf(mytab->str, sizeof(mytab->str), " %d ", self->idx+1);
-    //snprintf(mytab->str, sizeof(mytab->str), " %s ", child->id);
-    //mytab->str = child->id;
+    // snprintf(mytab->str, sizeof(mytab->str), " %d ", self->idx+1);
+    // snprintf(mytab->str, sizeof(mytab->str), " %s ", child->id);
+    // mytab->str = child->id;
     self->idx++;
-    char * label = child->id;
-    Window * tab = Window_add_widget(self->shiftable_tabs, -1, -1, -1, -1, -1, -1, label, 232, 255);
+    char *label = child->id;
+    Window *tab = Window_add_widget(self->shiftable_tabs, -1, -1, -1, -1, -1, -1, label, 232, 255);
     tab->left = self->x_offset;
     tab->top = 0;
     tab->height = 1;
-    //LOG_INFO("tabs_new_tab %s %d", label, strlen(label));
-    //tab->width = strlen(label)+1;
-    //tab->width = ID_LENGTH-3; // there is a 4 byte 2 wide char + null so -3. todo fix this
+    // LOG_INFO("tabs_new_tab %s %d", label, strlen(label));
+    // tab->width = strlen(label)+1;
+    // tab->width = ID_LENGTH-3; // there is a 4 byte 2 wide char + null so -3. todo fix this
     tab->width = ID_LENGTH;
-    //tab->width = calculate_width(label)+1;
+    // tab->width = calculate_width(label)+1;
     tab->on_mouse_down = tab_clicked;
     tab->on_hover = change_color_hover;
     tab->undo_on_hover = change_color_normal;
     tab->data = mytab;
 
     mytab->parent = self;
-    //mytab->terminal = terminal;
+    // mytab->terminal = terminal;
     mytab->child = child;
     mytab->tab_label = tab;
     tab->data = mytab;
@@ -223,7 +239,8 @@ Window * tabs_new_tab(Tabs *self){
     self->x_offset += tab->width;
 
     change_color_hover(tab, 0, 0);
-    if (prev_tab_label != NULL) change_color_normal(prev_tab_label, 0, 0);
+    if (prev_tab_label != NULL)
+        change_color_normal(prev_tab_label, 0, 0);
 
     make_visible(mytab);
     add_to_all_tabs(mytab);
@@ -232,98 +249,99 @@ Window * tabs_new_tab(Tabs *self){
 
     return child;
 
-    //tab_select(mytab);
+    // tab_select(mytab);
 }
 
-void tabs_cycle(Tabs *self){
-    Tab * current = self->selected_tab;
-    if (current->next != NULL) current = current->next;
-    else current = self->first;
+void tabs_cycle(Tabs *self) {
+    Tab *current = self->selected_tab;
+    if (current->next != NULL)
+        current = current->next;
+    else
+        current = self->first;
     tab_select(current);
 }
 
-void tabs_plus_clicked(Window *wg, int x, int y)
-{
-    Tabs *mytab = (Tabs *) wg->data;
+void tabs_plus_clicked(Window *wg, int x, int y) {
+    Tabs *mytab = (Tabs *)wg->data;
     tabs_new_tab(mytab);
 }
 
-void tabs_send_key(struct Window *wg, char c)
-{
-    Tabs *mytab = (Tabs *) wg->data;
+void tabs_send_key(struct Window *wg, char c) {
+    Tabs *mytab = (Tabs *)wg->data;
     tab_move_to_front(mytab->selected_tab);
 
-	Action action = get_action(c, WT_TABS);
+    Action action = get_action(c, WT_TABS);
 
     /*if (c == 14){ // Ctrl+N
         Tabs *mytab = (Tabs *) wg->data;
         tabs_new_tab(mytab);
         return;
-		}*/
-    //if (c == 12){ // Ctrl+L
-	if (action == ACTION_NEXT_TAB){ // Ctrl+L
-        Tabs *mytab = (Tabs *) wg->data;
+                }*/
+    // if (c == 12){ // Ctrl+L
+    if (action == ACTION_NEXT_TAB) { // Ctrl+L
+        Tabs *mytab = (Tabs *)wg->data;
         tabs_cycle(mytab);
         return;
     }
 
     Window *focused_cursor = wg->focused;
-    if (focused_cursor != NULL) while (focused_cursor->send_key == NULL && focused_cursor->focused != NULL) focused_cursor = focused_cursor->focused;
+    if (focused_cursor != NULL)
+        while (focused_cursor->send_key == NULL && focused_cursor->focused != NULL)
+            focused_cursor = focused_cursor->focused;
 
     if (focused_cursor != NULL && focused_cursor->send_key != NULL) {
-        //tab_move_to_front(focused_cursor);
+        // tab_move_to_front(focused_cursor);
         focused_cursor->send_key(focused_cursor, c);
     }
-
 }
 
-void tabs_scroll_wheel_up(struct Window *wg)
-{
-    //tab_move_to_front(wg);
+void tabs_scroll_wheel_up(struct Window *wg) {
+    // tab_move_to_front(wg);
     Window *focused_cursor = wg->focused;
-    if (focused_cursor != NULL) while (focused_cursor->scroll_wheel_up == NULL && focused_cursor->focused != NULL) focused_cursor = focused_cursor->focused;
+    if (focused_cursor != NULL)
+        while (focused_cursor->scroll_wheel_up == NULL && focused_cursor->focused != NULL)
+            focused_cursor = focused_cursor->focused;
 
     if (focused_cursor != NULL && focused_cursor->scroll_wheel_up != NULL) {
         focused_cursor->scroll_wheel_up(focused_cursor);
     }
 }
 
-void tabs_scroll_wheel_down(struct Window *wg)
-{
-    //tab_move_to_front(wg);
+void tabs_scroll_wheel_down(struct Window *wg) {
+    // tab_move_to_front(wg);
     Window *focused_cursor = wg->focused;
-    if (focused_cursor != NULL) while (focused_cursor->scroll_wheel_down == NULL && focused_cursor->focused != NULL) focused_cursor = focused_cursor->focused;
+    if (focused_cursor != NULL)
+        while (focused_cursor->scroll_wheel_down == NULL && focused_cursor->focused != NULL)
+            focused_cursor = focused_cursor->focused;
 
     if (focused_cursor != NULL && focused_cursor->scroll_wheel_down != NULL) {
         focused_cursor->scroll_wheel_down(focused_cursor);
     }
 }
 
-
-
-void tabs_send_sequence(struct Window *wg, const char *seq, int len)
-{
-    //tab_move_to_front(wg);
+void tabs_send_sequence(struct Window *wg, const char *seq, int len) {
+    // tab_move_to_front(wg);
     if (strcmp(seq, "\x1b[Z") == 0) { // Shift+Tab
-        Tabs *mytab = (Tabs *) wg->data;
+        Tabs *mytab = (Tabs *)wg->data;
         tabs_cycle(mytab);
-		return;
+        return;
     }
-	
+
     Window *focused_cursor = wg->focused;
-    if (focused_cursor != NULL) while (focused_cursor->send_key == NULL && focused_cursor->focused != NULL) focused_cursor = focused_cursor->focused;
+    if (focused_cursor != NULL)
+        while (focused_cursor->send_key == NULL && focused_cursor->focused != NULL)
+            focused_cursor = focused_cursor->focused;
 
     if (focused_cursor != NULL && focused_cursor->send_sequence != NULL) {
-	  focused_cursor->send_sequence(focused_cursor, seq, len);
+        focused_cursor->send_sequence(focused_cursor, seq, len);
     }
 }
 
-
-Window *Tab_new(tab_create_callback callback, int new_tab){
+Window *Tab_new(tab_create_callback callback, int new_tab) {
     Tabs *mytab = malloc(sizeof *mytab);
-    memset(mytab, 0, sizeof *mytab);  // Zero-initialize
+    memset(mytab, 0, sizeof *mytab); // Zero-initialize
 
-    //Window *tabs = malloc(sizeof *tabs);
+    // Window *tabs = malloc(sizeof *tabs);
     Window *tabs = (Window *)mytab;
     Window_init(tabs, -1, -1, -1, -1, -1, -1);
     tabs->send_key = tabs_send_key;
@@ -334,7 +352,7 @@ Window *Tab_new(tab_create_callback callback, int new_tab){
     tabs->id = "tabs";
 
     Window *tabs_bar = malloc(sizeof *tabs_bar);
-    memset(tabs_bar, 0, sizeof *tabs_bar);  // Zero-initialize
+    memset(tabs_bar, 0, sizeof *tabs_bar); // Zero-initialize
     tabs_bar->id = "tabs_bar";
     mytab->tabs_bar = tabs_bar;
     Window_init(tabs_bar, -1, -1, -1, -1, -1, -1);
@@ -348,14 +366,14 @@ Window *Tab_new(tab_create_callback callback, int new_tab){
     tabs->data = mytab;
     mytab->callback = callback;
 
-    Window * bg = Window_add_widget(tabs_bar, -1, -1, -1, -1, -1, -1, "   ", 232, 255);
+    Window *bg = Window_add_widget(tabs_bar, -1, -1, -1, -1, -1, -1, "   ", 232, 255);
     bg->left = 0;
     bg->top = 0;
     bg->left = 0;
     bg->right = 0;
     bg->height = 1;
 
-    Window * plus_button = Window_add_widget(tabs_bar, -1, -1, -1, -1, -1, -1, " + ", 232, 255);
+    Window *plus_button = Window_add_widget(tabs_bar, -1, -1, -1, -1, -1, -1, " + ", 232, 255);
     plus_button->left = mytab->x_offset;
     plus_button->top = 0;
     plus_button->width = 3;
@@ -364,7 +382,7 @@ Window *Tab_new(tab_create_callback callback, int new_tab){
     plus_button->undo_on_hover = change_color_normal;
     plus_button->on_mouse_down = tabs_plus_clicked;
     plus_button->data = mytab;
-    //mytab->x_offset += plus_button->width;
+    // mytab->x_offset += plus_button->width;
     mytab->x_offset = 0;
 
     Window *shiftable_tabs = malloc(sizeof *shiftable_tabs);
@@ -379,6 +397,7 @@ Window *Tab_new(tab_create_callback callback, int new_tab){
     shiftable_tabs->height = 1;
     Window_append(tabs_bar, shiftable_tabs);
 
-    if (new_tab) tabs_new_tab(mytab);
+    if (new_tab)
+        tabs_new_tab(mytab);
     return tabs;
 }

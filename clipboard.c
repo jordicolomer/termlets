@@ -2,8 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-int clipboard_copy_apple(const char *text)
-{
+int clipboard_copy_apple(const char *text) {
     if (text == NULL)
         return 0;
 
@@ -22,10 +21,7 @@ int clipboard_copy_apple(const char *text)
     return (written == len && status == 0);
 }
 
-
-
-void clipboard_copy(const char *text)
-{
+void clipboard_copy(const char *text) {
 #ifdef _WIN32
     // Win32 implementation
 #elif __APPLE__
@@ -38,8 +34,7 @@ void clipboard_copy(const char *text)
 #endif
 }
 
-char *clipboard_paste_apple(void)
-{
+char *clipboard_paste_apple(void) {
     FILE *pipe = popen("pbpaste", "r");
     if (pipe == NULL)
         return NULL;
@@ -92,8 +87,7 @@ char *clipboard_paste_apple(void)
     return buffer;
 }
 
-char *clipboard_paste(void)
-{
+char *clipboard_paste(void) {
 #ifdef _WIN32
     // Win32 implementation
     return NULL;

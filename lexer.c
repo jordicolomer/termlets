@@ -1,20 +1,16 @@
 #ifdef _WIN32
-    /* Disable const qualifier warnings on Windows for this file */
-    #pragma GCC diagnostic ignored "-Wincompatible-pointer-types"
-    #pragma GCC diagnostic ignored "-Wdiscarded-qualifiers"
+/* Disable const qualifier warnings on Windows for this file */
+#pragma GCC diagnostic ignored "-Wincompatible-pointer-types"
+#pragma GCC diagnostic ignored "-Wdiscarded-qualifiers"
 #endif
 
 #include <string.h>
 #include "lexer.h"
 #include "buffer.h"
 
-int isalpha(char c){
-    return 'a' <= c && c <= 'z' || 'A' <= c && c <= 'Z';
-}
+int isalpha(char c) { return 'a' <= c && c <= 'z' || 'A' <= c && c <= 'Z'; }
 
-int isnumber(char c){
-    return '0' <= c && c <= '9';
-}
+int isnumber(char c) { return '0' <= c && c <= '9'; }
 
 static const char *c_keywords[] = {
     /* Control flow */
@@ -45,7 +41,7 @@ static const char *c_keywords[] = {
     "noreturn",
     "thread_local",
 
-    "",   // sentinel
+    "", // sentinel
 };
 
 static const char *c_types[] = {
@@ -105,28 +101,25 @@ static const char *c_types[] = {
     "union",
     "enum",
 
-    "",   // sentinel
+    "", // sentinel
 };
 
-void lexer_init(Lexer* l, const char* source, int lang){
+void lexer_init(Lexer *l, const char *source, int lang) {
     l->source = source;
     l->pos = 0;
     l->pos_screen = 0;
     l->state = LEX_BEGIN;
     l->finished = 0;
     l->lang = lang;
-    //if (lang == LANG_C){
-        l->keywords = c_keywords;
-        l->types = c_types;
+    // if (lang == LANG_C){
+    l->keywords = c_keywords;
+    l->types = c_types;
     //}
 }
 
-
-int in_list(const char *c, int len, const char *kw[])
-{
+int in_list(const char *c, int len, const char *kw[]) {
     for (int i = 0; kw[i][0] != '\0'; i++) {
-        if ((int)strlen(kw[i]) == len &&
-            memcmp(c, kw[i], len) == 0) {
+        if ((int)strlen(kw[i]) == len && memcmp(c, kw[i], len) == 0) {
             return 1;
         }
     }
@@ -144,7 +137,7 @@ int is_type(const char *c, int len)
     return in_list(c, len, types);
 }*/
 
-int lexer_next(Lexer* l, Token* out_token){
+int lexer_next(Lexer *l, Token *out_token) {
     if (l->finished) {
         return 0;
     }
@@ -160,188 +153,191 @@ int lexer_next(Lexer* l, Token* out_token){
         char c = l->source[l->pos];
 
         switch (l->state) {
-            case LEX_LITERAL_STRING_ESCAPE:
+        case LEX_LITERAL_STRING_ESCAPE:
+            l->state = LEX_LITERAL_STRING;
+            break;
+        case LEX_LITERAL_STRING:
+            if (c == '\\') {
+                l->state = LEX_LITERAL_STRING_ESCAPE;
+            }
+            if (c == '"') {
+                out_token->end = l->pos;
+                out_token->end_screen = l->pos_screen;
+                out_token->color = 125; // red
+                emit = 1;
+                l->state = LEX_NORMAL;
+            }
+            break;
+        case LEX_BEGIN_HASH:
+            if (c == '\0') {
+                out_token->end = l->pos;
+                out_token->end_screen = l->pos_screen;
+                out_token->color = 94; // brown
+                emit = 1;
+                l->finished = 1;
+                l->state = LEX_BEGIN;
+            }
+            break;
+        case LEX_BEGIN:
+            if (c == '#') {
+                l->state = LEX_BEGIN_HASH;
+                out_token->type = TOK_PREPROC;
+                out_token->start = l->pos;
+                out_token->start_screen = l->pos_screen;
+            }
+            /* fall through */ // ← Add this comment
+        case LEX_NORMAL:
+            if (c == '/') {
+                l->state = LEX_SLASH;
+            }
+            if (c == '"') {
                 l->state = LEX_LITERAL_STRING;
-                break;
-            case LEX_LITERAL_STRING:
-                if (c == '\\'){
-                    l->state = LEX_LITERAL_STRING_ESCAPE;
-                }
-                if (c == '"'){
-                    out_token->end = l->pos;
-                    out_token->end_screen = l->pos_screen;
-                    out_token->color = 125; // red
-                    emit = 1;
-                    l->state = LEX_NORMAL;
-                }
-                break;
-            case LEX_BEGIN_HASH:
-                if (c == '\0'){
-                    out_token->end = l->pos;
-                    out_token->end_screen = l->pos_screen;
-                    out_token->color = 94; // brown
-                    emit = 1;
-                    l->finished = 1;
-                    l->state = LEX_BEGIN;
-                }
-                break;
-            case LEX_BEGIN:
-                if (c == '#'){
-                    l->state = LEX_BEGIN_HASH;
-                    out_token->type = TOK_PREPROC;
-                    out_token->start = l->pos;
-                    out_token->start_screen = l->pos_screen;
-                }
-                /* fall through */   // ← Add this comment  
-            case LEX_NORMAL:
-                if (c == '/'){
-                    l->state = LEX_SLASH;
-                }
-                if (c == '"'){
-                    l->state = LEX_LITERAL_STRING;
-                    out_token->type = TOK_LITERAL_STRING;
-                    out_token->start = l->pos;
-                    out_token->start_screen = l->pos_screen;
-                }
-                if (c == '{' || c == '}' || c == '(' || c == ')'  || c == '[' || c == ']' ){
-                    out_token->type = TOK_BRACKET;
-                    out_token->start = l->pos;
-                    out_token->end = l->pos+1;
-                    out_token->start_screen = l->pos_screen;
-                    out_token->end_screen = l->pos_screen+1;
+                out_token->type = TOK_LITERAL_STRING;
+                out_token->start = l->pos;
+                out_token->start_screen = l->pos_screen;
+            }
+            if (c == '{' || c == '}' || c == '(' || c == ')' || c == '[' || c == ']') {
+                out_token->type = TOK_BRACKET;
+                out_token->start = l->pos;
+                out_token->end = l->pos + 1;
+                out_token->start_screen = l->pos_screen;
+                out_token->end_screen = l->pos_screen + 1;
+                out_token->color = 27; // blue
+                emit = 1;
+            }
+            if (c == '=' || c == '-' || c == '>' || c == ';') {
+                out_token->type = TOK_BRACKET;
+                out_token->start = l->pos;
+                out_token->end = l->pos + 1;
+                out_token->start_screen = l->pos_screen;
+                out_token->end_screen = l->pos_screen + 1;
+                out_token->color = 240;
+                emit = 1;
+            }
+            if (isalpha(c) || c == '_') {
+                out_token->start = l->pos;
+                out_token->start_screen = l->pos_screen;
+                l->state = LEX_IDENTIFIER;
+            }
+            if (isnumber(c)) {
+                out_token->type = TOK_LITERAL_NUMBER;
+                out_token->start = l->pos;
+                out_token->start_screen = l->pos_screen;
+                l->state = LEX_LITERAL_NUMBER;
+            }
+            break;
+        case LEX_LITERAL_NUMBER:
+            if (isnumber(c)) {
+            } else {
+                out_token->type = TOK_LITERAL_NUMBER;
+                out_token->end = l->pos;
+                out_token->end_screen = l->pos_screen;
+                out_token->color = 28; // green
+                emit = 1;
+                l->state = LEX_NORMAL;
+                l->pos--;
+                l->pos_screen--; // reprocess character that ended the literal
+            }
+            break;
+        case LEX_IDENTIFIER:
+            if (isalpha(c) || isnumber(c) || c == '_') {
+            } else if (c == '(') {
+                out_token->type = TOK_FUNCTION;
+                out_token->end = l->pos;
+                out_token->end_screen = l->pos_screen;
+                // out_token->color = 20; // blue
+                // out_token->color = 5; // purple
+                out_token->color = 94; // brown
+                emit = 1;
+                l->state = LEX_NORMAL;
+                l->pos--;        // reprocess c in normal mode
+                l->pos_screen--; // reprocess c in normal mode
+            } else {
+                out_token->type = TOK_IDENTIFIER;
+                out_token->end = l->pos;
+                out_token->end_screen = l->pos_screen;
+                out_token->color = 16; // black
+                char *str = l->source + out_token->start;
+                int width = out_token->end - out_token->start;
+                // if (is_keyword(l->source + out_token->start, out_token->end - out_token->start))
+                if (in_list(str, width, l->keywords))
+                    out_token->color = 90; // pink
+                // else if (is_type(l->source + out_token->start, out_token->end -
+                // out_token->start))
+                if (in_list(str, width, l->types))
                     out_token->color = 27; // blue
-                    emit = 1;
-                }
-                if (c == '=' || c == '-' || c == '>' || c == ';' ){
-                    out_token->type = TOK_BRACKET;
-                    out_token->start = l->pos;
-                    out_token->end = l->pos+1;
-                    out_token->start_screen = l->pos_screen;
-                    out_token->end_screen = l->pos_screen+1;
-                    out_token->color = 240;
-                    emit = 1;
-                }
-                if (isalpha(c) || c == '_') {
-                    out_token->start = l->pos;
-                    out_token->start_screen = l->pos_screen;
-                    l->state = LEX_IDENTIFIER;
-                }
-                if (isnumber(c)) {
-                    out_token->type = TOK_LITERAL_NUMBER;
-                    out_token->start = l->pos;
-                    out_token->start_screen = l->pos_screen;
-                    l->state = LEX_LITERAL_NUMBER;
-                }
-                break;
-            case LEX_LITERAL_NUMBER:
-                if (isnumber(c)) {
-                } else {
-                    out_token->type = TOK_LITERAL_NUMBER;
-                    out_token->end = l->pos;
-                    out_token->end_screen = l->pos_screen;
-                    out_token->color = 28; // green
-                    emit = 1;
-                    l->state = LEX_NORMAL;
-                    l->pos--;
-                    l->pos_screen--; // reprocess character that ended the literal
-                }
-                break;
-            case LEX_IDENTIFIER:
-                if (isalpha(c) || isnumber(c) || c == '_') {
-                } else if (c == '(') {
-                    out_token->type = TOK_FUNCTION;
-                    out_token->end = l->pos;
-                    out_token->end_screen = l->pos_screen;
-                    //out_token->color = 20; // blue
-                    //out_token->color = 5; // purple
-                    out_token->color = 94; // brown
-                    emit = 1;
-                    l->state = LEX_NORMAL;
-                    l->pos--; // reprocess c in normal mode
-                    l->pos_screen--; // reprocess c in normal mode
-                } else {
-                    out_token->type = TOK_IDENTIFIER;
-                    out_token->end = l->pos;
-                    out_token->end_screen = l->pos_screen;
-                    out_token->color = 16; // black
-                    char * str = l->source + out_token->start;
-                    int width = out_token->end - out_token->start;
-                    //if (is_keyword(l->source + out_token->start, out_token->end - out_token->start))
-                    if (in_list(str, width, l->keywords))
-                        out_token->color = 90; // pink
-                    //else if (is_type(l->source + out_token->start, out_token->end - out_token->start))
-                    if (in_list(str, width, l->types))
-                        out_token->color = 27; // blue
-                    emit = 1;
-                    l->state = LEX_NORMAL;
-                    l->pos_screen--; // reprocess c in normal mode
-                    l->pos--; // reprocess c in normal mode
-                }
-                break;
-            case LEX_SLASH:
-                if (c == '*'){
-                    l->state = LEX_SLASH_STAR;
-                    out_token->start = l->pos-1;
-                    out_token->start_screen = l->pos_screen-1;
-                }
-                else if (c == '/'){
-                    l->state = LEX_SLASH_SLASH;
-                    out_token->start = l->pos-1;
-                    out_token->start_screen = l->pos_screen-1;
-                } else {
-                    l->state = LEX_NORMAL;
-                    l->pos_screen--; // reprocess
-                    l->pos--; // reprocess
-                }
-                break;
-            case LEX_SLASH_SLASH:
-                if (c == '\0'){
-                    out_token->type = TOK_COMMENT;
-                    out_token->end = l->pos;
-                    out_token->end_screen = l->pos_screen;
-                    out_token->color = 28; // green
-                    emit = 1;
-                    l->finished = 1;
-                    l->state = LEX_NORMAL;
-                }
-                break;
-            case LEX_SLASH_STAR:
-                if (c == '\0'){
-                    out_token->type = TOK_COMMENT;
-                    out_token->end = l->pos;
-                    out_token->end_screen = l->pos_screen;
-                    out_token->color = 28; // green
-                    emit = 1;
-                    l->finished = 1;
-                }
-                if (c == '*'){
-                    l->state = LEX_SLASH_STAR_STAR;
-                }
-                break;
-            case LEX_SLASH_STAR_STAR:
-                if (c == '/'){
-                    out_token->type = TOK_COMMENT;
-                    out_token->end = l->pos+1;
-                    out_token->end_screen = l->pos_screen+1;
-                    out_token->color = 28; // green
-                    
-                    emit = 1;
-                    l->state = LEX_NORMAL;
-                }else if (c == '*'){
-                    l->state = LEX_SLASH_STAR_STAR;
-                } else {
-                    l->state = LEX_SLASH_STAR;
-                }
-                break;
+                emit = 1;
+                l->state = LEX_NORMAL;
+                l->pos_screen--; // reprocess c in normal mode
+                l->pos--;        // reprocess c in normal mode
+            }
+            break;
+        case LEX_SLASH:
+            if (c == '*') {
+                l->state = LEX_SLASH_STAR;
+                out_token->start = l->pos - 1;
+                out_token->start_screen = l->pos_screen - 1;
+            } else if (c == '/') {
+                l->state = LEX_SLASH_SLASH;
+                out_token->start = l->pos - 1;
+                out_token->start_screen = l->pos_screen - 1;
+            } else {
+                l->state = LEX_NORMAL;
+                l->pos_screen--; // reprocess
+                l->pos--;        // reprocess
+            }
+            break;
+        case LEX_SLASH_SLASH:
+            if (c == '\0') {
+                out_token->type = TOK_COMMENT;
+                out_token->end = l->pos;
+                out_token->end_screen = l->pos_screen;
+                out_token->color = 28; // green
+                emit = 1;
+                l->finished = 1;
+                l->state = LEX_NORMAL;
+            }
+            break;
+        case LEX_SLASH_STAR:
+            if (c == '\0') {
+                out_token->type = TOK_COMMENT;
+                out_token->end = l->pos;
+                out_token->end_screen = l->pos_screen;
+                out_token->color = 28; // green
+                emit = 1;
+                l->finished = 1;
+            }
+            if (c == '*') {
+                l->state = LEX_SLASH_STAR_STAR;
+            }
+            break;
+        case LEX_SLASH_STAR_STAR:
+            if (c == '/') {
+                out_token->type = TOK_COMMENT;
+                out_token->end = l->pos + 1;
+                out_token->end_screen = l->pos_screen + 1;
+                out_token->color = 28; // green
+
+                emit = 1;
+                l->state = LEX_NORMAL;
+            } else if (c == '*') {
+                l->state = LEX_SLASH_STAR_STAR;
+            } else {
+                l->state = LEX_SLASH_STAR;
+            }
+            break;
         }
-		l->pos++;
-        //l->pos_screen+=cp_width(c);
-		if (c == '\t') l->pos_screen+=4;
-        else l->pos_screen++;
-        if (emit){
+        l->pos++;
+        // l->pos_screen+=cp_width(c);
+        if (c == '\t')
+            l->pos_screen += 4;
+        else
+            l->pos_screen++;
+        if (emit) {
             return 1;
         }
-        if (c == '\0') return 0;
+        if (c == '\0')
+            return 0;
     }
     return 0;
 }

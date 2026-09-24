@@ -6,18 +6,11 @@
 
 #include "logger.h"
 
-int max(int a, int b)
-{
-  return (a > b) ? a : b;
-}
+int max(int a, int b) { return (a > b) ? a : b; }
 
-int min(int a, int b)
-{
-  return (a < b) ? a : b;
-}
+int min(int a, int b) { return (a < b) ? a : b; }
 
-int ends_with_ignore_case(const char *str, const char *suffix)
-{
+int ends_with_ignore_case(const char *str, const char *suffix) {
     size_t str_len = strlen(str);
     size_t suffix_len = strlen(suffix);
 
@@ -27,17 +20,15 @@ int ends_with_ignore_case(const char *str, const char *suffix)
     return strcasecmp(str + str_len - suffix_len, suffix) == 0;
 }
 
-void * my_malloc(int size){
-  LOG_INFO("my_malloc %d", size);
-  void *ptr = malloc(size);
-  memset(ptr, 0, size);  // Zero-initialize to prevent garbage values
-  return ptr;
+void *my_malloc(int size) {
+    LOG_INFO("my_malloc %d", size);
+    void *ptr = malloc(size);
+    memset(ptr, 0, size); // Zero-initialize to prevent garbage values
+    return ptr;
 }
 
-
 /* Helper function to encode a unicode codepoint to UTF-8 */
-int encode_utf8(uint32_t c, char *buf)
-{
+int encode_utf8(uint32_t c, char *buf) {
     if (c == 0) {
         buf[0] = ' ';
         return 1;
@@ -65,9 +56,7 @@ int encode_utf8(uint32_t c, char *buf)
     }
 }
 
-
-char *strcasestr(const char *haystack, const char *needle)
-{
+char *strcasestr(const char *haystack, const char *needle) {
     if (*needle == '\0')
         return (char *)haystack;
 
@@ -75,8 +64,7 @@ char *strcasestr(const char *haystack, const char *needle)
         const char *h = haystack;
         const char *n = needle;
 
-        while (*h && *n &&
-               tolower((unsigned char)*h) == tolower((unsigned char)*n)) {
+        while (*h && *n && tolower((unsigned char)*h) == tolower((unsigned char)*n)) {
             h++;
             n++;
         }

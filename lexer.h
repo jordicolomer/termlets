@@ -3,17 +3,7 @@
 
 #include <stdlib.h>
 
-enum Language {
-    LANG_UNSELECT,
-    LANG_NONE,
-    LANG_C,
-    LANG_CPP,
-    LANG_JAVA,
-    LANG_JS,
-    LANG_TS,
-    LANG_PY
-};
-
+enum Language { LANG_UNSELECT, LANG_NONE, LANG_C, LANG_CPP, LANG_JAVA, LANG_JS, LANG_TS, LANG_PY };
 
 typedef enum {
     // End of input
@@ -28,7 +18,7 @@ typedef enum {
     TOK_IDENTIFIER,
     TOK_FUNCTION,
     TOK_BRACKET,
-    TOK_NUMBER,          // integer or float
+    TOK_NUMBER, // integer or float
     TOK_STRING_LITERAL,
     TOK_CHAR_LITERAL
 } TokenType;
@@ -48,20 +38,20 @@ typedef enum {
 } LexerState;
 
 typedef struct Token {
-    size_t start; // included
-    size_t end; // excluded
+    size_t start;        // included
+    size_t end;          // excluded
     size_t start_screen; // included
-    size_t end_screen; // excluded
+    size_t end_screen;   // excluded
     TokenType type;
     int color;
 } Token;
 
 typedef struct Lexer {
-    const char* source;
+    const char *source;
     size_t pos;
     size_t pos_screen;
-    //int loc;
-    int state;           // for resuming complex lexing
+    // int loc;
+    int state; // for resuming complex lexing
     int finished;
     int lang;
     char **keywords;
@@ -69,7 +59,7 @@ typedef struct Lexer {
     // ... other fields
 } Lexer;
 
-void lexer_init(Lexer* l, const char* source, int lang);
-int lexer_next(Lexer* l, Token* out_token);
+void lexer_init(Lexer *l, const char *source, int lang);
+int lexer_next(Lexer *l, Token *out_token);
 
 #endif

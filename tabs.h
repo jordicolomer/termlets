@@ -6,29 +6,29 @@
 typedef struct Tabs Tabs;
 typedef struct Tab Tab;
 
-typedef Window* (*tab_create_callback)(Tabs *self);
+typedef Window *(*tab_create_callback)(Tabs *self);
 
 typedef struct Tab {
-    Tabs * parent;
-    //Window *terminal;
+    Tabs *parent;
+    // Window *terminal;
     Window *tab_label;
     Window *child;
     char str[1024];
-    Tab * next;
-    Tab * prev;
+    Tab *next;
+    Tab *prev;
 
     // this allows navigating all tabs in a single list
-    Tab * all_tabs_prev;
-    Tab * all_tabs_next;
+    Tab *all_tabs_prev;
+    Tab *all_tabs_next;
 } Tab;
 
 typedef struct TabWindow {
-  struct Window win;
-  struct Tab tab;
+    struct Window win;
+    struct Tab tab;
 } TabWindow;
 
-extern Tab * all_tabs_head;
-extern Tab * all_tabs_tail;
+extern Tab *all_tabs_head;
+extern Tab *all_tabs_tail;
 
 typedef struct Tabs {
     struct Window win;
@@ -38,19 +38,18 @@ typedef struct Tabs {
     int x_offset;
     int idx;
     tab_create_callback callback;
-    Tab * selected_tab;
-    Tab * first;
-    Tab * last;
+    Tab *selected_tab;
+    Tab *first;
+    Tab *last;
 } Tabs;
 
-
 Window *Tab_new(tab_create_callback callback, int new_tab);
-Window * tabs_new_tab(Tabs *self);
+Window *tabs_new_tab(Tabs *self);
 void tab_select(Tab *tab);
-void select_tab(Tab * selected_tab, int move);
+void select_tab(Tab *selected_tab, int move);
 void cycle_tab();
 void cycle_tab_reverse();
-void select_window(Window * win);
+void select_window(Window *win);
 void tabs_remove_tab(Tab *self);
 
 #endif

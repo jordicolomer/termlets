@@ -2,36 +2,26 @@
 #include "ansi_term.h"
 
 #ifdef _WIN32
-    #define NOMINMAX  /* Prevent Windows from defining min/max macros */
-    #include <windows.h>
-    #include <io.h>
-    #include <conio.h>
-    #define STDIN_FILENO 0
-    #define STDOUT_FILENO 1
+#define NOMINMAX /* Prevent Windows from defining min/max macros */
+#include <windows.h>
+#include <io.h>
+#include <conio.h>
+#define STDIN_FILENO 0
+#define STDOUT_FILENO 1
 #else
-    #include <sys/ioctl.h>
-    #include <sys/select.h>
-    #include <unistd.h>
-    #include <termios.h>
+#include <sys/ioctl.h>
+#include <sys/select.h>
+#include <unistd.h>
+#include <termios.h>
 #endif
 
-void set_terminal_color(ForegroundColor fg, BackgroundColor bg) {
-    printf("\033[%d;%dm", fg, bg);
-}
+void set_terminal_color(ForegroundColor fg, BackgroundColor bg) { printf("\033[%d;%dm", fg, bg); }
 
-void set_terminal_fg_color256(int color) {
-    printf("\x1b[38;5;%dm", color);
-}
-void set_terminal_bg_color256(int color) {
-    printf("\x1b[48;5;%dm", color);
-}
-void set_color256(int fg, int bg) {
-    printf("\x1b[38;5;%d;48;5;%dm", fg, bg);
-}
+void set_terminal_fg_color256(int color) { printf("\x1b[38;5;%dm", color); }
+void set_terminal_bg_color256(int color) { printf("\x1b[48;5;%dm", color); }
+void set_color256(int fg, int bg) { printf("\x1b[38;5;%d;48;5;%dm", fg, bg); }
 
-void reset_terminal_color(void) {
-    printf("\033[0m");
-}
+void reset_terminal_color(void) { printf("\033[0m"); }
 
 int test() {
     set_terminal_color(WHITE, BLUE_BG);
@@ -48,7 +38,6 @@ int test() {
     return 0;
 }
 
-
 #ifdef _WIN32
 static DWORD orig_input_mode;
 static DWORD orig_output_mode;
@@ -58,80 +47,77 @@ static struct termios orig;
 
 void enable_raw_mode() {
 #ifdef _WIN32
-  HANDLE hIn = GetStdHandle(STD_INPUT_HANDLE);
-  HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+    HANDLE hIn = GetStdHandle(STD_INPUT_HANDLE);
+    HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
 
-  GetConsoleMode(hIn, &orig_input_mode);
-  GetConsoleMode(hOut, &orig_output_mode);
+    GetConsoleMode(hIn, &orig_input_mode);
+    GetConsoleMode(hOut, &orig_output_mode);
 
-  DWORD mode = orig_input_mode;
-  mode &= ~(ENABLE_LINE_INPUT | ENABLE_ECHO_INPUT | ENABLE_PROCESSED_INPUT);
-  mode |= ENABLE_VIRTUAL_TERMINAL_INPUT;
-  SetConsoleMode(hIn, mode);
+    DWORD mode = orig_input_mode;
+    mode &= ~(ENABLE_LINE_INPUT | ENABLE_ECHO_INPUT | ENABLE_PROCESSED_INPUT);
+    mode |= ENABLE_VIRTUAL_TERMINAL_INPUT;
+    SetConsoleMode(hIn, mode);
 
-  DWORD out_mode = orig_output_mode;
-  out_mode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING | DISABLE_NEWLINE_AUTO_RETURN;
-  SetConsoleMode(hOut, out_mode);
+    DWORD out_mode = orig_output_mode;
+    out_mode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING | DISABLE_NEWLINE_AUTO_RETURN;
+    SetConsoleMode(hOut, out_mode);
 #else
-  tcgetattr(STDIN_FILENO, &orig);
-  struct termios raw = orig;
+    tcgetattr(STDIN_FILENO, &orig);
+    struct termios raw = orig;
 
-  /* disable input processing that could interfere with escape sequences */
-  raw.c_iflag &= ~(BRKINT | ICRNL | INPCK | ISTRIP | IXON);
-  /* disable output processing */
-  raw.c_oflag &= ~(OPOST);
-  /* disable canonical mode, echo, and signals */
-  raw.c_lflag &= ~(ICANON | ECHO | ISIG | IEXTEN);
-  raw.c_cc[VMIN] = 1;
-  raw.c_cc[VTIME] = 0;
+    /* disable input processing that could interfere with escape sequences */
+    raw.c_iflag &= ~(BRKINT | ICRNL | INPCK | ISTRIP | IXON);
+    /* disable output processing */
+    raw.c_oflag &= ~(OPOST);
+    /* disable canonical mode, echo, and signals */
+    raw.c_lflag &= ~(ICANON | ECHO | ISIG | IEXTEN);
+    raw.c_cc[VMIN] = 1;
+    raw.c_cc[VTIME] = 0;
 
-  tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
+    tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
 #endif
 }
 
 void disable_raw_mode() {
 #ifdef _WIN32
-  HANDLE hIn = GetStdHandle(STD_INPUT_HANDLE);
-  HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
-  SetConsoleMode(hIn, orig_input_mode);
-  SetConsoleMode(hOut, orig_output_mode);
+    HANDLE hIn = GetStdHandle(STD_INPUT_HANDLE);
+    HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+    SetConsoleMode(hIn, orig_input_mode);
+    SetConsoleMode(hOut, orig_output_mode);
 #else
-  tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig);
+    tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig);
 #endif
 }
 
 void enable_mouse() {
-  // enable SGR mouse tracking + movement
-  printf("\033[?1000h"); // clicks
-  printf("\033[?1003h"); // movement tracking
-  printf("\033[?1006h"); // SGR extended mode
-  fflush(stdout);
+    // enable SGR mouse tracking + movement
+    printf("\033[?1000h"); // clicks
+    printf("\033[?1003h"); // movement tracking
+    printf("\033[?1006h"); // SGR extended mode
+    fflush(stdout);
 }
 
 void disable_mouse() {
-  printf("\033[?1003l");
-  printf("\033[?1000l");
-  fflush(stdout);
+    printf("\033[?1003l");
+    printf("\033[?1000l");
+    fflush(stdout);
 }
 
 void move_cursor(int row, int col) {
-  printf("\033[%d;%dH", row, col);
-  fflush(stdout);
+    printf("\033[%d;%dH", row, col);
+    fflush(stdout);
 }
 
-
-void clear_screen() {
-  printf("\033[2J");
-}
+void clear_screen() { printf("\033[2J"); }
 
 void hide_cursor() {
-  printf("\033[?25l");
-  fflush(stdout);
+    printf("\033[?25l");
+    fflush(stdout);
 }
 
 void show_cursor() {
-  printf("\033[?25h");
-  fflush(stdout);
+    printf("\033[?25h");
+    fflush(stdout);
 }
 
 void get_terminal_size(int *rows, int *cols) {
@@ -169,18 +155,18 @@ void cleanup(void) {
 }
 
 void enter_alternate_screen(void) {
-      // Enter alternate screen
+    // Enter alternate screen
     printf("\x1b[?1049h");
 
     // Hide cursor
-    //printf("\x1b[?25l");
+    // printf("\x1b[?25l");
 
     // Blue background + white text
-    //printf("\x1b[44m\x1b[37m");
-	//set_color256(232, 32);
+    // printf("\x1b[44m\x1b[37m");
+    // set_color256(232, 32);
 
     // Clear + home
-    //printf("\x1b[2J\x1b[H");
+    // printf("\x1b[2J\x1b[H");
 
     fflush(stdout);
 }
@@ -193,7 +179,7 @@ int check_input_available(int timeout_usec) {
         return 1;
     }
     if (timeout_usec > 0) {
-        Sleep(timeout_usec / 1000);  /* Sleep takes milliseconds */
+        Sleep(timeout_usec / 1000); /* Sleep takes milliseconds */
     }
     return _kbhit();
 #else
@@ -223,4 +209,3 @@ int read_char(char *c) {
     return read(STDIN_FILENO, c, 1) == 1;
 #endif
 }
-

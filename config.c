@@ -7,33 +7,36 @@
 #include "common.h"
 #include "logger.h"
 
-Action * mapping_global;
-Action * mapping;
-Action * mapping_edit;
-Action * mapping_file_manager;
-Action * mapping_tabs;
+Action *mapping_global;
+Action *mapping;
+Action *mapping_edit;
+Action *mapping_file_manager;
+Action *mapping_tabs;
 char *config_file = NULL;
 
-Action * get_mapping(void) {
-  if (insert_mode == 1) return mapping;
-  return mapping_edit;
+Action *get_mapping(void) {
+    if (insert_mode == 1)
+        return mapping;
+    return mapping_edit;
 }
 
 Action get_action(char c, WindowType window_type) {
-  if (mapping_global[c] != ACTION_NONE) return mapping_global[c];
-  if (window_type == WT_FILE_MANAGER){
-	if (mapping_file_manager[c] != ACTION_NONE) return mapping_file_manager[c];
-	return mapping_edit[c];
-  }
-  if (window_type == WT_TABS){
-	return mapping_tabs[c];
-  }
-  if (insert_mode == 1) return mapping[c];
-  return mapping_edit[c];
+    if (mapping_global[c] != ACTION_NONE)
+        return mapping_global[c];
+    if (window_type == WT_FILE_MANAGER) {
+        if (mapping_file_manager[c] != ACTION_NONE)
+            return mapping_file_manager[c];
+        return mapping_edit[c];
+    }
+    if (window_type == WT_TABS) {
+        return mapping_tabs[c];
+    }
+    if (insert_mode == 1)
+        return mapping[c];
+    return mapping_edit[c];
 }
 
-Action action_from_string(const char *name)
-{
+Action action_from_string(const char *name) {
     for (size_t i = 0; i < sizeof(action_names) / sizeof(action_names[0]); i++) {
         if (strcmp(name, action_names[i]) == 0)
             return (Action)i;
@@ -42,9 +45,7 @@ Action action_from_string(const char *name)
     return ACTION_NONE;
 }
 
-
-int key_string_to_int(const char *key)
-{
+int key_string_to_int(const char *key) {
     if (!key)
         return -1;
 
@@ -54,25 +55,33 @@ int key_string_to_int(const char *key)
         if (c >= 'A' && c <= 'Z')
             return c - 'A' + 1;
 
-        if (c == '@') return 0;
-        if (c == '[') return 27;
-        if (c == '\\') return 28;
-        if (c == ']') return 29;
-        if (c == '^') return 30;
-        if (c == '_') return 31;
-        if (c == '?') return 127;
+        if (c == '@')
+            return 0;
+        if (c == '[')
+            return 27;
+        if (c == '\\')
+            return 28;
+        if (c == ']')
+            return 29;
+        if (c == '^')
+            return 30;
+        if (c == '_')
+            return 31;
+        if (c == '?')
+            return 127;
     }
 
     return -1;
 }
 
-int myatoi(char * c){
-  if (strcmp(c, "0") == 0) return 0;
-  int ret = atoi(c);
-  if (ret == 0) return -1;
-  return ret;
+int myatoi(char *c) {
+    if (strcmp(c, "0") == 0)
+        return 0;
+    int ret = atoi(c);
+    if (ret == 0)
+        return -1;
+    return ret;
 }
-
 
 int load_mappings_from_buffer(const char *data, size_t len) {
     size_t pos = 0;
@@ -167,8 +176,7 @@ int load_mappings_from_buffer(const char *data, size_t len) {
 
         char *end = action + action_len - 1;
 
-        while (end >= action &&
-               (*end == ' ' || *end == '\t')) {
+        while (end >= action && (*end == ' ' || *end == '\t')) {
             *end = '\0';
             end--;
         }
@@ -211,8 +219,7 @@ int load_mappings_from_buffer(const char *data, size_t len) {
     return 0;
 }
 
-char *load_config(const char *filename, size_t *size)
-{
+char *load_config(const char *filename, size_t *size) {
     FILE *file = fopen(filename, "rb");
     if (!file)
         return NULL;
@@ -249,30 +256,32 @@ char *load_config(const char *filename, size_t *size)
 }
 
 int load_mappings_from_file(void) {
-  size_t size;
+    size_t size;
     const char *home = getenv("HOME");
-    if (!home) return 1;
+    if (!home)
+        return 1;
 
     char path[PATH_MAX];
-	if (config_file == NULL){
-	  snprintf(path, sizeof(path), "%s/.config/termlets/mapping.conf", home);
-	  config_file = path;
-	}
+    if (config_file == NULL) {
+        snprintf(path, sizeof(path), "%s/.config/termlets/mapping.conf", home);
+        config_file = path;
+    }
 
-  char * buf = load_config(config_file, &size);
-  if (buf == NULL) return 1;
-  load_mappings_from_buffer(buf, size);
-  free(buf);
-  return 0;
+    char *buf = load_config(config_file, &size);
+    if (buf == NULL)
+        return 1;
+    load_mappings_from_buffer(buf, size);
+    free(buf);
+    return 0;
 }
-void load_default_mappings(){
-    mapping[6] = ACTION_SEARCH;   // control+f
+void load_default_mappings() {
+    mapping[6] = ACTION_SEARCH;      // control+f
     mapping[8] = ACTION_BACKSPACE;   // control+h
     mapping[127] = ACTION_BACKSPACE; // backspace
     mapping[13] = ACTION_ENTER;
-    //mapping[';'] = ACTION_MODE;
+    // mapping[';'] = ACTION_MODE;
 
-	// emacs style navigation
+    // emacs style navigation
     mapping[16] = ACTION_UP;
     mapping[14] = ACTION_DOWN;
     mapping[2] = ACTION_LEFT;
@@ -281,17 +290,17 @@ void load_default_mappings(){
     mapping[3] = ACTION_COPY;
     mapping[22] = ACTION_PASTE;
     mapping[24] = ACTION_CUT;
-	
+
     mapping[19] = ACTION_SAVE;
 }
 
-void load_edit_mode_mappings(){
-    mapping[6] = ACTION_SEARCH;   // control+f
+void load_edit_mode_mappings() {
+    mapping[6] = ACTION_SEARCH;           // control+f
     mapping_edit[8] = ACTION_BACKSPACE;   // control+h
     mapping_edit[127] = ACTION_BACKSPACE; // backspace
-    //mapping_edit[';'] = ACTION_MODE;
+    // mapping_edit[';'] = ACTION_MODE;
 
-	// vim style navigation
+    // vim style navigation
     mapping_edit['k'] = ACTION_UP;
     mapping_edit['j'] = ACTION_DOWN;
     mapping_edit['h'] = ACTION_LEFT;
@@ -319,25 +328,25 @@ void load_edit_mode_mappings(){
 
 #include "vscode.conf.h"
 
-void load_mappings(){
+void load_mappings() {
     mapping_global = malloc(sizeof(Action) * 256);
     memset(mapping_global, 0, sizeof(Action) * 256);
-	
+
     mapping = malloc(sizeof(Action) * 256);
     memset(mapping, 0, sizeof(Action) * 256);
-	
+
     mapping_edit = malloc(sizeof(Action) * 256);
     memset(mapping_edit, 0, sizeof(Action) * 256);
-	
+
     mapping_file_manager = malloc(sizeof(Action) * 256);
     memset(mapping_file_manager, 0, sizeof(Action) * 256);
-	
+
     mapping_tabs = malloc(sizeof(Action) * 256);
     memset(mapping_tabs, 0, sizeof(Action) * 256);
-	
-    if (load_mappings_from_file()){
-	  //load_default_mappings();
-	  //load_edit_mode_mappings();
-	  load_mappings_from_buffer((const char *)vscode_conf, vscode_conf_len);
+
+    if (load_mappings_from_file()) {
+        // load_default_mappings();
+        // load_edit_mode_mappings();
+        load_mappings_from_buffer((const char *)vscode_conf, vscode_conf_len);
     }
 }

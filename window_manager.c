@@ -15,49 +15,49 @@
 #include "logger.h"
 #include "utils.h"
 
-
-void WM_draw(struct Window *w, int hasFocus)
-{
-    if (w->fill == 1) Window_fill(w, hasFocus);
+void WM_draw(struct Window *w, int hasFocus) {
+    if (w->fill == 1)
+        Window_fill(w, hasFocus);
     Geometry geo = w->calculated;
     int j = 0;
-    int selected = (int) w->data;
-    Tab * tabs = all_tabs_head;
+    int selected = (int)w->data;
+    Tab *tabs = all_tabs_head;
 
-    while (tabs != NULL){
+    while (tabs != NULL) {
         int bg = 255;
-        if (j == selected) bg = SELECTED_COLOR;
-        //Buffer_print(&main_buf, geo.y + j++, geo.x, geo.width, tabs->child->id, 232, bg);
+        if (j == selected)
+            bg = SELECTED_COLOR;
+        // Buffer_print(&main_buf, geo.y + j++, geo.x, geo.width, tabs->child->id, 232, bg);
         Buffer_print(&main_buf, geo.y + j++, geo.x, geo.width, tabs->str, 232, bg);
         tabs = tabs->all_tabs_next;
     }
-	w->data2 = (void*)j;
+    w->data2 = (void *)j;
 
-    //w->height = j;
+    // w->height = j;
 }
 
-void WM_up(Window *self){
-    int selected = (int) self->data;
-    self->data = (void*) max(selected - 1, 0);
+void WM_up(Window *self) {
+    int selected = (int)self->data;
+    self->data = (void *)max(selected - 1, 0);
 }
 
-void WM_down(Window *self){
-    int selected = (int) self->data;
-    int maximum = (int) self->data2;
-    self->data = (void*) min(maximum-1, selected + 1);
+void WM_down(Window *self) {
+    int selected = (int)self->data;
+    int maximum = (int)self->data2;
+    self->data = (void *)min(maximum - 1, selected + 1);
 }
 
-void WM_select(Window *self){
-    int selected = (int) self->data;
+void WM_select(Window *self) {
+    int selected = (int)self->data;
     int j = 0;
-    Tab * tabs = all_tabs_head;
-    while (tabs != NULL){
+    Tab *tabs = all_tabs_head;
+    while (tabs != NULL) {
         int bg = 255;
-        if (j == selected){
+        if (j == selected) {
             select_tab(tabs, 1);
             self->parent->hidden = 1;
             Window_bring_to_top(self->parent);
-            self->data = (void*) 1;
+            self->data = (void *)1;
             return;
         }
         tabs = tabs->all_tabs_next;
@@ -65,53 +65,62 @@ void WM_select(Window *self){
     }
 }
 
-void WM_send_key(Window *self, char c)
-{
-  Action action = get_action(c, WT_WINDOW_MANAGER);
-  //Action action = get_mapping()[c];
+void WM_send_key(Window *self, char c) {
+    Action action = get_action(c, WT_WINDOW_MANAGER);
+    // Action action = get_mapping()[c];
 
-    if (action == ACTION_DOWN){
-	    WM_down(self);
-	    return;
+    if (action == ACTION_DOWN) {
+        WM_down(self);
+        return;
     }
-    if (action == ACTION_UP){
-	    WM_up(self);
-	    return;
+    if (action == ACTION_UP) {
+        WM_up(self);
+        return;
     }
-    if (action == ACTION_WINDOW_MANAGER || action == ACTION_ENTER){
-	    WM_select(self);
-	    return;
+    if (action == ACTION_WINDOW_MANAGER || action == ACTION_ENTER) {
+        WM_select(self);
+        return;
     }
 }
 
-void WM_send_sequence(Window *self, const char *seq, int len){
-  if (strlen(seq) == 0){ insert_mode = 0; return; }
-  if (strcmp(seq, "[A") == 0){ WM_up(self); return; }
-  if (strcmp(seq, "[B") == 0){ WM_down(self); return; }
+void WM_send_sequence(Window *self, const char *seq, int len) {
+    if (strlen(seq) == 0) {
+        insert_mode = 0;
+        return;
+    }
+    if (strcmp(seq, "[A") == 0) {
+        WM_up(self);
+        return;
+    }
+    if (strcmp(seq, "[B") == 0) {
+        WM_down(self);
+        return;
+    }
 }
 
-Window * WM_create(int left, int right, int top, int bottom, int width, int height){
+Window *WM_create(int left, int right, int top, int bottom, int width, int height) {
     Window *vm_frame = malloc(sizeof *vm_frame);
-    memset(vm_frame, 0, sizeof *vm_frame);  // Zero-initialize to prevent garbage values
+    memset(vm_frame, 0, sizeof *vm_frame); // Zero-initialize to prevent garbage values
     Window *w = Frame_init(vm_frame, left, right, top, bottom, width, height, NULL, 0);
     w->bg = 255;
     w->fill = 1;
     w->draw = WM_draw;
     w->send_key = WM_send_key;
     w->send_sequence = WM_send_sequence;
-    w->data = (void*) 1;
+    w->data = (void *)1;
     vm_frame->focused = w;
     return vm_frame;
 }
 
-Window * wm = NULL;
+Window *wm = NULL;
 
-Window * WM_show(){
-    //LOG_INFO("WM_show");
-    if (wm == NULL){
-        int width = root->width/3;
-        int height = root->height/2;
-        wm = WM_create((root->width - width)/2, -1, (root->height - height)/2, -1, width, height);
+Window *WM_show() {
+    // LOG_INFO("WM_show");
+    if (wm == NULL) {
+        int width = root->width / 3;
+        int height = root->height / 2;
+        wm = WM_create((root->width - width) / 2, -1, (root->height - height) / 2, -1, width,
+                       height);
         wm->parent = root;
         wm->id = "WindowManager";
         Window_append(root, wm);

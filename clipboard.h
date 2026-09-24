@@ -3,5 +3,5 @@
 
 void clipboard_copy(const char *text);
 char *clipboard_paste(void);
-  
+
 #endif

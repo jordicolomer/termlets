@@ -3,27 +3,27 @@
 #include <string.h>
 
 #ifdef _WIN32
-    /* Windows: Terminal/PTY not yet implemented */
-    #define NOMINMAX  /* Prevent Windows from defining min/max macros */
-    #include <windows.h>
-    #define usleep(x) Sleep((x)/1000)
+/* Windows: Terminal/PTY not yet implemented */
+#define NOMINMAX /* Prevent Windows from defining min/max macros */
+#include <windows.h>
+#define usleep(x) Sleep((x) / 1000)
 #else
-    #include <unistd.h>
-    #include <sys/select.h>
-    #include <sys/ioctl.h>
-    #include <pthread.h>
+#include <unistd.h>
+#include <sys/select.h>
+#include <sys/ioctl.h>
+#include <pthread.h>
 
-    #ifdef __APPLE__
-        #include <util.h>
-        #include <libproc.h>
-    #elif defined(__linux__)
-        #include <limits.h>
-        #include <pty.h>
-    #endif
+#ifdef __APPLE__
+#include <util.h>
+#include <libproc.h>
+#elif defined(__linux__)
+#include <limits.h>
+#include <pty.h>
+#endif
 #endif
 
 #ifndef _WIN32
-    #include <vterm.h>
+#include <vterm.h>
 #endif
 
 #include "vterm_terminal.h"
@@ -80,10 +80,8 @@ typedef struct vterm_terminal_data {
     VTermScreenCallbacks callbacks;
 } vterm_terminal_data;*/
 
-
 /* convert VTermColor to 256-color palette index */
-static int vterm_color_to_256(VTermColor color)
-{
+static int vterm_color_to_256(VTermColor color) {
     /* if it's an indexed color, use it directly */
     if (VTERM_COLOR_IS_INDEXED(&color)) {
         return color.indexed.idx;
@@ -97,8 +95,10 @@ static int vterm_color_to_256(VTermColor color)
 
         /* check for grayscale (232-255) */
         if (r == g && g == b) {
-            if (r < 8) return 16;  /* black */
-            if (r > 247) return 231;  /* white */
+            if (r < 8)
+                return 16; /* black */
+            if (r > 247)
+                return 231; /* white */
             return 232 + (r - 8) / 10;
         }
 
@@ -111,29 +111,27 @@ static int vterm_color_to_256(VTermColor color)
 
     /* default colors */
     if (VTERM_COLOR_IS_DEFAULT_FG(&color)) {
-        return 7;  /* default foreground */
+        return 7; /* default foreground */
     }
     if (VTERM_COLOR_IS_DEFAULT_BG(&color)) {
-        return 0;  /* default background */
+        return 0; /* default background */
     }
 
-    return 7;  /* fallback */
+    return 7; /* fallback */
 }
 
-
-void VTermTerminal_scroll_wheel_down(struct Window *w){
-  TerminalWindow * self = w;
-  Slider_scroll_down(self->slider);
+void VTermTerminal_scroll_wheel_down(struct Window *w) {
+    TerminalWindow *self = w;
+    Slider_scroll_down(self->slider);
 }
 
-void VTermTerminal_scroll_wheel_up(struct Window *w){
-  TerminalWindow * self = w;
-  Slider_scroll_up(self->slider);
+void VTermTerminal_scroll_wheel_up(struct Window *w) {
+    TerminalWindow *self = w;
+    Slider_scroll_up(self->slider);
 }
 
 #ifdef __APPLE__
-char* get_shell_cwd(pid_t pid)
-{
+char *get_shell_cwd(pid_t pid) {
     struct proc_vnodepathinfo vpi;
 
     int ret = proc_pidinfo(pid, PROC_PIDVNODEPATHINFO, 0, &vpi, sizeof(vpi));
@@ -149,8 +147,7 @@ char* get_shell_cwd(pid_t pid)
     return NULL;
 }
 #elif defined(__linux__)
-char *get_shell_cwd(pid_t pid)
-{
+char *get_shell_cwd(pid_t pid) {
     char proc_path[64];
     char cwd[PATH_MAX];
 
@@ -167,24 +164,21 @@ char *get_shell_cwd(pid_t pid)
 }
 #endif
 
-
-void update_tab_label(TerminalWindow * self){
-    char * cwd = get_shell_cwd(self->pid);
+void update_tab_label(TerminalWindow *self) {
+    char *cwd = get_shell_cwd(self->pid);
     Window_set_id_from_path(self->slider, "💻", cwd);
-	snprintf(self->tab.str, sizeof(self->tab.str), " 💻 %s", cwd);
+    snprintf(self->tab.str, sizeof(self->tab.str), " 💻 %s", cwd);
 }
 
 /* Forward declarations */
 int VTermTerminal_get_virtual_height(struct Window *wg);
 
-
-void scrollback_add_line_cells(ScrollbackLine *line, int cols, const VTermScreenCell *cells){
+void scrollback_add_line_cells(ScrollbackLine *line, int cols, const VTermScreenCell *cells) {
     line->cells = my_malloc(cols * sizeof(VTermScreenCell));
     memcpy(line->cells, cells, cols * sizeof(VTermScreenCell));
 }
 
-void rtrim_spaces(char *str)
-{
+void rtrim_spaces(char *str) {
     size_t len = strlen(str);
 
     while (len > 0 && str[len - 1] == ' ') {
@@ -192,32 +186,29 @@ void rtrim_spaces(char *str)
     }
 }
 
-void scrollback_add_line_utf8(ScrollbackLine *line, int cols, const VTermScreenCell *cells){
-  char * line_buf = my_malloc(cols * 4+20);
-  int buf_idx = 0;
-  for (int col = 0; col < cols; col++){
-	VTermScreenCell *cell_ptr = &cells[col];
-	buf_idx += encode_utf8(cell_ptr->chars[0], &line_buf[buf_idx]);
-  }
-  line_buf[buf_idx] = '\0';
-  rtrim_spaces(line_buf);
-  //LOG_INFO("scrollback_add_line_utf8: %s", line_buf);
-  line->utf8 = strdup(line_buf);
-  free(line_buf);
+void scrollback_add_line_utf8(ScrollbackLine *line, int cols, const VTermScreenCell *cells) {
+    char *line_buf = my_malloc(cols * 4 + 20);
+    int buf_idx = 0;
+    for (int col = 0; col < cols; col++) {
+        VTermScreenCell *cell_ptr = &cells[col];
+        buf_idx += encode_utf8(cell_ptr->chars[0], &line_buf[buf_idx]);
+    }
+    line_buf[buf_idx] = '\0';
+    rtrim_spaces(line_buf);
+    // LOG_INFO("scrollback_add_line_utf8: %s", line_buf);
+    line->utf8 = strdup(line_buf);
+    free(line_buf);
 }
 
-
-void scrollback_add_line(ScrollbackList *sb, int cols, const VTermScreenCell *cells){
+void scrollback_add_line(ScrollbackList *sb, int cols, const VTermScreenCell *cells) {
     ScrollbackLine *line = my_malloc(sizeof(ScrollbackLine));
     line->cols = cols;
-	//LOG_INFO("cols:%d * sizeof(VTermScreenCell:%d)", cols, sizeof(VTermScreenCell));
-	// cols=135 sizeof(VTermScreenCell)=40
+    // LOG_INFO("cols:%d * sizeof(VTermScreenCell:%d)", cols, sizeof(VTermScreenCell));
+    //  cols=135 sizeof(VTermScreenCell)=40
 
-	//scrollback_add_line_cells(line, cols, cells);
-	scrollback_add_line_utf8(line, cols, cells);
+    // scrollback_add_line_cells(line, cols, cells);
+    scrollback_add_line_utf8(line, cols, cells);
 
-
-	
     line->next = NULL;
     line->prev = sb->tail;
 
@@ -245,26 +236,23 @@ void scrollback_add_line(ScrollbackList *sb, int cols, const VTermScreenCell *ce
     }
 }
 
-void VTermTerminal_update(TerminalWindow *terminal)
-{
+void VTermTerminal_update(TerminalWindow *terminal) {
     char buf[4096];
 
     /* keep reading until no more data is available */
-    while (1)
-    {
+    while (1) {
         fd_set fds;
         FD_ZERO(&fds);
         FD_SET(terminal->master, &fds);
 
         struct timeval tv = {
-            .tv_sec = 0,
-            .tv_usec = 10000  /* 10ms timeout */
+            .tv_sec = 0, .tv_usec = 10000 /* 10ms timeout */
         };
 
         int ret = select(terminal->master + 1, &fds, NULL, NULL, &tv);
 
         if (ret <= 0)
-            break;  /* no more data or error */
+            break; /* no more data or error */
 
         int n = read(terminal->master, buf, sizeof(buf));
 
@@ -274,13 +262,12 @@ void VTermTerminal_update(TerminalWindow *terminal)
         /* feed data to libvterm */
         vterm_input_write(terminal->vt, buf, n);
 
-        //update_tab_label(vtd->terminal);
+        // update_tab_label(vtd->terminal);
     }
 }
 
 /* Register a terminal for monitoring */
-void register_terminal(TerminalWindow *terminal)
-{
+void register_terminal(TerminalWindow *terminal) {
     pthread_mutex_lock(&terminals_mutex);
     if (terminal_count < MAX_TERMINALS) {
         active_terminals[terminal_count++] = terminal;
@@ -289,8 +276,7 @@ void register_terminal(TerminalWindow *terminal)
 }
 
 /* Unregister a terminal from monitoring */
-void unregister_terminal(TerminalWindow *terminal)
-{
+void unregister_terminal(TerminalWindow *terminal) {
     pthread_mutex_lock(&terminals_mutex);
     for (int i = 0; i < terminal_count; i++) {
         if (active_terminals[i] == terminal) {
@@ -306,8 +292,7 @@ void unregister_terminal(TerminalWindow *terminal)
 }
 
 /* Background thread that monitors all PTYs */
-void *pty_monitor_thread_func(void *arg)
-{
+void *pty_monitor_thread_func(void *arg) {
     char buf[4096];
 
     while (thread_running) {
@@ -320,20 +305,20 @@ void *pty_monitor_thread_func(void *arg)
         for (int i = 0; i < terminal_count; i++) {
             int fd = active_terminals[i]->master;
             FD_SET(fd, &fds);
-            if (fd > max_fd) max_fd = fd;
+            if (fd > max_fd)
+                max_fd = fd;
         }
         pthread_mutex_unlock(&terminals_mutex);
 
         if (max_fd < 0) {
             /* No terminals, sleep briefly */
-            usleep(50000);  /* 50ms */
+            usleep(50000); /* 50ms */
             continue;
         }
 
         /* Wait for data with timeout */
         struct timeval tv = {
-            .tv_sec = 0,
-            .tv_usec = 50000  /* 50ms timeout */
+            .tv_sec = 0, .tv_usec = 50000 /* 50ms timeout */
         };
 
         int ret = select(max_fd + 1, &fds, NULL, NULL, &tv);
@@ -351,8 +336,9 @@ void *pty_monitor_thread_func(void *arg)
                         vterm_input_write(terminal->vt, buf, n);
 
                         /* Update scroll position to follow output */
-                        //Window *terminal = terminal->terminal;
-                        terminal->win.shift = -(VTermTerminal_get_virtual_height(terminal) - terminal->win.calculated.height);
+                        // Window *terminal = terminal->terminal;
+                        terminal->win.shift = -(VTermTerminal_get_virtual_height(terminal) -
+                                                terminal->win.calculated.height);
                         if (terminal->win.shift > 0)
                             terminal->win.shift = 0;
 
@@ -369,8 +355,7 @@ void *pty_monitor_thread_func(void *arg)
 }
 
 /* Start the PTY monitoring thread */
-void start_pty_monitor_thread()
-{
+void start_pty_monitor_thread() {
     if (!thread_running) {
         thread_running = 1;
         pthread_create(&pty_monitor_thread, NULL, pty_monitor_thread_func, NULL);
@@ -378,8 +363,7 @@ void start_pty_monitor_thread()
 }
 
 /* Stop the PTY monitoring thread */
-void stop_pty_monitor_thread()
-{
+void stop_pty_monitor_thread() {
     if (thread_running) {
         thread_running = 0;
         pthread_join(pty_monitor_thread, NULL);
@@ -387,8 +371,7 @@ void stop_pty_monitor_thread()
 }
 
 /* Check if repaint is needed and clear the flag */
-int check_and_clear_repaint_flag()
-{
+int check_and_clear_repaint_flag() {
     int result;
     pthread_mutex_lock(&terminals_mutex);
     result = need_repaint;
@@ -397,18 +380,19 @@ int check_and_clear_repaint_flag()
     return result;
 }
 
-int VTermTerminal_get_virtual_height(struct Window *wg)
-{
-    //vterm_terminal_data *vtd = wg->data2;
-    TerminalWindow * terminal = wg;
+int VTermTerminal_get_virtual_height(struct Window *wg) {
+    // vterm_terminal_data *vtd = wg->data2;
+    TerminalWindow *terminal = wg;
 
     /* total virtual height = scrollback + visible screen */
     return terminal->scrollback.count + terminal->rows;
 }
 
-void draw_pointers(TerminalWindow * terminal, TerminalPointer p1, TerminalPointer p2, int color){
-    if (p1.y == -1) return;
-    if (p2.y == -1) return;
+void draw_pointers(TerminalWindow *terminal, TerminalPointer p1, TerminalPointer p2, int color) {
+    if (p1.y == -1)
+        return;
+    if (p2.y == -1)
+        return;
     Geometry geo = terminal->win.calculated;
     int virtual_height = VTermTerminal_get_virtual_height(terminal);
     int first_visible_line = -terminal->win.shift;
@@ -416,36 +400,34 @@ void draw_pointers(TerminalWindow * terminal, TerminalPointer p1, TerminalPointe
     int x2 = p2.x;
     int y1 = p1.y;
     int y2 = p2.y;
-    if (y2 < y1 || (y1 == y2 && x2 < x1)){
+    if (y2 < y1 || (y1 == y2 && x2 < x1)) {
         x2 = p1.x;
         x1 = p2.x;
         y2 = p1.y;
         y1 = p2.y;
     }
-    for (int y=y1;y<=y2;y++){
+    for (int y = y1; y <= y2; y++) {
         int view_y = y - first_visible_line;
-        if (0 <= view_y && view_y <= geo.height){
+        if (0 <= view_y && view_y <= geo.height) {
             int x = 0;
-            if (y == y1){
+            if (y == y1) {
                 x = x1;
             }
             int width = terminal->cols - x;
-            if (y == y2){
+            if (y == y2) {
                 width = x2 - x;
             }
             Buffer_set_bg(&main_buf, geo.y + view_y, geo.x + x, width, color);
         }
     }
 }
-  
 
-void draw_selection(TerminalWindow * terminal)
-{
-  draw_pointers(terminal, terminal->cursor, terminal->selection, 27);
+void draw_selection(TerminalWindow *terminal) {
+    draw_pointers(terminal, terminal->cursor, terminal->selection, 27);
 }
 
-ScrollbackLine * get_line(TerminalWindow * terminal, int virtual_line){
-    if (terminal->last_line_idx == -1 || virtual_line < terminal->last_line_idx){
+ScrollbackLine *get_line(TerminalWindow *terminal, int virtual_line) {
+    if (terminal->last_line_idx == -1 || virtual_line < terminal->last_line_idx) {
         terminal->last_line_idx = 0;
         terminal->last_line = terminal->scrollback.head;
     }
@@ -453,70 +435,68 @@ ScrollbackLine * get_line(TerminalWindow * terminal, int virtual_line){
     for (int i = 0; i < virtual_line - terminal->last_line_idx && line != NULL; i++) {
         line = line->next;
     }
-    if (line != NULL){
+    if (line != NULL) {
         terminal->last_line = line;
         terminal->last_line_idx = virtual_line;
     }
     return line;
 }
 
-
 char get_line_buf[4096];
-char * VTermTerminal_get_line(TerminalWindow * terminal, int virtual_line){
+char *VTermTerminal_get_line(TerminalWindow *terminal, int virtual_line) {
     if (virtual_line < terminal->scrollback.count) {
         ScrollbackLine *line = get_line(terminal, virtual_line);
-		return line->utf8;
-	} else {
+        return line->utf8;
+    } else {
         int screen_row = virtual_line - terminal->scrollback.count;
-		int col = 0;
-		int buf_idx = 0;
-		while (col < terminal->cols) {
-		  //VTermScreenCell cell_ptr = VTermTerminal_get_cell(terminal, virtual_line, col);
-		  int screen_row = virtual_line - terminal->scrollback.count;
+        int col = 0;
+        int buf_idx = 0;
+        while (col < terminal->cols) {
+            // VTermScreenCell cell_ptr = VTermTerminal_get_cell(terminal, virtual_line, col);
+            int screen_row = virtual_line - terminal->scrollback.count;
 
-		  if (screen_row >= 0 && screen_row < terminal->rows) {
-            /* render current screen line with color batching */
-            VTermPos pos;
-            VTermScreenCell cell;
+            if (screen_row >= 0 && screen_row < terminal->rows) {
+                /* render current screen line with color batching */
+                VTermPos pos;
+                VTermScreenCell cell;
 
-            /* get colors from first cell in batch */
-            pos.row = screen_row;
-            pos.col = col;
-            vterm_screen_get_cell(terminal->vts, pos, &cell);
-			buf_idx += encode_utf8(cell.chars[0], &get_line_buf[buf_idx]);
-            //return cell;
-		  }
-		  col++;
-
-		}
-		get_line_buf[buf_idx] = '\0';
-		rtrim_spaces(get_line_buf);
-		return get_line_buf;
-	}
+                /* get colors from first cell in batch */
+                pos.row = screen_row;
+                pos.col = col;
+                vterm_screen_get_cell(terminal->vts, pos, &cell);
+                buf_idx += encode_utf8(cell.chars[0], &get_line_buf[buf_idx]);
+                // return cell;
+            }
+            col++;
+        }
+        get_line_buf[buf_idx] = '\0';
+        rtrim_spaces(get_line_buf);
+        return get_line_buf;
+    }
 }
 
-VTermScreenCell VTermTerminal_get_cell(TerminalWindow * terminal, int virtual_line, int col){
+VTermScreenCell VTermTerminal_get_cell(TerminalWindow *terminal, int virtual_line, int col) {
     if (virtual_line < terminal->scrollback.count) {
         ScrollbackLine *line = get_line(terminal, virtual_line);
-		int width;
-		if (line != NULL && line->utf8 != NULL && col < line->cols){
-		char * chr = char_at(line->utf8, col, &width);
-		if (chr != NULL){
-		  uint32_t cp = utf8_decode(&chr);
+        int width;
+        if (line != NULL && line->utf8 != NULL && col < line->cols) {
+            char *chr = char_at(line->utf8, col, &width);
+            if (chr != NULL) {
+                uint32_t cp = utf8_decode(&chr);
 
-		  VTermScreenCell cell = {0};
+                VTermScreenCell cell = {0};
 
-		  cell.chars[0] = cp;
+                cell.chars[0] = cp;
 
-		  cell.fg.type = VTERM_COLOR_INDEXED;
-		  cell.fg.indexed.idx = 15;
+                cell.fg.type = VTERM_COLOR_INDEXED;
+                cell.fg.indexed.idx = 15;
 
-		  cell.bg.type = VTERM_COLOR_INDEXED;
-		  cell.bg.indexed.idx = 16;
+                cell.bg.type = VTERM_COLOR_INDEXED;
+                cell.bg.indexed.idx = 16;
 
-		  return cell;
-		}
-		}
+                return cell;
+            }
+        }
     } else {
         /* this is a current screen line */
         int screen_row = virtual_line - terminal->scrollback.count;
@@ -533,11 +513,12 @@ VTermScreenCell VTermTerminal_get_cell(TerminalWindow * terminal, int virtual_li
             return cell;
         }
     }
-    return (VTermScreenCell){.chars = { ' ' }};
+    return (VTermScreenCell){.chars = {' '}};
 }
 
-void VTermTerminal_copy(TerminalWindow * terminal){
-    if (terminal->selection.y == -1) return;
+void VTermTerminal_copy(TerminalWindow *terminal) {
+    if (terminal->selection.y == -1)
+        return;
     Geometry geo = terminal->win.calculated;
     int virtual_height = VTermTerminal_get_virtual_height(terminal);
     int first_visible_line = -terminal->win.shift;
@@ -545,35 +526,34 @@ void VTermTerminal_copy(TerminalWindow * terminal){
     int x2 = terminal->selection.x;
     int y1 = terminal->cursor.y;
     int y2 = terminal->selection.y;
-    if (y2 < y1 || (y1 == y2 && x2 < x1)){
+    if (y2 < y1 || (y1 == y2 && x2 < x1)) {
         x2 = terminal->cursor.x;
         x1 = terminal->selection.x;
         y2 = terminal->cursor.y;
         y1 = terminal->selection.y;
     }
-    char * line_buf = my_malloc((y2-y1+1)*terminal->cols*4);
+    char *line_buf = my_malloc((y2 - y1 + 1) * terminal->cols * 4);
     int buf_idx = 0;
 
-    for (int y=y1;y<=y2;y++){
+    for (int y = y1; y <= y2; y++) {
         int view_y = y - first_visible_line;
-        if (0 <= view_y && view_y <= geo.height){
+        if (0 <= view_y && view_y <= geo.height) {
             int x = 0;
-            if (y == y1){
+            if (y == y1) {
                 x = x1;
             }
             int width = terminal->cols - x;
-            if (y == y2){
+            if (y == y2) {
                 width = x2 - x;
             }
-            for (int idx = 0; idx < width; idx++){
-                //Buffer_set_bg(&main_buf, geo.y + view_y, geo.x + x, width, 27);
-                int col = x+idx;
+            for (int idx = 0; idx < width; idx++) {
+                // Buffer_set_bg(&main_buf, geo.y + view_y, geo.x + x, width, 27);
+                int col = x + idx;
                 VTermScreenCell cell_ptr = VTermTerminal_get_cell(terminal, y, col);
                 buf_idx += encode_utf8(cell_ptr.chars[0], &line_buf[buf_idx]);
             }
-
         }
-        if (y != y2){
+        if (y != y2) {
             line_buf[buf_idx] = '\n';
             buf_idx++;
         }
@@ -583,10 +563,8 @@ void VTermTerminal_copy(TerminalWindow * terminal){
     free(line_buf);
 }
 
-
-void VTermTerminal_draw(struct Window *wg, int hasFocus)
-{
-    TerminalWindow * terminal = wg;
+void VTermTerminal_draw(struct Window *wg, int hasFocus) {
+    TerminalWindow *terminal = wg;
     Geometry geo = wg->calculated;
 
     /* resize vterm if window size changed */
@@ -597,11 +575,7 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
 
         // also update PTY size
         struct winsize ws = {
-            .ws_row = terminal->rows,
-            .ws_col = terminal->cols,
-            .ws_xpixel = 0,
-            .ws_ypixel = 0
-        };
+            .ws_row = terminal->rows, .ws_col = terminal->cols, .ws_xpixel = 0, .ws_ypixel = 0};
         ioctl(terminal->master, TIOCSWINSZ, &ws);
     }
 
@@ -618,7 +592,7 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
     VTermPos pos;
     VTermScreenCell cell;
 
-    //Window *terminal = vtd->terminal;
+    // Window *terminal = vtd->terminal;
     int virtual_height = VTermTerminal_get_virtual_height(terminal);
 
     /* calculate which virtual lines are visible */
@@ -627,7 +601,7 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
 
     /* render visible rows */
     for (int viewport_row = 0; viewport_row < geo.height; viewport_row++) {
-        //LOG_INFO("for %d", viewport_row);
+        // LOG_INFO("for %d", viewport_row);
         int virtual_line = first_visible_line + viewport_row;
 
         int y = geo.y + viewport_row;
@@ -645,12 +619,12 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
             bg = vterm_color_to_256(first_cell.bg);
 
             /* handle reverse video attribute */
-			/*first_cell.attrs.reverse = 0;
-            if (first_cell.attrs.reverse) {
-                int temp = fg;
-                fg = bg;
-                bg = temp;
-				}*/
+            /*first_cell.attrs.reverse = 0;
+if (first_cell.attrs.reverse) {
+    int temp = fg;
+    fg = bg;
+    bg = temp;
+                    }*/
 
             /* collect consecutive cells with same colors */
             int batch_start = col;
@@ -663,12 +637,12 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
                 cell_bg = vterm_color_to_256(cell_ptr.bg);
 
                 /* handle reverse video attribute */
-				/*cell.attrs.reverse = 0;
-                if (cell_ptr.attrs.reverse) {
-                    int temp = cell_fg;
-                    cell_fg = cell_bg;
-                    cell_bg = temp;
-					}*/
+                /*cell.attrs.reverse = 0;
+if (cell_ptr.attrs.reverse) {
+    int temp = cell_fg;
+    cell_fg = cell_bg;
+    cell_bg = temp;
+                        }*/
 
                 /* break batch if colors changed */
                 if (cell_fg != fg || cell_bg != bg) {
@@ -689,10 +663,10 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
         }
     }
 
-    /* Render cursor if this terminal has focus */ 
-    //if (!(0 <= i && i <= geo.height) && hasFocus) { // if we haven't printed the other cursor
+    /* Render cursor if this terminal has focus */
+    // if (!(0 <= i && i <= geo.height) && hasFocus) { // if we haven't printed the other cursor
     int i = terminal->cursor.y - first_visible_line;
-	int cursor_drawn = 0;
+    int cursor_drawn = 0;
     if (hasFocus) { // if we haven't printed the other cursor
         VTermState *state = vterm_obtain_state(terminal->vt);
         VTermPos cursor_pos;
@@ -703,10 +677,10 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
         int cursor_viewport_row = cursor_virtual_line - first_visible_line;
 
         /* Only draw cursor if it's visible in the viewport */
-        if (cursor_viewport_row >= 0 && cursor_viewport_row < geo.height &&
-            cursor_pos.col >= 0 && cursor_pos.col < geo.width) {
-		    terminal->term_cursor.x = cursor_pos.col;
-		    terminal->term_cursor.y = first_visible_line + cursor_viewport_row;
+        if (cursor_viewport_row >= 0 && cursor_viewport_row < geo.height && cursor_pos.col >= 0 &&
+            cursor_pos.col < geo.width) {
+            terminal->term_cursor.x = cursor_pos.col;
+            terminal->term_cursor.y = first_visible_line + cursor_viewport_row;
             int cursor_y = geo.y + cursor_viewport_row;
             int cursor_x = geo.x + cursor_pos.col;
 
@@ -724,7 +698,8 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
                 bg = temp;
             }
 
-            if (insert_mode != 1) fg = 208;
+            if (insert_mode != 1)
+                fg = 208;
 
             /* Render cursor - handle wide characters and continuation cells properly */
             char cursor_char[8];
@@ -744,35 +719,37 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus)
                 cursor_width = cell.width > 0 ? cell.width : 1;
             }
 
-            //LOG_INFO("terminal->insert_mode: %d", terminal->insert_mode);
-			LOG_INFO("cursor_drawn: %d == %d + %d. terminal->cursor_y:%d - first_visible_line:%d", cursor_y, geo.y, i, terminal->cursor.y, first_visible_line);
+            // LOG_INFO("terminal->insert_mode: %d", terminal->insert_mode);
+            LOG_INFO("cursor_drawn: %d == %d + %d. terminal->cursor_y:%d - first_visible_line:%d",
+                     cursor_y, geo.y, i, terminal->cursor.y, first_visible_line);
 
             /* Render cursor with swapped colors (reverse video) */
-			if (terminal->cursor.y == -1 || insert_mode == 1) {
-			  Buffer_print(&main_buf, cursor_y, cursor_x, cursor_width, cursor_char, bg, fg);
-			  cursor_drawn = 1;
-			  //terminal->cursor_y = first_visible_line + cursor_viewport_row;
-			  //terminal->cursor_x = cursor_x;
-			}
+            if (terminal->cursor.y == -1 || insert_mode == 1) {
+                Buffer_print(&main_buf, cursor_y, cursor_x, cursor_width, cursor_char, bg, fg);
+                cursor_drawn = 1;
+                // terminal->cursor_y = first_visible_line + cursor_viewport_row;
+                // terminal->cursor_x = cursor_x;
+            }
         }
     }
     // draw cursor
-	if (cursor_drawn == 0){
-	  int bg = 208;
-	  if (insert_mode == 1) bg = 27;
-	  if (0 <= i && i <= geo.height){
-        Buffer_set_bg(&main_buf, geo.y + i , geo.x+terminal->cursor.x, 1, bg);
-	  }
-	  draw_selection(terminal);
-	}
+    if (cursor_drawn == 0) {
+        int bg = 208;
+        if (insert_mode == 1)
+            bg = 27;
+        if (0 <= i && i <= geo.height) {
+            Buffer_set_bg(&main_buf, geo.y + i, geo.x + terminal->cursor.x, 1, bg);
+        }
+        draw_selection(terminal);
+    }
 
-	// highlight search results
-	draw_pointers(terminal, terminal->highlight_start, terminal->highlight_end, 227);
+    // highlight search results
+    draw_pointers(terminal, terminal->highlight_start, terminal->highlight_end, 227);
 
     update_tab_label(wg);
 }
 
-void make_line_visible(TerminalWindow * terminal, int y){
+void make_line_visible(TerminalWindow *terminal, int y) {
     int first_visible_line = -terminal->win.shift;
     int visible_height = terminal->win.calculated.height;
     int last_visible_line = first_visible_line + visible_height - 1;
@@ -782,7 +759,7 @@ void make_line_visible(TerminalWindow * terminal, int y){
     // If cursor_y is -1, scroll to bottom of virtual screen
     if (y == -1) {
         terminal->win.shift = -(virtual_height - visible_height);
-    } else{
+    } else {
         // If cursor is above visible area, scroll up to show it
         if (y < first_visible_line) {
             terminal->win.shift = -y;
@@ -798,388 +775,381 @@ void make_line_visible(TerminalWindow * terminal, int y){
     terminal->win.shift = min(terminal->win.shift, 0);
 }
 
-void make_cursor_visible(TerminalWindow * terminal){
-  make_line_visible(terminal, terminal->cursor.y);
+void make_cursor_visible(TerminalWindow *terminal) {
+    make_line_visible(terminal, terminal->cursor.y);
 }
 
-int VTermTerminal_cursors_same_y(TerminalWindow * terminal){
-  int first_visible_line = -terminal->win.shift;
-  VTermState *state = vterm_obtain_state(terminal->vt);
-  VTermPos cursor_pos;
-  vterm_state_get_cursorpos(state, &cursor_pos);
-  int i = terminal->cursor.y - first_visible_line;
-  int cursor_virtual_line = terminal->scrollback.count + cursor_pos.row;
-  int cursor_viewport_row = cursor_virtual_line - first_visible_line;
-  return cursor_viewport_row == i;
+int VTermTerminal_cursors_same_y(TerminalWindow *terminal) {
+    int first_visible_line = -terminal->win.shift;
+    VTermState *state = vterm_obtain_state(terminal->vt);
+    VTermPos cursor_pos;
+    vterm_state_get_cursorpos(state, &cursor_pos);
+    int i = terminal->cursor.y - first_visible_line;
+    int cursor_virtual_line = terminal->scrollback.count + cursor_pos.row;
+    int cursor_viewport_row = cursor_virtual_line - first_visible_line;
+    return cursor_viewport_row == i;
 }
 
-int VTermTerminal_cursor_y(TerminalWindow * terminal){
-  int first_visible_line = -terminal->win.shift;
-  VTermState *state = vterm_obtain_state(terminal->vt);
-  VTermPos cursor_pos;
-  vterm_state_get_cursorpos(state, &cursor_pos);
-  //int i = terminal->cursor_y - first_visible_line;
-  int cursor_virtual_line = terminal->scrollback.count + cursor_pos.row;
-  int cursor_viewport_row = cursor_virtual_line - first_visible_line;
-  return cursor_viewport_row + first_visible_line;
+int VTermTerminal_cursor_y(TerminalWindow *terminal) {
+    int first_visible_line = -terminal->win.shift;
+    VTermState *state = vterm_obtain_state(terminal->vt);
+    VTermPos cursor_pos;
+    vterm_state_get_cursorpos(state, &cursor_pos);
+    // int i = terminal->cursor_y - first_visible_line;
+    int cursor_virtual_line = terminal->scrollback.count + cursor_pos.row;
+    int cursor_viewport_row = cursor_virtual_line - first_visible_line;
+    return cursor_viewport_row + first_visible_line;
 }
 
 // start of search
 
-void TerminalWindow_search(TerminalWindow *self, char * query){
-  TerminalPointer ptr = self->highlight_end;
+void TerminalWindow_search(TerminalWindow *self, char *query) {
+    TerminalPointer ptr = self->highlight_end;
 
-  if (ptr.y == -1){
-	ptr = self->cursor;
-  }
-  
-  int n = ptr.y;
-  
-  char * line = VTermTerminal_get_line(self, n);
-  char *p = strstr(line+ptr.x, query);
-  int height = VTermTerminal_get_virtual_height(self);
-  while (p == NULL && n < height-1){
-	n+=1;
-	line = VTermTerminal_get_line(self, n);
-	p = strstr(line, query);
-  }
-  if (p != NULL){
-	self->highlight_start.y = n;
-	//self->highlight_start.x = calculate_width_n(line, p - line);
-	//self->highlight_start.ptr = p - node->line;
-	self->highlight_start.x = p - line;
-	
-	self->highlight_end.y = n;
-	self->highlight_end.x = self->highlight_start.x + strlen(query);
-	//self->highlight_end.ptr = self->highlight_start.x + calculate_width(query);
+    if (ptr.y == -1) {
+        ptr = self->cursor;
+    }
 
-	//TerminalWindow_show_line(self, self->highlight_end.n);
-	make_line_visible(self, self->highlight_end.y);
-  }
+    int n = ptr.y;
+
+    char *line = VTermTerminal_get_line(self, n);
+    char *p = strstr(line + ptr.x, query);
+    int height = VTermTerminal_get_virtual_height(self);
+    while (p == NULL && n < height - 1) {
+        n += 1;
+        line = VTermTerminal_get_line(self, n);
+        p = strstr(line, query);
+    }
+    if (p != NULL) {
+        self->highlight_start.y = n;
+        // self->highlight_start.x = calculate_width_n(line, p - line);
+        // self->highlight_start.ptr = p - node->line;
+        self->highlight_start.x = p - line;
+
+        self->highlight_end.y = n;
+        self->highlight_end.x = self->highlight_start.x + strlen(query);
+        // self->highlight_end.ptr = self->highlight_start.x + calculate_width(query);
+
+        // TerminalWindow_show_line(self, self->highlight_end.n);
+        make_line_visible(self, self->highlight_end.y);
+    }
 }
 
-void TerminalWindow_searchbox_exit(TerminalWindow *self){
-  self->search_box->win.hidden = 1;
-  search_mode = 0;
-  self->win.focused = NULL;
-  self->highlight_start.y = -1;
+void TerminalWindow_searchbox_exit(TerminalWindow *self) {
+    self->search_box->win.hidden = 1;
+    search_mode = 0;
+    self->win.focused = NULL;
+    self->highlight_start.y = -1;
 }
 
-void TerminalWindow_searchbox_on_modify(TerminalWindow *self){
-  self->highlight_end.y = -1;
-  TerminalWindow_search(self, self->search_box->buffer);
+void TerminalWindow_searchbox_on_modify(TerminalWindow *self) {
+    self->highlight_end.y = -1;
+    TerminalWindow_search(self, self->search_box->buffer);
 }
 
-void TerminalWindow_searchbox_on_enter(TerminalWindow *self){
-  self->search_box->win.hidden = 1;
-  search_mode = 0;
-  self->win.focused = NULL;
-  self->cursor = self->highlight_end;
-  self->highlight_start.y = -1;
+void TerminalWindow_searchbox_on_enter(TerminalWindow *self) {
+    self->search_box->win.hidden = 1;
+    search_mode = 0;
+    self->win.focused = NULL;
+    self->cursor = self->highlight_end;
+    self->highlight_start.y = -1;
 }
 
-Window *TerminalWindow_searchbox(TerminalWindow *self)
-{
-  LineEditorWindow * line_edit = LineEditorWindow_new(NULL, "Search");
-  line_edit->win.top = 1;
-  line_edit->win.bottom = -1;
-  line_edit->win.left = -1;
-  line_edit->win.right = 3;
-  line_edit->win.width = 15;
-  line_edit->win.height = 1;
-  line_edit->win.bg = 229;
-  line_edit->win.fg = 16;
-  line_edit->win.hidden = 1;
-  line_edit->win.id = "TerminalWindow_searchbox";
-  line_edit->on_exit = create_lambda(TerminalWindow_searchbox_exit, 1, self);
-  line_edit->on_modify = create_lambda(TerminalWindow_searchbox_on_modify, 1, self);
-  line_edit->win.lambda = create_lambda(TerminalWindow_searchbox_on_enter, 1, self);
-  return line_edit;
+Window *TerminalWindow_searchbox(TerminalWindow *self) {
+    LineEditorWindow *line_edit = LineEditorWindow_new(NULL, "Search");
+    line_edit->win.top = 1;
+    line_edit->win.bottom = -1;
+    line_edit->win.left = -1;
+    line_edit->win.right = 3;
+    line_edit->win.width = 15;
+    line_edit->win.height = 1;
+    line_edit->win.bg = 229;
+    line_edit->win.fg = 16;
+    line_edit->win.hidden = 1;
+    line_edit->win.id = "TerminalWindow_searchbox";
+    line_edit->on_exit = create_lambda(TerminalWindow_searchbox_exit, 1, self);
+    line_edit->on_modify = create_lambda(TerminalWindow_searchbox_on_modify, 1, self);
+    line_edit->win.lambda = create_lambda(TerminalWindow_searchbox_on_enter, 1, self);
+    return line_edit;
 }
 
-
-void TerminalWindow_action_search(TerminalWindow *self){
-  if (self->search_box->win.hidden == 1){
-	self->search_box->win.hidden = 0;
-	search_mode = 1;
-	self->win.focused = self->search_box;
-	LineEditorWindow_reset(self->search_box);
-  } else {
-	TerminalWindow_search(self, self->search_box->buffer);
-  }
+void TerminalWindow_action_search(TerminalWindow *self) {
+    if (self->search_box->win.hidden == 1) {
+        self->search_box->win.hidden = 0;
+        search_mode = 1;
+        self->win.focused = self->search_box;
+        LineEditorWindow_reset(self->search_box);
+    } else {
+        TerminalWindow_search(self, self->search_box->buffer);
+    }
 }
 
 // end of search
 
-void TerminalWindow_left(TerminalWindow *terminal){
-		  if (terminal->cursor.y == -1){
-			write(terminal->master, "\x02", 1);
-		  } else {
-            terminal->cursor.x -= 1;
-            terminal->cursor.x = max(terminal->cursor.x, 0);
-		  }
+void TerminalWindow_left(TerminalWindow *terminal) {
+    if (terminal->cursor.y == -1) {
+        write(terminal->master, "\x02", 1);
+    } else {
+        terminal->cursor.x -= 1;
+        terminal->cursor.x = max(terminal->cursor.x, 0);
+    }
 }
 
-void TerminalWindow_next_word(TerminalWindow *self){
-  int state = 0;
-  //self->selection.y = -1;
-  while (1){
-  //Node * node = EditorWindow_get_line_number(self, self->cursor.y);
-  char * line = VTermTerminal_get_line(self, self->cursor.y);
-  int n_lines = VTermTerminal_get_virtual_height(self);
-  if (line[self->cursor.x] != 0){
-	uint32_t cp = utf8_decode2(line, &self->cursor.x);
-	int w = cp_width(cp);
-	self->cursor.x += w;
-	if (state == 0){
-	  if (cp != ' ' && cp != '\t' && cp != '{' && cp != '}' && cp != '(' && cp != ')') state = 1;
-	} else if (state == 1){
-	  if (cp == ' ' || cp == '\t' || cp == '{' || cp == '}' || cp == '(' || cp == ')') {
-		TerminalWindow_left(self);
-		//EditorWindow_make_cursor_visible(self);
-		make_cursor_visible(self);
-		return;
-	  }
-	}
-  } else {
-	if (self->cursor.y < n_lines-1){
-	  self->cursor.y += 1;
-	  self->cursor.x = 0;
-	  //Node * node = EditorWindow_get_line_number(self, self->cursor.y);
-	  char * line = VTermTerminal_get_line(self, self->cursor.y);
-	  //self->cursor.ptr = 0;
-	} else {
-	  //EditorWindow_make_cursor_visible(self);
-		make_cursor_visible(self);
-	  return;
-	}
-  }
-  }
-	make_cursor_visible(self);
+void TerminalWindow_next_word(TerminalWindow *self) {
+    int state = 0;
+    // self->selection.y = -1;
+    while (1) {
+        // Node * node = EditorWindow_get_line_number(self, self->cursor.y);
+        char *line = VTermTerminal_get_line(self, self->cursor.y);
+        int n_lines = VTermTerminal_get_virtual_height(self);
+        if (line[self->cursor.x] != 0) {
+            uint32_t cp = utf8_decode2(line, &self->cursor.x);
+            int w = cp_width(cp);
+            self->cursor.x += w;
+            if (state == 0) {
+                if (cp != ' ' && cp != '\t' && cp != '{' && cp != '}' && cp != '(' && cp != ')')
+                    state = 1;
+            } else if (state == 1) {
+                if (cp == ' ' || cp == '\t' || cp == '{' || cp == '}' || cp == '(' || cp == ')') {
+                    TerminalWindow_left(self);
+                    // EditorWindow_make_cursor_visible(self);
+                    make_cursor_visible(self);
+                    return;
+                }
+            }
+        } else {
+            if (self->cursor.y < n_lines - 1) {
+                self->cursor.y += 1;
+                self->cursor.x = 0;
+                // Node * node = EditorWindow_get_line_number(self, self->cursor.y);
+                char *line = VTermTerminal_get_line(self, self->cursor.y);
+                // self->cursor.ptr = 0;
+            } else {
+                // EditorWindow_make_cursor_visible(self);
+                make_cursor_visible(self);
+                return;
+            }
+        }
+    }
+    make_cursor_visible(self);
 }
 
-void TerminalWindow_right(TerminalWindow *terminal){
-		  if (terminal->cursor.y == -1){
-			write(terminal->master, "\x06", 1);
-		  } else {
-            terminal->cursor.x += 1;
-            terminal->cursor.x = min(terminal->cursor.x, terminal->cols-1);
-		  }
+void TerminalWindow_right(TerminalWindow *terminal) {
+    if (terminal->cursor.y == -1) {
+        write(terminal->master, "\x06", 1);
+    } else {
+        terminal->cursor.x += 1;
+        terminal->cursor.x = min(terminal->cursor.x, terminal->cols - 1);
+    }
 }
 
-void TerminalWindow_prev_word(TerminalWindow *self){
-  int state = 0;
-  //self->selection.y = -1;
-  while (1){
-  if (self->cursor.x == 0){
-	if (self->cursor.y > 0){
-	  self->cursor.y -= 1;
-	  char * line = VTermTerminal_get_line(self, self->cursor.y);
-	  //Node * node = EditorWindow_get_line_number(self, self->cursor.y);
-	  self->cursor.x = strlen(line);
-	  //self->cursor.ptr = node->length;
-	} else {
-		make_cursor_visible(self);
-	  //EditorWindow_make_cursor_visible(self);
-	  return;
-	}
-  } else {	
-	  char * line = VTermTerminal_get_line(self, self->cursor.y);
-	//Node * node = EditorWindow_get_line_number(self, self->cursor.y);
-	uint32_t cp = utf8_decode_left2(line, &self->cursor.x);
-	int w = cp_width(cp);
-	self->cursor.x -= w;
-	
-	if (state == 0){
-	  if (cp != ' ' && cp != '\t' && cp != '{' && cp != '}' && cp != '(' && cp != ')') state = 1;
-	} else if (state == 1){
-	  if (cp == ' ' || cp == '\t' || cp == '{' || cp == '}' || cp == '(' || cp == ')') {
-		TerminalWindow_right(self);
-		make_cursor_visible(self);
-		//EditorWindow_make_cursor_visible(self);
-		return;
-	  }
-	}
-  }
-  }
-  //EditorWindow_make_cursor_visible(self);
-	make_cursor_visible(self);
+void TerminalWindow_prev_word(TerminalWindow *self) {
+    int state = 0;
+    // self->selection.y = -1;
+    while (1) {
+        if (self->cursor.x == 0) {
+            if (self->cursor.y > 0) {
+                self->cursor.y -= 1;
+                char *line = VTermTerminal_get_line(self, self->cursor.y);
+                // Node * node = EditorWindow_get_line_number(self, self->cursor.y);
+                self->cursor.x = strlen(line);
+                // self->cursor.ptr = node->length;
+            } else {
+                make_cursor_visible(self);
+                // EditorWindow_make_cursor_visible(self);
+                return;
+            }
+        } else {
+            char *line = VTermTerminal_get_line(self, self->cursor.y);
+            // Node * node = EditorWindow_get_line_number(self, self->cursor.y);
+            uint32_t cp = utf8_decode_left2(line, &self->cursor.x);
+            int w = cp_width(cp);
+            self->cursor.x -= w;
+
+            if (state == 0) {
+                if (cp != ' ' && cp != '\t' && cp != '{' && cp != '}' && cp != '(' && cp != ')')
+                    state = 1;
+            } else if (state == 1) {
+                if (cp == ' ' || cp == '\t' || cp == '{' || cp == '}' || cp == '(' || cp == ')') {
+                    TerminalWindow_right(self);
+                    make_cursor_visible(self);
+                    // EditorWindow_make_cursor_visible(self);
+                    return;
+                }
+            }
+        }
+    }
+    // EditorWindow_make_cursor_visible(self);
+    make_cursor_visible(self);
 }
 
+void vterm_send_key(struct Window *wg, char c) {
+    // vterm_terminal_data *vtd = wg->data2;
+    TerminalWindow *terminal = wg;
+    // Action action = mapping[c];
+    Action action = get_action(c, WT_TERMINAL);
 
-void vterm_send_key(struct Window *wg, char c)
-{
-    //vterm_terminal_data *vtd = wg->data2;
-    TerminalWindow * terminal = wg;
-    //Action action = mapping[c];
-	Action action = get_action(c, WT_TERMINAL);
-	
-  if (action == ACTION_SEARCH){
-	TerminalWindow_action_search(terminal);
-	return;
-  }
+    if (action == ACTION_SEARCH) {
+        TerminalWindow_action_search(terminal);
+        return;
+    }
     Window *focused_cursor = wg->focused;
-    if (focused_cursor != NULL) while (focused_cursor->send_key == NULL && focused_cursor->focused != NULL) focused_cursor = focused_cursor->focused;
+    if (focused_cursor != NULL)
+        while (focused_cursor->send_key == NULL && focused_cursor->focused != NULL)
+            focused_cursor = focused_cursor->focused;
 
     if (focused_cursor != NULL && focused_cursor->send_key != NULL) {
-        //tab_move_to_front(focused_cursor);
+        // tab_move_to_front(focused_cursor);
         focused_cursor->send_key(focused_cursor, c);
-		return;
+        return;
     }
 
     /*if (c == 12){ // Ctrl+K
       cycle_tabs();
       return;
     }*/
-    //if (c == ';')
-  if (action == ACTION_NEXT_WORD){
-	TerminalWindow_next_word(terminal);
-	return;
-  }
-  if (action == ACTION_PREV_WORD){
-	TerminalWindow_prev_word(terminal);
-	return;
-  }
-    if (action == ACTION_SWITCH_MODE)
-    {
+    // if (c == ';')
+    if (action == ACTION_NEXT_WORD) {
+        TerminalWindow_next_word(terminal);
+        return;
+    }
+    if (action == ACTION_PREV_WORD) {
+        TerminalWindow_prev_word(terminal);
+        return;
+    }
+    if (action == ACTION_SWITCH_MODE) {
         insert_mode = 1 - insert_mode;
         return;
     }
-    if (insert_mode == 0)
-    {
+    if (insert_mode == 0) {
         int virtual_height = VTermTerminal_get_virtual_height(terminal);
         int min_shift = -(virtual_height - terminal->win.calculated.height);
-        if (action == ACTION_DOWN)
-        {
-            if (terminal->cursor.y == -1) return;
+        if (action == ACTION_DOWN) {
+            if (terminal->cursor.y == -1)
+                return;
             terminal->cursor.y += 1;
-			//terminal->cursor_y = min(terminal->cursor_y, virtual_height-1);
-			if (VTermTerminal_cursors_same_y(terminal)) terminal->cursor.y = -1;
+            // terminal->cursor_y = min(terminal->cursor_y, virtual_height-1);
+            if (VTermTerminal_cursors_same_y(terminal))
+                terminal->cursor.y = -1;
             make_cursor_visible(terminal);
             return;
         }
-        if (action == ACTION_UP)
-        {
-		  if (terminal->cursor.y == -1){
-			//if (VTermTerminal_cursors_same_y(terminal)) {
-			//terminal->cursor_y = virtual_height-2;			
-            terminal->cursor.x = terminal->term_cursor.x;
-            //terminal->cursor_y = terminal->term_cursor_y + terminal->win.shift - 1;
-			terminal->cursor.y = VTermTerminal_cursor_y(terminal);
-		  }
-		  //else{
-			terminal->cursor.y -= 1;
-			terminal->cursor.y = max(terminal->cursor.y, 0);
-			//}
-			if (VTermTerminal_cursors_same_y(terminal)) terminal->cursor.y = -1;
-		  make_cursor_visible(terminal);
-		  return;
-        }
-        if (action == ACTION_PAGE_UP)
-        {
-            if (terminal->cursor.y == -1) return;
-            terminal->cursor.y += terminal->win.calculated.height;
-			terminal->cursor.y = min(terminal->cursor.y, virtual_height-1);
-            //if (terminal->cursor_y > terminal->scrollback.count){
-            //    terminal->cursor_y = -1;
+        if (action == ACTION_UP) {
+            if (terminal->cursor.y == -1) {
+                // if (VTermTerminal_cursors_same_y(terminal)) {
+                // terminal->cursor_y = virtual_height-2;
+                terminal->cursor.x = terminal->term_cursor.x;
+                // terminal->cursor_y = terminal->term_cursor_y + terminal->win.shift - 1;
+                terminal->cursor.y = VTermTerminal_cursor_y(terminal);
+            }
+            // else{
+            terminal->cursor.y -= 1;
+            terminal->cursor.y = max(terminal->cursor.y, 0);
             //}
-			if (VTermTerminal_cursors_same_y(terminal)) terminal->cursor.y = -1;
+            if (VTermTerminal_cursors_same_y(terminal))
+                terminal->cursor.y = -1;
             make_cursor_visible(terminal);
             return;
         }
-        if (action == ACTION_PAGE_DOWN)
-        {
-            if (terminal->cursor.y < 0) terminal->cursor.y = terminal->scrollback.count;
-            else{
+        if (action == ACTION_PAGE_UP) {
+            if (terminal->cursor.y == -1)
+                return;
+            terminal->cursor.y += terminal->win.calculated.height;
+            terminal->cursor.y = min(terminal->cursor.y, virtual_height - 1);
+            // if (terminal->cursor_y > terminal->scrollback.count){
+            //     terminal->cursor_y = -1;
+            // }
+            if (VTermTerminal_cursors_same_y(terminal))
+                terminal->cursor.y = -1;
+            make_cursor_visible(terminal);
+            return;
+        }
+        if (action == ACTION_PAGE_DOWN) {
+            if (terminal->cursor.y < 0)
+                terminal->cursor.y = terminal->scrollback.count;
+            else {
                 terminal->cursor.y -= terminal->win.calculated.height;
                 terminal->cursor.y = max(terminal->cursor.y, 0);
             }
-			if (VTermTerminal_cursors_same_y(terminal)) terminal->cursor.y = -1;
+            if (VTermTerminal_cursors_same_y(terminal))
+                terminal->cursor.y = -1;
             make_cursor_visible(terminal);
             return;
         }
-        if (action == ACTION_RIGHT)
-        {
-          TerminalWindow_right(terminal);
-		  return;
+        if (action == ACTION_RIGHT) {
+            TerminalWindow_right(terminal);
+            return;
         }
-        if (action == ACTION_LEFT)
-        {
-			TerminalWindow_left(terminal);
-		  return;
+        if (action == ACTION_LEFT) {
+            TerminalWindow_left(terminal);
+            return;
         }
-        if (action == ACTION_END_OF_LINE)
-        {
-		  if (terminal->cursor.y == -1){
-			write(terminal->master, "\x05", 1);
-		} else {
-			char * line = VTermTerminal_get_line(terminal, terminal->cursor.y);
-			terminal->cursor.x = strlen(line);
-			//terminal->cursor.x = terminal->cols-1;
-		  }
-		  return;
+        if (action == ACTION_END_OF_LINE) {
+            if (terminal->cursor.y == -1) {
+                write(terminal->master, "\x05", 1);
+            } else {
+                char *line = VTermTerminal_get_line(terminal, terminal->cursor.y);
+                terminal->cursor.x = strlen(line);
+                // terminal->cursor.x = terminal->cols-1;
+            }
+            return;
         }
-        if (action == ACTION_START_OF_LINE)
-        {
-		  if (terminal->cursor.y == -1){
-			write(terminal->master, "\x01", 1);
-		  } else {
-            terminal->cursor.x = 0;
-		  }
-		  return;
+        if (action == ACTION_START_OF_LINE) {
+            if (terminal->cursor.y == -1) {
+                write(terminal->master, "\x01", 1);
+            } else {
+                terminal->cursor.x = 0;
+            }
+            return;
         }
-        if (action == ACTION_START_SELECTION)
-        {
+        if (action == ACTION_START_SELECTION) {
             terminal->selection.y = terminal->cursor.y;
             terminal->selection.x = terminal->cursor.x;
             return;
         }
-        if (action == ACTION_COPY)
-        {
+        if (action == ACTION_COPY) {
             VTermTerminal_copy(terminal);
             terminal->selection.y = -1;
             return;
         }
-        if (action == ACTION_PASTE)
-        {
-		  char * cb = clipboard_paste();
-		  write(terminal->master, cb, strlen(cb));
-		  return;
+        if (action == ACTION_PASTE) {
+            char *cb = clipboard_paste();
+            write(terminal->master, cb, strlen(cb));
+            return;
         }
-        if (action == ACTION_FIRST_LINE)
-        {
-		  //terminal->cursor_y = -1;
+        if (action == ACTION_FIRST_LINE) {
+            // terminal->cursor_y = -1;
             terminal->cursor.x = terminal->term_cursor.x;
             terminal->cursor.y = terminal->term_cursor.y;
-			if (VTermTerminal_cursors_same_y(terminal)) terminal->cursor.y = -1;
+            if (VTermTerminal_cursors_same_y(terminal))
+                terminal->cursor.y = -1;
             make_cursor_visible(terminal);
             return;
         }
-        if (action == ACTION_LAST_LINE)
-        {
+        if (action == ACTION_LAST_LINE) {
             terminal->cursor.y = 0;
-			if (VTermTerminal_cursors_same_y(terminal)) terminal->cursor.y = -1;
+            if (VTermTerminal_cursors_same_y(terminal))
+                terminal->cursor.y = -1;
             make_cursor_visible(terminal);
             return;
         }
     }
 
-
     /* just write to the PTY, the monitoring thread will handle reading the response */
     write(terminal->master, &c, 1);
-    //TerminalWindow * terminal = wg;
-    //update_tab_label(terminal);
+    // TerminalWindow * terminal = wg;
+    // update_tab_label(terminal);
 }
 
-void vterm_send_sequence(struct Window *wg, const char *seq, int len)
-{
-    //vterm_terminal_data *vtd = wg->data2;
-    TerminalWindow * terminal = wg;
+void vterm_send_sequence(struct Window *wg, const char *seq, int len) {
+    // vterm_terminal_data *vtd = wg->data2;
+    TerminalWindow *terminal = wg;
 
     /* log what we're sending */
     LOG_INFO("vterm_send_sequence: len=%d", len);
     for (int i = 0; i < len; i++) {
-        LOG_INFO("  seq[%d] = %d (0x%02x) '%c'", i, (unsigned char)seq[i], (unsigned char)seq[i], seq[i] >= 32 ? seq[i] : '?');
+        LOG_INFO("  seq[%d] = %d (0x%02x) '%c'", i, (unsigned char)seq[i], (unsigned char)seq[i],
+                 seq[i] >= 32 ? seq[i] : '?');
     }
 
     /* parse escape sequence and convert to libvterm keyboard input */
@@ -1188,17 +1158,29 @@ void vterm_send_sequence(struct Window *wg, const char *seq, int len)
         VTermKey key = VTERM_KEY_NONE;
 
         switch (seq[1]) {
-            case 'A': key = VTERM_KEY_UP; break;
-            case 'B': key = VTERM_KEY_DOWN; break;
-            case 'C': key = VTERM_KEY_RIGHT; break;
-            case 'D': key = VTERM_KEY_LEFT; break;
-            case 'H': key = VTERM_KEY_HOME; break;
-            case 'F': key = VTERM_KEY_END; break;
-            default:
-                /* unhandled escape sequence, write raw */
-                LOG_INFO("unhandled CSI sequence, writing raw");
-                write(terminal->master, seq, len);
-                return;
+        case 'A':
+            key = VTERM_KEY_UP;
+            break;
+        case 'B':
+            key = VTERM_KEY_DOWN;
+            break;
+        case 'C':
+            key = VTERM_KEY_RIGHT;
+            break;
+        case 'D':
+            key = VTERM_KEY_LEFT;
+            break;
+        case 'H':
+            key = VTERM_KEY_HOME;
+            break;
+        case 'F':
+            key = VTERM_KEY_END;
+            break;
+        default:
+            /* unhandled escape sequence, write raw */
+            LOG_INFO("unhandled CSI sequence, writing raw");
+            write(terminal->master, seq, len);
+            return;
         }
 
         if (key != VTERM_KEY_NONE) {
@@ -1217,15 +1199,14 @@ void vterm_send_sequence(struct Window *wg, const char *seq, int len)
     }
 
     /* for non-escape sequences or unhandled ones, write raw */
-	char buf = 27;
+    char buf = 27;
     write(terminal->master, &buf, 1);
     write(terminal->master, seq, len);
 }
 
-static int cb_sb_pushline(int cols, const VTermScreenCell *cells, void *user)
-{
-    //vterm_terminal_data *vtd = user;
-    TerminalWindow * terminal = user;
+static int cb_sb_pushline(int cols, const VTermScreenCell *cells, void *user) {
+    // vterm_terminal_data *vtd = user;
+    TerminalWindow *terminal = user;
 
     scrollback_add_line(&terminal->scrollback, cols, cells);
 
@@ -1239,13 +1220,10 @@ static int cb_sb_pushline(int cols, const VTermScreenCell *cells, void *user)
     return 1;
 }
 
-
-
-TerminalWindow *VTermTerminal_window(int initial_rows, int initial_cols, char * cwd)
-{
+TerminalWindow *VTermTerminal_window(int initial_rows, int initial_cols, char *cwd) {
     TerminalWindow *terminal = my_malloc(sizeof *terminal);
-    memset(terminal, 0, sizeof *terminal);  // Zero-initialize to prevent garbage values
-    //terminal->insert_mode = 0;
+    memset(terminal, 0, sizeof *terminal); // Zero-initialize to prevent garbage values
+    // terminal->insert_mode = 0;
     terminal->selection.y = -1;
     terminal->last_line_idx = -1;
     terminal->last_line = NULL;
@@ -1259,9 +1237,9 @@ TerminalWindow *VTermTerminal_window(int initial_rows, int initial_cols, char * 
     terminal->win.scroll_wheel_up = VTermTerminal_scroll_wheel_up;
     terminal->win.scroll_wheel_down = VTermTerminal_scroll_wheel_down;
 
-    //vterm_terminal_data *vtd = malloc(sizeof *vtd);
-    //terminal->win.data2 = vtd;
-    //frame->data2 = vtd;
+    // vterm_terminal_data *vtd = malloc(sizeof *vtd);
+    // terminal->win.data2 = vtd;
+    // frame->data2 = vtd;
 
     /* initialize libvterm */
     terminal->rows = initial_rows;
@@ -1294,51 +1272,48 @@ TerminalWindow *VTermTerminal_window(int initial_rows, int initial_cols, char * 
         /* child process */
         /* set TERM so programs like mc know what terminal type we are */
         setenv("TERM", "xterm-256color", 1);
-		if (cwd != NULL) chdir(cwd);
+        if (cwd != NULL)
+            chdir(cwd);
         execl("/bin/sh", "sh", NULL);
         exit(1);
     }
 
     terminal->pid = pid;
-    //terminal->cwd = get_shell_cwd_mac_native(pid);
+    // terminal->cwd = get_shell_cwd_mac_native(pid);
 
-    //vtd->terminal = terminal;
+    // vtd->terminal = terminal;
 
     /* register this terminal for background monitoring */
     register_terminal(terminal);
 
     /* initial update to get the shell prompt */
-    usleep(100000);  /* wait 100ms for initial shell output */
+    usleep(100000); /* wait 100ms for initial shell output */
     VTermTerminal_update(terminal);
 
     return terminal;
 }
 
+Window *VTermTerminal_callback(Tabs *self) {
+    TerminalFrame *frame = Window_get_frame(self->tabs);
+    // LOG_INFO("VTermTerminal_callback %p %p %s", self->tabs, frame, frame->cwd);
 
-Window *VTermTerminal_callback(Tabs *self){
-  TerminalFrame *frame = Window_get_frame(self->tabs);
-  //LOG_INFO("VTermTerminal_callback %p %p %s", self->tabs, frame, frame->cwd);
-
-  TerminalWindow *terminal = VTermTerminal_window(24, 80, frame->cwd);
-  //TerminalWindow *terminal = VTermTerminal_window(24, 80, NULL);
+    TerminalWindow *terminal = VTermTerminal_window(24, 80, frame->cwd);
+    // TerminalWindow *terminal = VTermTerminal_window(24, 80, NULL);
     Window *slider = slider_new(terminal);
     terminal->slider = slider;
-    //slider->id = terminal->cwd;
+    // slider->id = terminal->cwd;
     slider->id = my_malloc(1024);
-    //Window_set_id_from_path(slider, terminal->cwd);
+    // Window_set_id_from_path(slider, terminal->cwd);
     update_tab_label(terminal);
 
-	Window * searchbox = TerminalWindow_searchbox(terminal);
-	Window_append(slider, searchbox);
-	terminal->search_box = searchbox;
+    Window *searchbox = TerminalWindow_searchbox(terminal);
+    Window_append(slider, searchbox);
+    terminal->search_box = searchbox;
 
     return slider;
 }
 
-Window *VTermTerminal_new_tab(TerminalFrame *self)
-{
-  tabs_new_tab(self->tabs->data);
-}
+Window *VTermTerminal_new_tab(TerminalFrame *self) { tabs_new_tab(self->tabs->data); }
 
 /*TerminalWindow *Editor_get_focused_window(TerminalFrame *self){
     Tab * tab = self->tabs->selected_tab;
@@ -1350,20 +1325,19 @@ void Editor_on_selected(TerminalFrame *self, void fn()){
     fn(term);
 }*/
 
-void VTermTerminal_close(TerminalFrame *self){
-  Tabs * tabs = self->tabs;
-  Tab * tab = tabs->selected_tab;
-  tabs_remove_tab(tab);
+void VTermTerminal_close(TerminalFrame *self) {
+    Tabs *tabs = self->tabs;
+    Tab *tab = tabs->selected_tab;
+    tabs_remove_tab(tab);
 }
 
-
-Window *VTermTerminal_menu(TerminalFrame *self)
-{
+Window *VTermTerminal_menu(TerminalFrame *self) {
     Window *menu = Menu_create_horizontal();
 
     Window *file = Menu_create_vertical(self);
-    //Menu_add_element(file, " 📄 New File   Ctrl+N", create_lambda(VTermTerminal_new_tab, 1, self));
-    //Menu_add_element(file, " 📁 New Folder Ctrl+N", create_lambda(VTermTerminal_new_tab, 1, self));
+    // Menu_add_element(file, " 📄 New File   Ctrl+N", create_lambda(VTermTerminal_new_tab, 1,
+    // self)); Menu_add_element(file, " 📁 New Folder Ctrl+N", create_lambda(VTermTerminal_new_tab,
+    // 1, self));
     Menu_add_element(file, "    New Window", create_lambda(vterminal_new, 0));
     Menu_add_element(file, "    New Tab", create_lambda(VTermTerminal_new_tab, 1, self));
     Menu_add_element(file, "", NULL);
@@ -1377,11 +1351,11 @@ Window *VTermTerminal_menu(TerminalFrame *self)
     Menu_add_element(edit, " 📋 Copy           Ctrl+C", create_lambda(VTermTerminal_new_tab, 0));
     Menu_add_element(edit, " 📌 Paste          Ctrl+V", create_lambda(VTermTerminal_new_tab, 0));
     Menu_add_element(edit, " ❌ Delete         Backspace", create_lambda(VTermTerminal_new_tab, 0));
-    //Menu_add_element(edit, " 📝 Rename         Ctrl+R", create_lambda(VTermTerminal_new_tab, 0));
-    //Menu_add_element(edit, "", NULL);
-    //Menu_add_element(edit, " 📋 Copy Name      Ctrl+C", create_lambda(VTermTerminal_new_tab, 0));
-    //Menu_add_element(edit, " 📋 Copy Directory Ctrl+C", create_lambda(VTermTerminal_new_tab, 0));
-    //Menu_add_element(edit, " 📋 Copy Path      Ctrl+C", create_lambda(VTermTerminal_new_tab, 0));
+    // Menu_add_element(edit, " 📝 Rename         Ctrl+R", create_lambda(VTermTerminal_new_tab, 0));
+    // Menu_add_element(edit, "", NULL);
+    // Menu_add_element(edit, " 📋 Copy Name      Ctrl+C", create_lambda(VTermTerminal_new_tab, 0));
+    // Menu_add_element(edit, " 📋 Copy Directory Ctrl+C", create_lambda(VTermTerminal_new_tab, 0));
+    // Menu_add_element(edit, " 📋 Copy Path      Ctrl+C", create_lambda(VTermTerminal_new_tab, 0));
     Menu_add_element(edit, "", NULL);
     Menu_add_submenu(menu, " Edit ", edit);
 
@@ -1398,33 +1372,32 @@ Window *VTermTerminal_menu(TerminalFrame *self)
     return menu;
 }
 
-Window *VTermTerminal_toolbar(TerminalFrame *self)
-{
+Window *VTermTerminal_toolbar(TerminalFrame *self) {
     Window *toolbar = Menu_create_horizontal();
     Menu_add_element(toolbar, " + New Tab ", create_lambda(VTermTerminal_new_tab, 0));
     Menu_add_element(toolbar, " 🔪 Cut ", create_lambda(VTermTerminal_new_tab, 0));
     Menu_add_element(toolbar, " 📋 Copy ", create_lambda(VTermTerminal_new_tab, 0));
     Menu_add_element(toolbar, " 📌 Paste ", create_lambda(VTermTerminal_new_tab, 0));
-    //Menu_add_element(toolbar, " 📝 Rename ", create_lambda(VTermTerminal_new_tab, 0));
-    //Menu_add_element(toolbar, " 🔄 Refresh ", create_lambda(VTermTerminal_new_tab, 0));
-    //Menu_add_element(toolbar, " 🔼 Up ", create_lambda(VTermTerminal_new_tab, 0));
-    //Menu_add_element(toolbar, " 📝 Edit ", create_lambda(VTermTerminal_new_tab, 0));
-    //Menu_add_element(toolbar, " 💻 Terminal ", create_lambda(VTermTerminal_new_tab, 0));
+    // Menu_add_element(toolbar, " 📝 Rename ", create_lambda(VTermTerminal_new_tab, 0));
+    // Menu_add_element(toolbar, " 🔄 Refresh ", create_lambda(VTermTerminal_new_tab, 0));
+    // Menu_add_element(toolbar, " 🔼 Up ", create_lambda(VTermTerminal_new_tab, 0));
+    // Menu_add_element(toolbar, " 📝 Edit ", create_lambda(VTermTerminal_new_tab, 0));
+    // Menu_add_element(toolbar, " 💻 Terminal ", create_lambda(VTermTerminal_new_tab, 0));
 
     toolbar->top = 1;
 
     return toolbar;
 }
 
-Window *VTermTerminal_new(int left, int right, int top, int bottom, int width, int height, char * cwd)
-{
+Window *VTermTerminal_new(int left, int right, int top, int bottom, int width, int height,
+                          char *cwd) {
     TerminalFrame *frame = my_malloc(sizeof *frame);
-    memset(frame, 0, sizeof *frame);  // Zero-initialize to prevent garbage values
+    memset(frame, 0, sizeof *frame); // Zero-initialize to prevent garbage values
     Window *w = Frame_init(frame, left, right, top, bottom, width, height, NULL, 1);
-	frame->win.id = "TerminalFrame";
-	frame->cwd = cwd;
-    //frame->send_key = vterm_send_key;
-    //frame->send_sequence = vterm_send_sequence;
+    frame->win.id = "TerminalFrame";
+    frame->cwd = cwd;
+    // frame->send_key = vterm_send_key;
+    // frame->send_sequence = vterm_send_sequence;
 
     // tabs
     Window *tabs = Tab_new(VTermTerminal_callback, 0);
@@ -1435,7 +1408,7 @@ Window *VTermTerminal_new(int left, int right, int top, int bottom, int width, i
     tabs->right = 0;
     Window_append(w, tabs);
     frame->win.focused = tabs;
-	tabs_new_tab(tabs->data);
+    tabs_new_tab(tabs->data);
 
     Window *toolbar = VTermTerminal_toolbar(frame);
     Window_append(w, toolbar);
@@ -1448,8 +1421,14 @@ Window *VTermTerminal_new(int left, int right, int top, int bottom, int width, i
 #else
 /* Windows stub implementations - terminal functionality not yet supported */
 
-Window *VTermTerminal_new(int left, int right, int top, int bottom, int width, int height, char * cwd) {
-    (void)left; (void)right; (void)top; (void)bottom; (void)width; (void)height;
+Window *VTermTerminal_new(int left, int right, int top, int bottom, int width, int height,
+                          char *cwd) {
+    (void)left;
+    (void)right;
+    (void)top;
+    (void)bottom;
+    (void)width;
+    (void)height;
     /* Return a simple window with a message */
     Window *w = my_malloc(sizeof(Window));
     if (w) {
@@ -1461,16 +1440,12 @@ Window *VTermTerminal_new(int left, int right, int top, int bottom, int width, i
 
 /*Window *VTermTerminal_callback() {
     return VTermTerminal_new(0, 0, 0, 0, 80, 24);
-	}*/
+        }*/
 
 /* PTY monitoring thread stubs for Windows */
-void start_pty_monitor_thread() {
-    /* No-op on Windows */
-}
+void start_pty_monitor_thread() { /* No-op on Windows */ }
 
-void stop_pty_monitor_thread() {
-    /* No-op on Windows */
-}
+void stop_pty_monitor_thread() { /* No-op on Windows */ }
 
 int check_and_clear_repaint_flag() {
     /* Always return 0 on Windows */
