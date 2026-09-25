@@ -16,6 +16,7 @@ typedef struct Tab {
     // Window *terminal;
     Window *tab_label;
     Window *child;
+    char * icon;
     char str[1024];
     char short_str[20];
     Tab *next;
@@ -55,6 +56,6 @@ void cycle_tab();
 void cycle_tab_reverse();
 void select_window(Window *win);
 void tabs_remove_tab(Tab *self);
-void Tab_set_title(TabWindow * self, char * icon, char * path);
+void Tab_set_title(TabWindow * self, char * path);
 
 #endif

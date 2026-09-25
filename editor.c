@@ -29,14 +29,16 @@ void set_modified(EditorWindow *self, int modified) {
     if (self->modified == modified)
         return;
     if (modified == 1) {
-	  	Tab_set_title(self, "📝 *", self->file_path);
+	  self->tab.icon = "📝 *";
 	  //snprintf(self->tab.str, sizeof(self->tab.str), " 📝 * %s", self->file_path);
         //Window_set_id_from_path(self, "📝 *", self->file_path);
     } else {
-	  	Tab_set_title(self, "📝", self->file_path);
+	  self->tab.icon = "📝";
+	  //Tab_set_title(self, self->file_path);
         //snprintf(self->tab.str, sizeof(self->tab.str), " 📝 %s", self->file_path);
         //Window_set_id_from_path(self, "📝", self->file_path);
     }
+	Tab_set_title(self, self->file_path);
     self->modified = modified;
 }
 
@@ -558,7 +560,7 @@ void load_file(EditorWindow *self, const char *filename) {
         return;
     }
     LOG_INFO("load_file %s", filename);
-	Tab_set_title(self, "📝", filename);
+	Tab_set_title(self, filename);
     //snprintf(self->tab.str, sizeof(self->tab.str), " 📝 %s", filename);
     //Window_set_id_from_path(self, "📝", filename);
     // set_modified(self, 0);
@@ -1425,6 +1427,7 @@ EditorWindow *EditorWindow_new() {
     self->language = LANG_NONE;
     self->modified = 0;
     self->selecting = 0;
+    self->tab.icon = "📝";
 
     // Window *editor = (Window *) self;
     self->win.draw = EditorWindow_draw;

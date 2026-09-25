@@ -335,7 +335,7 @@ void FileExplorer_list_files(ExplorerWindow *self, char *dire) {
     snprintf(self->path_label, sizeof(self->path_label), " 📁 %s", dire);
     //Window_set_id_from_path(self, "📁", dire);
     //snprintf(self->tab.str, sizeof(self->tab.str), " 📁 %s", dire);
-	Tab_set_title(self, "📁", dire);
+	Tab_set_title(self, dire);
 
     if (self->path != dire) {
         // if (self->path != NULL) free(self->path);
@@ -889,6 +889,7 @@ ExplorerWindow *FileExplorer_file_list(Tabs *self) {
     ExplorerWindow *w = malloc(sizeof *w);
     memset(w, 0, sizeof *w); // Zero-initialize to prevent garbage values
     Window_init(w, -1, -1, -1, -1, -1, -1);
+    w->tab.icon = "📁";
     w->win.draw = FileExplorer_draw;
 
 	w->win.id = "file list";
