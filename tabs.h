@@ -19,6 +19,7 @@ typedef struct Tab {
     char * icon;
     char str[1024];
     char short_str[20];
+    int modified;
     Tab *next;
     Tab *prev;
 

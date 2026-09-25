@@ -26,20 +26,9 @@
 // int restore_insert_mode;
 
 void set_modified(EditorWindow *self, int modified) {
-    if (self->modified == modified)
-        return;
-    if (modified == 1) {
-	  self->tab.icon = "📝 *";
-	  //snprintf(self->tab.str, sizeof(self->tab.str), " 📝 * %s", self->file_path);
-        //Window_set_id_from_path(self, "📝 *", self->file_path);
-    } else {
-	  self->tab.icon = "📝";
-	  //Tab_set_title(self, self->file_path);
-        //snprintf(self->tab.str, sizeof(self->tab.str), " 📝 %s", self->file_path);
-        //Window_set_id_from_path(self, "📝", self->file_path);
-    }
-	Tab_set_title(self, self->file_path);
-    self->modified = modified;
+  if (modified == self->tab.modified) return;
+  self->tab.modified = modified;
+  Tab_set_title(self, self->file_path);
 }
 
 // Editor Window
@@ -1425,9 +1414,9 @@ EditorWindow *EditorWindow_new() {
     self->highlight_start.y = -1;
     self->highlight_end.y = -1;
     self->language = LANG_NONE;
-    self->modified = 0;
+    //self->modified = 0;
     self->selecting = 0;
-    self->tab.icon = "📝";
+    self->tab.icon = "📄";
 
     // Window *editor = (Window *) self;
     self->win.draw = EditorWindow_draw;
