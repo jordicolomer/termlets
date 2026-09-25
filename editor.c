@@ -26,9 +26,10 @@
 // int restore_insert_mode;
 
 void set_modified(EditorWindow *self, int modified) {
-  if (modified == self->tab.modified) return;
-  self->tab.modified = modified;
-  Tab_set_title(self, self->file_path);
+    if (modified == self->tab.modified)
+        return;
+    self->tab.modified = modified;
+    Tab_set_title(self, self->file_path);
 }
 
 // Editor Window
@@ -533,7 +534,7 @@ void load_file(EditorWindow *self, const char *filename) {
         return;
     }
     LOG_INFO("load_file %s", filename);
-	Tab_set_title(self, filename);
+    Tab_set_title(self, filename);
     FILE *file = fopen(filename, "r");
     if (!file) {
         perror("fopen failed");
@@ -1312,7 +1313,7 @@ Window *EditorWindow_new_tab(Tabs *self) {
     Slider_show_grip(slider);
     editor->slider = slider;
 
-	editor->win.id = "tab";
+    editor->win.id = "tab";
     slider->id = editor->win.id;
 
     Window *searchbox = EditorWindow_searchbox(editor);

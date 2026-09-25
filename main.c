@@ -47,7 +47,6 @@ void init() {
     root->id = "root";
 
     TaskBar_new();
-
 }
 
 void repaint() {

@@ -333,7 +333,7 @@ void FileExplorer_refresh(ExplorerWindow *self) {
 
 void FileExplorer_list_files(ExplorerWindow *self, char *dire) {
     snprintf(self->path_label, sizeof(self->path_label), " 📁 %s", dire);
-	Tab_set_title(self, dire);
+    Tab_set_title(self, dire);
 
     if (self->path != dire) {
         // if (self->path != NULL) free(self->path);
@@ -573,9 +573,7 @@ void FileExplorer_edit(ExplorerWindow *self) {
         Editor_last_open_file(self->selected->path);
 }
 
-void FileExplorer_terminal(ExplorerWindow *self) {
-    vterminal_new(self->path);
-}
+void FileExplorer_terminal(ExplorerWindow *self) { vterminal_new(self->path); }
 
 void FileExplorer_up(ExplorerWindow *self) {
     if (self->selected != NULL && self->selected->win.prev != NULL)
@@ -854,7 +852,7 @@ ExplorerWindow *FileExplorer_file_list(Tabs *self) {
     w->tab.icon = "📁";
     w->win.draw = FileExplorer_draw;
 
-	w->win.id = "file list";
+    w->win.id = "file list";
     int j = 0;
 
     w->sort_by = -1;
@@ -1125,9 +1123,7 @@ void FileExplorer_sort_by(ExplorerFrame *self, int sort_by) {
     FileExplorer_sort(self->tabs->focused, sort_by);
 }
 
-void ExplorerFrame_on_selected(ExplorerFrame *self, void fn()) {
-    fn(self->tabs->focused);
-}
+void ExplorerFrame_on_selected(ExplorerFrame *self, void fn()) { fn(self->tabs->focused); }
 
 Window *FileExplorer_menu_rename(ExplorerFrame *self) {
     LOG_INFO("FileExplorer_menu_rename %p", self);

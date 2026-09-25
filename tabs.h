@@ -8,15 +8,15 @@ typedef struct Tab Tab;
 
 typedef Window *(*tab_create_callback)(Tabs *self);
 
-//#define TAB_STR_LEN 1024
-//#define TAB_SHORT_STR_LEN 20
+// #define TAB_STR_LEN 1024
+// #define TAB_SHORT_STR_LEN 20
 
 typedef struct Tab {
     Tabs *parent;
     // Window *terminal;
     Window *tab_label;
     Window *child;
-    char * icon;
+    char *icon;
     char str[1024];
     char short_str[20];
     int modified;
@@ -57,6 +57,6 @@ void cycle_tab();
 void cycle_tab_reverse();
 void select_window(Window *win);
 void tabs_remove_tab(Tab *self);
-void Tab_set_title(TabWindow * self, char * path);
+void Tab_set_title(TabWindow *self, char *path);
 
 #endif

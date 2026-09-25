@@ -202,7 +202,7 @@ Window *tabs_new_tab(Tabs *self) {
     tab->left = self->x_offset;
     tab->top = 0;
     tab->height = 1;
-	tab->width = sizeof(mytab->short_str);
+    tab->width = sizeof(mytab->short_str);
     tab->on_mouse_down = tab_clicked;
     tab->on_hover = change_color_hover;
     tab->undo_on_hover = change_color_normal;
@@ -379,9 +379,11 @@ const char *filename_from_path(const char *path) {
     return last ? last + 1 : path;
 }
 
-void Tab_set_title(TabWindow * self, char * path){
-  char * icon = self->tab.icon;
-  if (self->tab.modified) icon = "📝";
-  snprintf(self->tab.str, sizeof(self->tab.str), "%s %s", icon, path);
-  snprintf(self->tab.short_str, sizeof(self->tab.short_str), "%s %s", icon, filename_from_path(path));
+void Tab_set_title(TabWindow *self, char *path) {
+    char *icon = self->tab.icon;
+    if (self->tab.modified)
+        icon = "📝";
+    snprintf(self->tab.str, sizeof(self->tab.str), "%s %s", icon, path);
+    snprintf(self->tab.short_str, sizeof(self->tab.short_str), "%s %s", icon,
+             filename_from_path(path));
 }

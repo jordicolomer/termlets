@@ -213,8 +213,8 @@ Window *Menu_list_windows(Menu *menu, Tabs *tabs, struct Window *window_menu_ite
     submenu->win.head = NULL;
     submenu->win.tail = NULL;
     submenu->offset = 0;
-	submenu->win.width = 0;
-  
+    submenu->win.width = 0;
+
     Tab *tab = tabs->first;
     int i = 0;
     while (tab != NULL) {
@@ -222,10 +222,10 @@ Window *Menu_list_windows(Menu *menu, Tabs *tabs, struct Window *window_menu_ite
 
         Window *win = Menu_add_element(submenu, tab->str, NULL);
         win->undo_on_hover = Menu_change_color_normal;
-		if (tabs->selected_tab == tab) {
-		  win->bg = SELECTED_COLOR;
-		  win->undo_on_hover = Menu_change_color_selected;
-		}
+        if (tabs->selected_tab == tab) {
+            win->bg = SELECTED_COLOR;
+            win->undo_on_hover = Menu_change_color_selected;
+        }
         win->on_hover = Menu_change_color_hover;
         win->lambda = create_lambda(Menu_list_windows_item_selected, 2, tab, submenu);
         win->on_mouse_down = Execute_lambda;

@@ -56,6 +56,5 @@ void log_message(LogLevel level, const char *file, int line, const char *fmt, ..
         fprintf(log_file, "\n");
         fflush(log_file); // Ensure it's written immediately
     }
-
 }
 #endif // LOGGER_C
