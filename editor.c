@@ -29,11 +29,13 @@ void set_modified(EditorWindow *self, int modified) {
     if (self->modified == modified)
         return;
     if (modified == 1) {
-        snprintf(self->tab.str, sizeof(self->tab.str), " 📝 * %s", self->file_path);
-        Window_set_id_from_path(self, "📝 *", self->file_path);
+	  	Tab_set_title(self, "📝 *", self->file_path);
+	  //snprintf(self->tab.str, sizeof(self->tab.str), " 📝 * %s", self->file_path);
+        //Window_set_id_from_path(self, "📝 *", self->file_path);
     } else {
-        snprintf(self->tab.str, sizeof(self->tab.str), " 📝 %s", self->file_path);
-        Window_set_id_from_path(self, "📝", self->file_path);
+	  	Tab_set_title(self, "📝", self->file_path);
+        //snprintf(self->tab.str, sizeof(self->tab.str), " 📝 %s", self->file_path);
+        //Window_set_id_from_path(self, "📝", self->file_path);
     }
     self->modified = modified;
 }
@@ -556,8 +558,9 @@ void load_file(EditorWindow *self, const char *filename) {
         return;
     }
     LOG_INFO("load_file %s", filename);
-    snprintf(self->tab.str, sizeof(self->tab.str), " 📝 %s", filename);
-    Window_set_id_from_path(self, "📝", filename);
+	Tab_set_title(self, "📝", filename);
+    //snprintf(self->tab.str, sizeof(self->tab.str), " 📝 %s", filename);
+    //Window_set_id_from_path(self, "📝", filename);
     // set_modified(self, 0);
     FILE *file = fopen(filename, "r");
     if (!file) {
@@ -1446,7 +1449,8 @@ Window *EditorWindow_new_tab(Tabs *self) {
     Slider_show_grip(slider);
     editor->slider = slider;
 
-    editor->win.id = malloc(ID_LENGTH * 4);
+    //editor->win.id = malloc(ID_LENGTH * 4);
+	editor->win.id = "tab";
     slider->id = editor->win.id;
 
     Window *searchbox = EditorWindow_searchbox(editor);

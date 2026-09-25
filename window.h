@@ -5,7 +5,7 @@
 #include "lambda.h"
 
 // this is the width
-#define ID_LENGTH 20
+//#define ID_LENGTH 20
 
 typedef struct Geometry {
     int x;

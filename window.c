@@ -471,20 +471,8 @@ Window *Window_add_widget(Window *w, int left, int right, int top, int bottom, i
   parent->virtual_height = max(parent->virtual_height, 1);
 
 }*/
-const char *filename_from_path(const char *path) {
-    if (path == NULL || *path == '\0')
-        return path;
 
-    const char *slash1 = strrchr(path, '/');
-    const char *slash2 = strrchr(path, '\\'); // Windows paths
-
-    const char *last = slash1;
-    if (slash2 && (!last || slash2 > last))
-        last = slash2;
-
-    return last ? last + 1 : path;
-}
-
+/*
 void Window_set_id_from_path(Window *self, char *icon, char *path) {
     if (self == NULL) {
         LOG_INFO("Window_set_id_from_path: self is NULL!");
@@ -502,6 +490,7 @@ void Window_set_id_from_path(Window *self, char *icon, char *path) {
         end[3] = '\0';
     }
 }
+*/
 
 void Window_execute_lambda(struct Window *w, int x, int y) { invoke_lambda(w->lambda); }
 

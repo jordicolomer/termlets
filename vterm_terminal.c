@@ -166,8 +166,9 @@ char *get_shell_cwd(pid_t pid) {
 
 void update_tab_label(TerminalWindow *self) {
     char *cwd = get_shell_cwd(self->pid);
-    Window_set_id_from_path(self->slider, "💻", cwd);
-    snprintf(self->tab.str, sizeof(self->tab.str), " 💻 %s", cwd);
+    //Window_set_id_from_path(self->slider, "💻", cwd);
+    //snprintf(self->tab.str, sizeof(self->tab.str), " 💻 %s", cwd);
+	Tab_set_title(self, "💻", cwd);
 }
 
 /* Forward declarations */

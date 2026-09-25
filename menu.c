@@ -253,10 +253,11 @@ Window *Menu_list_windows(Menu *menu, Tabs *tabs, struct Window *window_menu_ite
     submenu->win.head = NULL;
     submenu->win.tail = NULL;
     submenu->offset = 0;
-
+	submenu->win.width = 0;
+  
     Tab *tab = tabs->first;
     int i = 0;
-    int maxLen = 0;
+    //int maxLen = 0;
     while (tab != NULL) {
 	  //char *tab_label = NULL;
         char *selected_sign = "   ";
@@ -283,7 +284,7 @@ Window *Menu_list_windows(Menu *menu, Tabs *tabs, struct Window *window_menu_ite
         win->lambda = create_lambda(Menu_list_windows_item_selected, 2, tab, submenu);
         win->on_mouse_down = Execute_lambda;
 
-        maxLen = max(maxLen, strlen(tab->str));
+        //maxLen = max(maxLen, strlen(tab->str));
         tab = tab->next;
     }
     Menu_add_element(submenu, "", NULL);

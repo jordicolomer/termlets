@@ -333,8 +333,9 @@ void FileExplorer_refresh(ExplorerWindow *self) {
 
 void FileExplorer_list_files(ExplorerWindow *self, char *dire) {
     snprintf(self->path_label, sizeof(self->path_label), " 📁 %s", dire);
-    Window_set_id_from_path(self, "📁", dire);
-    snprintf(self->tab.str, sizeof(self->tab.str), " 📁 %s", dire);
+    //Window_set_id_from_path(self, "📁", dire);
+    //snprintf(self->tab.str, sizeof(self->tab.str), " 📁 %s", dire);
+	Tab_set_title(self, "📁", dire);
 
     if (self->path != dire) {
         // if (self->path != NULL) free(self->path);
@@ -890,8 +891,9 @@ ExplorerWindow *FileExplorer_file_list(Tabs *self) {
     Window_init(w, -1, -1, -1, -1, -1, -1);
     w->win.draw = FileExplorer_draw;
 
-    w->win.id = malloc(ID_LENGTH * 4);
-    snprintf(w->win.id, ID_LENGTH * 4, "file list");
+	w->win.id = "file list";
+    //w->win.id = malloc(ID_LENGTH * 4);
+    //snprintf(w->win.id, ID_LENGTH * 4, "file list");
     // strcpy(w->win.id, "file.txt");
     // w->win.id = "file list";
     int j = 0;

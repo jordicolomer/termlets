@@ -215,7 +215,8 @@ Window *tabs_new_tab(Tabs *self) {
     // snprintf(mytab->str, sizeof(mytab->str), " %s ", child->id);
     // mytab->str = child->id;
     self->idx++;
-    char *label = child->id;
+    //char *label = child->id;
+    char *label = mytab->short_str;
     Window *tab = Window_add_widget(self->shiftable_tabs, -1, -1, -1, -1, -1, -1, label, 232, 255);
     tab->left = self->x_offset;
     tab->top = 0;
@@ -223,7 +224,8 @@ Window *tabs_new_tab(Tabs *self) {
     // LOG_INFO("tabs_new_tab %s %d", label, strlen(label));
     // tab->width = strlen(label)+1;
     // tab->width = ID_LENGTH-3; // there is a 4 byte 2 wide char + null so -3. todo fix this
-    tab->width = ID_LENGTH;
+    //tab->width = ID_LENGTH;
+	tab->width = sizeof(mytab->short_str);
     // tab->width = calculate_width(label)+1;
     tab->on_mouse_down = tab_clicked;
     tab->on_hover = change_color_hover;
@@ -400,4 +402,23 @@ Window *Tab_new(tab_create_callback callback, int new_tab) {
     if (new_tab)
         tabs_new_tab(mytab);
     return tabs;
+}
+
+const char *filename_from_path(const char *path) {
+    if (path == NULL || *path == '\0')
+        return path;
+
+    const char *slash1 = strrchr(path, '/');
+    const char *slash2 = strrchr(path, '\\'); // Windows paths
+
+    const char *last = slash1;
+    if (slash2 && (!last || slash2 > last))
+        last = slash2;
+
+    return last ? last + 1 : path;
+}
+
+void Tab_set_title(TabWindow * self, char * icon, char * path){
+  snprintf(self->tab.str, sizeof(self->tab.str), "%s %s", icon, path);
+  snprintf(self->tab.short_str, sizeof(self->tab.short_str), "%s %s", icon, filename_from_path(path));
 }
