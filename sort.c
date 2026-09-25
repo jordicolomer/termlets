@@ -75,27 +75,3 @@ FileItemWindow *mergeSort(FileItemWindow *head, int sort_by, int reversed) {
 
     return merge(head, second, sort_by, reversed);
 }
-
-/*int main(){
-  Node * node1 = malloc(sizeof * node1); node1->data = 3;
-  Node * node2 = malloc(sizeof * node2); node2->data = 1;
-  Node * node3 = malloc(sizeof * node3); node3->data = 4;
-  Node * node4 = malloc(sizeof * node4); node4->data = 2;
-
-  node1->next = node2;
-  node2->next = node3;
-  node3->next = node4;
-
-  node2->prev = node1;
-  node3->prev = node2;
-  node4->prev = node3;
-
-  Node * sorted = mergeSort(node1);
-  while (sorted != NULL){
-        printf("%d\n", sorted->data);
-        sorted = sorted->next;
-  }
-
-  //printf("offsetof %d\n", offsetof(Node, prev));
-  printf("offsetof %zu\n", offsetof(Node, prev));
-}*/

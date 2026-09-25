@@ -593,23 +593,6 @@ static inline void append_fmt(char *out, size_t *pos, const char *fmt, ...) {
 }
 
 void Buffer_copy_to_second_buffer(Buffer *buf) {
-    /*for (int y = 0; y < buf->height; y++)
-    {
-
-      for (int x = 0; x < buf->width; x++)
-      {
-
-        int idx = y * buf->width + x;
-
-        uint32_t cp = buf->buffer[idx];
-        int bg = (int) buf->bg[idx];
-        int fg = (int) buf->fg[idx];
-
-        buf->buffer2[idx] = cp;
-        buf->bg2[idx] = (char) bg;
-        buf->fg2[idx] = (char) fg;
-      }
-    }*/
     int size = buf->width * buf->height;
     memcpy(buf->buffer2, buf->buffer, size * sizeof(uint32_t));
     memcpy(buf->bg2, buf->bg, size * sizeof(char));
@@ -711,21 +694,6 @@ void Buffer_print_to_screen(Buffer *buf) {
 
             int w = cp_width(cp);
             utf8[len] = 0;
-            // if (x == 27 && y == 31)
-            // LOG_INFO("Buffer_print_to_screen %s %d %d %d %d\n", utf8, cp, w, x, y);
-            /*int w;
-
-            if (cp < 128)
-              w = 1;
-            else
-              w = cp_width(cp);
-
-            if (w < 1)
-              w = 1;*/
-
-            // Don't modify loop variable - let the skip check at loop start handle it
-            // if (w > 1)
-            //   x += w - 1;
 
             terminal_x += w;
         }
@@ -737,16 +705,7 @@ void Buffer_print_to_screen(Buffer *buf) {
     // move cursor below UI
     append_fmt(out, &pos, "\033[%d;1H", buf->height + 1);
 
-    // show cursor again
-    // append_str(out, &pos, "\033[?25h");
-    // append_str(out, &pos, "\033[?2026l");
-    //  ONE write
     write(STDOUT_FILENO, out, pos);
-
-    // log_file = fopen(filename, "w");
-    // fwrite(out, sizeof(char), pos, stdout);
-    // out[pos] = 0;
-    // LOG_INFO("%s\n", out);
 
     free(out);
     Buffer_copy_to_second_buffer(buf);

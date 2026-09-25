@@ -55,31 +55,6 @@ static int thread_running = 0;
 static struct TerminalWindow *active_terminals[MAX_TERMINALS];
 static int terminal_count = 0;
 
-/*typedef struct ScrollbackLine {
-    VTermScreenCell *cells;
-    int cols;
-    struct ScrollbackLine *prev;
-    struct ScrollbackLine *next;
-} ScrollbackLine;
-
-typedef struct ScrollbackList {
-    ScrollbackLine *head;
-    ScrollbackLine *tail;
-    int count;
-    int max_size;
-} ScrollbackList;
-
-typedef struct vterm_terminal_data {
-    int master;
-    VTerm *vt;
-    VTermScreen *vts;
-    Window *terminal;
-    int rows;
-    int cols;
-    ScrollbackList scrollback;
-    VTermScreenCallbacks callbacks;
-} vterm_terminal_data;*/
-
 /* convert VTermColor to 256-color palette index */
 static int vterm_color_to_256(VTermColor color) {
     /* if it's an indexed color, use it directly */
@@ -262,8 +237,6 @@ void VTermTerminal_update(TerminalWindow *terminal) {
 
         /* feed data to libvterm */
         vterm_input_write(terminal->vt, buf, n);
-
-        // update_tab_label(vtd->terminal);
     }
 }
 
@@ -453,7 +426,6 @@ char *VTermTerminal_get_line(TerminalWindow *terminal, int virtual_line) {
         int col = 0;
         int buf_idx = 0;
         while (col < terminal->cols) {
-            // VTermScreenCell cell_ptr = VTermTerminal_get_cell(terminal, virtual_line, col);
             int screen_row = virtual_line - terminal->scrollback.count;
 
             if (screen_row >= 0 && screen_row < terminal->rows) {
@@ -593,7 +565,6 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus) {
     VTermPos pos;
     VTermScreenCell cell;
 
-    // Window *terminal = vtd->terminal;
     int virtual_height = VTermTerminal_get_virtual_height(terminal);
 
     /* calculate which virtual lines are visible */
@@ -619,14 +590,6 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus) {
             fg = vterm_color_to_256(first_cell.fg);
             bg = vterm_color_to_256(first_cell.bg);
 
-            /* handle reverse video attribute */
-            /*first_cell.attrs.reverse = 0;
-if (first_cell.attrs.reverse) {
-    int temp = fg;
-    fg = bg;
-    bg = temp;
-                    }*/
-
             /* collect consecutive cells with same colors */
             int batch_start = col;
             while (col < geo.width) {
@@ -636,14 +599,6 @@ if (first_cell.attrs.reverse) {
                 VTermScreenCell cell_ptr = VTermTerminal_get_cell(terminal, virtual_line, col);
                 cell_fg = vterm_color_to_256(cell_ptr.fg);
                 cell_bg = vterm_color_to_256(cell_ptr.bg);
-
-                /* handle reverse video attribute */
-                /*cell.attrs.reverse = 0;
-if (cell_ptr.attrs.reverse) {
-    int temp = cell_fg;
-    cell_fg = cell_bg;
-    cell_bg = temp;
-                        }*/
 
                 /* break batch if colors changed */
                 if (cell_fg != fg || cell_bg != bg) {
@@ -898,9 +853,7 @@ void TerminalWindow_left(TerminalWindow *terminal) {
 
 void TerminalWindow_next_word(TerminalWindow *self) {
     int state = 0;
-    // self->selection.y = -1;
     while (1) {
-        // Node * node = EditorWindow_get_line_number(self, self->cursor.y);
         char *line = VTermTerminal_get_line(self, self->cursor.y);
         int n_lines = VTermTerminal_get_virtual_height(self);
         if (line[self->cursor.x] != 0) {
@@ -913,7 +866,6 @@ void TerminalWindow_next_word(TerminalWindow *self) {
             } else if (state == 1) {
                 if (cp == ' ' || cp == '\t' || cp == '{' || cp == '}' || cp == '(' || cp == ')') {
                     TerminalWindow_left(self);
-                    // EditorWindow_make_cursor_visible(self);
                     make_cursor_visible(self);
                     return;
                 }
@@ -922,11 +874,8 @@ void TerminalWindow_next_word(TerminalWindow *self) {
             if (self->cursor.y < n_lines - 1) {
                 self->cursor.y += 1;
                 self->cursor.x = 0;
-                // Node * node = EditorWindow_get_line_number(self, self->cursor.y);
                 char *line = VTermTerminal_get_line(self, self->cursor.y);
-                // self->cursor.ptr = 0;
             } else {
-                // EditorWindow_make_cursor_visible(self);
                 make_cursor_visible(self);
                 return;
             }
@@ -946,23 +895,18 @@ void TerminalWindow_right(TerminalWindow *terminal) {
 
 void TerminalWindow_prev_word(TerminalWindow *self) {
     int state = 0;
-    // self->selection.y = -1;
     while (1) {
         if (self->cursor.x == 0) {
             if (self->cursor.y > 0) {
                 self->cursor.y -= 1;
                 char *line = VTermTerminal_get_line(self, self->cursor.y);
-                // Node * node = EditorWindow_get_line_number(self, self->cursor.y);
                 self->cursor.x = strlen(line);
-                // self->cursor.ptr = node->length;
             } else {
                 make_cursor_visible(self);
-                // EditorWindow_make_cursor_visible(self);
                 return;
             }
         } else {
             char *line = VTermTerminal_get_line(self, self->cursor.y);
-            // Node * node = EditorWindow_get_line_number(self, self->cursor.y);
             uint32_t cp = utf8_decode_left2(line, &self->cursor.x);
             int w = cp_width(cp);
             self->cursor.x -= w;
@@ -974,20 +918,16 @@ void TerminalWindow_prev_word(TerminalWindow *self) {
                 if (cp == ' ' || cp == '\t' || cp == '{' || cp == '}' || cp == '(' || cp == ')') {
                     TerminalWindow_right(self);
                     make_cursor_visible(self);
-                    // EditorWindow_make_cursor_visible(self);
                     return;
                 }
             }
         }
     }
-    // EditorWindow_make_cursor_visible(self);
     make_cursor_visible(self);
 }
 
 void vterm_send_key(struct Window *wg, char c) {
-    // vterm_terminal_data *vtd = wg->data2;
     TerminalWindow *terminal = wg;
-    // Action action = mapping[c];
     Action action = get_action(c, WT_TERMINAL);
 
     if (action == ACTION_SEARCH) {
@@ -1000,16 +940,10 @@ void vterm_send_key(struct Window *wg, char c) {
             focused_cursor = focused_cursor->focused;
 
     if (focused_cursor != NULL && focused_cursor->send_key != NULL) {
-        // tab_move_to_front(focused_cursor);
         focused_cursor->send_key(focused_cursor, c);
         return;
     }
 
-    /*if (c == 12){ // Ctrl+K
-      cycle_tabs();
-      return;
-    }*/
-    // if (c == ';')
     if (action == ACTION_NEXT_WORD) {
         TerminalWindow_next_word(terminal);
         return;
@@ -1029,7 +963,6 @@ void vterm_send_key(struct Window *wg, char c) {
             if (terminal->cursor.y == -1)
                 return;
             terminal->cursor.y += 1;
-            // terminal->cursor_y = min(terminal->cursor_y, virtual_height-1);
             if (VTermTerminal_cursors_same_y(terminal))
                 terminal->cursor.y = -1;
             make_cursor_visible(terminal);
@@ -1037,16 +970,11 @@ void vterm_send_key(struct Window *wg, char c) {
         }
         if (action == ACTION_UP) {
             if (terminal->cursor.y == -1) {
-                // if (VTermTerminal_cursors_same_y(terminal)) {
-                // terminal->cursor_y = virtual_height-2;
                 terminal->cursor.x = terminal->term_cursor.x;
-                // terminal->cursor_y = terminal->term_cursor_y + terminal->win.shift - 1;
                 terminal->cursor.y = VTermTerminal_cursor_y(terminal);
             }
-            // else{
             terminal->cursor.y -= 1;
             terminal->cursor.y = max(terminal->cursor.y, 0);
-            //}
             if (VTermTerminal_cursors_same_y(terminal))
                 terminal->cursor.y = -1;
             make_cursor_visible(terminal);
@@ -1057,9 +985,6 @@ void vterm_send_key(struct Window *wg, char c) {
                 return;
             terminal->cursor.y += terminal->win.calculated.height;
             terminal->cursor.y = min(terminal->cursor.y, virtual_height - 1);
-            // if (terminal->cursor_y > terminal->scrollback.count){
-            //     terminal->cursor_y = -1;
-            // }
             if (VTermTerminal_cursors_same_y(terminal))
                 terminal->cursor.y = -1;
             make_cursor_visible(terminal);
@@ -1091,7 +1016,6 @@ void vterm_send_key(struct Window *wg, char c) {
             } else {
                 char *line = VTermTerminal_get_line(terminal, terminal->cursor.y);
                 terminal->cursor.x = strlen(line);
-                // terminal->cursor.x = terminal->cols-1;
             }
             return;
         }
@@ -1119,7 +1043,6 @@ void vterm_send_key(struct Window *wg, char c) {
             return;
         }
         if (action == ACTION_FIRST_LINE) {
-            // terminal->cursor_y = -1;
             terminal->cursor.x = terminal->term_cursor.x;
             terminal->cursor.y = terminal->term_cursor.y;
             if (VTermTerminal_cursors_same_y(terminal))
@@ -1138,8 +1061,6 @@ void vterm_send_key(struct Window *wg, char c) {
 
     /* just write to the PTY, the monitoring thread will handle reading the response */
     write(terminal->master, &c, 1);
-    // TerminalWindow * terminal = wg;
-    // update_tab_label(terminal);
 }
 
 void vterm_send_sequence(struct Window *wg, const char *seq, int len) {
@@ -1211,20 +1132,12 @@ static int cb_sb_pushline(int cols, const VTermScreenCell *cells, void *user) {
 
     scrollback_add_line(&terminal->scrollback, cols, cells);
 
-    /*LOG_INFO("[sb_pushline]\n");
-    LOG_INFO("  cols=%d\n", cols);
-
-    for (int i = 0; i < cols; i++) {
-        LOG_INFO("    cell[%d]=%c\n", i, cells[i].chars[0]);
-    }*/
-
     return 1;
 }
 
 TerminalWindow *VTermTerminal_window(int initial_rows, int initial_cols, char *cwd) {
     TerminalWindow *terminal = my_malloc(sizeof *terminal);
     memset(terminal, 0, sizeof *terminal); // Zero-initialize to prevent garbage values
-    // terminal->insert_mode = 0;
     terminal->selection.y = -1;
     terminal->last_line_idx = -1;
     terminal->last_line = NULL;
@@ -1237,10 +1150,6 @@ TerminalWindow *VTermTerminal_window(int initial_rows, int initial_cols, char *c
     terminal->win.draw = VTermTerminal_draw;
     terminal->win.scroll_wheel_up = VTermTerminal_scroll_wheel_up;
     terminal->win.scroll_wheel_down = VTermTerminal_scroll_wheel_down;
-
-    // vterm_terminal_data *vtd = malloc(sizeof *vtd);
-    // terminal->win.data2 = vtd;
-    // frame->data2 = vtd;
 
     /* initialize libvterm */
     terminal->rows = initial_rows;
@@ -1280,9 +1189,6 @@ TerminalWindow *VTermTerminal_window(int initial_rows, int initial_cols, char *c
     }
 
     terminal->pid = pid;
-    // terminal->cwd = get_shell_cwd_mac_native(pid);
-
-    // vtd->terminal = terminal;
 
     /* register this terminal for background monitoring */
     register_terminal(terminal);
@@ -1296,15 +1202,11 @@ TerminalWindow *VTermTerminal_window(int initial_rows, int initial_cols, char *c
 
 Window *VTermTerminal_callback(Tabs *self) {
     TerminalFrame *frame = Window_get_frame(self->tabs);
-    // LOG_INFO("VTermTerminal_callback %p %p %s", self->tabs, frame, frame->cwd);
 
     TerminalWindow *terminal = VTermTerminal_window(24, 80, frame->cwd);
-    // TerminalWindow *terminal = VTermTerminal_window(24, 80, NULL);
     Window *slider = slider_new(terminal);
     terminal->slider = slider;
-    // slider->id = terminal->cwd;
     slider->id = my_malloc(1024);
-    // Window_set_id_from_path(slider, terminal->cwd);
     update_tab_label(terminal);
 
     Window *searchbox = TerminalWindow_searchbox(terminal);
@@ -1317,16 +1219,6 @@ Window *VTermTerminal_callback(Tabs *self) {
 
 Window *VTermTerminal_new_tab(TerminalFrame *self) { tabs_new_tab(self->tabs->data); }
 
-/*TerminalWindow *Editor_get_focused_window(TerminalFrame *self){
-    Tab * tab = self->tabs->selected_tab;
-    return tab->child->head;
-}
-
-void Editor_on_selected(TerminalFrame *self, void fn()){
-    TerminalWindow * term = Editor_get_focused_window(self);
-    fn(term);
-}*/
-
 void VTermTerminal_close(TerminalFrame *self) {
     Tabs *tabs = self->tabs;
     Tab *tab = tabs->selected_tab;
@@ -1337,9 +1229,6 @@ Window *VTermTerminal_menu(TerminalFrame *self) {
     Window *menu = Menu_create_horizontal();
 
     Window *file = Menu_create_vertical(self);
-    // Menu_add_element(file, " 📄 New File   Ctrl+N", create_lambda(VTermTerminal_new_tab, 1,
-    // self)); Menu_add_element(file, " 📁 New Folder Ctrl+N", create_lambda(VTermTerminal_new_tab,
-    // 1, self));
     Menu_add_element(file, "    New Window", create_lambda(vterminal_new, 0));
     Menu_add_element(file, "    New Tab", create_lambda(VTermTerminal_new_tab, 1, self));
     Menu_add_element(file, "", NULL);
@@ -1353,21 +1242,8 @@ Window *VTermTerminal_menu(TerminalFrame *self) {
     Menu_add_element(edit, " 📋 Copy           Ctrl+C", create_lambda(VTermTerminal_new_tab, 0));
     Menu_add_element(edit, " 📌 Paste          Ctrl+V", create_lambda(VTermTerminal_new_tab, 0));
     Menu_add_element(edit, " ❌ Delete         Backspace", create_lambda(VTermTerminal_new_tab, 0));
-    // Menu_add_element(edit, " 📝 Rename         Ctrl+R", create_lambda(VTermTerminal_new_tab, 0));
-    // Menu_add_element(edit, "", NULL);
-    // Menu_add_element(edit, " 📋 Copy Name      Ctrl+C", create_lambda(VTermTerminal_new_tab, 0));
-    // Menu_add_element(edit, " 📋 Copy Directory Ctrl+C", create_lambda(VTermTerminal_new_tab, 0));
-    // Menu_add_element(edit, " 📋 Copy Path      Ctrl+C", create_lambda(VTermTerminal_new_tab, 0));
     Menu_add_element(edit, "", NULL);
     Menu_add_submenu(menu, " Edit ", edit);
-
-    /*Window *view = Menu_create_vertical(self);
-    //Menu_add_element(view, " ⤶ Word wrap", create_lambda(FileExplorer_menu_new, 1, self));
-    Menu_add_element(view, " ↓ Sort By Name",          create_lambda(VTermTerminal_new_tab, 0));
-    Menu_add_element(view, " ↓ Sort By Date Modified", create_lambda(VTermTerminal_new_tab, 0));
-    Menu_add_element(view, " ↓ Sort By Size",          create_lambda(VTermTerminal_new_tab, 0));
-    Menu_add_element(view, "", NULL);
-    Menu_add_submenu(menu, " View ", view);*/
 
     Menu_add_windows(menu, " Window ", self->tabs->data, self);
 
@@ -1380,11 +1256,6 @@ Window *VTermTerminal_toolbar(TerminalFrame *self) {
     Menu_add_element(toolbar, " 🔪 Cut ", create_lambda(VTermTerminal_new_tab, 0));
     Menu_add_element(toolbar, " 📋 Copy ", create_lambda(VTermTerminal_new_tab, 0));
     Menu_add_element(toolbar, " 📌 Paste ", create_lambda(VTermTerminal_new_tab, 0));
-    // Menu_add_element(toolbar, " 📝 Rename ", create_lambda(VTermTerminal_new_tab, 0));
-    // Menu_add_element(toolbar, " 🔄 Refresh ", create_lambda(VTermTerminal_new_tab, 0));
-    // Menu_add_element(toolbar, " 🔼 Up ", create_lambda(VTermTerminal_new_tab, 0));
-    // Menu_add_element(toolbar, " 📝 Edit ", create_lambda(VTermTerminal_new_tab, 0));
-    // Menu_add_element(toolbar, " 💻 Terminal ", create_lambda(VTermTerminal_new_tab, 0));
 
     toolbar->top = 1;
 
@@ -1398,8 +1269,6 @@ Window *VTermTerminal_new(int left, int right, int top, int bottom, int width, i
     Window *w = Frame_init(frame, left, right, top, bottom, width, height, NULL, 1);
     frame->win.id = "TerminalFrame";
     frame->cwd = cwd;
-    // frame->send_key = vterm_send_key;
-    // frame->send_sequence = vterm_send_sequence;
 
     // tabs
     Window *tabs = Tab_new(VTermTerminal_callback, 0);
@@ -1439,10 +1308,6 @@ Window *VTermTerminal_new(int left, int right, int top, int bottom, int width, i
     }
     return w;
 }
-
-/*Window *VTermTerminal_callback() {
-    return VTermTerminal_new(0, 0, 0, 0, 80, 24);
-        }*/
 
 /* PTY monitoring thread stubs for Windows */
 void start_pty_monitor_thread() { /* No-op on Windows */ }

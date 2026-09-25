@@ -24,21 +24,13 @@ void update_height(Window *slider_grip, Window *fm) {
         slider_grip->hidden = 1;
     slider_grip->height = min(slider_grip->height, fm->calculated.height);
     slider_grip->height = max(slider_grip->height, 1);
-    // LOG_INFO("update_height slider_grip->height %d", slider_grip->height);
-    // LOG_INFO("update_height fm->calculated.height %d", fm->calculated.height);
-    // LOG_INFO("update_height fm->virtual_height %d", fm->virtual_height);
 }
 
 void Slider_hover(Window *wg, int x, int y) {
-    // LOG_INFO("Slider_hover");
     Window *slider_grip = ((Slider_data *)wg->data)->slider_grip;
     slider_grip->hidden = 0;
     Window *fm = ((Slider_data *)wg->data)->child;
     update_height(slider_grip, fm);
-    // slider_grip->height = fm->calculated.height * fm->calculated.height / fm->virtual_height;
-    // slider_grip->height = min(slider_grip->height, fm->calculated.height);
-    // LOG_INFO("slider_new %d %d %d %d", fm->height, fm->height, fm->virtual_height,
-    // slider_grip->height);
 }
 
 void Slider_grip_hover(Window *wg, int x, int y) { wg->hidden = 0; }
@@ -53,8 +45,6 @@ void Slider_undo_hover(Window *wg, int x, int y) {
 void Slider_on_mouse_down(Window *wg, int x, int y) {
     Slider_data *slider_data = (Slider_data *)wg->data;
     Window *child = slider_data->child;
-    // LOG_INFO("Slider_on_mouse_down %d %d", slider_data->height, child->calculated.height);
-    // child->shift -= child->calculated.height;
     child->shift -= child->calculated.height;
 }
 
@@ -71,8 +61,6 @@ void Slider_set_top(struct Window *w, int top) {
     Window *child = slider_data->child;
     // how much free room there is for the handle
     int height = child->calculated.height - slider_data->slider_grip->height;
-    // child->virtual_height - child->calculated.height is the first visible element when the scroll
-    // is at the bottom w->top / height is the fraction of the scroll (0 top 1 bottom)
     if (height == 0) {
         child->shift = 0;
         return;
@@ -83,28 +71,15 @@ void Slider_set_top(struct Window *w, int top) {
 void Slider_update_top(struct Window *w) {
     // invert Slider_set_top
     Slider_data *slider_data = (Slider_data *)w->data;
-    // LOG_INFO("Slider_update_top %p", slider_data);
     Window *child = slider_data->child;
     update_height(slider_data->slider_grip, child);
     int height = child->calculated.height - slider_data->slider_grip->height;
-    // LOG_INFO("Slider_update_top height %d %d %d", child->calculated.height,
-    // slider_data->slider_grip->height, slider_data->slider_grip->shift); LOG_INFO("pre
-    // Slider_update_top %d %d %d %d", slider_data->slider_grip->top, child->shift,
-    // (child->virtual_height - child->calculated.height), height); LOG_INFO("Slider_update_top
-    // slider_data->slider_grip->top %d", slider_data->slider_grip->top);
-    // LOG_INFO("Slider_update_top child->shift %d", child->shift);
-    // LOG_INFO("Slider_update_top height %d", height);
-    // LOG_INFO("Slider_update_top (child->virtual_height - child->calculated.height)
-    // %d",(child->virtual_height - child->calculated.height)); LOG_INFO("Slider_update_top fraction
-    // child->shift / (child->virtual_height - child->calculated.height) %d",child->shift /
-    // (child->virtual_height - child->calculated.height));
     int denominator = child->virtual_height - child->calculated.height;
     if (denominator == 0) {
         slider_data->slider_grip->top = 0;
         return;
     }
     slider_data->slider_grip->top = -child->shift * height / denominator;
-    // LOG_INFO("post Slider_update_top %d", slider_data->slider_grip->top);
 }
 
 void slider_grip_draw(struct Window *w, int hasFocus) {
@@ -128,7 +103,6 @@ Window *slider_new(Window *fm) {
     Window_append(fm_slider, fm);
 
     Window *slider = malloc(sizeof *slider);
-    // Window_init(slider, -1, 0, 0, 0, 2, -1);
     Window_init(slider, -1, -1, -1, -1, -1, -1);
     slider->left = -1;
     slider->right = 0;
@@ -137,10 +111,8 @@ Window *slider_new(Window *fm) {
     slider->width = 2;
     slider->id = "slider";
     Window_append(fm_slider, slider);
-    // Window_append(slider, fm);
     slider->on_hover = Slider_hover;
     slider->undo_on_hover = Slider_undo_hover;
-    // slider->on_mouse_down = Slider_on_mouse_down;
     slider->draw = Slider_draw;
 
     Slider_data *slider_data = (Slider_data *)malloc(sizeof(Slider_data));
@@ -148,11 +120,6 @@ Window *slider_new(Window *fm) {
     slider->data = slider_data;
     fm_slider->data = slider_data;
     slider_data->child = fm;
-    // slider_data->height = height;
-    // slider_data->virtual_height = virtual_height;
-
-    // Window *slider_grip = Window_add_widget(slider, -1, 0, 0, -1, 2, 1, "░░", 232, 255);
-    // Window *slider_grip = Window_add_widget(slider, -1, -1, -1, -1, -1, -1, "░░", 232, 255);
     Window *slider_grip = malloc(sizeof *slider_grip);
     Window_init(slider_grip, -1, -1, -1, -1, -1, -1);
     slider_grip->parent = slider;
@@ -163,7 +130,6 @@ Window *slider_new(Window *fm) {
     slider_grip->top = 0;
     slider_grip->width = 2;
     slider_grip->height = 1;
-    // fm->virtual_height / fm->calculated.height = fm->calculated.height / slider_grip->height
     slider_grip->on_mouse_down = on_mouse_down_slider_grip;
     slider_grip->hidden = 1;
     slider_grip->on_hover = Slider_grip_hover;
@@ -179,7 +145,6 @@ Window *slider_new(Window *fm) {
 void Slider_make_visible(Window *w, Window *wg) {
     if (w == NULL)
         return;
-    // LOG_INFO("Slider_make_visible %p %p", w, wg);
     Slider_data *slider_data = w->data;
     Window *child = slider_data->child;
 
@@ -188,12 +153,9 @@ void Slider_make_visible(Window *w, Window *wg) {
     if (is_visible)
         return;
 
-    // LOG_INFO("Slider_make_visible2 %d %d", wg->top, child->height);
     child->shift = -(max(0, wg->top - child->calculated.height / 2));
     int min_shift = -(child->virtual_height - child->calculated.height);
     child->shift = max(child->shift, min_shift);
-    // LOG_INFO("Slider_make_visible2 %p %d %d", slider_data->slider_grip, wg->top, child->shift);
-    // Slider_set_top(slider_data->slider_grip, wg->top);
 }
 
 void Slider_show_grip(Window *w) {

@@ -185,21 +185,6 @@ int load_mappings_from_buffer(const char *data, size_t len) {
         if (action[0] == '\0')
             continue;
 
-        /*
-         * Convert the key.
-         *
-         * First try an integer:
-         *
-         *     ENTER = 13
-         *
-         * Then try a named key:
-         *
-         *     ENTER = KEY_ENTER
-         *
-         * Finally fall back to the first character:
-         *
-         *     X = x
-         */
         int key = myatoi(value);
 
         if (key == -1) {

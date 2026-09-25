@@ -57,19 +57,5 @@ void log_message(LogLevel level, const char *file, int line, const char *fmt, ..
         fflush(log_file); // Ensure it's written immediately
     }
 
-    // Also print to console (stderr)
-    /*
-fprintf(stderr, "[%s] %s %s:%d: ",
-        time_buf, level_strings[level], file, line);
-
-va_start(args, fmt);
-vfprintf(stderr, fmt, args);
-va_end(args);
-
-fprintf(stderr, "\n");
-
-if (level >= LOG_ERROR)
-    fflush(stderr);
-    */
 }
 #endif // LOGGER_C

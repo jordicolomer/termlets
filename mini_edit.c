@@ -91,16 +91,10 @@ void LineEditorWindow_send_key(Window *win, char c) {
     }
     if (c == 2) { // Ctrl+B
         LineEditorWindow_left(self);
-        // if (self->cursor > 0){
-        //      self->cursor--;
-        //  }
         return;
     }
     if (c == 6) { // Ctrl+F
         LineEditorWindow_right(self);
-        // if (self->cursor < len){
-        //      self->cursor++;
-        // }
         return;
     }
     if (c == 1) { // Ctrl+a
@@ -112,12 +106,10 @@ void LineEditorWindow_send_key(Window *win, char c) {
         return;
     }
     if (c == 13) { // Ctrl+M
-        // self->cursor = len;
         invoke_lambda(win->lambda);
         return;
     }
     if (c == 7) { // Ctrl+G
-        // self->cursor = len;
         invoke_lambda(self->on_exit);
         return;
     }

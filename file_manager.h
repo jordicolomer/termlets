@@ -22,7 +22,6 @@ typedef struct ExplorerWindow {
     struct Tab tab;
     Window *fm;
     Window *slider;
-    // int selected;
     FileItemWindow *selected;
     FileItemWindow *first_occurrence;
     char *path;

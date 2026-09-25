@@ -3,7 +3,6 @@
 #include <string.h>
 #include "taskbar.h"
 #include "file_manager.h"
-// #include "terminal.h"
 #include "vterm_terminal.h"
 #include "logger.h"
 #include "editor.h"
@@ -44,7 +43,6 @@ void task_on_mouse_down(struct Window *w, int x, int y) {
 }
 
 void cycle_task() {
-    // LOG_INFO("cycle_task %p", selectedTask);
     if (selectedTask == NULL)
         return;
     Window *task = selectedTask->next;
@@ -96,8 +94,6 @@ void update_coords(int x, int y) {
 void file_manager_new() {
     Window *fm =
         FileExplorer_new(window_x, -1, window_y, -1, root->width / 2, 2 * root->height / 3);
-    // window_x += 10;
-    // window_y += 3;
     update_coords(root->width / 2, 2 * root->height / 3);
     fm->parent = root;
     fm->id = "FileExplorer";
@@ -109,11 +105,7 @@ void file_manager_new() {
 }
 
 void window_manager_new() {
-    // Window *fm = FileExplorer_new(window_x, -1, window_y, -1, 90, 30);
-    // Window *fm = WM_create(window_x, -1, window_y, -1, 90, 30);
     Window *fm = WM_show();
-    // window_x += 10;
-    // window_y += 3;
     fm->parent = root;
     fm->id = "WindowManager";
     focused = fm;
@@ -142,8 +134,6 @@ void file_manager_mouse_down(struct Window *w, int x, int y) {
 void file_editor_new() {
     Window *fm = Editor_new(window_x, -1, window_y, -1, root->width / 2, 2 * root->height / 3);
     update_coords(root->width / 2, 2 * root->height / 3);
-    // window_x += 10;
-    // window_y += 3;
     fm->parent = root;
     fm->id = "FileEditor";
     focused = fm;
@@ -164,8 +154,6 @@ void file_editor_mouse_down(struct Window *w, int x, int y) {
 void chess_new() {
     Window *fm = Chess_new(window_x, window_y);
     update_coords(8, 8);
-    // window_x += 10;
-    // window_y += 3;
     fm->parent = root;
     fm->id = "Chess";
     focused = fm;
@@ -182,25 +170,6 @@ void chess_mouse_down(struct Window *w, int x, int y) {
 
     chess_new();
 }
-/*
-void terminal_mouse_down(struct Window *w, int x, int y){
-  Window *startMenu = w->data;
-  startMenu->hidden = 1;
-  open_menu = NULL;
-
-  Window *fm = Terminal_new(window_x, -1, window_y, -1, 80, 30);
-  window_x += 10;
-  window_y += 3;
-  fm->parent = root;
-  fm->id = "Terminal";
-  focused = fm;
-  Window_append(root, fm);
-
-  Window *task = TaskBar_new_task("💻 Terminal", fm);
-  fm->data = task;
-
-}
-*/
 
 void vterminal_new(char *cwd) {
     Window *fm =
@@ -256,14 +225,6 @@ Window *TaskBar_new() {
         Window_add_widget(startMenu, 0, -1, idx++, -1, 18, 1, "🏁 Chess", 0, taskbar_color);
     chess->on_mouse_down = chess_mouse_down;
     chess->data = startMenu;
-    // chess->on_mouse_down = Window_execute_lambda;
-    // chess->lambda = create_lambda(Chess_new, 0);
-
-    // file_editor->on_mouse_down = file_editor_mouse_down;
-    // file_editor->data = startMenu;
-    /*Window *win_manager = Window_add_widget(startMenu, 0, -1, idx++, -1, 18, 1, "🪟 Window
-    Manager", 0, taskbar_color); win_manager->on_mouse_down = window_manager_mouse_down;
-    win_manager->data = startMenu;*/
 
     Window *file_editor =
         Window_add_widget(startMenu, 0, -1, idx++, -1, 18, 1, "📝 Editor", 0, taskbar_color);
@@ -275,9 +236,6 @@ Window *TaskBar_new() {
     file_manager->on_mouse_down = file_manager_mouse_down;
     file_manager->data = startMenu;
 
-    /*Window *terminal = Window_add_widget(startMenu, 0, -1, 1, -1, 18, 1, "💻 Terminal", 0,
-    taskbar_color); terminal->on_mouse_down = terminal_mouse_down; terminal->data = startMenu;*/
-
     Window *vterminal =
         Window_add_widget(startMenu, 0, -1, idx++, -1, 18, 1, "💻 Terminal", 0, taskbar_color);
     vterminal->on_mouse_down = vterminal_mouse_down;
@@ -287,6 +245,4 @@ Window *TaskBar_new() {
         Window_add_widget(startMenu, 0, -1, idx++, -1, 18, 1, "⏻  Quit", 0, taskbar_color);
     quit->on_mouse_down = quit_mouse_down;
     quit->data = startMenu;
-
-    // Window *tasks = Window_add_widget(taskBar, 20, -1, -1, 0, 9, 1, , 0, 105);
 }

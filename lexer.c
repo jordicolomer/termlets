@@ -127,15 +127,6 @@ int in_list(const char *c, int len, const char *kw[]) {
     return 0;
 }
 
-/*int is_keyword(const char *c, int len)
-{
-    return in_list(c, len, keywords);
-}
-
-int is_type(const char *c, int len)
-{
-    return in_list(c, len, types);
-}*/
 
 int lexer_next(Lexer *l, Token *out_token) {
     if (l->finished) {

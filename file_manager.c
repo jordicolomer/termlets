@@ -333,8 +333,6 @@ void FileExplorer_refresh(ExplorerWindow *self) {
 
 void FileExplorer_list_files(ExplorerWindow *self, char *dire) {
     snprintf(self->path_label, sizeof(self->path_label), " 📁 %s", dire);
-    //Window_set_id_from_path(self, "📁", dire);
-    //snprintf(self->tab.str, sizeof(self->tab.str), " 📁 %s", dire);
 	Tab_set_title(self, dire);
 
     if (self->path != dire) {
@@ -368,7 +366,6 @@ void FileExplorer_list_files(ExplorerWindow *self, char *dire) {
         return;
     }
 
-    // int x = 0;
     while ((entry = readdir(dir)) != NULL) {
         if (strcmp(entry->d_name, "..") == 0)
             continue;
@@ -407,10 +404,6 @@ void FileExplorer_list_files(ExplorerWindow *self, char *dire) {
         // Initialize with empty values in case stat fails
         strcpy(date, "");
         strcpy(size, "");
-        /*char date[32];
-        date[0] = 0;
-        char size[16];
-        size[0] = 0;*/
         struct stat st;
         file_item->path = full_path;
         file_item->name = make_string(entry->d_name);
@@ -429,12 +422,7 @@ void FileExplorer_list_files(ExplorerWindow *self, char *dire) {
         remove_newlines(entry->d_name);
 
         int filename_width = 20;
-        // if (fm->calculated.width != 0) filename_width = fm->calculated.width - 48;
-        // LOG_INFO("fm->calculated.width: %d", fm->calculated.width);
-        // len = asprintf(&str, "%s %*s %s  %10s", icon, -filename_width, entry->d_name, date,
-        // size);
         len = asprintf(&str, "%s %s", icon, entry->d_name);
-        // Window_add_widget(w, fav_width, 0, j++, -1, -1, 1, str, 232, 255);
 
         Window_init(&file_item->win, -1, -1, -1, -1, -1, -1);
         file_item->win.left = 0;
@@ -447,10 +435,6 @@ void FileExplorer_list_files(ExplorerWindow *self, char *dire) {
 
         Window_add_widget(&file_item->win, -33, 0, 0, -1, -1, 1, date, 232, 255);
         Window_add_widget(&file_item->win, -12, 0, 0, -1, -1, 1, size, 232, 255);
-        /*Window * item = Window_add_widget(file_item, 0, -20, 0, -1, -1, 1, str, 232, 255);
-        Window_add_widget(file_item, -20, -10, 0, -1, -1, 1, date, 232, 255);
-        Window_add_widget(file_item, -10, 0, 0, -1, -1, 1, size, 232, 255);*/
-        // Window * date_item = Window_add_widget(fm, 0, 32, j, -1, -1, 1, date, 232, 255);
         j++;
 
         item->data = self;
@@ -464,9 +448,6 @@ void FileExplorer_list_files(ExplorerWindow *self, char *dire) {
 
         if (self->selected == NULL)
             FileExplorer_select_single_item(self, file_item);
-        // LOG_INFO("full_path: %s", full_path);
-        //  if (height < j) break;
-        //  mvwprintw(win, x++, 1, "%s %s", icon, entry->d_name);
     }
     closedir(dir);
 
@@ -476,15 +457,10 @@ void FileExplorer_list_files(ExplorerWindow *self, char *dire) {
              "fm->head=%p",
              j, fm->virtual_height, fm->calculated.height, fm->head);
 
-    // sort_list(fm);
     int sort_by = self->sort_by;
     self->sort_by = -1;
     FileExplorer_sort(self, sort_by);
     FileExplorer_select_single_item(self, (FileItemWindow *)fm->head);
-
-    // Clear remaining lines to remove previous list items
-    // while (j <= self->win.calculated.height)
-    //  Window_add_widget(fm, 0, 0, j++, -1, -1, 1, "", 232, 255);
 }
 
 void get_parent(char *path) {
@@ -598,7 +574,6 @@ void FileExplorer_edit(ExplorerWindow *self) {
 }
 
 void FileExplorer_terminal(ExplorerWindow *self) {
-    // Editor_last_open_file(self->selected->path);
     vterminal_new(self->path);
 }
 
@@ -613,7 +588,6 @@ void FileExplorer_down(ExplorerWindow *self) {
 }
 
 void FileExplorer_send_sequence(struct Window *win, const char *seq, int len) {
-    // LOG_INFO("FileExplorer_send_sequence: %s", seq);
     ExplorerWindow *self = win;
     if (strcmp(seq, "[A") == 0) {
         FileExplorer_up(self);
@@ -637,14 +611,12 @@ void FileExplorer_scroll_wheel_up(struct Window *w) {
 
 Window *ExplorerWindow_rename_complete(ExplorerWindow *self, LineEditorWindow *line_edit,
                                        char *origin) {
-    // rename();
     char *target = NULL;
 
     char *parent = make_string(origin);
     get_parent(parent);
     asprintf(&target, "%s/%s", parent, line_edit->buffer);
     free(parent);
-    // LOG_INFO("ExplorerWindow_rename_complete: %s %s", origin, target);
     rename(origin, target);
     free(target);
 
@@ -755,8 +727,6 @@ Window *ExplorerWindow_searchbox(ExplorerWindow *self) {
     line_edit->on_exit = create_lambda(ExplorerWindow_searchbox_exit, 1, self);
     line_edit->on_modify = create_lambda(ExplorerWindow_searchbox_on_modify, 1, self);
     line_edit->win.lambda = create_lambda(ExplorerWindow_searchbox_on_enter, 1, self);
-    // line_edit->win.data = self;
-    // line_edit->win.on_mouse_down = Editor_searchbox_on_mouse_down; // this should be a lambda
     return line_edit;
 }
 
@@ -769,7 +739,6 @@ void ExplorerWindow_action_search(ExplorerWindow *self) {
         self->first_occurrence = NULL;
     } else {
         if (self->first_occurrence)
-            // self->first_occurrence->is_selected = 0;
             ExplorerWindow_search(self, self->search_box->buffer, self->first_occurrence->win.next);
     }
 }
@@ -795,20 +764,16 @@ void FileExplorer_send_key(Window *win, char c) {
         focused_cursor->send_key(focused_cursor, c);
         return;
     }
-    // Action action = mapping_edit[c];
-    // Action action = get_mapping()[c];
 
     if (action == ACTION_DOWN) {
         FileExplorer_down(self);
         return;
     }
-    // if (c == 107){ // k
     if (action == ACTION_UP) {
         FileExplorer_up(self);
         return;
     }
     if (action == ACTION_PAGE_UP) {
-        // if (c == 117){ // u
         if (self->selected != NULL) {
             Window *selected = &self->selected->win;
             for (int i = 0; i < win->calculated.height && selected->next; i++)
@@ -818,7 +783,6 @@ void FileExplorer_send_key(Window *win, char c) {
         return;
     }
     if (action == ACTION_PAGE_DOWN) {
-        // if (c == 105){ // i
         if (self->selected != NULL) {
             Window *selected = &self->selected->win;
             for (int i = 0; i < win->calculated.height && selected->prev; i++)
@@ -836,7 +800,6 @@ void FileExplorer_send_key(Window *win, char c) {
         return;
     }
     if (action == ACTION_ENTER) {
-        // if (c == 13){ // CR
         FileItemWindow *selected = self->selected;
         if (selected != NULL && selected->win.head != NULL) {
             item_clicked(selected->win.head, 0, 0);
@@ -845,18 +808,17 @@ void FileExplorer_send_key(Window *win, char c) {
     }
     if (action == ACTION_EDIT) {
         FileItemWindow *selected = self->selected;
-        // item_clicked(selected, 0, 0);
         if (selected != NULL) {
             char *file_path = selected->path;
             Editor_last_open_file(file_path);
         }
         return;
     }
-    if (action == ACTION_PARENT_DIRECTORY) { // /
+    if (action == ACTION_PARENT_DIRECTORY) {
         FileExplorer_up_one_level(self);
         return;
     }
-    if (action == ACTION_RENAME) { // r
+    if (action == ACTION_RENAME) {
         ExplorerWindow_rename(self);
         return;
     }
@@ -893,10 +855,6 @@ ExplorerWindow *FileExplorer_file_list(Tabs *self) {
     w->win.draw = FileExplorer_draw;
 
 	w->win.id = "file list";
-    //w->win.id = malloc(ID_LENGTH * 4);
-    //snprintf(w->win.id, ID_LENGTH * 4, "file list");
-    // strcpy(w->win.id, "file.txt");
-    // w->win.id = "file list";
     int j = 0;
 
     w->sort_by = -1;
@@ -1111,17 +1069,9 @@ Window *FileExplorer_menu_delete(ExplorerFrame *self) {
                 create_lambda(FileExplorer_menu_delete_execute, 2, self, ew));
 }
 
-// char * paste_path = NULL;
-// char * paste_name = NULL;
 ExplorerWindow *paste_source = NULL;
 int paste_operation = 0;
 
-/*void string_set(char * target, char * origin){
-  if (target == origin) return;
-
-  if (target != NULL) free(target);
-  target = make_string(origin);
-}*/
 void string_set(char **target, const char *origin) {
     if (*target == origin)
         return;
@@ -1133,16 +1083,12 @@ void string_set(char **target, const char *origin) {
 Window *FileExplorer_menu_cut(ExplorerFrame *self) {
     ExplorerWindow *ew = self->tabs->focused;
     paste_source = ew;
-    // string_set(&paste_path, ew->selected->path);
-    // string_set(&paste_name, ew->selected->name);
     paste_operation = 1;
 }
 
 Window *FileExplorer_menu_copy(ExplorerFrame *self) {
     ExplorerWindow *ew = self->tabs->focused;
     paste_source = ew;
-    // string_set(&paste_path, ew->selected->path);
-    // string_set(&paste_name, ew->selected->name);
     paste_operation = 2;
 }
 
@@ -1179,12 +1125,7 @@ void FileExplorer_sort_by(ExplorerFrame *self, int sort_by) {
     FileExplorer_sort(self->tabs->focused, sort_by);
 }
 
-/*void ExplorerFrame_up_one_level(ExplorerFrame *self){
-  FileExplorer_up_one_level(self->tabs->focused);
-}*/
-
 void ExplorerFrame_on_selected(ExplorerFrame *self, void fn()) {
-    // FileExplorer_up_one_level(self->tabs->focused);
     fn(self->tabs->focused);
 }
 
@@ -1239,7 +1180,6 @@ Window *FileExplorer_menu(ExplorerFrame *self) {
     Menu_add_submenu(menu, " Edit ", edit);
 
     Window *view = Menu_create_vertical(self);
-    // Menu_add_element(view, " ⤶ Word wrap", create_lambda(FileExplorer_menu_new, 1, self));
     Menu_add_element(view, " ↓ Sort By Name",
                      create_lambda(FileExplorer_sort_by, 2, self, SORT_BY_PATH));
     Menu_add_element(view, " ↓ Sort By Date Modified",
@@ -1256,16 +1196,12 @@ Window *FileExplorer_menu(ExplorerFrame *self) {
 
 Window *FileExplorer_toolbar(ExplorerFrame *self) {
     Menu *toolbar_menu = (Menu *)Menu_create_horizontal();
-    // Menu_add_element(toolbar_menu, " 📄 New ", create_lambda(FileExplorer_menu_new, 1, self));
-    // Menu_add_element(toolbar_menu, " ❌ Close ", create_lambda(FileExplorer_menu_new, 1, self));
     Menu_add_element(toolbar_menu, " ❌ Delete ", create_lambda(FileExplorer_menu_delete, 1, self));
     Menu_add_element(toolbar_menu, " 🔪 Cut ", create_lambda(FileExplorer_menu_cut, 1, self));
     Menu_add_element(toolbar_menu, " 📋 Copy ", create_lambda(FileExplorer_menu_copy, 1, self));
     Menu_add_element(toolbar_menu, " 📌 Paste ", create_lambda(FileExplorer_menu_paste, 1, self));
     Menu_add_element(toolbar_menu, " 🔤 Rename ", create_lambda(FileExplorer_menu_rename, 1, self));
     Menu_add_element(toolbar_menu, " 🔄 Refresh ", create_lambda(ExplorerFrame_refresh, 1, self));
-    // Menu_add_element(toolbar_menu, " 🔼 Up ", create_lambda(ExplorerFrame_up_one_level, 1,
-    // self));
     Menu_add_element(toolbar_menu, " 🔝 Up ",
                      create_lambda(ExplorerFrame_on_selected, 2, self, FileExplorer_up_one_level));
     Menu_add_element(toolbar_menu, " 📝 Edit ",
@@ -1283,11 +1219,6 @@ Window *FileExplorer_new(int left, int right, int top, int bottom, int width, in
     memset(explorer_frame, 0, sizeof *explorer_frame); // Zero-initialize to prevent garbage values
     Window *frame = (Window *)explorer_frame;
     Window *w = Frame_init(frame, left, right, top, bottom, width, height, NULL, 0);
-
-    /*Window * menu = FileExplorer_menu();
-    Window_append(w, menu);
-    Window * toolbar = FileExplorer_toolbar();
-    Window_append(w, toolbar);*/
 
     Window *tabs = Tab_new((Window * (*)(Tabs *self)) FileExplorer_file_list, 1);
     tabs->top = 2;

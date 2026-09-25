@@ -21,7 +21,6 @@ void on_mouse_down_window_bar(Window *wg, int x, int y) {
 
 void on_mouse_down_close(Window *wg, int x, int y) {
     LOG_INFO("on_mouse_down_close");
-    // Window_remove(wg->parent);
     Frame_close(wg->parent);
     focused = NULL;
 }

@@ -46,34 +46,11 @@ void init() {
     Window_init(root, 0, -1, 0, -1, cols, rows + 1);
     root->id = "root";
 
-    /*Window *w1 = FileExplorer_new(20, -1, 10, -1, 80, 20);
-    w1->parent = root;
-    w1->id = "FileExplorer1";
-    Window_append(root, w1);
-
-    Window *w2 = FileExplorer_new(30, -1, 15, -1, 80, 30);
-    w2->parent = root;
-    w2->id = "FileExplorer2";
-    Window_append(root, w2);
-
-    Window *w3 = FileExplorer_new(5, -1, 5, -1, 80, 30);
-    w3->parent = root;
-    w3->id = "FileExplorer3";
-    Window_append(root, w3);*/
-
     TaskBar_new();
 
-    /*Window* w2 = FileExplorer_test(100, 30, 80, 40);
-    w2->parent = root;
-    Window_append(root, w2);*/
-
-    // dragging = w1;
 }
 
 void repaint() {
-    // LOG_INFO("repaint");
-    // printf("\x1b[44m\x1b[37m");
-
     // redraw everything
 #ifdef USE_BUFFER
     Buffer_clear(&main_buf);
@@ -98,14 +75,11 @@ void repaint() {
 }
 
 void on_drag(int x, int y) {
-    // LOG_INFO("on_drag x: %d y: %d", x, y);
     if (draggingY != NULL) {
-        // LOG_INFO("dragging");
         if (draggingX != NULL)
             draggingX->left =
                 min(max(0, x - dragging_offset_x), draggingX->parent->width - draggingX->width);
         int parent_height = draggingY->parent->calculated.height;
-        // LOG_INFO("on_drag %d %d", parent_height, dragging->parent->calculated.height);
         int new_top = min(max(0, y - dragging_offset_y), parent_height - draggingY->height);
         draggingY->set_top(draggingY, new_top);
         repaint();
@@ -117,7 +91,6 @@ void on_drag(int x, int y) {
     } else {
         Geometry rect = {0, 0, root->width, root->height};
         Window *wg = Window_find_widget(root, x, y);
-        // LOG_INFO("Window_find_widget: %p id: %s", wg, wg->id);
 
         if (hovering != NULL && hovering->undo_on_hover != NULL && hovering != wg) {
             hovering->undo_on_hover(hovering, x, y);
@@ -145,11 +118,8 @@ void on_command_mouse_down(int x, int y) {
 
 void on_mouse_down(int x, int y) {
     LOG_INFO("on_mouse_down: %d %d", x, y);
-    // Geometry rect = {0, 0, root->width, root->height};
     Window *wg = Window_find_widget(root, x, y);
     LOG_INFO("Window_find_widget: %p", (void *)wg);
-    // Window * frame = Window_get_frame(wg);
-    // TaskBar_switch_frame(frame);
     select_window(wg);
 
     int action_triggered = 0;
@@ -163,14 +133,12 @@ void on_mouse_down(int x, int y) {
             wg->on_mouse_down(wg, x, y);
             action_triggered = 1;
         }
-        // dragging = wg;
     }
     if (!action_triggered && open_menu != NULL) {
         open_menu->hidden = 1;
         open_menu = NULL;
     }
     repaint();
-    // repaint();
 }
 
 void on_mouse_up() {
@@ -188,7 +156,6 @@ void on_mouse_up() {
     }
 }
 
-// #include <locale.h>
 int start() {
 #ifdef _WIN32
     /* Set console to UTF-8 mode on Windows - MUST be done first */
@@ -242,13 +209,9 @@ int start() {
             continue;
         }
         LOG_INFO("read %d", c);
-        // Action action = get_mapping()[c];
         Action action = get_action(c, WT_NONE);
         LOG_INFO("action %d", action);
 
-        // if (c == 11){ // Ctrl+K
-        // if (c == '\t'){ // tab
-        // if (c == 'm' && insert_mode == 0 && wm != focused){ // m
         if (wm != focused & search_mode == 0) {
             if (action == ACTION_NEXT_WINDOW) {
                 cycle_task();
@@ -271,17 +234,12 @@ int start() {
                 continue;
             }
         }
-        /*if (c == 96){ // Ctrl+space
-          cycle_task();
-          repaint();
-          continue;
-              }*/
-        if (action == ACTION_TERMINAL) { // Ctrl+T
+        if (action == ACTION_TERMINAL) {
             vterminal_new(NULL);
             repaint();
             continue;
         }
-        if (action == ACTION_FILE_MANAGER) { // Ctrl+E
+        if (action == ACTION_FILE_MANAGER) {
             file_manager_new();
             repaint();
             continue;
@@ -291,22 +249,6 @@ int start() {
             repaint();
             continue;
         }
-        /*if (insert_mode == 0){
-          if (c == 'm'){
-            cycle_tab();
-            repaint();
-            continue;
-          }
-          if (c == 'M'){
-            cycle_tab_reverse();
-            repaint();
-            continue;
-          }
-            }*/
-        /*if (action == ACTION_INSERT_TAB){ // Ctrl+space then insert tab
-              c = '\t';
-              }*/
-
         if (c != 27) {
             if (focused_cursor != NULL) {
                 if (focused_cursor->send_key != NULL) {
@@ -320,7 +262,6 @@ int start() {
         // ESC sequence
         if (c == 27) {
             char seq[32];
-            // seq[0] = 27;
             int i = 0;
 
             // read rest of escape sequence
@@ -365,18 +306,12 @@ int start() {
             }
 
             if (sscanf(seq, "[<%d;%d;%d%c", &btn, &x, &y, &type) == 4) {
-                // LOG_INFO("mouse event seq:%s btn:%d x:%d y:%d type:%c", seq, btn, x, y, type);
                 /* mouse event */
-                // LOG_INFO("sscanf %d %d %d %c", btn, x, y, type);
                 if (dragging == 0 && btn == 0 && type == 'M') { // click
-                    // Don't allow starting drag from first row
-                    // if (y == 1)
-                    //  continue;
                     dragging = 1;
                     on_mouse_down(x, y);
                 }
                 if (/*dragging == 0 && */ btn == 8 && type == 'M') { // click
-                    // dragging = 1;
                     on_command_mouse_down(x, y);
                 }
                 if (dragging == 0 && btn == 64 && type == 'M') { // scroll wheel down
@@ -406,19 +341,10 @@ int start() {
                     on_mouse_up();
                 }
 
-                // if (dragging == 1){
                 on_drag(x, y);
-                //}
             } else {
                 /* not a mouse event, probably arrow keys or other keyboard sequence */
                 if (focused_cursor != NULL && focused_cursor->send_sequence != NULL) {
-                    /* construct full escape sequence */
-                    // char full_seq[34];
-                    // full_seq[0] = 27;  /* ESC */
-                    // memcpy(full_seq + 1, seq, i);
-                    // LOG_INFO("else %p %p %s", focused_cursor, focused_cursor->send_sequence,
-                    // focused_cursor->id);
-                    // focused_cursor->send_sequence(focused_cursor, full_seq, i + 1);
                     focused_cursor->send_sequence(focused_cursor, seq, i);
                     repaint();
                 }
@@ -442,18 +368,6 @@ int start() {
     // printf("\033[2J\033[H");
     return 0;
 }
-
-/*
-int test_buffer(){
-  Buffer buf;
-  Buffer_init(&buf, 20, 20);
-  Buffer_print(&buf, 0, 0, 10, "🔪hello", RED_BG, BLACK);
-  Buffer_print(&buf, 1, 0, 10, "🔪hi", BLUE_BG, BLACK);
-  Buffer_print(&buf, 3, 3, 11, "hello world", WHITE_BG, BLACK);
-  Buffer_print(&buf, 0, 4, 10, "hello", GREEN_BG, BLACK);
-  Buffer_print_to_screen(&buf);
-}
-*/
 
 #include <signal.h>
 
@@ -498,8 +412,6 @@ void setup_crash_handler() {
 }
 
 int parse_args(int argc, char **argv) {
-    // const char *config_file = NULL;
-    // const char *filename = NULL;
 
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "--config") == 0) {
@@ -518,9 +430,6 @@ int parse_args(int argc, char **argv) {
             fprintf(stderr, "Unknown option: %s\n", argv[i]);
             return 1;
         }
-        /*else {
-          filename = argv[i];
-        }*/
     }
     return 0;
 }
@@ -530,5 +439,4 @@ int main(int argc, char **argv) {
     parse_args(argc, argv);
     setup_crash_handler();
     start();
-    // calculate_width("~$ll Stack Developer – Data Analytics and Integration.docx");
 }

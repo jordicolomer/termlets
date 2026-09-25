@@ -100,6 +100,3 @@ char *clipboard_paste(void) {
     return NULL;
 #endif
 }
-/*int main(){
-    clipboard_copy("test");
-}*/

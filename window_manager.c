@@ -27,13 +27,10 @@ void WM_draw(struct Window *w, int hasFocus) {
         int bg = 255;
         if (j == selected)
             bg = SELECTED_COLOR;
-        // Buffer_print(&main_buf, geo.y + j++, geo.x, geo.width, tabs->child->id, 232, bg);
         Buffer_print(&main_buf, geo.y + j++, geo.x, geo.width, tabs->str, 232, bg);
         tabs = tabs->all_tabs_next;
     }
     w->data2 = (void *)j;
-
-    // w->height = j;
 }
 
 void WM_up(Window *self) {
@@ -67,7 +64,6 @@ void WM_select(Window *self) {
 
 void WM_send_key(Window *self, char c) {
     Action action = get_action(c, WT_WINDOW_MANAGER);
-    // Action action = get_mapping()[c];
 
     if (action == ACTION_DOWN) {
         WM_down(self);
@@ -115,7 +111,6 @@ Window *WM_create(int left, int right, int top, int bottom, int width, int heigh
 Window *wm = NULL;
 
 Window *WM_show() {
-    // LOG_INFO("WM_show");
     if (wm == NULL) {
         int width = root->width / 3;
         int height = root->height / 2;

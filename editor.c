@@ -111,13 +111,8 @@ void EditorWindow_insert(EditorWindow *self, char c) {
     set_modified(self, 1);
     Node *node = EditorWindow_get_line_number(self, self->cursor.y);
 
-    // Calculate byte position BEFORE potential realloc
-    // size_t byte_pos = (uint8_t *)self->cursor_ptr - (uint8_t *)node->line;
-
     if (node->capacity <= node->length + 1) {
         double_capacity(node);
-        // After realloc, cursor_ptr is invalid! Recalculate it
-        // self->cursor_ptr = node->line + byte_pos;
     }
 
     insert_char(node->line, self->cursor.ptr, c, node->length, node->capacity);
@@ -131,7 +126,6 @@ void EditorWindow_insert(EditorWindow *self, char c) {
     node->width += w;
 
     // Update cursor_ptr to point after the inserted character
-    // self->cursor_ptr = node->line + byte_pos + 1;
     self->cursor.ptr += 1;
 
     // update_lexer_state(self->head);
@@ -179,11 +173,9 @@ void EditorWindow_backspace(EditorWindow *self) {
             self->cursor.x = prev->width; // Use width (display), not length (bytes)
             int prev_length = prev->length;
             Node_append(prev, node->line);
-            // self->cursor_ptr = prev->line + prev_length;  // Point to end of prev line
             self->cursor.ptr = prev_length;
             self->cursor.y--;
             self->n_lines--;
-            // self->win.virtual_height = self->n_lines;
             EditorWindow_update_height(self);
             prev->next = next;
             if (next == NULL)
@@ -385,10 +377,6 @@ void EditorWindow_delete_region(EditorWindow *self) {
     Node *node1 = EditorWindow_get_line_number(self, i1);
     Node *node2 = EditorWindow_get_line_number(self, i2);
 
-    // Use byte pointers instead of display widths
-    // char * tail = (char *)j2_ptr;
-    // size_t byte_pos1 = j1_ptr - (uint8_t *)node1->line;
-
     node1->line[j1_ptr] = 0;
     node1->length = j1_ptr;  // byte length
     node1->width = j1_width; // display width
@@ -407,7 +395,6 @@ void EditorWindow_delete_region(EditorWindow *self) {
 
     self->selection.y = -1;
     self->n_lines -= i2 - i1;
-    // self->win.virtual_height = self->n_lines;
     EditorWindow_update_height(self);
 
     update_lexer_state(node1, 1, self->language);
@@ -464,13 +451,11 @@ void EditorWindow_newline(EditorWindow *self) {
         next->prev = new_node;
 
     // Truncate current line at cursor position
-    // size_t byte_pos = (uint8_t *)self->cursor_ptr - (uint8_t *)node->line;
     node->line[self->cursor.ptr] = '\0';
     node->length = self->cursor.ptr; // byte length, not display width
     node->width = self->cursor.x;    // display width
 
     self->n_lines++;
-    // self->win.virtual_height = self->n_lines;
     EditorWindow_update_height(self);
     self->cursor.y++;
     EditorWindow_make_cursor_visible(self);
@@ -513,7 +498,6 @@ Node *create_node(const char *text) {
         perror("malloc failed");
         exit(1);
     }
-    // replace_nonprintable(text);
     new_node->line = strdup(text); // copy string
     new_node->length = strlen(text);
     new_node->width = calculate_width(text);
@@ -550,9 +534,6 @@ void load_file(EditorWindow *self, const char *filename) {
     }
     LOG_INFO("load_file %s", filename);
 	Tab_set_title(self, filename);
-    //snprintf(self->tab.str, sizeof(self->tab.str), " 📝 %s", filename);
-    //Window_set_id_from_path(self, "📝", filename);
-    // set_modified(self, 0);
     FILE *file = fopen(filename, "r");
     if (!file) {
         perror("fopen failed");
@@ -560,28 +541,12 @@ void load_file(EditorWindow *self, const char *filename) {
     }
 
     char buffer[MAX_LINE];
-    // char expanded[MAX_LINE];
 
     int line_count = 0;
     while (fgets(buffer, MAX_LINE, file)) {
         line_count++;
         // Optional: remove newline
         buffer[strcspn(buffer, "\n")] = '\0';
-
-        // Replace tabs with spaces (4 spaces per tab)
-        /*int j = 0;
-        for (int i = 0; buffer[i] != '\0' && j < MAX_LINE - 4; i++) {
-            if (buffer[i] == '\t') {
-                // Replace tab with 4 spaces
-                expanded[j++] = ' ';
-                expanded[j++] = ' ';
-                expanded[j++] = ' ';
-                expanded[j++] = ' ';
-            } else {
-                expanded[j++] = buffer[i];
-            }
-        }
-        expanded[j] = '\0';*/
 
         append(self, buffer);
         self->n_lines++;
@@ -593,7 +558,6 @@ void load_file(EditorWindow *self, const char *filename) {
 
     fclose(file);
 
-    // self->win.virtual_height = self->n_lines;
     EditorWindow_update_height(self);
 
     self->cursor.ptr = 0;
@@ -647,17 +611,11 @@ void EditorWindow_start_selection(EditorWindow *self) {
     self->selection.ptr = self->cursor.ptr;
 }
 
-// void EditorWindow_log(EditorWindow *self){
-//   LOG_INFO("EditorWindow_log %p %d %d %d", self, self->cursor.y, self->cursor.x,
-//   self->cursor.ptr);
-// }
-
 void _EditorWindow_up(EditorWindow *self) {
     self->cursor.y--;
     self->cursor.y = max(self->cursor.y, 0);
     EditorWindow_fix_cursor_x(self);
     EditorWindow_make_cursor_visible(self);
-    // EditorWindow_log(self);
 }
 
 void _EditorWindow_down(EditorWindow *self) {
@@ -665,15 +623,11 @@ void _EditorWindow_down(EditorWindow *self) {
     self->cursor.y = min(self->cursor.y, self->n_lines - 1);
     EditorWindow_fix_cursor_x(self);
     EditorWindow_make_cursor_visible(self);
-    // EditorWindow_log(self);
 }
 
 void _EditorWindow_right(EditorWindow *self) {
     Node *node = EditorWindow_get_line_number(self, self->cursor.y);
-    // char * cursor_ptr = node->line + self->cursor_ptr;
     if (node->line[self->cursor.ptr] != 0) {
-        // Node * node = EditorWindow_get_line_number(self, self->cursor_n);
-        // uint32_t cp = utf8_decode(&self->cursor_ptr);
         uint32_t cp = utf8_decode2(node->line, &self->cursor.ptr);
         int w = cp_width(cp);
         self->cursor.x += w;
@@ -685,7 +639,6 @@ void _EditorWindow_right(EditorWindow *self) {
             self->cursor.ptr = 0;
         }
     }
-    // EditorWindow_log(self);
 }
 
 void _EditorWindow_left(EditorWindow *self) {
@@ -698,23 +651,17 @@ void _EditorWindow_left(EditorWindow *self) {
         }
     } else {
         Node *node = EditorWindow_get_line_number(self, self->cursor.y);
-        // uint32_t cp = utf8_decode_left(&self->cursor_ptr, node->line);
-        // LOG_INFO("self->cursor_ptr %d", self->cursor_ptr);
         uint32_t cp = utf8_decode_left2(node->line, &self->cursor.ptr);
-        // LOG_INFO("self->cursor_ptr %d", self->cursor_ptr);
         int w = cp_width(cp);
-        // LOG_INFO("_EditorWindow_left %d %d", cp, w);
 
         self->cursor.x -= w;
     }
-    // EditorWindow_log(self);
 }
 
 void EditorWindow_up(EditorWindow *self) {
     _EditorWindow_up(self);
     if (insert_mode == 1) {
         EditorWindow_start_selection(self);
-        // self->selection_n = -1;
     }
 }
 
@@ -722,7 +669,6 @@ void EditorWindow_down(EditorWindow *self) {
     _EditorWindow_down(self);
     if (insert_mode == 1) {
         EditorWindow_start_selection(self);
-        // self->selection_n = -1;
     }
 }
 
@@ -730,7 +676,6 @@ void EditorWindow_right(EditorWindow *self) {
     _EditorWindow_right(self);
     if (insert_mode == 1) {
         EditorWindow_start_selection(self);
-        // self->selection_n = -1;
     }
 }
 
@@ -738,7 +683,6 @@ void EditorWindow_left(EditorWindow *self) {
     _EditorWindow_left(self);
     if (insert_mode == 1) {
         EditorWindow_start_selection(self);
-        // self->selection_n = -1;
     }
 }
 
@@ -752,7 +696,6 @@ void EditorWindow_shift_left(EditorWindow *self) { _EditorWindow_left(self); }
 
 void EditorWindow_next_word(EditorWindow *self) {
     int state = 0;
-    // self->selection.y = -1;
     while (1) {
         Node *node = EditorWindow_get_line_number(self, self->cursor.y);
         if (node->line[self->cursor.ptr] != 0) {
@@ -786,7 +729,6 @@ void EditorWindow_next_word(EditorWindow *self) {
 
 void EditorWindow_prev_word(EditorWindow *self) {
     int state = 0;
-    // self->selection.y = -1;
     while (1) {
         if (self->cursor.x == 0) {
             if (self->cursor.y > 0) {
@@ -939,7 +881,6 @@ void EditorWindow_action_indent(EditorWindow *self) {
     int x = self->cursor.x;
 
     int leading_tabs_or_spaces = count_leading_tabs_or_spaces(self, current_node);
-    // LOG_INFO("EditorWindow_action_indent leading_tabs_or_spaces:%d", leading_tabs_or_spaces);
     if (leading_tabs_or_spaces > 0) {
         self->cursor.x = leading_tabs_or_spaces;
         self->cursor.ptr = leading_tabs_or_spaces;
@@ -1046,23 +987,12 @@ void EditorWindow_action_search(EditorWindow *self) {
 void EditorWindow_send_key(Window *win, char c) {
 
     EditorWindow *self = win;
-    // Action action = get_mapping()[c];
     Action action = get_action(c, WT_EDITOR);
-    // LOG_INFO("EditorWindow_send_key %d %d", c, action);
 
     if (action == ACTION_SEARCH) {
         EditorWindow_action_search(self);
         return;
     }
-
-    /*if (self->win.focused == self->search_box){
-          if (c == 7){
-            self->search_box->win.hidden = 1;
-            search_mode = 0;
-            self->win.focused = NULL;
-            return;
-          }
-          }*/
 
     Window *focused_cursor = win->focused;
     if (focused_cursor != NULL)
@@ -1070,15 +1000,10 @@ void EditorWindow_send_key(Window *win, char c) {
             focused_cursor = focused_cursor->focused;
 
     if (focused_cursor != NULL && focused_cursor->send_key != NULL) {
-        // tab_move_to_front(focused_cursor);
         focused_cursor->send_key(focused_cursor, c);
         return;
     }
 
-    /*if (action == ACTION_MODE){
-          insert_mode = 1 - insert_mode;
-          return;
-    }*/
     if (action == ACTION_INDENT) {
         EditorWindow_action_indent(self);
         return;
@@ -1093,8 +1018,6 @@ void EditorWindow_send_key(Window *win, char c) {
         return;
     }
     if (action == ACTION_START_OF_LINE) {
-        // self->cursor.x = 0;
-        // EditorWindow_fix_cursor_x(self);
         EditorWindow_action_start_of_line(self);
         return;
     }
@@ -1158,8 +1081,6 @@ void EditorWindow_send_key(Window *win, char c) {
         return;
     }
     if (action == ACTION_START_SELECTION) {
-        // self->selection_n = self->cursor_n;
-        // self->selection_x = self->cursor_x;
         EditorWindow_start_selection(self);
         return;
     }
@@ -1188,11 +1109,6 @@ void EditorWindow_send_key(Window *win, char c) {
         EditorWindow_insert(self, ';');
         return;
     }
-    /*if (action == ACTION_SEARCH){
-          EditorFrame * frame = Window_get_frame(win);
-          EditorFrame_search(frame);
-          return;
-          }*/
     if (action == ACTION_DELETE) {
         EditorWindow_delete(self);
         return;
@@ -1217,7 +1133,6 @@ void EditorWindow_draw_selection(struct Window *w, EditorPointer p1, EditorPoint
     Geometry geo = w->calculated;
     int i = 0;
     int top_line = -self->win.shift;
-    // Node *current = EditorWindow_get_line_number(self, top_line);
     while (i < geo.height) {
         if (p2.y != -1) {
             if ((p1.y < top_line + i && top_line + i < p2.y) ||
@@ -1239,7 +1154,6 @@ void EditorWindow_draw_selection(struct Window *w, EditorPointer p1, EditorPoint
                     idx2 = p2.x;
                 }
                 int diff = idx2 - idx1;
-                // Buffer_print(&main_buf, geo.y + i, geo.x+idx1, diff, str+idx1, 16, 27);
                 Buffer_set_bg(&main_buf, geo.y + i, geo.x + idx1, diff, color);
             }
             if (p1.y == top_line + i) { // line with cursor
@@ -1257,37 +1171,24 @@ void EditorWindow_draw_selection(struct Window *w, EditorPointer p1, EditorPoint
                     idx2 = geo.width;
                 }
                 int diff = idx2 - idx1;
-                // Buffer_print(&main_buf, geo.y + i, geo.x+idx1, diff, str+idx1, 16, 27);
                 Buffer_set_bg(&main_buf, geo.y + i, geo.x + idx1, diff, color);
             }
         }
         i++;
-        // if (current != NULL)
-        //     current = current->next;
     }
 }
 
 void EditorWindow_draw(struct Window *w, int hasFocus) {
-    // LOG_INFO("EditorWindow_draw");
-    // int first_visible_line = -w->shift;
     EditorWindow *self = w;
-    // self->cursor_n = first_visible_line;
-    // EditorWindow_make_cursor_visible(self);
-    // EditorWindow_update_first_visible_line(self, first_visible_line);
 
     Geometry geo = w->calculated;
     int i = 0;
-    // Node * current = self->top;
-    /*Node *current = self->head;
-    for (int i = 0; i < -self->win.shift; i++)
-        current = current->next;*/
     int top_line = -self->win.shift;
     Node *current = EditorWindow_get_line_number(self, top_line);
 
     while (i < geo.height) {
         // background color
         int bg = 255;
-        // bg = 236;
         if (bg >= 232 + 2 && !hasFocus)
             bg -= 2;
 
@@ -1295,19 +1196,7 @@ void EditorWindow_draw(struct Window *w, int hasFocus) {
         if (current != NULL)
             str = current->line;
 
-        // if in between selection, show blue bg
-        /*if (self->selection.n != -1){
-            if (self->cursor.n < top_line+i && top_line+i < self->selection.n) bg = 27;
-            if (self->selection.n < top_line+i && top_line+i < self->cursor.n) bg = 27;
-                        }*/
-
         Buffer_print(&main_buf, geo.y + i, geo.x, geo.width, str, 16, bg);
-
-        /*if (-self->win.shift + i == self->cursor.n){ // show cursor
-            bg = 208;
-            if (insert_mode == 1) bg = 27;
-                        Buffer_set_bg(&main_buf, geo.y + i, geo.x+self->cursor.x, 1, bg);
-                        }*/
 
         // syntax highlighter
 
@@ -1322,7 +1211,6 @@ void EditorWindow_draw(struct Window *w, int hasFocus) {
                 int maxWidth = geo.width - token.start;
                 width = min(width, maxWidth);
                 Buffer_set_fg(&main_buf, geo.y + i, geo.x + token.start_screen, width, token.color);
-                // LOG_INFO("lexer_next %d %d %d", token.start, token.end, token.color);
             }
         }
 
@@ -1342,22 +1230,8 @@ void EditorWindow_draw(struct Window *w, int hasFocus) {
         Buffer_set_bg(&main_buf, geo.y + i, geo.x + self->cursor.x, 1, bg);
 }
 
-/*
-void EditorFrame_escape_search_box(EditorFrame *self){
-  //insert_mode = restore_insert_mode;
-  search_mode = 0;
-  if (self->win.focused == self->search_box) {
-        self->win.focused = self->tabs;
-        EditorWindow * editor = self->tabs->win.focused->focused; // this is bad code. fix it
-        editor->highlight_start.n = -1;
-        editor->highlight_end.n = -1;
-  }
-}
-*/
-
 void EditorWindow_on_mouse_down(Window *win, int x, int y) {
     EditorFrame *frame = Window_get_frame(win);
-    // EditorFrame_escape_search_box(frame);
 
     EditorWindow *self = win;
     self->cursor.y = y - win->shift - win->calculated.y;
@@ -1408,17 +1282,14 @@ EditorWindow *EditorWindow_new() {
     self->top_n = 0;
     self->cursor.y = 0;
     self->cursor.x = 0;
-    // self->insert_mode = 0;
     self->selection.y = -1;
     self->selection.x = 0;
     self->highlight_start.y = -1;
     self->highlight_end.y = -1;
     self->language = LANG_NONE;
-    //self->modified = 0;
     self->selecting = 0;
     self->tab.icon = "📄";
 
-    // Window *editor = (Window *) self;
     self->win.draw = EditorWindow_draw;
 
     self->win.send_key = EditorWindow_send_key;
@@ -1441,7 +1312,6 @@ Window *EditorWindow_new_tab(Tabs *self) {
     Slider_show_grip(slider);
     editor->slider = slider;
 
-    //editor->win.id = malloc(ID_LENGTH * 4);
 	editor->win.id = "tab";
     slider->id = editor->win.id;
 
@@ -1524,7 +1394,6 @@ Window *Editor_menu(EditorFrame *self) {
     char *show_tabs_label = strdup("   Show Tabs");
     Menu_add_element(view, show_tabs_label,
                      create_lambda(Editor_show_tabs, 2, self, show_tabs_label));
-    // Menu_add_bool_element(view, " Show Tabs", &self->show_tabs);
     Menu_add_element(view, "", NULL);
     Menu_add_submenu(menu, " View ", view);
 
@@ -1582,82 +1451,11 @@ Window *_Editor_searchbox(EditorFrame *self) {
     return search_box;
 }
 
-/*
-Window *Editor_searchbox_enter(EditorFrame *self){
-  EditorWindow * editor = self->tabs->win.focused->focused; // this is bad code. fix it
-  EditorWindow_search(editor, self->search_box->buffer);
-}
-
-void EditorFrame_search(EditorFrame *self){
-  //restore_insert_mode = insert_mode;
-  //insert_mode = 1;
-  search_mode = 1;
-  self->win.focused = self->search_box;
-}
-
-void Editor_searchbox_on_mouse_down(struct Window *self, int x, int y){
-  EditorFrame_search(self->data);
-}
-
-Window *Editor_searchbox(EditorFrame *self)
-{
-  LineEditorWindow * line_edit = LineEditorWindow_new(NULL, "Search");
-  line_edit->win.top = 1;
-  line_edit->win.left = -1;
-  line_edit->win.right = 2;
-  line_edit->win.width = 15;
-  line_edit->win.height = 1;
-  line_edit->win.bg = 15;
-  line_edit->win.lambda = create_lambda(Editor_searchbox_enter, 1, self);
-  line_edit->win.data = self;
-  line_edit->win.on_mouse_down = Editor_searchbox_on_mouse_down; // this should be a lambda
-  return line_edit;
-}
-
-
-void EditorFrame_send_key(struct Window *wg, char c){
-  EditorFrame *self = wg;
-  Action action = get_mapping()[c];
-  if (action == ACTION_SEARCH){
-        EditorFrame_search(self);
-        return;
-  }
-
-    Window *focused_cursor = wg->focused;
-    if (focused_cursor != NULL) while (focused_cursor->send_key == NULL && focused_cursor->focused
-!= NULL) focused_cursor = focused_cursor->focused;
-
-    if (focused_cursor != NULL && focused_cursor->send_key != NULL) {
-        focused_cursor->send_key(focused_cursor, c);
-    }
-}
-
-void EditorFrame_send_sequence(struct Window *wg, const char *seq, int len)
-{
-  EditorFrame *self = wg;
-  if (strlen(seq) == 0) { // esc
-        EditorFrame_escape_search_box(self);
-        return;
-  }
-
-    Window *focused_cursor = wg->focused;
-    if (focused_cursor != NULL) while (focused_cursor->send_sequence == NULL &&
-focused_cursor->focused != NULL) focused_cursor = focused_cursor->focused;
-
-    if (focused_cursor != NULL && focused_cursor->send_sequence != NULL) {
-          focused_cursor->send_sequence(focused_cursor, seq, len);
-    }
-}
-*/
-
 Window *Editor_new(int left, int right, int top, int bottom, int width, int height) {
     EditorFrame *editor_frame = malloc(sizeof *editor_frame);
     memset(editor_frame, 0, sizeof *editor_frame); // Zero-initialize
     Window *frame = editor_frame;
-    // Window *frame = malloc(sizeof *frame);
     Window *w = Frame_init(frame, left, right, top, bottom, width, height, NULL, 0);
-    // frame->send_key = EditorFrame_send_key;
-    // frame->send_sequence = EditorFrame_send_sequence;
 
     Window *tabs = Tab_new((Window * (*)(Tabs *self)) EditorWindow_new_tab, 0);
     editor_frame->tabs = tabs;
@@ -1673,10 +1471,6 @@ Window *Editor_new(int left, int right, int top, int bottom, int width, int heig
     Window *menu = Editor_menu(editor_frame);
     Window_append(w, menu);
 
-    // EditorWindow * search_box = Editor_searchbox(editor_frame);
-    // editor_frame->search_box = search_box;
-    // Window_append(w, search_box);
-
     last_frame = frame;
 
     return frame;
@@ -1684,15 +1478,12 @@ Window *Editor_new(int left, int right, int top, int bottom, int width, int heig
 
 void Editor_open_file(EditorFrame *editor_frame, char *file_path) {
     if (file_path == NULL) {
-        LOG_INFO("Editor_open_file: file_path is NULL");
         return;
     }
     if (editor_frame == NULL) {
-        LOG_INFO("Editor_open_file: editor_frame is NULL");
         return;
     }
     if (editor_frame->tabs == NULL) {
-        LOG_INFO("Editor_open_file: editor_frame->tabs is NULL");
         return;
     }
     // if file already been opened, give focus
@@ -1701,7 +1492,6 @@ void Editor_open_file(EditorFrame *editor_frame, char *file_path) {
     int tab_count = 0;
     while (tab != NULL) {
         tab_count++;
-        LOG_INFO("Editor_open_file: checking tab %d, tab=%p", tab_count, tab);
         if (tab_count > 100) {
             LOG_INFO("Editor_open_file: ERROR infinite loop detected in tab list!");
             break;
@@ -1735,14 +1525,11 @@ void Editor_last_open_file(char *file_path) {
     }
     if (last_frame == NULL) {
         file_editor_new();
-        // return;
     }
     if (last_frame == NULL) {
         LOG_INFO("Editor_last_open_file: last_frame is still NULL after file_editor_new");
         return;
     }
     Editor_open_file(last_frame, file_path);
-    // Window_bring_to_bottom(last_frame);
-    // root->focused = last_frame;
     TaskBar_switch_frame(last_frame);
 }
