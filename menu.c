@@ -35,6 +35,7 @@ static int asprintf(char **strp, const char *fmt, ...) {
 #include "logger.h"
 #include "buffer.h"
 #include "lambda.h"
+#include "common.h"
 
 void Execute_lambda(struct Window *w, int x, int y) { invoke_lambda(w->lambda); }
 
@@ -181,6 +182,12 @@ void Menu_change_color_normal(Window *w, int x, int y) {
     w->bg = 253;
 }
 
+void Menu_change_color_selected(Window *w, int x, int y) {
+    w->fg = 232;
+    w->bg = SELECTED_COLOR;
+}
+
+
 /*void Menu_lambda(struct Window *w, int x, int y)
 {
     Window *(*fn)(Window *, Tabs *, struct Window *) = (Window * (*)(Window *, Tabs *, struct Window
@@ -251,10 +258,10 @@ Window *Menu_list_windows(Menu *menu, Tabs *tabs, struct Window *window_menu_ite
     int i = 0;
     int maxLen = 0;
     while (tab != NULL) {
-        char *tab_label = NULL;
-        char *selected_sign = " ";
-        if (tabs->selected_tab == tab)
-            selected_sign = "*";
+	  //char *tab_label = NULL;
+        char *selected_sign = "   ";
+        //if (tabs->selected_tab == tab)
+        //    selected_sign = "-> ";
         /*int len = strlen(tab->child->id);
         int max_len = 400;
         if (max_len < len){
@@ -263,15 +270,20 @@ Window *Menu_list_windows(Menu *menu, Tabs *tabs, struct Window *window_menu_ite
         } else {
           asprintf(&tab_label, " %s%s  ", selected_sign, tab->child->id);
           }*/
-        asprintf(&tab_label, " %s%s  ", selected_sign, tab->child->id);
+        //asprintf(&tab_label, " %s%s  ", selected_sign, tab->child->id);
+        //asprintf(&tab_label, " %s%s  ", selected_sign, tab->str);
 
-        Window *win = Menu_add_element(submenu, tab_label, NULL);
-        win->on_hover = Menu_change_color_hover;
+        Window *win = Menu_add_element(submenu, tab->str, NULL);
         win->undo_on_hover = Menu_change_color_normal;
+		if (tabs->selected_tab == tab) {
+		  win->bg = SELECTED_COLOR;
+		  win->undo_on_hover = Menu_change_color_selected;
+		}
+        win->on_hover = Menu_change_color_hover;
         win->lambda = create_lambda(Menu_list_windows_item_selected, 2, tab, submenu);
         win->on_mouse_down = Execute_lambda;
 
-        maxLen = max(maxLen, strlen(tab_label));
+        maxLen = max(maxLen, strlen(tab->str));
         tab = tab->next;
     }
     Menu_add_element(submenu, "", NULL);
