@@ -77,7 +77,7 @@ void on_drag(int x, int y) {
     if (draggingY != NULL) {
         if (draggingX != NULL)
             draggingX->left =
-                min(max(0, x - dragging_offset_x), draggingX->parent->width - draggingX->width);
+                min(max(1, x - dragging_offset_x), draggingX->parent->width - draggingX->width);
         int parent_height = draggingY->parent->calculated.height;
         int new_top = min(max(0, y - dragging_offset_y), parent_height - draggingY->height);
         draggingY->set_top(draggingY, new_top);
