@@ -26,10 +26,10 @@
 // int restore_insert_mode;
 
 void set_modified(EditorWindow *self, int modified) {
-    if (modified == self->tab.modified)
+    if (modified == self->tab_window->tab.modified)
         return;
-    self->tab.modified = modified;
-    Tab_set_title(self, self->file_path);
+    self->tab_window->tab.modified = modified;
+    Tab_set_title(self->tab_window, self->file_path);
 }
 
 // Editor Window
@@ -534,7 +534,7 @@ void load_file(EditorWindow *self, const char *filename) {
         return;
     }
     LOG_INFO("load_file %s", filename);
-    Tab_set_title(self, filename);
+    Tab_set_title(self->tab_window, filename);
     FILE *file = fopen(filename, "r");
     if (!file) {
         perror("fopen failed");
@@ -1289,7 +1289,6 @@ EditorWindow *EditorWindow_new() {
     self->highlight_end.y = -1;
     self->language = LANG_NONE;
     self->selecting = 0;
-    self->tab.icon = "📄";
 
     self->win.draw = EditorWindow_draw;
 
@@ -1307,9 +1306,48 @@ EditorWindow *EditorWindow_new() {
     return self;
 }
 
+void status_bar_draw(Window *w, int hasFocus) {
+    Geometry geo = w->calculated;
+	int y = geo.y;
+	StatusWindow *self = w;
+	int fg = 232;
+	int bg = 253;
+	int line = self->editor->cursor.y+1;
+	int n_lines = self->editor->n_lines;
+	int pct = (line*100)/n_lines;
+	snprintf(self->status_str, sizeof(self->status_str), "line: %d/%d (%d%%) column: %d", line, n_lines, pct, self->editor->cursor.x+1);
+	Buffer_print(&main_buf, y, geo.x, geo.width, self->status_str, fg, bg);
+}
+
+StatusWindow * status_bar_create() {
+    StatusWindow *status = malloc(sizeof *status);
+	memset(status, 0, sizeof *status); // Zero-initialize to prevent garbage values
+	Window_init(status, -1, -1, -1, -1, -1, -1);
+	status->win.left = 0;
+	status->win.right = 0;
+	status->win.height = 1;
+	status->win.bottom = 0;
+	status->win.draw = status_bar_draw;
+	return status;  
+}
+
 Window *EditorWindow_new_tab(Tabs *self) {
+    TabWindow *tab = malloc(sizeof *tab);
+    memset(tab, 0, sizeof *tab); // Zero-initialize to prevent garbage values
+    tab->tab.icon = "📄";
+    Window_init(tab, -1, -1, -1, -1, -1, -1);
+	tab->win.left = 0;
+	tab->win.right = 0;
+	tab->win.top = 0;
+	tab->win.bottom = 0;
+
     EditorWindow *editor = EditorWindow_new();
+	editor->tab_window = tab;
     Window *slider = slider_new(editor);
+	slider->left = 0;
+	slider->right = 0;
+	slider->top = 0;
+	slider->bottom = 1;
     Slider_show_grip(slider);
     editor->slider = slider;
 
@@ -1317,10 +1355,18 @@ Window *EditorWindow_new_tab(Tabs *self) {
     slider->id = editor->win.id;
 
     Window *searchbox = EditorWindow_searchbox(editor);
-    Window_append(slider, searchbox);
     editor->search_box = searchbox;
+	
+	tab->win.focused = slider;
 
-    return slider;
+	StatusWindow * status = status_bar_create();
+	status->editor = editor;
+
+    Window_append(tab, slider);
+    Window_append(tab, searchbox);
+    Window_append(tab, status);
+
+    return tab;
 }
 
 // Editor Frame
