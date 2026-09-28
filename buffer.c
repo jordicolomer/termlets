@@ -217,6 +217,12 @@ void Buffer_clear(Buffer *buf) {
 }
 
 int cp_width(int cp) {
+    if (cp <= 31 && cp != '\t' )
+        return 0;
+    if (cp == 173)
+        return 0;
+    if (cp == 133)
+        return 0;
     if (32 < cp && cp < 255)
         return 1;
     if (cp == '\t')
@@ -462,6 +468,7 @@ void Buffer_print(Buffer *buf, int y, int x, int width, char *s, int fg, int bg)
         uint32_t cp = utf8_decode(&p);
         // int w = wcwidth(cp);
         int w = cp_width(cp);
+		if (w == 0) continue;
         // LOG_INFO("Buffer_print %d %d %d\n", cp, x, y);
         if (cp == '\t') {
             // Tab: leave as spaces (from initialization), advance by tab_width
