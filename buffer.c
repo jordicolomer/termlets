@@ -14,18 +14,19 @@
 #define write _write
 
 /* Basic wcwidth implementation for Windows */
-static int wcwidth(uint32_t wc) {
+static int mywcwidth(uint32_t wc) {
     /* Non-printable characters */
-    if (wc < 32 || (wc >= 0x7f && wc < 0xa0))
-        return -1;
+    //if (wc < 32 || (wc >= 0x7f && wc < 0xa0))
+    if (wc < 32)
+        return 0;
 
     /* Null character */
-    if (wc == 0)
-        return 0;
+    //if (wc == 0)
+    //    return 0;
 
     /* Combining characters (simplified) */
-    if (wc >= 0x0300 && wc <= 0x036F)
-        return 0;
+    //if (wc >= 0x0300 && wc <= 0x036F)
+    //    return 0;
 
     /* Wide characters (CJK, emojis, etc.) */
     if ((wc >= 0x1100 && wc <= 0x115F) || /* Hangul Jamo */
@@ -269,10 +270,24 @@ int cp_width(int cp) {
         return 1; // chess pieces
     // if (cp == 128221) return 2;
     // if (cp == 128444) return 2;
-    int width = wcwidth(cp);
-    if (width == -1)
+    //int width = mywcwidth(cp);
+    //if (width == -1)
+    //    return 1;
+    if (cp >= 0x0300 && cp <= 0x036F)
+        return 0;
+
+	if ((cp >= 0x1100 && cp <= 0x115F) || /* Hangul Jamo */
+        (cp >= 0x2E80 && cp <= 0x9FFF) || /* CJK */
+        (cp >= 0xAC00 && cp <= 0xD7A3) || /* Hangul Syllables */
+        (cp >= 0xF900 && cp <= 0xFAFF) || /* CJK Compatibility Ideographs */
+        (cp >= 0xFE10 && cp <= 0xFE19) || /* Vertical forms */
+        (cp >= 0xFE30 && cp <= 0xFE6F) || /* CJK Compatibility Forms */
+        (cp >= 0xFF00 && cp <= 0xFF60) || /* Fullwidth Forms */
+        (cp >= 0xFFE0 && cp <= 0xFFE6) || /* Fullwidth Forms */
+        (cp >= 0x1F300 && cp <= 0x1F9FF)) /* Emojis */
         return 2;
-    return width;
+
+	return 1;
 }
 
 char *char_at(char *s, int i, int *width) {
@@ -468,7 +483,7 @@ void Buffer_print(Buffer *buf, int y, int x, int width, char *s, int fg, int bg)
         uint32_t cp = utf8_decode(&p);
         // int w = wcwidth(cp);
         int w = cp_width(cp);
-		if (w == 0) continue;
+		//if (w == 0) idx -= 1;
         // LOG_INFO("Buffer_print %d %d %d\n", cp, x, y);
         if (cp == '\t') {
             // Tab: leave as spaces (from initialization), advance by tab_width
@@ -484,6 +499,7 @@ void Buffer_print(Buffer *buf, int y, int x, int width, char *s, int fg, int bg)
             }
             idx += w;
         }
+		//if (w == 0) idx += 1;
         // printf("U+%04X %d\n", cp, w);
     }
 }
@@ -613,6 +629,7 @@ void Buffer_print_to_screen(Buffer *buf) {
     clock_t start = clock();
 
     char *out = malloc(OUTBUF_SIZE);
+	memset(out, 0, OUTBUF_SIZE);
     if (!out)
         return;
 
@@ -663,8 +680,8 @@ void Buffer_print_to_screen(Buffer *buf) {
 
             int bg2 = (int)buf->bg2[idx];
             int fg2 = (int)buf->fg2[idx];
-            if (cp == cp2 && bg == bg2 && fg == fg2)
-                continue;
+            //if (cp == cp2 && bg == bg2 && fg == fg2)
+            //    continue;
 
             // cursor movement only when needed
             if (x != terminal_x || y != terminal_y) {

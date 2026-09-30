@@ -1315,7 +1315,17 @@ void status_bar_draw(Window *w, int hasFocus) {
 	int line = self->editor->cursor.y+1;
 	int n_lines = self->editor->n_lines;
 	int pct = (line*100)/n_lines;
-	snprintf(self->status_str, sizeof(self->status_str), "line: %d/%d (%d%%) column: %d", line, n_lines, pct, self->editor->cursor.x+1);
+
+	uint32_t cp = 0;
+	Node * node = EditorWindow_get_line_number(self->editor, self->editor->cursor.y);
+	LOG_INFO("status_bar_draw %p", node);
+	if (node != NULL){
+	  int width;
+	  char * c = char_at(node->line, self->editor->cursor.x, &width);
+	  cp = utf8_decode(&c);
+	}
+	
+	snprintf(self->status_str, sizeof(self->status_str), "line: %d/%d (%d%%) column: %d cp: %d width: %d", line, n_lines, pct, self->editor->cursor.x+1, cp, cp_width(cp));
 	Buffer_print(&main_buf, y, geo.x, geo.width, self->status_str, fg, bg);
 }
 
