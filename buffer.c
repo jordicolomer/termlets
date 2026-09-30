@@ -7,11 +7,13 @@
 #include <time.h>
 #include <stdarg.h>
 #include "common.h"
+#include "mystr.h"
 
 #ifdef _WIN32
 #include <io.h>
 #define STDOUT_FILENO 1
 #define write _write
+
 
 /* Basic wcwidth implementation for Windows */
 static int mywcwidth(uint32_t wc) {
@@ -50,6 +52,9 @@ static int mywcwidth(uint32_t wc) {
 #include "ansi_term.h"
 #include "logger.h"
 #include "buffer.h"
+
+
+Buffer2 buf2;
 
 uint32_t utf8_decode2(const uint8_t *s, int *idx) {
     const uint8_t *p = s + *idx;
@@ -207,6 +212,10 @@ void Buffer_init(Buffer *buf, int width, int height) {
     buf->buffer2 = calloc(width * height, sizeof(uint32_t));
     buf->bg2 = calloc(width * height, sizeof(char));
     buf->fg2 = calloc(width * height, sizeof(char));
+
+	buf2.width = width;
+	buf2.height = height;
+	buf2.cells = calloc(width * height, sizeof(Cell));
 }
 
 void Buffer_clear(Buffer *buf) {
@@ -468,7 +477,7 @@ int get_idx_pos(char *s, int i) {
     return acc;
 }
 
-void Buffer_print(Buffer *buf, int y, int x, int width, char *s, int fg, int bg) {
+void Buffer_print1(Buffer *buf, int y, int x, int width, char *s, int fg, int bg) {
     // x -= 1;
     y -= 1;
     const uint8_t *p = (const uint8_t *)s;
@@ -502,6 +511,25 @@ void Buffer_print(Buffer *buf, int y, int x, int width, char *s, int fg, int bg)
 		//if (w == 0) idx += 1;
         // printf("U+%04X %d\n", cp, w);
     }
+}
+
+void Buffer_print2(Buffer *buf, int y, int x, int width, char *s, int fg, int bg) {
+    for (int i = 0; i < width; i++) {
+        buf2.cells[y * buf2.width + x + i].utf8 = " ";
+        buf2.cells[y * buf2.width + x + i].size = 1;
+        buf2.cells[y * buf2.width + x + i].fg = (char)fg;
+        buf2.cells[y * buf2.width + x + i].bg = (char)bg;
+    }
+	MyStr mystr;
+	MyStr_init(&mystr, s);
+    while (MyStr_next_cluster(&mystr)) {
+	  //print_cluster(&mystr);
+    }	
+}
+
+void Buffer_print(Buffer *buf, int y, int x, int width, char *s, int fg, int bg) {
+  Buffer_print1(buf, y, x, width, s, fg, bg);
+  Buffer_print2(buf, y, x, width, s, fg, bg);
 }
 
 void Buffer_set_fg(Buffer *buf, int y, int x, int width, int fg) {
@@ -680,8 +708,8 @@ void Buffer_print_to_screen(Buffer *buf) {
 
             int bg2 = (int)buf->bg2[idx];
             int fg2 = (int)buf->fg2[idx];
-            //if (cp == cp2 && bg == bg2 && fg == fg2)
-            //    continue;
+            if (cp == cp2 && bg == bg2 && fg == fg2)
+                continue;
 
             // cursor movement only when needed
             if (x != terminal_x || y != terminal_y) {

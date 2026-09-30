@@ -28,8 +28,9 @@ endif
 
 ifeq ($(UNAME_S),Darwin)
     LIBVTERM_PREFIX := $(shell brew --prefix libvterm)
-    CFLAGS += -I$(LIBVTERM_PREFIX)/include
-    LDFLAGS = -L$(LIBVTERM_PREFIX)/lib -lvterm
+    UTF8PROC_PREFIX := $(shell brew --prefix utf8proc)
+    CFLAGS += -I$(LIBVTERM_PREFIX)/include -I$(UTF8PROC_PREFIX)/include
+    LDFLAGS = -L$(LIBVTERM_PREFIX)/lib -lvterm -L$(UTF8PROC_PREFIX)/lib -lutf8proc
 else ifeq ($(UNAME_S),Linux)
     #LDFLAGS = -lvterm
 	LDFLAGS = -Wl,-Bstatic -lvterm -Wl,-Bdynamic -lutil
@@ -39,7 +40,7 @@ endif
 TARGET := termlets
 
 # Source and object files
-SRC := main.c logger.c buffer.c ansi_term.c window.c frame.c file_manager.c slider.c taskbar.c utils.c vterm_terminal.c tabs.c editor.c menu.c lambda.c chess.c sort.c clipboard.c dialog.c file_operations.c mini_edit.c lexer.c common.c config.c window_manager.c
+SRC := main.c logger.c buffer.c ansi_term.c window.c frame.c file_manager.c slider.c taskbar.c utils.c vterm_terminal.c tabs.c editor.c menu.c lambda.c chess.c sort.c clipboard.c dialog.c file_operations.c mini_edit.c lexer.c common.c config.c window_manager.c mystr.c uwidth.c
 OBJ := $(SRC:.c=.o)
 
 # Default target

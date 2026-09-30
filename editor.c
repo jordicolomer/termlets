@@ -1322,7 +1322,9 @@ void status_bar_draw(Window *w, int hasFocus) {
 	if (node != NULL){
 	  int width;
 	  char * c = char_at(node->line, self->editor->cursor.x, &width);
-	  cp = utf8_decode(&c);
+	  if (c != NULL){
+		cp = utf8_decode(&c);
+	  }
 	}
 	
 	snprintf(self->status_str, sizeof(self->status_str), "line: %d/%d (%d%%) column: %d cp: %d width: %d", line, n_lines, pct, self->editor->cursor.x+1, cp, cp_width(cp));

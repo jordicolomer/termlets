@@ -17,6 +17,22 @@ typedef struct Buffer {
     unsigned char *fg2;
 } Buffer;
 
+typedef struct Cell {
+    char * utf8;
+    int size;
+    int width;
+    unsigned char bg;
+    unsigned char fg;
+} Cell;
+
+typedef struct Buffer2 {
+    int width;
+    int height;
+    Cell *cells;
+} Buffer2;
+
+//extern Buffer2 buf2;
+  
 void Buffer_init(Buffer *buf, int width, int height);
 void Buffer_clear(Buffer *buf);
 void Buffer_print_raw(Buffer *buf, int y, int x, int width, char *s, int fg, int bg);
