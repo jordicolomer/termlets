@@ -74,7 +74,7 @@ void repaint() {
 }
 
 void on_drag(int x, int y) {
-  x=x-1;
+    x = x - 1;
     if (draggingY != NULL) {
         if (draggingX != NULL)
             draggingX->left =
@@ -107,7 +107,7 @@ void on_drag(int x, int y) {
 }
 
 void on_command_mouse_down(int x, int y) {
-  x=x-1;
+    x = x - 1;
     Window *wg = Window_find_widget(root, x, y);
     if (wg != NULL) {
         if (wg->on_command_mouse_down != NULL) {
@@ -118,7 +118,7 @@ void on_command_mouse_down(int x, int y) {
 }
 
 void on_mouse_down(int x, int y) {
-  x=x-1;
+    x = x - 1;
     LOG_INFO("on_mouse_down: %d %d", x, y);
     Window *wg = Window_find_widget(root, x, y);
     LOG_INFO("Window_find_widget: %p", (void *)wg);
@@ -438,8 +438,8 @@ int parse_args(int argc, char **argv) {
 
 int calculate_width(char *s);
 int main(int argc, char **argv) {
-  //printf("width: %d", cp_width(751));	  
-  parse_args(argc, argv);
-  setup_crash_handler();
-  start();
+    // printf("width: %d", cp_width(751));
+    parse_args(argc, argv);
+    setup_crash_handler();
+    start();
 }

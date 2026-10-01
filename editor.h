@@ -22,8 +22,8 @@ typedef struct EditorPointer {
 
 typedef struct EditorWindow { // this is the scrollable part of the editor
     struct Window win;
-    TabWindow * tab_window;
-  //Tab* tab;
+    TabWindow *tab_window;
+    // Tab* tab;
     Window *slider;
     Node *head;
     Node *tail;
@@ -42,9 +42,9 @@ typedef struct EditorWindow { // this is the scrollable part of the editor
 } EditorWindow;
 
 typedef struct StatusWindow {
-  struct Window win;
-  EditorWindow* editor;
-  char status_str[256];
+    struct Window win;
+    EditorWindow *editor;
+    char status_str[256];
 } StatusWindow;
 
 typedef struct EditorFrame {

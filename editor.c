@@ -1308,39 +1308,41 @@ EditorWindow *EditorWindow_new() {
 
 void status_bar_draw(Window *w, int hasFocus) {
     Geometry geo = w->calculated;
-	int y = geo.y;
-	StatusWindow *self = w;
-	int fg = 232;
-	int bg = 253;
-	int line = self->editor->cursor.y+1;
-	int n_lines = self->editor->n_lines;
-	int pct = (line*100)/n_lines;
+    int y = geo.y;
+    StatusWindow *self = w;
+    int fg = 232;
+    int bg = 253;
+    int line = self->editor->cursor.y + 1;
+    int n_lines = self->editor->n_lines;
+    int pct = (line * 100) / n_lines;
 
-	uint32_t cp = 0;
-	Node * node = EditorWindow_get_line_number(self->editor, self->editor->cursor.y);
-	LOG_INFO("status_bar_draw %p", node);
-	if (node != NULL){
-	  int width;
-	  char * c = char_at(node->line, self->editor->cursor.x, &width);
-	  if (c != NULL){
-		cp = utf8_decode(&c);
-	  }
-	}
-	
-	snprintf(self->status_str, sizeof(self->status_str), "line: %d/%d (%d%%) column: %d cp: %d width: %d", line, n_lines, pct, self->editor->cursor.x+1, cp, cp_width(cp));
-	Buffer_print(&main_buf, y, geo.x, geo.width, self->status_str, fg, bg);
+    uint32_t cp = 0;
+    Node *node = EditorWindow_get_line_number(self->editor, self->editor->cursor.y);
+    LOG_INFO("status_bar_draw %p", node);
+    if (node != NULL) {
+        int width;
+        char *c = char_at(node->line, self->editor->cursor.x, &width);
+        if (c != NULL) {
+            cp = utf8_decode(&c);
+        }
+    }
+
+    snprintf(self->status_str, sizeof(self->status_str),
+             "line: %d/%d (%d%%) column: %d cp: %d width: %d", line, n_lines, pct,
+             self->editor->cursor.x + 1, cp, cp_width(cp));
+    Buffer_print(&main_buf, y, geo.x, geo.width, self->status_str, fg, bg);
 }
 
-StatusWindow * status_bar_create() {
+StatusWindow *status_bar_create() {
     StatusWindow *status = malloc(sizeof *status);
-	memset(status, 0, sizeof *status); // Zero-initialize to prevent garbage values
-	Window_init(status, -1, -1, -1, -1, -1, -1);
-	status->win.left = 0;
-	status->win.right = 0;
-	status->win.height = 1;
-	status->win.bottom = 0;
-	status->win.draw = status_bar_draw;
-	return status;  
+    memset(status, 0, sizeof *status); // Zero-initialize to prevent garbage values
+    Window_init(status, -1, -1, -1, -1, -1, -1);
+    status->win.left = 0;
+    status->win.right = 0;
+    status->win.height = 1;
+    status->win.bottom = 0;
+    status->win.draw = status_bar_draw;
+    return status;
 }
 
 Window *EditorWindow_new_tab(Tabs *self) {
@@ -1348,18 +1350,18 @@ Window *EditorWindow_new_tab(Tabs *self) {
     memset(tab, 0, sizeof *tab); // Zero-initialize to prevent garbage values
     tab->tab.icon = "📄";
     Window_init(tab, -1, -1, -1, -1, -1, -1);
-	tab->win.left = 0;
-	tab->win.right = 0;
-	tab->win.top = 0;
-	tab->win.bottom = 0;
+    tab->win.left = 0;
+    tab->win.right = 0;
+    tab->win.top = 0;
+    tab->win.bottom = 0;
 
     EditorWindow *editor = EditorWindow_new();
-	editor->tab_window = tab;
+    editor->tab_window = tab;
     Window *slider = slider_new(editor);
-	slider->left = 0;
-	slider->right = 0;
-	slider->top = 0;
-	slider->bottom = 1;
+    slider->left = 0;
+    slider->right = 0;
+    slider->top = 0;
+    slider->bottom = 1;
     Slider_show_grip(slider);
     editor->slider = slider;
 
@@ -1368,11 +1370,11 @@ Window *EditorWindow_new_tab(Tabs *self) {
 
     Window *searchbox = EditorWindow_searchbox(editor);
     editor->search_box = searchbox;
-	
-	tab->win.focused = slider;
 
-	StatusWindow * status = status_bar_create();
-	status->editor = editor;
+    tab->win.focused = slider;
+
+    StatusWindow *status = status_bar_create();
+    status->editor = editor;
 
     Window_append(tab, slider);
     Window_append(tab, searchbox);

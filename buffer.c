@@ -17,21 +17,20 @@
 #define STDOUT_FILENO 1
 #define write _write
 
-
 /* Basic wcwidth implementation for Windows */
 static int mywcwidth(uint32_t wc) {
     /* Non-printable characters */
-    //if (wc < 32 || (wc >= 0x7f && wc < 0xa0))
+    // if (wc < 32 || (wc >= 0x7f && wc < 0xa0))
     if (wc < 32)
         return 0;
 
     /* Null character */
-    //if (wc == 0)
-    //    return 0;
+    // if (wc == 0)
+    //     return 0;
 
     /* Combining characters (simplified) */
-    //if (wc >= 0x0300 && wc <= 0x036F)
-    //    return 0;
+    // if (wc >= 0x0300 && wc <= 0x036F)
+    //     return 0;
 
     /* Wide characters (CJK, emojis, etc.) */
     if ((wc >= 0x1100 && wc <= 0x115F) || /* Hangul Jamo */
@@ -55,7 +54,6 @@ static int mywcwidth(uint32_t wc) {
 #include "ansi_term.h"
 #include "logger.h"
 #include "buffer.h"
-
 
 Buffer2 buf2;
 
@@ -216,9 +214,9 @@ void Buffer_init(Buffer *buf, int width, int height) {
     buf->bg2 = calloc(width * height, sizeof(char));
     buf->fg2 = calloc(width * height, sizeof(char));
 
-	buf2.width = width;
-	buf2.height = height;
-	buf2.cells = calloc(width * height, sizeof(Cell));
+    buf2.width = width;
+    buf2.height = height;
+    buf2.cells = calloc(width * height, sizeof(Cell));
 }
 
 void Buffer_clear(Buffer *buf) {
@@ -230,7 +228,7 @@ void Buffer_clear(Buffer *buf) {
 }
 
 int cp_width(int cp) {
-    if (cp <= 31 && cp != '\t' )
+    if (cp <= 31 && cp != '\t')
         return 0;
     if (cp == 173)
         return 0;
@@ -282,13 +280,13 @@ int cp_width(int cp) {
         return 1; // chess pieces
     // if (cp == 128221) return 2;
     // if (cp == 128444) return 2;
-    //int width = mywcwidth(cp);
-    //if (width == -1)
+    // int width = mywcwidth(cp);
+    // if (width == -1)
     //    return 1;
     if (cp >= 0x0300 && cp <= 0x036F)
         return 0;
 
-	if ((cp >= 0x1100 && cp <= 0x115F) || /* Hangul Jamo */
+    if ((cp >= 0x1100 && cp <= 0x115F) || /* Hangul Jamo */
         (cp >= 0x2E80 && cp <= 0x9FFF) || /* CJK */
         (cp >= 0xAC00 && cp <= 0xD7A3) || /* Hangul Syllables */
         (cp >= 0xF900 && cp <= 0xFAFF) || /* CJK Compatibility Ideographs */
@@ -299,7 +297,7 @@ int cp_width(int cp) {
         (cp >= 0x1F300 && cp <= 0x1F9FF)) /* Emojis */
         return 2;
 
-	return 1;
+    return 1;
 }
 
 char *char_at(char *s, int i, int *width) {
@@ -495,7 +493,7 @@ void Buffer_print1(Buffer *buf, int y, int x, int width, char *s, int fg, int bg
         uint32_t cp = utf8_decode(&p);
         // int w = wcwidth(cp);
         int w = cp_width(cp);
-		//if (w == 0) idx -= 1;
+        // if (w == 0) idx -= 1;
         // LOG_INFO("Buffer_print %d %d %d\n", cp, x, y);
         if (cp == '\t') {
             // Tab: leave as spaces (from initialization), advance by tab_width
@@ -511,7 +509,7 @@ void Buffer_print1(Buffer *buf, int y, int x, int width, char *s, int fg, int bg
             }
             idx += w;
         }
-		//if (w == 0) idx += 1;
+        // if (w == 0) idx += 1;
         // printf("U+%04X %d\n", cp, w);
     }
 }
@@ -525,41 +523,41 @@ void Buffer_print2(Buffer *buf, int y, int x, int width, char *s, int fg, int bg
         buf2.cells[y * buf2.width + x + i].bg = (char)bg;
         buf2.cells[y * buf2.width + x + i].width = 1;
     }
-	MyStr mystr;
-	MyStr_init(&mystr, s);
-	int offset = 0;
+    MyStr mystr;
+    MyStr_init(&mystr, s);
+    int offset = 0;
     while (MyStr_next_cluster(&mystr)) {
-	  if (mystr.pos_column + offset > width) break;
-	  
-	  if (mystr.width_codepoints == 1 && s[mystr.cluster_start] == '\t'){
-		if (show_tabs){
-		  Cell * cell = &buf2.cells[y * buf2.width + x + mystr.pos_column];
-		  cell->utf8 = "→";
-		  cell->size = strlen(cell->utf8);
-		  cell->width = 1;
-		}
-		//offset += tab_width - 1;
-		
-	  } else {
-		Cell * cell = &buf2.cells[y * buf2.width + x + mystr.pos_column + offset];
-		cell->utf8 = s + mystr.cluster_start;
-		cell->size = mystr.cluster_end - mystr.cluster_start;
-		cell->width = mystr.width_column;
-	  }
-		
-    }	
+        if (mystr.pos_column + offset > width)
+            break;
+
+        if (mystr.width_codepoints == 1 && s[mystr.cluster_start] == '\t') {
+            if (show_tabs) {
+                Cell *cell = &buf2.cells[y * buf2.width + x + mystr.pos_column];
+                cell->utf8 = "→";
+                cell->size = strlen(cell->utf8);
+                cell->width = 1;
+            }
+            // offset += tab_width - 1;
+
+        } else {
+            Cell *cell = &buf2.cells[y * buf2.width + x + mystr.pos_column + offset];
+            cell->utf8 = s + mystr.cluster_start;
+            cell->size = mystr.cluster_end - mystr.cluster_start;
+            cell->width = mystr.width_column;
+        }
+    }
 }
 
 void Buffer_print(Buffer *buf, int y, int x, int width, char *s, int fg, int bg) {
-  Buffer_print1(buf, y, x, width, s, fg, bg);
-  Buffer_print2(buf, y, x, width, s, fg, bg);
+    Buffer_print1(buf, y, x, width, s, fg, bg);
+    Buffer_print2(buf, y, x, width, s, fg, bg);
 }
 
 void Buffer_set_fg(Buffer *buf, int y, int x, int width, int fg) {
     y -= 1;
     for (int i = 0; i < width; i++) {
         buf->fg[y * buf->width + x + i] = (char)fg;
-		buf2.cells[y * buf->width + x + i].fg = (char)fg;
+        buf2.cells[y * buf->width + x + i].fg = (char)fg;
     }
 }
 
@@ -567,7 +565,7 @@ void Buffer_set_bg(Buffer *buf, int y, int x, int width, int bg) {
     y -= 1;
     for (int i = 0; i < width; i++) {
         buf->bg[y * buf->width + x + i] = (char)bg;
-		buf2.cells[y * buf->width + x + i].bg = (char)bg;
+        buf2.cells[y * buf->width + x + i].bg = (char)bg;
     }
 }
 
@@ -682,7 +680,7 @@ void _Buffer_print_to_screen(Buffer *buf) {
     clock_t start = clock();
 
     char *out = malloc(OUTBUF_SIZE);
-	memset(out, 0, OUTBUF_SIZE);
+    memset(out, 0, OUTBUF_SIZE);
     if (!out)
         return;
 
@@ -792,7 +790,7 @@ void _Buffer_print_to_screen(Buffer *buf) {
     double cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
 
     LOG_INFO("Execution time: %f ms size:%d cursor_movement_count:%d color_count:%d",
-              cpu_time_used * 1000, pos, cursor_movement_count, color_count);
+             cpu_time_used * 1000, pos, cursor_movement_count, color_count);
 }
 
 void Buffer_print_to_screen(Buffer *buf) {
@@ -802,14 +800,14 @@ void Buffer_print_to_screen(Buffer *buf) {
     clock_t start = clock();
 
     char *out = malloc(OUTBUF_SIZE);
-	memset(out, 0, OUTBUF_SIZE);
+    memset(out, 0, OUTBUF_SIZE);
     if (!out)
         return;
 
     size_t pos = 0;
 
-	// synchronized output begin
-    //append_str(out, &pos, "\033[?2026h");
+    // synchronized output begin
+    // append_str(out, &pos, "\033[?2026h");
 
     int current_bg = -1;
     int current_fg = -1;
@@ -821,37 +819,38 @@ void Buffer_print_to_screen(Buffer *buf) {
     append_str(out, &pos, "\033[?25l");
 
     // clear screen
-    //append_str(out, &pos, "\033[2J");
+    // append_str(out, &pos, "\033[2J");
 
     for (int y = 0; y < buf->height; y++) {
 
         for (int x = 0; x < buf->width; x++) {
             // Skip cells already rendered as part of previous wide character
-            //if (terminal_y == y && x < terminal_x) {
+            // if (terminal_y == y && x < terminal_x) {
             //    continue;
             //}
 
             int idx = y * buf->width + x;
 
-            char * utf8 = buf2.cells[idx].utf8;
+            char *utf8 = buf2.cells[idx].utf8;
             int bg = (int)buf2.cells[idx].bg;
             int fg = (int)buf2.cells[idx].fg;
             int size = (int)buf2.cells[idx].size;
             int width = (int)buf2.cells[idx].width;
 
-			if (utf8 == NULL) {
-			  utf8 = " ";
-			  width = 1;
-			  size = 1;
-			  }
-			if (utf8 == NULL)  continue;
+            if (utf8 == NULL) {
+                utf8 = " ";
+                width = 1;
+                size = 1;
+            }
+            if (utf8 == NULL)
+                continue;
 
             // cursor movement only when needed
             if (x != terminal_x || y != terminal_y) {
                 cursor_movement_count += 1;
 
                 // append_fmt(out, &pos, "\033[%d;%dH", y + 1, x + 1);
-				//LOG_INFO("move %d %d", y + 1, x);
+                // LOG_INFO("move %d %d", y + 1, x);
                 append_fmt(out, &pos, "\033[%d;%dH", y + 1, x);
                 // LOG_INFO("append_fmt pos: %d %d", y, x);
                 terminal_x = x;
@@ -863,7 +862,7 @@ void Buffer_print_to_screen(Buffer *buf) {
                 color_count += 1;
 
                 // append_fmt(out, &pos, "\033[%d;%dm", fg, bg);
-				//LOG_INFO("color update %d %d", fg, bg);
+                // LOG_INFO("color update %d %d", fg, bg);
                 append_fmt(out, &pos, "\033[38;5;%d;48;5;%dm", fg, bg);
 
                 // LOG_INFO("append_fmt color: %d %d", fg, bg);
@@ -873,15 +872,14 @@ void Buffer_print_to_screen(Buffer *buf) {
 
             // encode UTF-8
             if (size > 0) {
-			  //LOG_INFO("append_bytes size: %d width: %d \"%.*s\"", size, width, size, utf8);
+                // LOG_INFO("append_bytes size: %d width: %d \"%.*s\"", size, width, size, utf8);
                 append_bytes(out, &pos, (char *)utf8, size);
             }
 
-
             terminal_x += width;
-			if (width > 1){
-			  x += width-1;
-			}
+            if (width > 1) {
+                x += width - 1;
+            }
         }
     }
 
@@ -890,28 +888,27 @@ void Buffer_print_to_screen(Buffer *buf) {
 
     // move cursor below UI
     append_fmt(out, &pos, "\033[%d;1H", buf->height + 1);
-	
-    //append_str(out, &pos, "\033[?2026l");
+
+    // append_str(out, &pos, "\033[?2026l");
 
     write(STDOUT_FILENO, out, pos);
-	//LOG_INFO("STDOUT_FILENO: %s", STDOUT_FILENO);
+    // LOG_INFO("STDOUT_FILENO: %s", STDOUT_FILENO);
 
-	//int fd = open("output.txt", O_WRONLY | O_CREAT | O_TRUNC, 0644);
-	//write(fd, out, pos);
-	//close(fd);
+    // int fd = open("output.txt", O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    // write(fd, out, pos);
+    // close(fd);
 
     free(out);
-    //Buffer_copy_to_second_buffer(buf);
-	//buf2.cells = calloc(buf->width * buf->height, sizeof(Cell));
-	memset(buf2.cells, 0, buf2.width * buf2.height * sizeof(Cell));
+    // Buffer_copy_to_second_buffer(buf);
+    // buf2.cells = calloc(buf->width * buf->height, sizeof(Cell));
+    memset(buf2.cells, 0, buf2.width * buf2.height * sizeof(Cell));
 
     clock_t end = clock();
 
     double cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
 
     LOG_INFO("Execution time: %f ms size:%d cursor_movement_count:%d color_count:%d",
-              cpu_time_used * 1000, pos, cursor_movement_count, color_count);
-  
+             cpu_time_used * 1000, pos, cursor_movement_count, color_count);
 }
 
 Buffer main_buf;
