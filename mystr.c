@@ -80,8 +80,8 @@ int wc_len(char *text, int length) {
     Uwidth_Event event;
     unsigned int index;
 
-    uwidth_init(&state, uwidth_profile_east_asian);
-    // uwidth_init(&state, uwidth_profile_narrow);
+    // uwidth_init(&state, uwidth_profile_east_asian);
+    uwidth_init(&state, uwidth_profile_narrow);
     size_t len = strlen(text);
     size_t pos = 0;
     for (index = 0U; index < length; ++index) {
@@ -101,6 +101,10 @@ int wc_len(char *text, int length) {
             if (current == '\t') return tab_width;
 			if (current >= 0x0300 && current <= 0x036F) return 0;
 			if (current <= 31 && current != '\t') return 0;
+			if (current == 0x0085) return 0;
+			if (current == 0x00A9) return 1;
+			if (current == 0x00AE) return 1;
+			//if (current == 0x00A9) return 2;
 
         }
 

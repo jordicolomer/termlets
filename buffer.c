@@ -361,9 +361,11 @@ int calculate_width(char *s) {
 
         total += w;
     }
+	LOG_INFO("calculate_width %s %d", s, total);
 
     return total;
 }
+
 
 int calculate_width_n(char *s, size_t byte_len) {
     if (s == NULL)
@@ -515,6 +517,7 @@ void Buffer_print1(Buffer *buf, int y, int x, int width, char *s, int fg, int bg
 }
 
 void Buffer_print2(Buffer *buf, int y, int x, int width, char *s, int fg, int bg) {
+  LOG_INFO("Buffer_print2 %s %d\n", s, width);
     y -= 1;
     for (int i = 0; i < width; i++) {
         buf2.cells[y * buf2.width + x + i].utf8 = " ";
@@ -874,7 +877,7 @@ void Buffer_print_to_screen(Buffer *buf) {
 
             // encode UTF-8
             if (size > 0) {
-                // LOG_INFO("append_bytes size: %d width: %d \"%.*s\"", size, width, size, utf8);
+			  //LOG_INFO("append_bytes size: %d width: %d \"%.*s\"", size, width, size, utf8);
                 append_bytes(out, &pos, (char *)utf8, size);
             }
 
