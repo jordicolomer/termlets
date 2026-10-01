@@ -91,12 +91,10 @@ int wc_len(char *text, int length) {
             utf8proc_iterate((const utf8proc_uint8_t *)text + pos, len - pos, &current);
 
         if (length == 1) {
-            if (current == 9633)
-                return 1;
-            if (current == 9475)
-                return 1;
-            if (current == '\t')
-                return tab_width;
+            if (current == 9633) return 1;
+            if (current == 9475) return 1;
+            if (current == 0x2192) return 1;
+            if (current == '\t') return tab_width;
         }
 
         uwidth_push(&state, current, &event);
