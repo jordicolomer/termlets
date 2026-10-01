@@ -4,6 +4,7 @@
 #include "uwidth.h"
 #include "mystr.h"
 #include "logger.h"
+#include "common.h"
 
 int orig(void) {
     printf(" # orig\n");
@@ -92,6 +93,7 @@ int wc_len(char *text, int length) {
 		if (length == 1){
 		      if (current == 9633) return 1;
 			  if (current == 9475) return 1;
+			  if (current == '\t') return tab_width;
 		}
 
         uwidth_push(&state, current, &event);

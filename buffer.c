@@ -527,11 +527,26 @@ void Buffer_print2(Buffer *buf, int y, int x, int width, char *s, int fg, int bg
     }
 	MyStr mystr;
 	MyStr_init(&mystr, s);
+	int offset = 0;
     while (MyStr_next_cluster(&mystr)) {
-	  if (mystr.pos_column > width) break;
-	  buf2.cells[y * buf2.width + x + mystr.pos_column].utf8 = s + mystr.cluster_start;
-	  buf2.cells[y * buf2.width + x + mystr.pos_column].size = mystr.cluster_end - mystr.cluster_start;
-	  buf2.cells[y * buf2.width + x + mystr.pos_column].width = mystr.width_column;
+	  if (mystr.pos_column + offset > width) break;
+	  
+	  if (mystr.width_codepoints == 1 && s[mystr.cluster_start] == '\t'){
+		if (show_tabs){
+		  Cell * cell = &buf2.cells[y * buf2.width + x + mystr.pos_column];
+		  cell->utf8 = "→";
+		  cell->size = strlen(cell->utf8);
+		  cell->width = 1;
+		}
+		//offset += tab_width - 1;
+		
+	  } else {
+		Cell * cell = &buf2.cells[y * buf2.width + x + mystr.pos_column + offset];
+		cell->utf8 = s + mystr.cluster_start;
+		cell->size = mystr.cluster_end - mystr.cluster_start;
+		cell->width = mystr.width_column;
+	  }
+		
     }	
 }
 
@@ -544,6 +559,7 @@ void Buffer_set_fg(Buffer *buf, int y, int x, int width, int fg) {
     y -= 1;
     for (int i = 0; i < width; i++) {
         buf->fg[y * buf->width + x + i] = (char)fg;
+		buf2.cells[y * buf->width + x + i].fg = (char)fg;
     }
 }
 
@@ -551,6 +567,7 @@ void Buffer_set_bg(Buffer *buf, int y, int x, int width, int bg) {
     y -= 1;
     for (int i = 0; i < width; i++) {
         buf->bg[y * buf->width + x + i] = (char)bg;
+		buf2.cells[y * buf->width + x + i].bg = (char)bg;
     }
 }
 
