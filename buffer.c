@@ -540,10 +540,12 @@ void Buffer_print2(Buffer *buf, int y, int x, int width, char *s, int fg, int bg
             // offset += tab_width - 1;
 
         } else {
+		  if (mystr.width_column > 0){
             Cell *cell = &buf2.cells[y * buf2.width + x + mystr.pos_column + offset];
             cell->utf8 = s + mystr.cluster_start;
             cell->size = mystr.cluster_end - mystr.cluster_start;
             cell->width = mystr.width_column;
+		  }
         }
     }
 }

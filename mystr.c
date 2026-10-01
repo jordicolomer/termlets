@@ -99,6 +99,9 @@ int wc_len(char *text, int length) {
             if (current == 0x1F3DE) return 1;
             if (current == 0x2193) return 1;
             if (current == '\t') return tab_width;
+			if (current >= 0x0300 && current <= 0x036F) return 0;
+			if (current <= 31 && current != '\t') return 0;
+
         }
 
         uwidth_push(&state, current, &event);
