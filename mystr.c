@@ -94,6 +94,10 @@ int wc_len(char *text, int length) {
             if (current == 9633) return 1;
             if (current == 9475) return 1;
             if (current == 0x2192) return 1;
+            if (current == 0x25B2) return 1;
+            if (current == 0x25BC) return 1;
+            if (current == 0x1F3DE) return 1;
+            if (current == 0x2193) return 1;
             if (current == '\t') return tab_width;
         }
 
@@ -101,7 +105,7 @@ int wc_len(char *text, int length) {
         pos += bytes;
     }
     uwidth_finish(&state, &event);
-    // LOG_INFO("wc_len %s %d %d", text, length, event.width);
+    //LOG_INFO("wc_len %s %d %d", text, length, event.width);
     return event.width;
 }
 

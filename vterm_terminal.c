@@ -615,7 +615,7 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus) {
             line_buf[buf_idx] = '\0';
             int batch_width = col - batch_start;
 
-            Buffer_print(&main_buf, y, geo.x + batch_start, batch_width, line_buf, fg, bg);
+            Buffer_print(&main_buf, y, geo.x + batch_start, batch_width, strdup(line_buf), fg, bg);
         }
     }
 

@@ -907,8 +907,8 @@ void Buffer_print_to_screen(Buffer *buf) {
 
     double cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
 
-    LOG_INFO("Execution time: %f ms size:%d cursor_movement_count:%d color_count:%d",
-             cpu_time_used * 1000, pos, cursor_movement_count, color_count);
+    //LOG_INFO("Execution time: %f ms size:%d cursor_movement_count:%d color_count:%d",
+    //         cpu_time_used * 1000, pos, cursor_movement_count, color_count);
 }
 
 Buffer main_buf;
