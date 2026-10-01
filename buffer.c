@@ -527,7 +527,7 @@ void Buffer_print2(Buffer *buf, int y, int x, int width, char *s, int fg, int bg
     MyStr_init(&mystr, s);
     int offset = 0;
     while (MyStr_next_cluster(&mystr)) {
-        if (mystr.pos_column + offset > width)
+        if (mystr.pos_column + offset >= width)
             break;
 
         if (mystr.width_codepoints == 1 && s[mystr.cluster_start] == '\t') {
