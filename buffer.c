@@ -851,7 +851,8 @@ void Buffer_print_to_screen(Buffer *buf) {
                 continue;
 
             // cursor movement only when needed
-            if (x != terminal_x || y != terminal_y) {
+            if (x != terminal_x || y != terminal_y)
+			{
                 cursor_movement_count += 1;
 
                 // append_fmt(out, &pos, "\033[%d;%dH", y + 1, x + 1);

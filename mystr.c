@@ -72,6 +72,12 @@ uint_least32_t uw_cluster(const Uwidth_Code_Point *code_points, unsigned int len
     return event.width;
 }
 
+int get_width(char * s, int size);
+  
+/*int wc_len(char *text, int length) {
+  return get_width(text, length);
+  }*/
+
 int wc_len(char *text, int length) {
     // int ret = uw_cluster((Uwidth_Code_Point *)text, len, uwidth_profile_east_asian);
     // printf("wc_len \"%.*s\" ret=%d len=%d \n", len,text, ret, len);
@@ -79,6 +85,7 @@ int wc_len(char *text, int length) {
     Uwidth_State state;
     Uwidth_Event event;
     unsigned int index;
+
 
     // uwidth_init(&state, uwidth_profile_east_asian);
     uwidth_init(&state, uwidth_profile_narrow);
@@ -89,6 +96,13 @@ int wc_len(char *text, int length) {
         utf8proc_int32_t current;
         utf8proc_ssize_t bytes =
             utf8proc_iterate((const utf8proc_uint8_t *)text + pos, len - pos, &current);
+		
+        if (length == 2 && index == 0){
+		  if (current == 0x0600) return 2;
+		  if (current == 0x0601) return 2;
+		  if (current == 0x0602) return 2;
+		  if (current == 0x0603) return 2;
+		}
 
         if (length == 1) {
             if (current == 9633) return 1;
@@ -104,6 +118,7 @@ int wc_len(char *text, int length) {
 			if (current == 0x0085) return 0;
 			if (current == 0x00A9) return 1;
 			if (current == 0x00AE) return 1;
+			//if (current == 1522) return 3;
 			//if (current == 0x00A9) return 2;
 
         }
@@ -175,6 +190,7 @@ int MyStr_next_cluster(MyStr *mystr) {
             // printf("%d %d\n", mystr->cluster_start, mystr->cluster_end);
             // LOG_INFO("MyStr_next_cluster %s %d", mystr->utf8, mystr->width_codepoints);
             int w = wc_len(mystr->utf8 + mystr->cluster_start, mystr->width_codepoints);
+			//int w = get_width(mystr->utf8 + mystr->cluster_start, mystr->cluster_end-mystr->cluster_start);
             // mystr->pos_column += w;
             mystr->width_column = w;
             // mystr->width_codepoints-=1;
@@ -188,6 +204,7 @@ int MyStr_next_cluster(MyStr *mystr) {
     // int w = wc_len(mystr->utf8 + mystr->cluster_start, mystr->cluster_end -
     // mystr->cluster_start);
     int w = wc_len(mystr->utf8 + mystr->cluster_start, mystr->width_codepoints);
+	//int w = get_width(mystr->utf8 + mystr->cluster_start, mystr->cluster_end-mystr->cluster_start);
     // mystr->pos_column += w;
     mystr->width_column = w;
     return 1;
