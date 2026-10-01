@@ -3,6 +3,7 @@
 #include <utf8proc.h>
 #include "uwidth.h"
 #include "mystr.h"
+#include "logger.h"
 
 int orig(void) {
     printf(" # orig\n");
@@ -79,6 +80,7 @@ int wc_len(char *text, int length) {
     unsigned int index;
 
     uwidth_init(&state, uwidth_profile_east_asian);
+    //uwidth_init(&state, uwidth_profile_narrow);
     size_t len = strlen(text);
     size_t pos = 0;
     for (index = 0U; index < length; ++index) {
@@ -87,10 +89,16 @@ int wc_len(char *text, int length) {
         utf8proc_ssize_t bytes =
             utf8proc_iterate((const utf8proc_uint8_t *)text + pos, len - pos, &current);
 
+		if (length == 1){
+		      if (current == 9633) return 1;
+			  if (current == 9475) return 1;
+		}
+
         uwidth_push(&state, current, &event);
         pos += bytes;
     }
     uwidth_finish(&state, &event);
+	//LOG_INFO("wc_len %s %d %d", text, length, event.width);
     return event.width;
 }
 
@@ -151,8 +159,9 @@ int MyStr_next_cluster(MyStr *mystr) {
             mystr->cluster_end = pos;
             mystr->pos_cluster += 1;
             // printf("%d %d\n", mystr->cluster_start, mystr->cluster_end);
+			//LOG_INFO("MyStr_next_cluster %s %d", mystr->utf8, mystr->width_codepoints);
             int w = wc_len(mystr->utf8 + mystr->cluster_start,
-                           mystr->cluster_end - mystr->cluster_start);
+                           mystr->width_codepoints);
             // mystr->pos_column += w;
             mystr->width_column = w;
 			//mystr->width_codepoints-=1;
@@ -163,7 +172,8 @@ int MyStr_next_cluster(MyStr *mystr) {
 	mystr->width_codepoints+=1;
     mystr->pos_cluster += 1;
     mystr->cluster_end = mystr->len_bytes;
-    int w = wc_len(mystr->utf8 + mystr->cluster_start, mystr->cluster_end - mystr->cluster_start);
+    //int w = wc_len(mystr->utf8 + mystr->cluster_start, mystr->cluster_end - mystr->cluster_start);
+    int w = wc_len(mystr->utf8 + mystr->cluster_start, mystr->width_codepoints);
     // mystr->pos_column += w;
     mystr->width_column = w;
     return 1;
@@ -205,6 +215,28 @@ int MyStr_get_grapheme_at_column(MyStr *mystr, int column_number) {
         return 1;
     return 0;
 }
+
+/*
+https://github.com/stdlib-js/string-prev-grapheme-cluster-break/blob/main/lib/main.js
+
+
+static bool is_safe_grapheme_start(unsigned char c)
+{
+    return c < 0x80 && c != '\r' && c != '\n';
+}
+
+
+size_t candidate = previous_codepoint(s, offset);
+
+while (!is_safe_start(s, candidate))
+    candidate = previous_codepoint(s, candidate);
+
+return next_grapheme(s, candidate);
+
+~/Downloads/libunistring-1.4.2/tests/unigbrk/test-u8-grapheme-prev.c
+https://fossies.org/linux/libunistring/lib/unigbrk/u-grapheme-prev.h
+~/Downloads/libunistring-1.4.2/lib/unigbrk/u-grapheme-prev.h
+*/
 
 void print_cluster(MyStr *mystr) {
     printf("cluster_start: %d cluster_end: %d pos_cluster: %d pos_column: %d width_column: %d width_codepoints: %d ",
