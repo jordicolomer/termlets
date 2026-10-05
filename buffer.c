@@ -918,3 +918,59 @@ void Buffer_print_to_screen(Buffer *buf) {
 }
 
 Buffer main_buf;
+/*
+1. Compute final-writer for every cell (O(n + S))  
+final_writer[0..n-1] = none
+for each draw d in original order:
+    for i = L_d .. R_d:
+        final_writer[i] = d
+
+(S = total length of all strings)
+
+2. Compute the difference set (O(n))  
+D = { i | prev[i] ≠ next[i] }
+
+(You can obtain next either by a separate simulation or on the fly while building the final-writer array.)
+
+3. Forced-set closure (O(n + S))  
+forced = empty set          // set of draw indices
+queue  = empty queue
+
+// seed with the writers that are required by the real differences
+for each i in D:
+    w = final_writer[i]
+    if w is not marked forced:
+        mark w forced
+        enqueue w
+
+// propagate collateral damage
+while queue is not empty:
+    d = dequeue
+    for i = L_d .. R_d:               // scan the interval once
+        w = final_writer[i]
+        if w is not marked forced:
+            mark w forced
+            enqueue w
+
+or recursively
+
+forced = empty set
+
+function force(d):
+    if d is already marked forced:
+        return
+    mark d forced
+    for i = L_d .. R_d:                  // scan the interval
+        w = final_writer[i]
+        force(w)                         // recursive call
+
+# seed
+for each i in D:
+    force(final_writer[i])
+
+
+4. Emit
+Print the forced draws in the order they originally appeared.
+Their number is the exact minimum.
+
+ */
