@@ -40,9 +40,13 @@ void ArrayListIteratorNext(ArrayList * self, ArrayListIterator * ite){
   }
 }
 
+int ArrayListIteratorValid(ArrayList * self, ArrayListIterator * ite){
+  if (ite->ar == NULL) return 0;
+  if (ite->ar == self->last.ar && ite->idx > self->last.idx) return 0;
+  return 1;
+}
+
 char * ArrayListIteratorElement(ArrayList * self, ArrayListIterator * ite){
-  if (ite->ar == NULL) return NULL;
-  if (ite->ar == self->last.ar && ite->idx > self->last.idx) return NULL;
   return ite->ar->data + ite->idx * self->elementSize;
 }
 

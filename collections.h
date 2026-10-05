@@ -24,6 +24,7 @@ typedef struct ArrayList {
 } ArrayList;
 
 void ArrayList_init(ArrayList * self, uint32_t elementSize, uint32_t arraySize);
+int ArrayListIteratorValid(ArrayList * self, ArrayListIterator * ite);
 void ArrayListIteratorNext(ArrayList * self, ArrayListIterator * ite);
 char * ArrayListIteratorElement(ArrayList * self, ArrayListIterator * ite);
 void ArrayList_append(ArrayList * self, char * data);
