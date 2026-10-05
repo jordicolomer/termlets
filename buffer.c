@@ -57,6 +57,18 @@ static int mywcwidth(uint32_t wc) {
 
 Buffer2 buf2;
 
+#include "collections.h"
+
+typedef struct PrintListElement {
+  int y;
+  int x;
+  int width;
+  char *s;
+} PrintListElement;
+
+ArrayList printList;
+
+
 uint32_t utf8_decode2(const uint8_t *s, int *idx) {
     const uint8_t *p = s + *idx;
     uint32_t cp = 0;
@@ -217,6 +229,8 @@ void Buffer_init(Buffer *buf, int width, int height) {
     buf2.width = width;
     buf2.height = height;
     buf2.cells = calloc(width * height, sizeof(Cell));
+
+	ArrayList_init(&printList, sizeof(PrintListElement), 10);
 }
 
 void Buffer_clear(Buffer *buf) {
@@ -553,9 +567,15 @@ void Buffer_print2(Buffer *buf, int y, int x, int width, char *s, int fg, int bg
     }
 }
 
+
+
 void Buffer_print(Buffer *buf, int y, int x, int width, char *s, int fg, int bg) {
     Buffer_print1(buf, y, x, width, s, fg, bg);
     Buffer_print2(buf, y, x, width, s, fg, bg);
+
+	
+	PrintListElement le = { .y = y, .x = x, .width = width, .s = s };
+	ArrayList_append(&printList, &le);
 }
 
 void Buffer_set_fg(Buffer *buf, int y, int x, int width, int fg) {
@@ -915,6 +935,7 @@ void Buffer_print_to_screen(Buffer *buf) {
 
     //LOG_INFO("Execution time: %f ms size:%d cursor_movement_count:%d color_count:%d",
     //         cpu_time_used * 1000, pos, cursor_movement_count, color_count);
+	ArrayList_reset(&printList);
 }
 
 Buffer main_buf;

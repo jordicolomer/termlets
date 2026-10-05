@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdio.h>
 #include "collections.h"
+#include "logger.h"
 
 void ArrayList_init(ArrayList * self, uint32_t elementSize, uint32_t arraySize){
   self->elementSize = elementSize;
@@ -27,16 +28,15 @@ void _ArrayList_add_node(ArrayList * self){
 
 int _ArrayList_is_full(ArrayList * self){
   if (self->last.ar == NULL) return 1;
-  if (self->last.idx > self->arraySize-1) return 1;
+  if (self->last.idx >= self->arraySize-1) return 1;
   return 0;
 }
 
 void ArrayListIteratorNext(ArrayList * self, ArrayListIterator * ite){
-  if (ite->idx > self->arraySize-1){
+  ite->idx++;
+  if (ite->idx >= self->arraySize){
 	ite->ar = ite->ar->next;
 	ite->idx = 0;
-  } else {
-	ite->idx++;
   }
 }
 
@@ -62,6 +62,7 @@ void ArrayList_append(ArrayList * self, char * data){
 	  self->last.idx++;
   }
   char * elem = ArrayListIteratorElement(self, &self->last);
+  //LOG_INFO("ArrayList_append: %p", elem);
   memcpy(elem, data, self->elementSize);
   self->count++;
 }
