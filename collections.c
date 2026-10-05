@@ -52,7 +52,10 @@ char * ArrayListIteratorElement(ArrayList * self, ArrayListIterator * ite){
 
 void ArrayList_append(ArrayList * self, char * data){
   if (_ArrayList_is_full(self) == 1){
-	_ArrayList_add_node(self);
+	if (self->last.ar && self->last.ar->next != NULL)
+	  self->last.ar = self->last.ar->next;
+	else
+	  _ArrayList_add_node(self);
 	self->last.idx = 0;
   } else {
 	if (self->count != 0)
@@ -61,4 +64,10 @@ void ArrayList_append(ArrayList * self, char * data){
   char * elem = ArrayListIteratorElement(self, &self->last);
   memcpy(elem, data, self->elementSize);
   self->count++;
+}
+
+void ArrayList_reset(ArrayList * self){
+  self->last.ar = self->first.ar;
+  self->last.idx = 0;
+  self->count = 0;
 }
