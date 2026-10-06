@@ -72,3 +72,47 @@ void ArrayList_reset(ArrayList * self){
   self->last.idx = 0;
   self->count = 0;
 }
+
+
+
+
+// hashmap
+
+#include "uthash/uthash.h"
+
+typedef struct {
+    char *key;
+    size_t key_len;
+    int value;
+
+    UT_hash_handle hh;
+} Entry;
+
+Entry *map;
+
+void hashmap_put(char * key, int key_size, int value){
+  Entry *e = malloc(sizeof(*e));
+  e->key = malloc(key_size);
+  memcpy(e->key, key, key_size);
+  e->key_len = key_size;
+  e->value = value;
+
+  HASH_ADD_KEYPTR(hh, map, e->key, e->key_len, e);
+}
+
+int hashmap_get(char * key, int key_size){
+  Entry *found;
+
+  HASH_FIND(hh, map, key, key_size, found);
+
+  if (found){
+	//printf("value = %d\n", found->value);
+	return found->value;
+  }
+
+  return -1;
+
+  //HASH_DEL(map, e);
+  //free(e->key);
+  //free(e);
+}

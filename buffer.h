@@ -31,6 +31,24 @@ typedef struct Buffer2 {
     Cell *cells;
 } Buffer2;
 
+typedef struct PrintListElement {
+  int y;
+  int x;
+  int width;
+  char *s;
+  int fg;
+  int bg;
+  int visible;
+} PrintListElement;
+
+typedef struct Cell2 {
+  unsigned char bg;
+  unsigned char fg;
+  uint64_t hash;
+  int column;
+  PrintListElement * elem;
+} Cell2;
+
 // extern Buffer2 buf2;
 
 void Buffer_init(Buffer *buf, int width, int height);
