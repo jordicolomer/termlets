@@ -1209,10 +1209,38 @@ int get_width_size(char * s, int max_width){
   return mystr.cluster_end;
 }
 
-void emit_block(){
+void emit_block(size_t * pos, PrintListElement * elem, int cell1_x, int y, int x){
+  // print element with bounding box
+  if (elem == NULL){
+	//LOG_INFO("elem == NULL %d %d %d", y, cell1_x+1, x+1);
+	append_fmt(out, pos, "\033[38;5;%d;48;5;%dm", 0, 0);
+	append_fmt(out, pos, "\033[%d;%dH", y, cell1_x+1);
+	append_bytes(out, pos, " ", 1);
+  } else {
+	//LOG_INFO("elem != NULL %d %d %d \"%s\" fg:%d bg:%d", y, cell1_x+1, x+1, elem->s, elem->fg, elem->bg);
+	//LOG_INFO("offset");
+	int offset = cell1_x - elem->x;
+	//LOG_INFO("calling ltrim %s %d", elem->s, offset);
+	char * s_trimmed = ltrim(elem->s, offset);
+	//LOG_INFO("trimmed %s", s_trimmed);
+	  
+	int width = x - cell1_x;
+	  
+	append_fmt(out, pos, "\033[%d;%dH", y, cell1_x+1);
+	append_fmt(out, pos, "\033[38;5;%d;48;5;%dm", elem->fg, elem->bg);
+	for(int x=0;x<width;x++) append_bytes(out, pos, " ", 1);
+	if (s_trimmed != NULL){
+	  append_fmt(out, pos, "\033[%d;%dH", y, cell1_x+1);
+				
+	  int byte_size = get_width_size(s_trimmed, width);
+	  //LOG_INFO("get_width_size %.*s byte_size=%d width=%d", byte_size, s_trimmed, byte_size, width);
+
+	  append_fmt(out, pos, "%.*s", byte_size, s_trimmed);
+	}
+  }
 }
 
-void Buffer_print_to_screen(Buffer *buf) {
+char * Buffer_print_to_screen_impl(Buffer *buf) {
   // best version
     int cursor_movement_count = 0;
     int color_count = 0;
@@ -1222,9 +1250,11 @@ void Buffer_print_to_screen(Buffer *buf) {
     //char *out = malloc(OUTBUF_SIZE);
     memset(out, 0, OUTBUF_SIZE);
     if (!out)
-        return;
+        return NULL;
 
     size_t pos = 0;
+	
+	init_buf0();
 	
 	// iterate list of blocks and construct buffer
 	ArrayListIterator current = printList.first;
@@ -1254,9 +1284,10 @@ void Buffer_print_to_screen(Buffer *buf) {
 		//LOG_INFO("get_cell: %d %d", y, x);
 		Cell2 * cell = get_cell(y, x);
 		Cell2 * cell2 = get_cell2(y, x);
-		if (! Cell_equals(cell, cell2)) cell_differs++;
+		//printf("%d %d %d\n", y, x, Cell_equals(cell, cell2));
 		//LOG_INFO("end get_cell %p %p", cell1, cell);
 		if (cell1 == NULL) {
+		  //printf("null\n");
 		  cell1 = cell;
 		  cell1_x = x;
 		  cell_differs = 0;
@@ -1264,44 +1295,25 @@ void Buffer_print_to_screen(Buffer *buf) {
 				   cell1->column + x - cell1_x != cell->column ||
 				   cell1->bg != cell->bg ||
 				   cell1->fg != cell->fg
-				   ){
-		  // emit block cell1, cell2
-		  //LOG_INFO("emit block %d %d %d", y, cell1_x, x);
-		  PrintListElement * elem = cell1->elem;
-		  if (cell_differs > 0){
-			if (elem == NULL){
-			  //LOG_INFO("elem == NULL");
-			  append_fmt(out, &pos, "\033[38;5;%d;48;5;%dm", 0, 0);
-			  append_fmt(out, &pos, "\033[%d;%dH", y, cell1_x+1);
-			  append_bytes(out, &pos, " ", 1);
-			} else {
-			//LOG_INFO("offset");
-			int offset = cell1_x - elem->x;
-			//LOG_INFO("calling ltrim %s %d", elem->s, offset);
-			char * s_trimmed = ltrim(elem->s, offset);
-			//LOG_INFO("trimmed %s", s_trimmed);
-
-			int width = x - cell1_x;
-		  
-			append_fmt(out, &pos, "\033[%d;%dH", y, cell1_x+1);
-			append_fmt(out, &pos, "\033[38;5;%d;48;5;%dm", elem->fg, elem->bg);
-			for(int x=0;x<width;x++) append_bytes(out, &pos, " ", 1);
-			if (s_trimmed != NULL){
-			  append_fmt(out, &pos, "\033[%d;%dH", y, cell1_x+1);
-			  
-			  int byte_size = get_width_size(s_trimmed, width);
-			  //LOG_INFO("get_width_size %.*s byte_size=%d width=%d", byte_size, s_trimmed, byte_size, width);
-
-			  append_fmt(out, &pos, "%.*s", byte_size, s_trimmed);
+				   )
+		  {
+			//printf("else\n");
+			// emit block cell1, cell2
+			//if (y==3) LOG_INFO("emit block %d %d %d cell_differs=%d", y, cell1_x, x, cell_differs);
+			if (cell_differs > 0){
+			  //LOG_INFO("cell_differs %d %d %d", y, cell1_x, x);
+			  //printf("emit %d %d %d\n", y, x, cell_differs);
+			  PrintListElement * elem = cell1->elem;
+			  emit_block(&pos, elem, cell1_x, y, x);
 			}
-			}
-		  }
 
-		  // start next block
-		  cell1 = cell;
-		  cell1_x = x;
-		  cell_differs = 0;
+			// start next block
+			cell1 = cell;
+			cell1_x = x;
+			cell_differs = 0;
 		}
+		if (! Cell_equals(cell, cell2)) cell_differs++;
+
 		//cell2 = cell;
 		//cell2_x = x;
 	  }
@@ -1380,10 +1392,10 @@ void Buffer_print_to_screen(Buffer *buf) {
 
     // move cursor below UI
     append_fmt(out, &pos, "\033[%d;1H", buf->height + 1);
+	out[pos] = 0;
 
     // append_str(out, &pos, "\033[?2026l");
 
-    write(STDOUT_FILENO, out, pos);
     //LOG_INFO("STDOUT:  \"%.*s\" ", (int)pos, out);
 
     // int fd = open("output.txt", O_WRONLY | O_CREAT | O_TRUNC, 0644);
@@ -1404,7 +1416,13 @@ void Buffer_print_to_screen(Buffer *buf) {
 
 	ArrayList_reset(&printList);
 	swap_cells();
-	init_buf0();
+	return out;
+}
+
+void Buffer_print_to_screen(Buffer *buf) {
+  char * out = Buffer_print_to_screen_impl(buf);
+  //write(STDOUT_FILENO, out, pos);
+  write(STDOUT_FILENO, out, strlen(out));
 }
 
 Buffer main_buf;
