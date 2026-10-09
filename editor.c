@@ -480,16 +480,6 @@ void EditorWindow_fix_cursor_x(EditorWindow *self) {
     }
 }
 
-#include <ctype.h>
-void replace_nonprintable(char *str) {
-    while (*str) {
-        if (!isprint((unsigned char)*str)) {
-            *str = '?';
-        }
-        str++;
-    }
-}
-
 Node *create_node(const char *text) {
     if (text == NULL) {
         text = "";

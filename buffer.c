@@ -62,7 +62,7 @@ Buffer2 *buf1;
 
 // ArrayList printList;
 
-#define OUTBUF_SIZE (1024 * 1024 * 8 * 100)
+#define OUTBUF_SIZE (1024 * 1024 * 8)
 char *out;
 
 #include <stdint.h>
@@ -517,7 +517,7 @@ void Buffer_print_buf(Buffer2 *buf, int y, int x, int width, char *s, int fg, in
                 cell->size = strlen(cell->utf8);
                 cell->width = 1;
             }
-            // offset += tab_width - 1;
+            offset += tab_width;
 
         } else {
             if (mystr.width_column > 0) {
@@ -610,15 +610,7 @@ void Buffer_print_to_screen(Buffer *buf) {
 
     clock_t start = clock();
 
-    // char *out = malloc(OUTBUF_SIZE);
-    //memset(out, 0, OUTBUF_SIZE);
-    if (!out)
-        return;
-
     size_t pos = 0;
-
-    // synchronized output begin
-    // append_str(out, &pos, "\033[?2026h");
 
     int current_bg = -1;
     int current_fg = -1;
@@ -629,19 +621,11 @@ void Buffer_print_to_screen(Buffer *buf) {
     // hide cursor
     append_str(out, &pos, "\033[?25l");
 
-    // clear screen
-    // append_str(out, &pos, "\033[2J");
-
 	int reposition = 0;
 	
     for (int y = 0; y < buf->height; y++) {
 
         for (int x = 0; x < buf->width; x++) {
-            // Skip cells already rendered as part of previous wide character
-            // if (terminal_y == y && x < terminal_x) {
-            //    continue;
-            //}
-
             int idx = y * buf->width + x;
             Cell *cell0 = &buf0->cells[idx];
             Cell *cell1 = &buf1->cells[idx];
@@ -667,10 +651,7 @@ void Buffer_print_to_screen(Buffer *buf) {
             {
                 cursor_movement_count += 1;
 
-                // append_fmt(out, &pos, "\033[%d;%dH", y + 1, x + 1);
-                // LOG_INFO("move %d %d", y + 1, x);
                 append_fmt(out, &pos, "\033[%d;%dH", y + 1, x + 1);
-                // LOG_INFO("append_fmt pos: %d %d", y, x);
                 terminal_x = x;
                 terminal_y = y;
             }
@@ -679,18 +660,14 @@ void Buffer_print_to_screen(Buffer *buf) {
             if (bg != current_bg || fg != current_fg) {
                 color_count += 1;
 
-                // append_fmt(out, &pos, "\033[%d;%dm", fg, bg);
-                // LOG_INFO("color update %d %d", fg, bg);
                 append_fmt(out, &pos, "\033[38;5;%d;48;5;%dm", fg, bg);
 
-                // LOG_INFO("append_fmt color: %d %d", fg, bg);
                 current_bg = bg;
                 current_fg = fg;
             }
 
             // encode UTF-8
             if (size > 0) {
-                // LOG_INFO("append_bytes size: %d width: %d \"%.*s\"", size, width, size, utf8);
                 append_bytes(out, &pos, (char *)utf8, size);
             }
 
@@ -708,28 +685,15 @@ void Buffer_print_to_screen(Buffer *buf) {
     // move cursor below UI
     append_fmt(out, &pos, "\033[%d;1H", buf->height + 1);
 
-    // append_str(out, &pos, "\033[?2026l");
-
     write(STDOUT_FILENO, out, pos);
-    // LOG_INFO("STDOUT_FILENO: %s", STDOUT_FILENO);
-
-    // int fd = open("output.txt", O_WRONLY | O_CREAT | O_TRUNC, 0644);
-    // write(fd, out, pos);
-    // close(fd);
-
-    // free(out);
-    //  Buffer_copy_to_second_buffer(buf);
-    //  buf2.cells = calloc(buf->width * buf->height, sizeof(Cell));
-    // memset(buf2.cells, 0, buf2.width * buf2.height * sizeof(Cell));
 
     clock_t end = clock();
 
     double cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
 
-    LOG_INFO("Execution time: %f ms size:%d cursor_movement_count:%d color_count:%d",
-             cpu_time_used * 1000, pos, cursor_movement_count, color_count);
-
-    // ArrayList_reset(&printList);
     buf0_swap();
     buf0_reset();
+
+    LOG_INFO("Execution time: %f ms size:%d cursor_movement_count:%d color_count:%d",
+             cpu_time_used * 1000, pos, cursor_movement_count, color_count);
 }
