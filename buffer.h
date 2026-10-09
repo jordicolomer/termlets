@@ -21,6 +21,7 @@ typedef struct Cell {
     char *utf8;
     int size;
     int width;
+    int reposition;
     unsigned char bg;
     unsigned char fg;
 } Cell;
@@ -30,26 +31,6 @@ typedef struct Buffer2 {
     int height;
     Cell *cells;
 } Buffer2;
-
-typedef struct PrintListElement {
-    int y;
-    int x;
-    int width;
-    char *s;
-    int fg;
-    int bg;
-    int visible;
-} PrintListElement;
-
-typedef struct Cell2 {
-    unsigned char bg;
-    unsigned char fg;
-    uint64_t hash;
-    int column;
-    PrintListElement *elem;
-} Cell2;
-
-// extern Buffer2 buf2;
 
 void Buffer_init(Buffer *buf, int width, int height);
 void Buffer_clear(Buffer *buf);

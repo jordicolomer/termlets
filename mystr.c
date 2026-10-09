@@ -198,6 +198,7 @@ int MyStr_next_cluster(MyStr *mystr) {
     while (MyStr_next_codepoint(mystr)) {
         // printf("U+%04X\n", (unsigned int)mystr->current);
         mystr->width_codepoints += 1;
+		if (mystr->previous == -1) mystr->first_codepoint = mystr->current;
         if (mystr->previous != -1 &&
             utf8proc_grapheme_break_stateful(mystr->previous, mystr->current, &mystr->state)) {
             mystr->cluster_end = pos;

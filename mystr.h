@@ -7,6 +7,7 @@ typedef struct MyStr {
     size_t len_bytes;          // total lenght in bytes
     size_t width_column;       // width in columns of the current cluster
     size_t width_codepoints;   // width in codepoints of the current cluster
+    utf8proc_int32_t first_codepoint;   // first codepoint of the current cluster
     size_t pos_column;         // offset in column number of the current cluster
     size_t pos_bytes;          // offset in bytes of the current cluster
     size_t pos_cluster;        // ordinal number of the current cluster

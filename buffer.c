@@ -233,11 +233,11 @@ void Buffer_init(Buffer *buf, int width, int height) {
     buf0 = calloc(1, sizeof(Buffer2));
     buf0->width = width;
     buf0->height = height;
-    buf0->cells = malloc(sizeof(Cell2) * width * height);
+    buf0->cells = malloc(sizeof(Cell) * width * height);
     buf1 = calloc(1, sizeof(Buffer2));
     buf1->width = width;
     buf1->height = height;
-    buf1->cells = malloc(sizeof(Cell2) * width * height);
+    buf1->cells = malloc(sizeof(Cell) * width * height);
 
     // all versions
     out = malloc(OUTBUF_SIZE);
@@ -525,6 +525,9 @@ void Buffer_print_buf(Buffer2 *buf, int y, int x, int width, char *s, int fg, in
                 cell->utf8 = s + mystr.cluster_start;
                 cell->size = mystr.cluster_end - mystr.cluster_start;
                 cell->width = mystr.width_column;
+				if (mystr.width_codepoints != 1 && mystr.first_codepoint >= 256){
+				  cell->reposition = 1;
+				}
                 offset += cell->width;
             }
         }
@@ -586,17 +589,6 @@ void Buffer_copy_to_second_buffer(Buffer *buf) {
     memcpy(buf->fg2, buf->fg, size * sizeof(char));
 }
 
-int Cell_equals(Cell2 *cell1, Cell2 *cell2) {
-    if (cell1->hash != cell2->hash)
-        return 0;
-    if (cell1->column != cell2->column)
-        return 0;
-    if (cell1->bg != cell2->bg)
-        return 0;
-    if (cell1->fg != cell2->fg)
-        return 0;
-    return 1;
-}
 
 Buffer main_buf;
 
@@ -619,7 +611,7 @@ void Buffer_print_to_screen(Buffer *buf) {
     clock_t start = clock();
 
     // char *out = malloc(OUTBUF_SIZE);
-    memset(out, 0, OUTBUF_SIZE);
+    //memset(out, 0, OUTBUF_SIZE);
     if (!out)
         return;
 
@@ -640,6 +632,8 @@ void Buffer_print_to_screen(Buffer *buf) {
     // clear screen
     // append_str(out, &pos, "\033[2J");
 
+	int reposition = 0;
+	
     for (int y = 0; y < buf->height; y++) {
 
         for (int x = 0; x < buf->width; x++) {
@@ -669,7 +663,7 @@ void Buffer_print_to_screen(Buffer *buf) {
             }
 
             // cursor movement only when needed
-            // if (x != terminal_x || y != terminal_y)
+            if (reposition == 1 || x != terminal_x || y != terminal_y)
             {
                 cursor_movement_count += 1;
 
@@ -704,6 +698,7 @@ void Buffer_print_to_screen(Buffer *buf) {
             if (width > 1) {
                 x += width - 1;
             }
+			reposition = cell0->reposition;
         }
     }
 
