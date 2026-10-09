@@ -1583,7 +1583,7 @@ void Buffer_print_to_screen___(Buffer *buf) {
             int idx = y * buf->width + x;
 			Cell * cell0 = &buf0->cells[idx];
 			Cell * cell1 = &buf1->cells[idx];
-			//if (buf0_Cell_equals(cell0, cell1)) continue;
+			if (buf0_Cell_equals(cell0, cell1)) continue;
 
             char *utf8 = cell0->utf8;
             int bg = (int)cell0->bg;
