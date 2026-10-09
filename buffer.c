@@ -669,7 +669,9 @@ void Buffer_print3_buf(Buffer2 * buf, int y, int x, int width, char *s, int fg, 
             Cell *cell = &buf->cells[y * buf->width + x + offset];
             cell->utf8 = s + mystr.cluster_start;
             cell->size = mystr.cluster_end - mystr.cluster_start;
-            //cell->width = mystr.width_column;
+            cell->width = mystr.width_column;
+			offset += cell->width;
+			/*
 			cell->width = hashmap_get(cell->utf8, cell->size);
 			if (cell->width != -1){
 			  offset += cell->width;
@@ -677,7 +679,7 @@ void Buffer_print3_buf(Buffer2 * buf, int y, int x, int width, char *s, int fg, 
 			} else {
 			  LOG_INFO("this should not happen \"%.*s\" %d", cell->size, cell->utf8, cell->width);
 			  offset += 1;
-			}
+			  }*/
 		  }
         }
     }
@@ -814,7 +816,8 @@ void Buffer_print_best(int y, int x, int width, char *s, int fg, int bg) {
 
 void Buffer_print(Buffer *buf, int y, int x, int width, char *s, int fg, int bg) {
   //Buffer_print1(buf, y, x, width, s, fg, bg);
-  Buffer_print2(buf, y, x, width, s, fg, bg);
+  //Buffer_print2(buf, y, x, width, s, fg, bg);
+  Buffer_print3_buf(buf0, y, x, width, s, fg, bg);
     //Buffer_print3(y, x, width, s, fg, bg);
   //Buffer_print_best(y, x, width, s, fg, bg);
 }
@@ -1597,7 +1600,7 @@ void Buffer_print_to_screen___(Buffer *buf) {
             }
 
             // cursor movement only when needed
-            if (x != terminal_x || y != terminal_y)
+            //if (x != terminal_x || y != terminal_y)
 			{
                 cursor_movement_count += 1;
 
@@ -1624,7 +1627,7 @@ void Buffer_print_to_screen___(Buffer *buf) {
 
             // encode UTF-8
             if (size > 0) {
-			  //LOG_INFO("append_bytes size: %d width: %d \"%.*s\"", size, width, size, utf8);
+			  LOG_INFO("append_bytes size: %d width: %d \"%.*s\"", size, width, size, utf8);
                 append_bytes(out, &pos, (char *)utf8, size);
             }
 
@@ -1668,7 +1671,8 @@ void Buffer_print_to_screen___(Buffer *buf) {
 }
 
 void Buffer_print_to_screen(Buffer *buf) {
-  Buffer_print_to_screen2(buf);
+  Buffer_print_to_screen___(buf);
+  //Buffer_print_to_screen2(buf);
   //Buffer_print_to_screen_impl(buf);
   
   /*char * out = Buffer_print_to_screen_impl(buf);
