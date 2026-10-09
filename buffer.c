@@ -65,7 +65,7 @@ Buffer2 * buf1;
 
 ArrayList printList;
 
-#define OUTBUF_SIZE (1024 * 1024 * 8)
+#define OUTBUF_SIZE (1024 * 1024 * 8 * 100)
 char *out;
 
 
@@ -612,7 +612,8 @@ void Buffer_print2(Buffer *buf, int y, int x, int width, char *s, int fg, int bg
     MyStr_init(&mystr, s);
     int offset = 0;
     while (MyStr_next_cluster(&mystr)) {
-        if (mystr.pos_column + offset >= width)
+	  //if (mystr.pos_column + offset >= width)
+	  if (mystr.pos_column + offset + mystr.width_column > width)
             break;
 
         if (mystr.width_codepoints == 1 && s[mystr.cluster_start] == '\t') {
@@ -728,6 +729,8 @@ int has_missing_width(int max_width, char *s) {
   
 }
 
+#include <unistd.h>
+
 void Buffer_print_and_cache(int y, int x, int max_width, char *s, int fg, int bg) {
   fprintf(stdout, "\033[%d;%dH", y, x+1);
   fprintf(stdout, "\033[38;5;%d;48;5;%dm", fg, bg);
@@ -742,13 +745,20 @@ void Buffer_print_and_cache(int y, int x, int max_width, char *s, int fg, int bg
 	  if (width == -1) {
 		int row0, col0;
 		get_cursor_position(&row0, &col0);
+		//fflush(stdout);
+		//usleep(10000);
 		fprintf(stdout, "%.*s", (int)len, data);
+		fflush(stdout);
+		usleep(10000);
 		int row1, col1;
 		get_cursor_position(&row1, &col1);
+		//fflush(stdout);
+		//usleep(10000);
 		width = col1 - col0;
-		LOG_INFO("hashmap_put \"%.*s\" %d", (int)len, data, width);
+		LOG_INFO("hashmap_put \"%.*s\" width:%d col0:%d col1:%d len:%d", (int)len, data, width, col0, col1, len);
 		hashmap_put(data, len, width);
 	  } else {
+		LOG_INFO("write %d bytes", len);
 		fprintf(stdout, "%.*s", (int)len, data);
 	  }
 	  
@@ -799,14 +809,14 @@ void Buffer_print_best(int y, int x, int width, char *s, int fg, int bg) {
 	LOG_INFO("has_missing_width");
 	Buffer_print_and_cache(y, x, width, s, fg, bg);
 	Buffer_print3_update(&elem, cells_buffer1, y, x, width, s, fg, bg);
-  }
+	}
 }
 
 void Buffer_print(Buffer *buf, int y, int x, int width, char *s, int fg, int bg) {
   //Buffer_print1(buf, y, x, width, s, fg, bg);
-  //Buffer_print2(buf, y, x, width, s, fg, bg);
+  Buffer_print2(buf, y, x, width, s, fg, bg);
     //Buffer_print3(y, x, width, s, fg, bg);
-  Buffer_print_best(y, x, width, s, fg, bg);
+  //Buffer_print_best(y, x, width, s, fg, bg);
 }
 
 void Buffer_set_fg(Buffer *buf, int y, int x, int width, int fg) {
@@ -1101,13 +1111,13 @@ void Buffer_print_to_screen2(Buffer *buf) {
                 continue;
 
             // cursor movement only when needed
-            if (x != terminal_x || y != terminal_y)
+            //if (x != terminal_x || y != terminal_y)
 			{
                 cursor_movement_count += 1;
 
                 // append_fmt(out, &pos, "\033[%d;%dH", y + 1, x + 1);
                 // LOG_INFO("move %d %d", y + 1, x);
-                append_fmt(out, &pos, "\033[%d;%dH", y + 1, x);
+                append_fmt(out, &pos, "\033[%d;%dH", y + 1, x + 1);
                 // LOG_INFO("append_fmt pos: %d %d", y, x);
                 terminal_x = x;
                 terminal_y = y;
@@ -1188,7 +1198,7 @@ char * ltrim(char * s, int max_width){
 	int width = hashmap_get(mystr.utf8 + mystr.cluster_start, len);
 	if (width == -1) width = 1;
 	total_width+=width;
-	if (total_width >= max_width) return mystr.utf8 + mystr.cluster_start;
+	if (total_width > max_width) return mystr.utf8 + mystr.cluster_start;
   }
   return NULL;
 }
@@ -1209,7 +1219,7 @@ int get_width_size(char * s, int max_width){
   return mystr.cluster_end;
 }
 
-void emit_block(size_t * pos, PrintListElement * elem, int cell1_x, int y, int x){
+void _emit_block(size_t * pos, PrintListElement * elem, int cell1_x, int y, int x){
   // print element with bounding box
   if (elem == NULL){
 	//LOG_INFO("elem == NULL %d %d %d", y, cell1_x+1, x+1);
@@ -1228,7 +1238,7 @@ void emit_block(size_t * pos, PrintListElement * elem, int cell1_x, int y, int x
 	  
 	append_fmt(out, pos, "\033[%d;%dH", y, cell1_x+1);
 	append_fmt(out, pos, "\033[38;5;%d;48;5;%dm", elem->fg, elem->bg);
-	for(int x=0;x<width;x++) append_bytes(out, pos, " ", 1);
+	for(int x=0;x<width;x++) append_bytes(out, pos, " ", 1); // optimization: this is not always necessary
 	if (s_trimmed != NULL){
 	  append_fmt(out, pos, "\033[%d;%dH", y, cell1_x+1);
 				
@@ -1236,6 +1246,50 @@ void emit_block(size_t * pos, PrintListElement * elem, int cell1_x, int y, int x
 	  //LOG_INFO("get_width_size %.*s byte_size=%d width=%d", byte_size, s_trimmed, byte_size, width);
 
 	  append_fmt(out, pos, "%.*s", byte_size, s_trimmed);
+	}
+  }
+}
+
+void emit_block(size_t * pos, PrintListElement * elem, int cell1_x, int y, int x){
+  //LOG_INFO("elem->s:%s, elem->x:%d, elem->y:%d, elem->fg:%d, elem->bg:%d, cell1_x:%d, y:%d, x:%d", elem->s, elem->x, elem->y, elem->fg, elem->bg, cell1_x, y, x);
+  if (elem == NULL){
+	append_fmt(out, pos, "\033[38;5;%d;48;5;%dm", 0, 0);
+	append_fmt(out, pos, "\033[%d;%dH", y, cell1_x+1);
+	append_bytes(out, pos, " ", 1);
+  } else {
+	/*int offset = cell1_x - elem->x;
+	char * s_trimmed = ltrim(elem->s, offset);
+	int width = x - cell1_x;
+	append_fmt(out, pos, "\033[%d;%dH", y, cell1_x+1);
+	append_fmt(out, pos, "\033[38;5;%d;48;5;%dm", elem->fg, elem->bg);
+	for(int x=0;x<width;x++) append_bytes(out, pos, " ", 1); // optimization: this is not always necessary
+	if (s_trimmed != NULL){
+	  append_fmt(out, pos, "\033[%d;%dH", y, cell1_x+1);
+	  int byte_size = get_width_size(s_trimmed, width);
+	  append_fmt(out, pos, "%.*s", byte_size, s_trimmed);
+	  }*/
+	MyStr mystr;
+	MyStr_init(&mystr, elem->s);
+	append_fmt(out, pos, "\033[38;5;%d;48;5;%dm", elem->fg, elem->bg);
+	int target_x = elem->x;
+	//if (*elem->s != 0){
+	while (MyStr_next_cluster(&mystr)) {
+	  if (cell1_x <= target_x && target_x < x){
+		append_fmt(out, pos, "\033[%d;%dH", y, target_x+1);
+		int byte_size = mystr.cluster_end - mystr.cluster_start;
+		append_fmt(out, pos, "%.*s", byte_size, elem->s + mystr.cluster_start);
+	  }
+	  target_x += mystr.width_column;
+    }
+	//}
+	if (target_x < cell1_x){
+	  target_x = cell1_x;
+	}
+	append_fmt(out, pos, "\033[%d;%dH", y, target_x+1);
+	while (target_x < x){
+	  //LOG_INFO("target_x:%d x:%d", target_x, x);
+	  append_fmt(out, pos, " ");
+	  target_x+=1;
 	}
   }
 }
@@ -1313,6 +1367,7 @@ char * Buffer_print_to_screen_impl(Buffer *buf) {
 			cell_differs = 0;
 		}
 		if (! Cell_equals(cell, cell2)) cell_differs++;
+		//cell_differs++;
 
 		//cell2 = cell;
 		//cell2_x = x;
@@ -1419,11 +1474,6 @@ char * Buffer_print_to_screen_impl(Buffer *buf) {
 	return out;
 }
 
-void Buffer_print_to_screen(Buffer *buf) {
-  char * out = Buffer_print_to_screen_impl(buf);
-  //write(STDOUT_FILENO, out, pos);
-  write(STDOUT_FILENO, out, strlen(out));
-}
 
 Buffer main_buf;
 /*
@@ -1615,4 +1665,13 @@ void Buffer_print_to_screen___(Buffer *buf) {
 	//ArrayList_reset(&printList);
 	buf0_swap();
 	buf0_reset();
+}
+
+void Buffer_print_to_screen(Buffer *buf) {
+  Buffer_print_to_screen2(buf);
+  //Buffer_print_to_screen_impl(buf);
+  
+  /*char * out = Buffer_print_to_screen_impl(buf);
+  //write(STDOUT_FILENO, out, pos);
+  write(STDOUT_FILENO, out, strlen(out));*/
 }
