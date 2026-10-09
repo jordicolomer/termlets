@@ -32,21 +32,21 @@ typedef struct Buffer2 {
 } Buffer2;
 
 typedef struct PrintListElement {
-  int y;
-  int x;
-  int width;
-  char *s;
-  int fg;
-  int bg;
-  int visible;
+    int y;
+    int x;
+    int width;
+    char *s;
+    int fg;
+    int bg;
+    int visible;
 } PrintListElement;
 
 typedef struct Cell2 {
-  unsigned char bg;
-  unsigned char fg;
-  uint64_t hash;
-  int column;
-  PrintListElement * elem;
+    unsigned char bg;
+    unsigned char fg;
+    uint64_t hash;
+    int column;
+    PrintListElement *elem;
 } Cell2;
 
 // extern Buffer2 buf2;
@@ -59,7 +59,7 @@ void Buffer_set_fg(Buffer *buf, int y, int x, int width, int fg);
 void Buffer_set_bg(Buffer *buf, int y, int x, int width, int bg);
 void Buffer_reset();
 void Buffer_print_to_screen(Buffer *buf);
-char * Buffer_print_to_screen_impl(Buffer *buf);
+char *Buffer_print_to_screen_impl(Buffer *buf);
 int calculate_width(char *s);
 int calculate_width_n(char *s, size_t byte_len);
 char *char_at(char *s, int i, int *width);

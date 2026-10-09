@@ -6,31 +6,31 @@
 typedef struct ArrayListNode ArrayListNode;
 
 typedef struct ArrayListNode {
-    ArrayListNode * next;
+    ArrayListNode *next;
     char data[];
 } ArrayListNode;
 
 typedef struct ArrayListIterator {
-  ArrayListNode * ar;
-  int idx;
+    ArrayListNode *ar;
+    int idx;
 } ArrayListIterator;
 
 typedef struct ArrayList {
-  ArrayListIterator first;
-  ArrayListIterator last;
-  uint32_t elementSize;
-  uint32_t arraySize;
-  uint32_t count;
+    ArrayListIterator first;
+    ArrayListIterator last;
+    uint32_t elementSize;
+    uint32_t arraySize;
+    uint32_t count;
 } ArrayList;
 
-void ArrayList_init(ArrayList * self, uint32_t elementSize, uint32_t arraySize);
-int ArrayListIteratorValid(ArrayList * self, ArrayListIterator * ite);
-void ArrayListIteratorNext(ArrayList * self, ArrayListIterator * ite);
-char * ArrayListIteratorElement(ArrayList * self, ArrayListIterator * ite);
-void ArrayList_append(ArrayList * self, char * data);
-void ArrayList_reset(ArrayList * self);
+void ArrayList_init(ArrayList *self, uint32_t elementSize, uint32_t arraySize);
+int ArrayListIteratorValid(ArrayList *self, ArrayListIterator *ite);
+void ArrayListIteratorNext(ArrayList *self, ArrayListIterator *ite);
+char *ArrayListIteratorElement(ArrayList *self, ArrayListIterator *ite);
+void ArrayList_append(ArrayList *self, char *data);
+void ArrayList_reset(ArrayList *self);
 
-void hashmap_put(char * key, int key_size, int value);
-int hashmap_get(char * key, int key_size);
+void hashmap_put(char *key, int key_size, int value);
+int hashmap_get(char *key, int key_size);
 
 #endif
