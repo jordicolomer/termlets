@@ -554,14 +554,14 @@ void load_file(EditorWindow *self, const char *filename) {
 
     self->cursor.ptr = 0;
 
-	// init cursor
-	if (self->head){
-	  MyStr_init(&self->cursor.str_ite, self->head->line);
-	  LOG_INFO("self->head->line %s", self->head->line);
-	  MyStr_next_cluster(&self->cursor.str_ite);
-	}
-	self->cursor.node = self->head;
-	self->cursor.y = 0;
+    // init cursor
+    if (self->head) {
+        MyStr_init(&self->cursor.str_ite, self->head->line);
+        LOG_INFO("self->head->line %s", self->head->line);
+        MyStr_next_cluster(&self->cursor.str_ite);
+    }
+    self->cursor.node = self->head;
+    self->cursor.y = 0;
 }
 
 void EditorWindow_run_lexer(EditorWindow *self) {
@@ -612,96 +612,99 @@ void EditorWindow_start_selection(EditorWindow *self) {
     self->selection.ptr = self->cursor.ptr;
 }
 
-
 // EditorPointer
 
+/*
 void EditorPointer_down(EditorPointer *ep){
   if (ep->node->next){
-	ep->node = ep->node->next;
-	MyStr_init(&ep->str_ite, ep->node->line);
-	MyStr_next_cluster(&ep->str_ite);
-	ep->y += 1;
+        ep->node = ep->node->next;
+        MyStr_init(&ep->str_ite, ep->node->line);
+        MyStr_next_cluster(&ep->str_ite);
+        ep->y += 1;
   }
 }
 
 void EditorPointer_up(EditorPointer *ep){
   if (ep->node->prev){
-	ep->node = ep->node->prev;
-	MyStr_init(&ep->str_ite, ep->node->line);
-	MyStr_next_cluster(&ep->str_ite);
-	ep->y -= 1;
+        ep->node = ep->node->prev;
+        MyStr_init(&ep->str_ite, ep->node->line);
+        MyStr_next_cluster(&ep->str_ite);
+        ep->y -= 1;
   }
+}
+*/
+
+void EditorPointer_vertical_move(EditorPointer *ep, int is_up, int count, int keep_horizontal) {
+    int pos_column = ep->str_ite.pos_column;
+    for (int i = 0; i < count; i++) {
+        Node *node = ep->node->next;
+        if (is_up)
+            node = ep->node->prev;
+        if (node == NULL)
+            break;
+        ep->node = node;
+        if (is_up)
+            ep->y -= 1;
+        else
+            ep->y += 1;
+    }
+    MyStr_init(&ep->str_ite, ep->node->line);
+    MyStr_next_cluster(&ep->str_ite);
+    if (keep_horizontal)
+        MyStr_get_grapheme_at_column(&ep->str_ite, pos_column);
 }
 
 // EditorWindow
-
-void _EditorWindow_up(EditorWindow *self) {
-  //self->cursor.y--;
-  //self->cursor.y = max(self->cursor.y, 0);
-  //EditorWindow_fix_cursor_x(self);
+/*void EditorWindow_page_up(EditorWindow *self) {
   int pos_column = self->cursor.str_ite.pos_column;
   EditorPointer_up(&self->cursor);
   MyStr_get_grapheme_at_column(&self->cursor.str_ite, pos_column);
-  EditorWindow_make_cursor_visible(self);
+}
+
+void EditorWindow_page_down(EditorWindow *self) {
+}*/
+
+void EditorWindow_action_start_of_line(EditorWindow *self) {
+    MyStr_get_grapheme_at_column(&self->cursor.str_ite, 0);
+}
+
+void EditorWindow_action_end_of_line(EditorWindow *self) {
+    MyStr_get_grapheme_at_column(&self->cursor.str_ite, 999);
+}
+
+void _EditorWindow_up(EditorWindow *self) {
+    // int pos_column = self->cursor.str_ite.pos_column;
+    // EditorPointer_up(&self->cursor);
+    // MyStr_get_grapheme_at_column(&self->cursor.str_ite, pos_column);
+    EditorPointer_vertical_move(&self->cursor, 1, 1, 1);
+    // EditorWindow_make_cursor_visible(self);
 }
 
 void _EditorWindow_down(EditorWindow *self) {
-  //self->cursor.y++;
-  //self->cursor.y = min(self->cursor.y, self->n_lines - 1);
-  //EditorWindow_fix_cursor_x(self);
-  int pos_column = self->cursor.str_ite.pos_column;
-  EditorPointer_down(&self->cursor);
-  MyStr_get_grapheme_at_column(&self->cursor.str_ite, pos_column);
-  EditorWindow_make_cursor_visible(self);
+    int pos_column = self->cursor.str_ite.pos_column;
+    // EditorPointer_down(&self->cursor);
+    // MyStr_get_grapheme_at_column(&self->cursor.str_ite, pos_column);
+    // EditorWindow_make_cursor_visible(self);
+    EditorPointer_vertical_move(&self->cursor, 0, 1, 1);
 }
 
 void _EditorWindow_right(EditorWindow *self) {
-  /*Node *node = EditorWindow_get_line_number(self, self->cursor.y);
-    if (node->line[self->cursor.ptr] != 0) {
-        uint32_t cp = utf8_decode2(node->line, &self->cursor.ptr);
-        int w = cp_width(cp);
-        self->cursor.x += w;
-    } else {
-        if (self->cursor.y < self->n_lines - 1) {
-            self->cursor.y += 1;
-            self->cursor.x = 0;
-            Node *node = EditorWindow_get_line_number(self, self->cursor.y);
-            self->cursor.ptr = 0;
-        }
-		}*/
-
-	if (MyStr_is_end(&self->cursor.str_ite)){ // if end of line
-	    EditorPointer_down(&self->cursor);
-	} else { // if not end of line
-	  MyStr_next_cluster(&self->cursor.str_ite);
-	}
+    if (MyStr_is_end(&self->cursor.str_ite)) { // if end of line
+        EditorPointer_vertical_move(&self->cursor, 0, 1, 0);
+        // EditorPointer_down(&self->cursor);
+    } else { // if not end of line
+        MyStr_next_cluster(&self->cursor.str_ite);
+    }
 }
 
 void _EditorWindow_left(EditorWindow *self) {
-  /*if (self->cursor.x == 0) {
-        if (self->cursor.y > 0) {
-            self->cursor.y -= 1;
-            Node *node = EditorWindow_get_line_number(self, self->cursor.y);
-            self->cursor.x = node->width;
-            self->cursor.ptr = node->length;
-        }
-    } else {
-        Node *node = EditorWindow_get_line_number(self, self->cursor.y);
-        uint32_t cp = utf8_decode_left2(node->line, &self->cursor.ptr);
-        int w = cp_width(cp);
-
-        self->cursor.x -= w;
-		}*/
-	if (self->cursor.str_ite.pos_cluster == 0){ // if end of line
-	  /*if (self->cursor.node->prev){ // if not last line
-		self->cursor.node = self->cursor.node->prev;
-		MyStr_init(&self->cursor.str_ite, self->cursor.node->line);
-		self->cursor.y -= 1;
-		}*/
-	  EditorPointer_up(&self->cursor);
-	} else { // if not end of line
-	  MyStr_prev_cluster(&self->cursor.str_ite);
-	}
+    if (self->cursor.str_ite.pos_cluster == 0) { // if end of line
+        EditorPointer_vertical_move(&self->cursor, 1, 1, 0);
+        EditorWindow_action_end_of_line(self);
+        // EditorPointer_up(&self->cursor);
+    } else { // if not end of line
+        MyStr_prev_cluster(&self->cursor.str_ite);
+    }
 }
 
 void EditorWindow_up(EditorWindow *self) {
@@ -865,11 +868,6 @@ void EditorWindow_send_sequence(Window *win, const char *seq, int len) {
         EditorWindow_next_word(self);
         return;
     }
-}
-
-void EditorWindow_action_start_of_line(EditorWindow *self) {
-    self->cursor.x = 0;
-    EditorWindow_fix_cursor_x(self);
 }
 
 int count_tabs(EditorWindow *self, Node *node) {
@@ -1088,14 +1086,16 @@ void EditorWindow_send_key(Window *win, char c) {
         return;
     }
     if (action == ACTION_END_OF_LINE) {
-        Node *node = EditorWindow_get_line_number(self, self->cursor.y);
-        int mx = node->width;
-        self->cursor.x = mx;
-        EditorWindow_fix_cursor_x(self);
+        // Node *node = EditorWindow_get_line_number(self, self->cursor.y);
+        // int mx = node->width;
+        // self->cursor.x = mx;
+        // EditorWindow_fix_cursor_x(self);
+        EditorWindow_action_end_of_line(self);
         return;
     }
     if (action == ACTION_DOWN) {
         EditorWindow_down(self);
+        EditorWindow_make_cursor_visible(self);
         return;
     }
     if (action == ACTION_FIRST_LINE) {
@@ -1106,6 +1106,7 @@ void EditorWindow_send_key(Window *win, char c) {
     }
     if (action == ACTION_UP) {
         EditorWindow_up(self);
+        EditorWindow_make_cursor_visible(self);
         return;
     }
     if (action == ACTION_LAST_LINE) {
@@ -1115,14 +1116,16 @@ void EditorWindow_send_key(Window *win, char c) {
         return;
     }
     if (action == ACTION_PAGE_UP) {
-        self->cursor.y += win->calculated.height;
-        self->cursor.y = min(self->cursor.y, self->n_lines - 1);
+        // self->cursor.y += win->calculated.height;
+        // self->cursor.y = min(self->cursor.y, self->n_lines - 1);
+        EditorPointer_vertical_move(&self->cursor, 1, win->calculated.height, 1);
         EditorWindow_make_cursor_visible(self);
         return;
     }
     if (action == ACTION_PAGE_DOWN) {
-        self->cursor.y -= win->calculated.height;
-        self->cursor.y = max(self->cursor.y, 0);
+        // self->cursor.y -= win->calculated.height;
+        // self->cursor.y = max(self->cursor.y, 0);
+        EditorPointer_vertical_move(&self->cursor, 0, win->calculated.height, 1);
         EditorWindow_make_cursor_visible(self);
         return;
     }
@@ -1371,17 +1374,16 @@ void status_bar_draw(Window *w, int hasFocus) {
         if (c != NULL) {
             cp = utf8_decode(&c);
         }
-		}*/
+                }*/
 
-	MyStr * str_ite = &self->editor->cursor.str_ite;
+    MyStr *str_ite = &self->editor->cursor.str_ite;
     snprintf(self->status_str, sizeof(self->status_str),
-             "line:%d/%d (%d%%) column:%d cp:%d char:%c codepoints:%d width_column:%d cluster_start:%d cluster_size:%d",
-			 line, n_lines, pct,
-             str_ite->pos_column, str_ite->first_codepoint, str_ite->first_codepoint,
-			 str_ite->width_codepoints, str_ite->width_column,
-			 str_ite->cluster_start, str_ite->cluster_size
-			 );
-	//LOG_INFO("line %s y:%d, geo.x:%d, geo.width:%d", self->status_str, y, geo.x, geo.width);
+             "line:%d/%d (%d%%) column:%d cp:%d char:%c codepoints:%d width_column:%d "
+             "cluster_start:%d cluster_size:%d",
+             line, n_lines, pct, str_ite->pos_column, str_ite->first_codepoint,
+             str_ite->first_codepoint, str_ite->width_codepoints, str_ite->width_column,
+             str_ite->cluster_start, str_ite->cluster_size);
+    // LOG_INFO("line %s y:%d, geo.x:%d, geo.width:%d", self->status_str, y, geo.x, geo.width);
     Buffer_print(&main_buf, y, geo.x, geo.width, strdup(self->status_str), fg, bg);
 }
 

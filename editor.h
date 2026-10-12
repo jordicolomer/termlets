@@ -16,12 +16,12 @@ typedef struct Node {
 } Node;
 
 typedef struct EditorPointer {
-  int y;
-  int x;
-  int ptr;
-  struct Node *node;
-  MyStr str_ite;
-  //int new_y;
+    int y;
+    int x;
+    int ptr;
+    struct Node *node;
+    MyStr str_ite;
+    // int new_y;
 } EditorPointer;
 
 typedef struct EditorWindow { // this is the scrollable part of the editor

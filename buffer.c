@@ -523,12 +523,12 @@ void Buffer_print_buf(Buffer2 *buf, int y, int x, int width, char *s, int fg, in
             if (mystr.width_column > 0) {
                 Cell *cell = &buf->cells[y * buf->width + x + offset];
                 cell->utf8 = s + mystr.cluster_start;
-				//LOG_INFO("cluster_size %d", mystr.cluster_size);
+                // LOG_INFO("cluster_size %d", mystr.cluster_size);
                 cell->size = mystr.cluster_size;
                 cell->width = mystr.width_column;
-				if (mystr.width_codepoints != 1 && mystr.first_codepoint >= 256){
-				  cell->reposition = 1;
-				}
+                if (mystr.width_codepoints != 1 && mystr.first_codepoint >= 256) {
+                    cell->reposition = 1;
+                }
                 offset += cell->width;
             }
         }
@@ -590,7 +590,6 @@ void Buffer_copy_to_second_buffer(Buffer *buf) {
     memcpy(buf->fg2, buf->fg, size * sizeof(char));
 }
 
-
 Buffer main_buf;
 
 int buf0_Cell_equals(Cell *cell1, Cell *cell2) {
@@ -622,8 +621,8 @@ void Buffer_print_to_screen(Buffer *buf) {
     // hide cursor
     append_str(out, &pos, "\033[?25l");
 
-	int reposition = 0;
-	
+    int reposition = 0;
+
     for (int y = 0; y < buf->height; y++) {
 
         for (int x = 0; x < buf->width; x++) {
@@ -648,8 +647,7 @@ void Buffer_print_to_screen(Buffer *buf) {
             }
 
             // cursor movement only when needed
-            if (reposition == 1 || x != terminal_x || y != terminal_y)
-            {
+            if (reposition == 1 || x != terminal_x || y != terminal_y) {
                 cursor_movement_count += 1;
 
                 append_fmt(out, &pos, "\033[%d;%dH", y + 1, x + 1);
@@ -676,7 +674,7 @@ void Buffer_print_to_screen(Buffer *buf) {
             if (width > 1) {
                 x += width - 1;
             }
-			reposition = cell0->reposition;
+            reposition = cell0->reposition;
         }
     }
 

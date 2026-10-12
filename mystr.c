@@ -9,37 +9,35 @@
 #include <stdint.h>
 #include <stddef.h>
 
-
-ssize_t utf8_iterate(const uint8_t * str,
-					 ssize_t strlen,
-					 int32_t * codepoint_ref ){  
+ssize_t utf8_iterate(const uint8_t *str, ssize_t strlen, int32_t *codepoint_ref) {
     if (str[0] < 0x80) {
         *codepoint_ref = str[0];
-		return 1;
+        return 1;
     } else if ((str[0] & 0xE0) == 0xC0) {
         *codepoint_ref = ((str[0] & 0x1F) << 6) | (str[1] & 0x3F);
-		return 2;
+        return 2;
     } else if ((str[0] & 0xF0) == 0xE0) {
         *codepoint_ref = ((str[0] & 0x0F) << 12) | ((str[1] & 0x3F) << 6) | (str[2] & 0x3F);
-		return 3;
+        return 3;
     } else if ((str[0] & 0xF8) == 0xF0) {
-        *codepoint_ref = ((str[0] & 0x07) << 18) | ((str[1] & 0x3F) << 12) | ((str[2] & 0x3F) << 6) | (str[3] & 0x3F);
-		return 4;
+        *codepoint_ref = ((str[0] & 0x07) << 18) | ((str[1] & 0x3F) << 12) |
+                         ((str[2] & 0x3F) << 6) | (str[3] & 0x3F);
+        return 4;
     } else {
-		return 1;
+        return 1;
     }
 }
 
-ssize_t utf8_iterate_backward(const uint8_t * str ){
-  str--;
-  ssize_t size = 1;
+ssize_t utf8_iterate_backward(const uint8_t *str) {
+    str--;
+    ssize_t size = 1;
 
     while ((str[0] & 0xC0) == 0x80) {
         str--;
-		size += 1;
+        size += 1;
     }
 
-	return size;	
+    return size;
 }
 
 uint32_t utf8_next_codepoint(const uint8_t *s, int *idx) {
@@ -65,9 +63,7 @@ uint32_t utf8_next_codepoint(const uint8_t *s, int *idx) {
     return cp;
 }
 
-uint32_t utf8_current_codepoint(const uint8_t *s, int idx) {
-    return utf8_next_codepoint(s, &idx);
-}
+uint32_t utf8_current_codepoint(const uint8_t *s, int idx) { return utf8_next_codepoint(s, &idx); }
 
 uint32_t utf8_prev_codepoint(const uint8_t *start, int *idx) {
     const uint8_t *s = start + *idx;
@@ -103,7 +99,6 @@ uint32_t utf8_prev_codepoint(const uint8_t *start, int *idx) {
 
     return cp;
 }
-
 
 int orig(void) {
     printf(" # orig\n");
@@ -253,32 +248,29 @@ void test_wc_len() {
 void MyStr_init(MyStr *mystr, char *utf8) {
     mystr->utf8 = utf8;
     mystr->len_bytes = strlen(utf8);
-	
+
     mystr->width_bytes = 0;
     mystr->pos_bytes = 0;
     mystr->current = -1;
-	
+
     mystr->width_column = 0;
     mystr->pos_column = 0;
     mystr->pos_cluster = -1;
-    //mystr->cluster_end = 0;
+    // mystr->cluster_end = 0;
     mystr->cluster_start = 0;
-	mystr->cluster_size = 0;
-    //mystr->previous = -1;
-    //mystr->state = 0;
+    mystr->cluster_size = 0;
+    // mystr->previous = -1;
+    // mystr->state = 0;
 }
 
-int MyStr_last_codepoint(MyStr *mystr) {
-  return !(mystr->pos_bytes < mystr->len_bytes);
-}
+int MyStr_last_codepoint(MyStr *mystr) { return !(mystr->pos_bytes < mystr->len_bytes); }
 
-int MyStr_first_codepoint(MyStr *mystr) {
-  return mystr->pos_bytes <= 0;
-}
+int MyStr_first_codepoint(MyStr *mystr) { return mystr->pos_bytes <= 0; }
 
 int _MyStr_next_codepoint(MyStr *mystr) {
-  if (MyStr_last_codepoint(mystr)) return 0;
-  //mystr->previous = mystr->current;
+    if (MyStr_last_codepoint(mystr))
+        return 0;
+    // mystr->previous = mystr->current;
     utf8proc_ssize_t bytes =
         utf8proc_iterate((const utf8proc_uint8_t *)mystr->utf8 + mystr->pos_bytes,
                          mystr->len_bytes - mystr->pos_bytes, &mystr->current);
@@ -295,120 +287,124 @@ int _MyStr_next_codepoint(MyStr *mystr) {
 }
 
 int MyStr_next_codepoint(MyStr *mystr) {
-  if (MyStr_last_codepoint(mystr)) return 0;
-  //mystr->previous = mystr->current;
-  mystr->pos_bytes += mystr->width_bytes;
-  mystr->width_bytes = utf8_iterate((const utf8proc_uint8_t *)mystr->utf8 + mystr->pos_bytes,
-									mystr->len_bytes - mystr->pos_bytes,
-									&mystr->current);
-  //mystr->current = utf8_next_codepoint(mystr->utf8, &mystr->pos_bytes);
-  return 1;
+    if (MyStr_last_codepoint(mystr))
+        return 0;
+    // mystr->previous = mystr->current;
+    mystr->pos_bytes += mystr->width_bytes;
+    mystr->width_bytes = utf8_iterate((const utf8proc_uint8_t *)mystr->utf8 + mystr->pos_bytes,
+                                      mystr->len_bytes - mystr->pos_bytes, &mystr->current);
+    // mystr->current = utf8_next_codepoint(mystr->utf8, &mystr->pos_bytes);
+    return 1;
 }
-//uint32_t utf8_prev_codepoint(const uint8_t *start, int *idx) {
+// uint32_t utf8_prev_codepoint(const uint8_t *start, int *idx) {
 
-
-//ssize_t utf8_iterate_backward(const uint8_t * str ){
+// ssize_t utf8_iterate_backward(const uint8_t * str ){
 int MyStr_prev_codepoint(MyStr *mystr) {
-  //printf("MyStr_prev_codepoint0: pos_bytes:%d\n", mystr->pos_bytes);
-  if (MyStr_first_codepoint(mystr)) return 0;
-  mystr->width_bytes = utf8_iterate_backward((const utf8proc_uint8_t *)mystr->utf8 + mystr->pos_bytes);
-  //printf("MyStr_prev_codepoint1: width_bytes:%d pos_bytes:%d\n", mystr->width_bytes, mystr->pos_bytes);
-  mystr->pos_bytes -= mystr->width_bytes;
+    // printf("MyStr_prev_codepoint0: pos_bytes:%d\n", mystr->pos_bytes);
+    if (MyStr_first_codepoint(mystr))
+        return 0;
+    mystr->width_bytes =
+        utf8_iterate_backward((const utf8proc_uint8_t *)mystr->utf8 + mystr->pos_bytes);
+    // printf("MyStr_prev_codepoint1: width_bytes:%d pos_bytes:%d\n", mystr->width_bytes,
+    // mystr->pos_bytes);
+    mystr->pos_bytes -= mystr->width_bytes;
 
-  // read the codepoint
-  utf8_iterate((const utf8proc_uint8_t *)mystr->utf8 + mystr->pos_bytes,
-			   mystr->len_bytes - mystr->pos_bytes,
-			   &mystr->current);
-  
-  //printf("MyStr_prev_codepoint2 pos_bytes:%d\n", mystr->pos_bytes);
-  return 1;
+    // read the codepoint
+    utf8_iterate((const utf8proc_uint8_t *)mystr->utf8 + mystr->pos_bytes,
+                 mystr->len_bytes - mystr->pos_bytes, &mystr->current);
+
+    // printf("MyStr_prev_codepoint2 pos_bytes:%d\n", mystr->pos_bytes);
+    return 1;
 }
 
-int MyStr_is_end(MyStr *mystr){
-  //printf("MyStr_is_end mystr->cluster_start:%d, mystr->cluster_size:%d, mystr->len_bytes:%d\n", mystr->cluster_start, mystr->cluster_size, mystr->len_bytes);
-  //return mystr->cluster_start + mystr->cluster_size >= mystr->len_bytes;
+int MyStr_is_end(MyStr *mystr) {
+    // printf("MyStr_is_end mystr->cluster_start:%d, mystr->cluster_size:%d, mystr->len_bytes:%d\n",
+    // mystr->cluster_start, mystr->cluster_size, mystr->len_bytes); return mystr->cluster_start +
+    // mystr->cluster_size >= mystr->len_bytes;
     return mystr->cluster_start >= mystr->len_bytes;
 }
 
 int MyStr_next_cluster(MyStr *mystr) {
-  // input is pos_bytes only
-  utf8proc_int32_t state = 0;
-  //printf("MyStr_next_cluster\n");
-  if (MyStr_is_end(mystr)) return 0;
-  //printf("mystr->cluster_start:%d\n", mystr->cluster_start);
-  mystr->cluster_start = mystr->pos_bytes;
-  mystr->pos_column += mystr->width_column;
-  mystr->width_codepoints = 0;
-  if (mystr->pos_cluster == -1) mystr->width_codepoints = -1;
-  mystr->cluster_size = mystr->width_bytes;
-  int previous = mystr->current;
-  mystr->first_codepoint = -1;
-  while (MyStr_next_codepoint(mystr)) {
-	mystr->width_codepoints += 1;
-	if (previous != -1) {
-	  if (mystr->first_codepoint == -1){
-		mystr->first_codepoint = previous;
-	  }
-	  if (utf8proc_grapheme_break_stateful(previous, mystr->current, &state)){
-		goto ret;
-	  }
-	}
-	mystr->cluster_size += mystr->width_bytes;
-	previous = mystr->current;
-  }
-  mystr->width_codepoints += 1;
-  ret:
-  mystr->pos_cluster += 1;
-  mystr->width_column = wc_len(mystr->utf8 + mystr->cluster_start, mystr->width_codepoints);
-  return 1;
+    // input is pos_bytes only
+    utf8proc_int32_t state = 0;
+    // printf("MyStr_next_cluster\n");
+    if (MyStr_is_end(mystr))
+        return 0;
+    // printf("mystr->cluster_start:%d\n", mystr->cluster_start);
+    mystr->cluster_start = mystr->pos_bytes;
+    mystr->pos_column += mystr->width_column;
+    mystr->width_codepoints = 0;
+    if (mystr->pos_cluster == -1)
+        mystr->width_codepoints = -1;
+    mystr->cluster_size = mystr->width_bytes;
+    int previous = mystr->current;
+    mystr->first_codepoint = -1;
+    while (MyStr_next_codepoint(mystr)) {
+        mystr->width_codepoints += 1;
+        if (previous != -1) {
+            if (mystr->first_codepoint == -1) {
+                mystr->first_codepoint = previous;
+            }
+            if (utf8proc_grapheme_break_stateful(previous, mystr->current, &state)) {
+                goto ret;
+            }
+        }
+        mystr->cluster_size += mystr->width_bytes;
+        previous = mystr->current;
+    }
+    mystr->width_codepoints += 1;
+ret:
+    mystr->pos_cluster += 1;
+    mystr->width_column = wc_len(mystr->utf8 + mystr->cluster_start, mystr->width_codepoints);
+    return 1;
 }
 
-
 int _MyStr_prev_cluster(MyStr *mystr) {
-  // rewind codepoint iterator to beginning of cluster
-  //mystr->pos_bytes = mystr->cluster_start;
-  /*size_t start = mystr->cluster_start;
-  while (start > 0){
-	mystr->pos_bytes = start;
-	while (MyStr_next_codepoint(mystr)) {
-	  if (previous != -1 && utf8proc_grapheme_break_stateful(previous, mystr->current, &state)) {
-		
-	  }
-	}
-	
-	start--;
-	}*/
-  // rewind codepoint iterator to beginning of cluster
-  mystr->pos_bytes = mystr->cluster_start;
-  printf("mystr->pos_bytes:%d\n", mystr->pos_bytes);
-  while(MyStr_prev_codepoint(mystr)){
-	//printf("MyStr_prev_cluster0: pos_bytes:%d\n", mystr->pos_bytes);
-	//printf("MyStr_prev_cluster1 pos_bytes:%d\n", mystr->pos_bytes);
-	int previous = mystr->current;
-	utf8proc_int32_t state = 0;
-	size_t pos_bytes = mystr->pos_bytes;
-	printf("pos_bytes:%d\n", pos_bytes);
-	while (MyStr_next_codepoint(mystr)) {
-	  //printf("MyStr_next_codepoint\n");
-	  if (previous != -1 &&
-		  utf8proc_grapheme_break_stateful(previous, mystr->current, &state)) {
-		if (mystr->pos_bytes == mystr->cluster_start){
-		  printf("pos_bytes:%d\n", pos_bytes);
-		  mystr->pos_bytes = pos_bytes;
-		  mystr->cluster_start = mystr->pos_bytes;
-		  //MyStr_next_cluster(mystr);
-		  return 1;
-		} else {
-		  break;
-		}
-	  }
-	}
-	//printf("MyStr_prev_cluster2 pos_bytes:%d\n", mystr->pos_bytes);
-	mystr->pos_bytes = pos_bytes;
-	//printf("MyStr_prev_cluster3 pos_bytes:%d\n", mystr->pos_bytes);
-  }
+    // rewind codepoint iterator to beginning of cluster
+    // mystr->pos_bytes = mystr->cluster_start;
+    /*size_t start = mystr->cluster_start;
+    while (start > 0){
+          mystr->pos_bytes = start;
+          while (MyStr_next_codepoint(mystr)) {
+            if (previous != -1 && utf8proc_grapheme_break_stateful(previous, mystr->current,
+    &state)) {
 
-  return 0;
+            }
+          }
+
+          start--;
+          }*/
+    // rewind codepoint iterator to beginning of cluster
+    mystr->pos_bytes = mystr->cluster_start;
+    printf("mystr->pos_bytes:%d\n", mystr->pos_bytes);
+    while (MyStr_prev_codepoint(mystr)) {
+        // printf("MyStr_prev_cluster0: pos_bytes:%d\n", mystr->pos_bytes);
+        // printf("MyStr_prev_cluster1 pos_bytes:%d\n", mystr->pos_bytes);
+        int previous = mystr->current;
+        utf8proc_int32_t state = 0;
+        size_t pos_bytes = mystr->pos_bytes;
+        printf("pos_bytes:%d\n", pos_bytes);
+        while (MyStr_next_codepoint(mystr)) {
+            // printf("MyStr_next_codepoint\n");
+            if (previous != -1 &&
+                utf8proc_grapheme_break_stateful(previous, mystr->current, &state)) {
+                if (mystr->pos_bytes == mystr->cluster_start) {
+                    printf("pos_bytes:%d\n", pos_bytes);
+                    mystr->pos_bytes = pos_bytes;
+                    mystr->cluster_start = mystr->pos_bytes;
+                    // MyStr_next_cluster(mystr);
+                    return 1;
+                } else {
+                    break;
+                }
+            }
+        }
+        // printf("MyStr_prev_cluster2 pos_bytes:%d\n", mystr->pos_bytes);
+        mystr->pos_bytes = pos_bytes;
+        // printf("MyStr_prev_cluster3 pos_bytes:%d\n", mystr->pos_bytes);
+    }
+
+    return 0;
 }
 
 int MyStr_get_grapheme_at_index(MyStr *mystr, int cluster_id) {
@@ -475,8 +471,7 @@ void print_cluster(MyStr *mystr) {
            "width_codepoints: %d ",
            mystr->cluster_start, mystr->cluster_size, mystr->pos_cluster, mystr->pos_column,
            mystr->width_column, mystr->width_codepoints);
-    printf("cluster: \"%.*s\"\n", (int)(mystr->cluster_size),
-           mystr->utf8 + mystr->cluster_start);
+    printf("cluster: \"%.*s\"\n", (int)(mystr->cluster_size), mystr->utf8 + mystr->cluster_start);
 }
 
 void mystr_test(void) {
@@ -517,6 +512,6 @@ int main(void) {
 }
 */
 int MyStr_prev_cluster(MyStr *mystr) {
-  // this can be optimized with a trie
-  MyStr_get_grapheme_at_index(mystr, mystr->pos_cluster-1);
+    // this can be optimized with a trie
+    MyStr_get_grapheme_at_index(mystr, mystr->pos_cluster - 1);
 }
