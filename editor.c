@@ -664,6 +664,24 @@ void EditorPointer_vertical_move(EditorPointer *ep, int is_up, int count, int ke
 void EditorWindow_page_down(EditorWindow *self) {
 }*/
 
+void EditorWindow_first_line(EditorWindow *self) {
+    if (self->head) {
+        MyStr_init(&self->cursor.str_ite, self->head->line);
+        MyStr_next_cluster(&self->cursor.str_ite);
+    }
+    self->cursor.node = self->head;
+    self->cursor.y = 0;
+}
+
+void EditorWindow_last_line(EditorWindow *self) {
+    if (self->tail) {
+        MyStr_init(&self->cursor.str_ite, self->tail->line);
+        MyStr_next_cluster(&self->cursor.str_ite);
+    }
+    self->cursor.node = self->tail;
+    self->cursor.y = self->n_lines - 1;
+}
+
 void EditorWindow_action_start_of_line(EditorWindow *self) {
     MyStr_get_grapheme_at_column(&self->cursor.str_ite, 0);
 }
@@ -1099,8 +1117,9 @@ void EditorWindow_send_key(Window *win, char c) {
         return;
     }
     if (action == ACTION_FIRST_LINE) {
-        self->cursor.y = self->n_lines - 1;
-        EditorWindow_fix_cursor_x(self);
+        // self->cursor.y = self->n_lines - 1;
+        // EditorWindow_fix_cursor_x(self);
+        EditorWindow_first_line(self);
         EditorWindow_make_cursor_visible(self);
         return;
     }
@@ -1110,8 +1129,9 @@ void EditorWindow_send_key(Window *win, char c) {
         return;
     }
     if (action == ACTION_LAST_LINE) {
-        self->cursor.y = 0;
-        EditorWindow_fix_cursor_x(self);
+        EditorWindow_last_line(self);
+        // self->cursor.y = 0;
+        // EditorWindow_fix_cursor_x(self);
         EditorWindow_make_cursor_visible(self);
         return;
     }
