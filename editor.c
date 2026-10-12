@@ -652,7 +652,7 @@ void _EditorWindow_right(EditorWindow *self) {
 }
 
 void _EditorWindow_left(EditorWindow *self) {
-    if (self->cursor.x == 0) {
+  /*if (self->cursor.x == 0) {
         if (self->cursor.y > 0) {
             self->cursor.y -= 1;
             Node *node = EditorWindow_get_line_number(self, self->cursor.y);
@@ -665,7 +665,16 @@ void _EditorWindow_left(EditorWindow *self) {
         int w = cp_width(cp);
 
         self->cursor.x -= w;
-    }
+		}*/
+	if (self->cursor.str_ite.pos_cluster == 0){ // if end of line
+	  if (self->cursor.node->prev){ // if not last line
+		self->cursor.node = self->cursor.node->prev;
+		MyStr_init(&self->cursor.str_ite, self->cursor.node->line);
+		self->cursor.y -= 1;
+	  }
+	} else { // if not end of line
+	  MyStr_prev_cluster(&self->cursor.str_ite);
+	}
 }
 
 void EditorWindow_up(EditorWindow *self) {
