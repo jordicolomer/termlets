@@ -342,12 +342,16 @@ int MyStr_next_cluster(MyStr *mystr) {
   if (mystr->pos_cluster == -1) mystr->width_codepoints = -1;
   mystr->cluster_size = mystr->width_bytes;
   int previous = mystr->current;
-  mystr->first_codepoint = mystr->current;
+  mystr->first_codepoint = -1;
   while (MyStr_next_codepoint(mystr)) {
 	mystr->width_codepoints += 1;
-	if (previous != -1 &&
-		utf8proc_grapheme_break_stateful(previous, mystr->current, &state)) {
-	  goto ret;
+	if (previous != -1) {
+	  if (mystr->first_codepoint == -1){
+		mystr->first_codepoint = previous;
+	  }
+	  if (utf8proc_grapheme_break_stateful(previous, mystr->current, &state)){
+		goto ret;
+	  }
 	}
 	mystr->cluster_size += mystr->width_bytes;
 	previous = mystr->current;

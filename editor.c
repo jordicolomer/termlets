@@ -557,6 +557,7 @@ void load_file(EditorWindow *self, const char *filename) {
 	// init cursor
 	if (self->head){
 	  MyStr_init(&self->cursor.str_ite, self->head->line);
+	  LOG_INFO("self->head->line %s", self->head->line);
 	  MyStr_next_cluster(&self->cursor.str_ite);
 	}
 	self->cursor.node = self->head;
@@ -611,18 +612,47 @@ void EditorWindow_start_selection(EditorWindow *self) {
     self->selection.ptr = self->cursor.ptr;
 }
 
+
+// EditorPointer
+
+void EditorPointer_down(EditorPointer *ep){
+  if (ep->node->next){
+	ep->node = ep->node->next;
+	MyStr_init(&ep->str_ite, ep->node->line);
+	MyStr_next_cluster(&ep->str_ite);
+	ep->y += 1;
+  }
+}
+
+void EditorPointer_up(EditorPointer *ep){
+  if (ep->node->prev){
+	ep->node = ep->node->prev;
+	MyStr_init(&ep->str_ite, ep->node->line);
+	MyStr_next_cluster(&ep->str_ite);
+	ep->y -= 1;
+  }
+}
+
+// EditorWindow
+
 void _EditorWindow_up(EditorWindow *self) {
-    self->cursor.y--;
-    self->cursor.y = max(self->cursor.y, 0);
-    EditorWindow_fix_cursor_x(self);
-    EditorWindow_make_cursor_visible(self);
+  //self->cursor.y--;
+  //self->cursor.y = max(self->cursor.y, 0);
+  //EditorWindow_fix_cursor_x(self);
+  int pos_column = self->cursor.str_ite.pos_column;
+  EditorPointer_up(&self->cursor);
+  MyStr_get_grapheme_at_column(&self->cursor.str_ite, pos_column);
+  EditorWindow_make_cursor_visible(self);
 }
 
 void _EditorWindow_down(EditorWindow *self) {
-    self->cursor.y++;
-    self->cursor.y = min(self->cursor.y, self->n_lines - 1);
-    EditorWindow_fix_cursor_x(self);
-    EditorWindow_make_cursor_visible(self);
+  //self->cursor.y++;
+  //self->cursor.y = min(self->cursor.y, self->n_lines - 1);
+  //EditorWindow_fix_cursor_x(self);
+  int pos_column = self->cursor.str_ite.pos_column;
+  EditorPointer_down(&self->cursor);
+  MyStr_get_grapheme_at_column(&self->cursor.str_ite, pos_column);
+  EditorWindow_make_cursor_visible(self);
 }
 
 void _EditorWindow_right(EditorWindow *self) {
@@ -641,11 +671,7 @@ void _EditorWindow_right(EditorWindow *self) {
 		}*/
 
 	if (MyStr_is_end(&self->cursor.str_ite)){ // if end of line
-	  if (self->cursor.node->next){ // if not last line
-		self->cursor.node = self->cursor.node->next;
-		MyStr_init(&self->cursor.str_ite, self->cursor.node->line);
-		self->cursor.y += 1;
-	  }
+	    EditorPointer_down(&self->cursor);
 	} else { // if not end of line
 	  MyStr_next_cluster(&self->cursor.str_ite);
 	}
@@ -667,11 +693,12 @@ void _EditorWindow_left(EditorWindow *self) {
         self->cursor.x -= w;
 		}*/
 	if (self->cursor.str_ite.pos_cluster == 0){ // if end of line
-	  if (self->cursor.node->prev){ // if not last line
+	  /*if (self->cursor.node->prev){ // if not last line
 		self->cursor.node = self->cursor.node->prev;
 		MyStr_init(&self->cursor.str_ite, self->cursor.node->line);
 		self->cursor.y -= 1;
-	  }
+		}*/
+	  EditorPointer_up(&self->cursor);
 	} else { // if not end of line
 	  MyStr_prev_cluster(&self->cursor.str_ite);
 	}
@@ -1331,10 +1358,11 @@ void status_bar_draw(Window *w, int hasFocus) {
     int fg = 232;
     int bg = 253;
     int line = self->editor->cursor.y + 1;
+
     int n_lines = self->editor->n_lines;
     int pct = (line * 100) / n_lines;
 
-    uint32_t cp = 0;
+    /*uint32_t cp = 0;
     Node *node = EditorWindow_get_line_number(self->editor, self->editor->cursor.y);
     LOG_INFO("status_bar_draw %p", node);
     if (node != NULL) {
@@ -1343,12 +1371,18 @@ void status_bar_draw(Window *w, int hasFocus) {
         if (c != NULL) {
             cp = utf8_decode(&c);
         }
-    }
+		}*/
 
+	MyStr * str_ite = &self->editor->cursor.str_ite;
     snprintf(self->status_str, sizeof(self->status_str),
-             "line: %d/%d (%d%%) column: %d cp: %d width: %d", line, n_lines, pct,
-             self->editor->cursor.x + 1, cp, cp_width(cp));
-    Buffer_print(&main_buf, y, geo.x, geo.width, self->status_str, fg, bg);
+             "line:%d/%d (%d%%) column:%d cp:%d char:%c codepoints:%d width_column:%d cluster_start:%d cluster_size:%d",
+			 line, n_lines, pct,
+             str_ite->pos_column, str_ite->first_codepoint, str_ite->first_codepoint,
+			 str_ite->width_codepoints, str_ite->width_column,
+			 str_ite->cluster_start, str_ite->cluster_size
+			 );
+	//LOG_INFO("line %s y:%d, geo.x:%d, geo.width:%d", self->status_str, y, geo.x, geo.width);
+    Buffer_print(&main_buf, y, geo.x, geo.width, strdup(self->status_str), fg, bg);
 }
 
 StatusWindow *status_bar_create() {
