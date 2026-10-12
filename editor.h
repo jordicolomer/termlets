@@ -3,6 +3,7 @@
 #include "window.h"
 #include "tabs.h"
 #include "mini_edit.h"
+#include "mystr.h"
 
 typedef struct Node {
     char *line;
@@ -15,9 +16,12 @@ typedef struct Node {
 } Node;
 
 typedef struct EditorPointer {
-    int y;
-    int x;
-    int ptr;
+  int y;
+  int x;
+  int ptr;
+  struct Node *node;
+  MyStr str_ite;
+  //int new_y;
 } EditorPointer;
 
 typedef struct EditorWindow { // this is the scrollable part of the editor

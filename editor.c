@@ -22,6 +22,7 @@
 #include "utils.h"
 #include "common.h"
 #include "config.h"
+#include "mystr.h"
 
 // int restore_insert_mode;
 
@@ -552,6 +553,14 @@ void load_file(EditorWindow *self, const char *filename) {
     EditorWindow_update_height(self);
 
     self->cursor.ptr = 0;
+
+	// init cursor
+	if (self->head){
+	  MyStr_init(&self->cursor.str_ite, self->head->line);
+	  MyStr_next_cluster(&self->cursor.str_ite);
+	}
+	self->cursor.node = self->head;
+	self->cursor.y = 0;
 }
 
 void EditorWindow_run_lexer(EditorWindow *self) {
@@ -617,7 +626,7 @@ void _EditorWindow_down(EditorWindow *self) {
 }
 
 void _EditorWindow_right(EditorWindow *self) {
-    Node *node = EditorWindow_get_line_number(self, self->cursor.y);
+  /*Node *node = EditorWindow_get_line_number(self, self->cursor.y);
     if (node->line[self->cursor.ptr] != 0) {
         uint32_t cp = utf8_decode2(node->line, &self->cursor.ptr);
         int w = cp_width(cp);
@@ -629,7 +638,17 @@ void _EditorWindow_right(EditorWindow *self) {
             Node *node = EditorWindow_get_line_number(self, self->cursor.y);
             self->cursor.ptr = 0;
         }
-    }
+		}*/
+
+	if (MyStr_is_end(&self->cursor.str_ite)){ // if end of line
+	  if (self->cursor.node->next){ // if not last line
+		self->cursor.node = self->cursor.node->next;
+		MyStr_init(&self->cursor.str_ite, self->cursor.node->line);
+		self->cursor.y += 1;
+	  }
+	} else { // if not end of line
+	  MyStr_next_cluster(&self->cursor.str_ite);
+	}
 }
 
 void _EditorWindow_left(EditorWindow *self) {
@@ -1218,7 +1237,7 @@ void EditorWindow_draw(struct Window *w, int hasFocus) {
         bg = 27;
     i = self->cursor.y + self->win.shift;
     if (0 <= i && i < geo.height)
-        Buffer_set_bg(&main_buf, geo.y + i, geo.x + self->cursor.x, 1, bg);
+        Buffer_set_bg(&main_buf, geo.y + i, geo.x + self->cursor.str_ite.pos_column, 1, bg);
 }
 
 void EditorWindow_on_mouse_down(Window *win, int x, int y) {

@@ -523,7 +523,8 @@ void Buffer_print_buf(Buffer2 *buf, int y, int x, int width, char *s, int fg, in
             if (mystr.width_column > 0) {
                 Cell *cell = &buf->cells[y * buf->width + x + offset];
                 cell->utf8 = s + mystr.cluster_start;
-                cell->size = mystr.cluster_end - mystr.cluster_start;
+				//LOG_INFO("cluster_size %d", mystr.cluster_size);
+                cell->size = mystr.cluster_size;
                 cell->width = mystr.width_column;
 				if (mystr.width_codepoints != 1 && mystr.first_codepoint >= 256){
 				  cell->reposition = 1;
