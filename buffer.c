@@ -505,9 +505,11 @@ void Buffer_print_buf(Buffer2 *buf, int y, int x, int width, char *s, int fg, in
     // return;
     MyStr mystr;
     MyStr_init(&mystr, s);
-    int offset = 0;
+    //int offset = 0;
     while (MyStr_next_cluster(&mystr)) {
-        if (offset >= width)
+	  //if (offset >= width)
+	  //    break;
+		if (mystr.pos_column + mystr.width_column > width)
             break;
 
         if (mystr.width_codepoints == 1 && s[mystr.cluster_start] == '\t') {
@@ -517,19 +519,20 @@ void Buffer_print_buf(Buffer2 *buf, int y, int x, int width, char *s, int fg, in
                 cell->size = strlen(cell->utf8);
                 cell->width = 1;
             }
-            offset += tab_width;
+            //offset += tab_width;
 
         } else {
             if (mystr.width_column > 0) {
-                Cell *cell = &buf->cells[y * buf->width + x + offset];
+                Cell *cell = &buf->cells[y * buf->width + x + mystr.pos_column];
                 cell->utf8 = s + mystr.cluster_start;
                 // LOG_INFO("cluster_size %d", mystr.cluster_size);
                 cell->size = mystr.cluster_size;
                 cell->width = mystr.width_column;
-                if (mystr.width_codepoints != 1 && mystr.first_codepoint >= 256) {
+                //if (mystr.width_codepoints != 1 && mystr.first_codepoint >= 256) {
+				if (mystr.first_codepoint >= 256) {
                     cell->reposition = 1;
                 }
-                offset += cell->width;
+                //offset += cell->width;
             }
         }
     }
@@ -685,6 +688,8 @@ void Buffer_print_to_screen(Buffer *buf) {
     append_fmt(out, &pos, "\033[%d;1H", buf->height + 1);
 
     write(STDOUT_FILENO, out, pos);
+	
+    //LOG_INFO("STDOUT_FILENO: %.*s", pos, out);
 
     clock_t end = clock();
 
