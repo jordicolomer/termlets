@@ -1265,6 +1265,7 @@ void EditorWindow_draw(struct Window *w, int hasFocus) {
         if (current != NULL)
             str = current->line;
 
+		//for(int x=0;x<geo.width;x++) Buffer_print(&main_buf, geo.y + i, geo.x+x, 1, " ", 16, bg);
         Buffer_print(&main_buf, geo.y + i, geo.x, geo.width, str, 16, bg);
 
         // syntax highlighter
@@ -1398,10 +1399,10 @@ void status_bar_draw(Window *w, int hasFocus) {
 
     MyStr *str_ite = &self->editor->cursor.str_ite;
     snprintf(self->status_str, sizeof(self->status_str),
-             "line:%d/%d (%d%%) column:%d cp:%d char:%c codepoints:%d width_column:%d "
+             "line:%d/%d (%d%%) column:%d cp:U+%04X codepoints:%d width_column:%d "
              "cluster_start:%d cluster_size:%d",
              line, n_lines, pct, str_ite->pos_column, str_ite->first_codepoint,
-             str_ite->first_codepoint, str_ite->width_codepoints, str_ite->width_column,
+             str_ite->first_codepoint, str_ite->width_column,
              str_ite->cluster_start, str_ite->cluster_size);
     // LOG_INFO("line %s y:%d, geo.x:%d, geo.width:%d", self->status_str, y, geo.x, geo.width);
     Buffer_print(&main_buf, y, geo.x, geo.width, strdup(self->status_str), fg, bg);

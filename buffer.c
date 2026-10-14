@@ -11,6 +11,8 @@
 
 #include "common.h"
 #include "mystr.h"
+#include "collections.h"
+#include "ansi_term.h"
 
 #ifdef _WIN32
 #include <io.h>
@@ -491,7 +493,68 @@ int get_idx_pos(char *s, int i) {
     return acc;
 }
 
+int has_missing_width(int max_width, char *s) {
+    MyStr mystr;
+    MyStr_init(&mystr, s);
+    int total_width = 0;
+    while (MyStr_next_cluster(&mystr)) {
+	  int len = mystr.cluster_size;
+	  int width = hashmap_get(mystr.utf8 + mystr.cluster_start, len);
+	  if (width == -1) return 1;
+	  total_width+=width;
+	  if (total_width >= max_width) break;
+	}
+	return 0;
+  
+}
+
+void Buffer_print_and_cache(int y, int x, int max_width, char *s, int fg, int bg) {
+  fprintf(stdout, "\033[%d;%dH", y, x+1);
+  fprintf(stdout, "\033[38;5;%d;48;5;%dm", fg, bg);
+
+  MyStr mystr;
+  MyStr_init(&mystr, s);
+  int total_width = 0;
+  while (MyStr_next_cluster(&mystr)) {
+	  int len = mystr.cluster_size;
+	  char * data = mystr.utf8 + mystr.cluster_start;
+	  int width = hashmap_get(data, len);
+	  if (width == -1) {
+		int row0, col0;
+		get_cursor_position(&row0, &col0);
+		//fflush(stdout);
+		//usleep(10000);
+		fprintf(stdout, "%.*s", (int)len, data);
+		fflush(stdout);
+		usleep(10000);
+		int row1, col1;
+		get_cursor_position(&row1, &col1);
+		//fflush(stdout);
+		//usleep(10000);
+		width = col1 - col0;
+		//LOG_INFO("hashmap_put \"%.*s\" width:%d col0:%d col1:%d len:%d", (int)len, data, width, col0, col1, len);
+		hashmap_put(data, len, width);
+	  } else {
+		//LOG_INFO("write %d bytes", len);
+		fprintf(stdout, "%.*s", (int)len, data);
+	  }
+	  
+	  total_width+=width;
+	  //LOG_INFO("%d >= %d", total_width, width);
+	  if (total_width >= max_width) break;
+	}  
+}
+
+void Buffer_print3_update(int y, int x, int width, char *s, int fg, int bg) {
+}
+
 void Buffer_print_buf(Buffer2 *buf, int y, int x, int width, char *s, int fg, int bg) {
+if (has_missing_width(width, s)){
+	LOG_INFO("has_missing_width");
+	Buffer_print_and_cache(y, x, width, s, fg, bg);
+	//Buffer_print3_update(y, x, width, s, fg, bg);
+	}
+  
     // LOG_INFO("Buffer_print2 %s %d\n", s, width);
     y -= 1;
     for (int i = 0; i < width; i++) {
@@ -528,6 +591,7 @@ void Buffer_print_buf(Buffer2 *buf, int y, int x, int width, char *s, int fg, in
                 // LOG_INFO("cluster_size %d", mystr.cluster_size);
                 cell->size = mystr.cluster_size;
                 cell->width = mystr.width_column;
+				cell->width = hashmap_get(cell->utf8, mystr.cluster_size);
                 //if (mystr.width_codepoints != 1 && mystr.first_codepoint >= 256) {
 				if (mystr.first_codepoint >= 256) {
                     cell->reposition = 1;
@@ -608,6 +672,7 @@ int buf0_Cell_equals(Cell *cell1, Cell *cell2) {
 }
 
 void Buffer_print_to_screen(Buffer *buf) {
+  //clear_screen();
     int cursor_movement_count = 0;
     int color_count = 0;
 
@@ -632,8 +697,8 @@ void Buffer_print_to_screen(Buffer *buf) {
             int idx = y * buf->width + x;
             Cell *cell0 = &buf0->cells[idx];
             Cell *cell1 = &buf1->cells[idx];
-            if (buf0_Cell_equals(cell0, cell1))
-                continue;
+            //if (buf0_Cell_equals(cell0, cell1))
+            //    continue;
 
             char *utf8 = cell0->utf8;
             int bg = (int)cell0->bg;
@@ -650,16 +715,20 @@ void Buffer_print_to_screen(Buffer *buf) {
             }
 
             // cursor movement only when needed
-            if (reposition == 1 || x != terminal_x || y != terminal_y) {
+            //if (reposition == 1 || x != terminal_x || y != terminal_y)
+			{
                 cursor_movement_count += 1;
 
                 append_fmt(out, &pos, "\033[%d;%dH", y + 1, x + 1);
+				//for(int i=0;i<width;i++) append_fmt(out, &pos, " ");
+                //append_fmt(out, &pos, "\033[%d;%dH", y + 1, x + 1);
                 terminal_x = x;
                 terminal_y = y;
             }
 
             // color update only when changed
-            if (bg != current_bg || fg != current_fg) {
+            //if (bg != current_bg || fg != current_fg)
+			  {
                 color_count += 1;
 
                 append_fmt(out, &pos, "\033[38;5;%d;48;5;%dm", fg, bg);

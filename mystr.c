@@ -180,8 +180,8 @@ int wc_len(char *text, int length) {
     Uwidth_Event event;
     unsigned int index;
 
-    // uwidth_init(&state, uwidth_profile_east_asian);
-    uwidth_init(&state, uwidth_profile_narrow);
+    uwidth_init(&state, uwidth_profile_east_asian);
+    //uwidth_init(&state, uwidth_profile_narrow);
     size_t len = strlen(text);
     size_t pos = 0;
     for (index = 0U; index < length; ++index) {
@@ -200,6 +200,29 @@ int wc_len(char *text, int length) {
             if (current == 0x0603)
                 return 2;
         }
+		        /*if (length == 2 && index == 1) {
+            if (prev == 0x20 && current == 0xBBE)
+                return 2;
+            if (prev == 0x20 && current == 0xBBF)
+                return 2;
+            if (prev == 0x20 && current == 0xBC0)
+                return 2;
+            if (prev == 0x20 && current == 0xBC1)
+                return 2;
+            if (prev == 0x20 && current == 0xBC2)
+                return 2;
+            if (prev == 0x20 && current == 0xBC6)
+                return 2;
+            if (prev == 0x20 && current == 0xBC7)
+                return 2;
+            if (prev == 0x20 && current == 0xBC8)
+                return 2;
+            if (prev == 0x20 && current == 0xBCA)
+                return 2;
+            if (prev == 0x20 && current == 0xBCB)
+                return 2;
+				}*/
+
 
         if (length == 1) {
             if (current == 9633)
