@@ -731,6 +731,7 @@ void Buffer_print_to_screen(Buffer *buf) {
 
             // cursor movement only when needed
             //if (reposition == 1 || x != terminal_x || y != terminal_y)
+            if (x != terminal_x || y != terminal_y)
 			{
                 cursor_movement_count += 1;
 
