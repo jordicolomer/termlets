@@ -533,6 +533,7 @@ void Buffer_print_and_cache(int y, int x, int max_width, char *s, int fg, int bg
 		//usleep(10000);
 		width = col1 - col0;
 		//LOG_INFO("hashmap_put \"%.*s\" width:%d col0:%d col1:%d len:%d", (int)len, data, width, col0, col1, len);
+		//int corrected = wcstwidth_u8(s, len, 1, terminal);
 		hashmap_put(data, len, width);
 	  } else {
 		//LOG_INFO("write %d bytes", len);
@@ -548,12 +549,26 @@ void Buffer_print_and_cache(int y, int x, int max_width, char *s, int fg, int bg
 void Buffer_print3_update(int y, int x, int width, char *s, int fg, int bg) {
 }
 
+#include "wcwidth/wcwidth.h"
+void Buffer_cache(char *s) {
+  const char *terminal = "iterm2";
+  MyStr mystr;
+  MyStr_init(&mystr, s);
+  while (MyStr_next_cluster(&mystr)) {
+	int len = mystr.cluster_size;
+	char * data = mystr.utf8 + mystr.cluster_start;
+	int corrected = wcstwidth_u8(data, len, 1, terminal);
+	hashmap_put(data, len, corrected);
+  }
+}
+
 void Buffer_print_buf(Buffer2 *buf, int y, int x, int width, char *s, int fg, int bg) {
-if (has_missing_width(width, s)){
-	LOG_INFO("has_missing_width");
-	Buffer_print_and_cache(y, x, width, s, fg, bg);
+  //if (has_missing_width(width, s)){
+  //LOG_INFO("has_missing_width");
+	//Buffer_print_and_cache(y, x, width, s, fg, bg);
+	//Buffer_cache(s);
 	//Buffer_print3_update(y, x, width, s, fg, bg);
-	}
+	//}
   
     // LOG_INFO("Buffer_print2 %s %d\n", s, width);
     y -= 1;
@@ -591,7 +606,7 @@ if (has_missing_width(width, s)){
                 // LOG_INFO("cluster_size %d", mystr.cluster_size);
                 cell->size = mystr.cluster_size;
                 cell->width = mystr.width_column;
-				cell->width = hashmap_get(cell->utf8, mystr.cluster_size);
+				//cell->width = hashmap_get(cell->utf8, mystr.cluster_size);
                 //if (mystr.width_codepoints != 1 && mystr.first_codepoint >= 256) {
 				if (mystr.first_codepoint >= 256) {
                     cell->reposition = 1;

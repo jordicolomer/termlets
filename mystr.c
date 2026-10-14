@@ -347,7 +347,9 @@ int MyStr_is_end(MyStr *mystr) {
     return mystr->cluster_start >= mystr->len_bytes;
 }
 
+#include "wcwidth/wcwidth.h"
 int MyStr_next_cluster(MyStr *mystr) {
+  const char *terminal = "iterm2";
     // input is pos_bytes only
     utf8proc_int32_t state = 0;
     // printf("MyStr_next_cluster\n");
@@ -378,7 +380,8 @@ int MyStr_next_cluster(MyStr *mystr) {
     mystr->width_codepoints += 1;
 ret:
     mystr->pos_cluster += 1;
-    mystr->width_column = wc_len(mystr->utf8 + mystr->cluster_start, mystr->width_codepoints);
+    //mystr->width_column = wc_len(mystr->utf8 + mystr->cluster_start, mystr->width_codepoints);
+	mystr->width_column = wcstwidth_u8(mystr->utf8 + mystr->cluster_start, mystr->cluster_size, 1, terminal);
     return 1;
 }
 

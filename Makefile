@@ -30,10 +30,10 @@ ifeq ($(UNAME_S),Darwin)
     LIBVTERM_PREFIX := $(shell brew --prefix libvterm)
     UTF8PROC_PREFIX := $(shell brew --prefix utf8proc)
     CFLAGS += -I$(LIBVTERM_PREFIX)/include -I$(UTF8PROC_PREFIX)/include
-    LDFLAGS = -L$(LIBVTERM_PREFIX)/lib -lvterm -L$(UTF8PROC_PREFIX)/lib -lutf8proc
+    LDFLAGS = -L$(LIBVTERM_PREFIX)/lib -lvterm -L$(UTF8PROC_PREFIX)/lib -lutf8proc -L. -lwcwidth
 else ifeq ($(UNAME_S),Linux)
     #LDFLAGS = -lvterm
-	LDFLAGS = -Wl,-Bstatic -lvterm -Wl,-Bdynamic -lutil
+	LDFLAGS = -L. -Wl,-Bstatic -lvterm -lwcwidth -Wl,-Bdynamic -lutil
 endif
 
 # Project name
