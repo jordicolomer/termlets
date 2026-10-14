@@ -675,11 +675,26 @@ void Buffer_copy_to_second_buffer(Buffer *buf) {
 Buffer main_buf;
 
 int buf0_Cell_equals(Cell *cell1, Cell *cell2) {
+    // If either cell is completely zeroed (uninitialized), consider them different
+    if ((cell1->utf8 == NULL && cell1->size == 0) ||
+        (cell2->utf8 == NULL && cell2->size == 0)) {
+        return 0;
+    }
+
     if (cell1->size != cell2->size)
+        return 0;
+    if (cell1->width != cell2->width)
         return 0;
     if (cell1->bg != cell2->bg)
         return 0;
     if (cell1->fg != cell2->fg)
+        return 0;
+    if (cell1->reposition != cell2->reposition)
+        return 0;
+    // Handle NULL pointers
+    if (cell1->utf8 == NULL && cell2->utf8 == NULL)
+        return 1;
+    if (cell1->utf8 == NULL || cell2->utf8 == NULL)
         return 0;
     if (memcmp(cell1->utf8, cell2->utf8, cell1->size) != 0)
         return 0;
@@ -712,14 +727,20 @@ void Buffer_print_to_screen(Buffer *buf) {
             int idx = y * buf->width + x;
             Cell *cell0 = &buf0->cells[idx];
             Cell *cell1 = &buf1->cells[idx];
-            //if (buf0_Cell_equals(cell0, cell1))
-            //    continue;
+            int width = (int)cell0->width;
+
+            // Skip unchanged single-width cells only (safe optimization)
+            if (buf0_Cell_equals(cell0, cell1)) {
+			  if (width > 1) {
+                x += width - 1;
+			  }
+			  continue;
+            }
 
             char *utf8 = cell0->utf8;
             int bg = (int)cell0->bg;
             int fg = (int)cell0->fg;
             int size = (int)cell0->size;
-            int width = (int)cell0->width;
 
             if (utf8 == -1)
                 continue;
@@ -743,7 +764,7 @@ void Buffer_print_to_screen(Buffer *buf) {
             }
 
             // color update only when changed
-            //if (bg != current_bg || fg != current_fg)
+            if (bg != current_bg || fg != current_fg)
 			  {
                 color_count += 1;
 
@@ -780,8 +801,8 @@ void Buffer_print_to_screen(Buffer *buf) {
 
     double cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
 
-    buf0_swap();
     buf0_reset();
+    buf0_swap();
 
     LOG_INFO("Execution time: %f ms size:%d cursor_movement_count:%d color_count:%d",
              cpu_time_used * 1000, pos, cursor_movement_count, color_count);
