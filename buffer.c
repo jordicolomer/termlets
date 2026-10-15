@@ -749,6 +749,9 @@ void Buffer_print_to_screen(Buffer *buf) {
                 width = 1;
                 size = 1;
             }
+            //if (utf8[0] == '\t') {
+            //    width = 4;
+            //}
 
             // cursor movement only when needed
             //if (reposition == 1 || x != terminal_x || y != terminal_y)
