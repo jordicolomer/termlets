@@ -16,7 +16,7 @@ typedef struct MyStr {
     size_t width_codepoints;          // width in codepoints of the current cluster
     utf8proc_int32_t first_codepoint; // first codepoint of the current cluster
     size_t pos_column;                // offset in column number of the current cluster
-    size_t pos_cluster;               // ordinal number of the current cluster
+    int pos_cluster;               // ordinal number of the current cluster
     size_t cluster_start;             // offset in bytes for the start of the current cluster
     // size_t cluster_end;        // offset in bytes for the end of the current cluster
     size_t cluster_size; // size in bytes of the current cluster
@@ -32,6 +32,7 @@ int MyStr_next_cluster(MyStr *mystr);
 int MyStr_prev_cluster(MyStr *mystr);
 int MyStr_get_grapheme_at_index(MyStr *mystr, int cluster_id);
 int MyStr_get_grapheme_at_column(MyStr *mystr, int column_number);
+void MyStr_get_last_grapheme(MyStr *self);
 int wc_len(char *text, int length);
 
 #endif

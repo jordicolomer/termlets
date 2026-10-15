@@ -164,6 +164,7 @@ void Node_append(Node *node, char *text) {
     node->line[node->length] = '\0';
 }
 
+/*
 void EditorWindow_backspace(EditorWindow *self) {
     set_modified(self, 1);
     // delete a character
@@ -202,6 +203,8 @@ void EditorWindow_backspace(EditorWindow *self) {
     }
     // update_lexer_state(self->head);
 }
+*/
+
 
 /*
 void _EditorWindow_copy2(EditorWindow *self) {
@@ -638,6 +641,7 @@ void EditorPointer_up(EditorPointer *ep){
 // EditorPointer
 // this should enclose the underlying data structure. every editor operation should be done through this class
 
+
 void EditorPointer_vertical_move(EditorPointer *ep, int is_up, int count, int keep_horizontal) {
     int pos_column = ep->str_ite.pos_column;
     for (int i = 0; i < count; i++) {
@@ -658,14 +662,32 @@ void EditorPointer_vertical_move(EditorPointer *ep, int is_up, int count, int ke
         MyStr_get_grapheme_at_column(&ep->str_ite, pos_column);
 }
 
+void EditorPointer_right(EditorPointer * cursor){
+    if (MyStr_is_end(&cursor->str_ite)) { // if end of line
+        EditorPointer_vertical_move(cursor, 0, 1, 0);
+        // EditorPointer_down(&self->cursor);
+    } else { // if not end of line
+        MyStr_next_cluster(&cursor->str_ite);
+    }
+}
+
+void EditorPointer_left(EditorPointer * cursor){
+    if (cursor->str_ite.pos_cluster <= 0) { // if beginning of line
+        EditorPointer_vertical_move(cursor, 1, 1, 0);
+		MyStr_get_last_grapheme(&cursor->str_ite);
+    } else { // if not end of line
+        MyStr_prev_cluster(&cursor->str_ite);
+    }
+}
+
 int EditorPointer_cmp(EditorPointer *ep1, EditorPointer *ep2) {
     if (ep1->y < ep2->y)
         return -1;
     if (ep1->y > ep2->y)
         return 1;
-    if (ep1->str_ite.pos_bytes < ep2->str_ite.pos_bytes)
+    if (ep1->str_ite.cluster_start < ep2->str_ite.cluster_start)
         return -1;
-    if (ep1->str_ite.pos_bytes > ep2->str_ite.pos_bytes)
+    if (ep1->str_ite.cluster_start > ep2->str_ite.cluster_start)
         return 1;
     return 0;
 }
@@ -746,6 +768,7 @@ char *EditorPointer_copy_region_to_memory(EditorPointer *ep1, EditorPointer *ep2
 }
 
 void EditorPointer_delete_region(EditorWindow *self, EditorPointer *ep1, EditorPointer *ep2) {
+	LOG_INFO("EditorPointer_delete_region1");
     int cmp = EditorPointer_cmp(ep1, ep2);
     if (cmp == 0)
         return;
@@ -763,12 +786,40 @@ void EditorPointer_delete_region(EditorWindow *self, EditorPointer *ep1, EditorP
 
 	int j1_ptr = ep1->str_ite.cluster_start;  // byte position, not cluster number
 	int j2_ptr = ep2->str_ite.cluster_start;  // byte position, not cluster number
-    node1->line[j1_ptr] = 0;
-	node1->length = j1_ptr;  // byte length
-	Node_append(node1, node2->line + j2_ptr);
+	LOG_INFO("EditorPointer_delete_region2");
 
-	// update line count
-    self->n_lines -= ep2->y - ep1->y;
+	if (node1 == node2) {
+		// Same line deletion - use memmove to handle overlapping memory
+		size_t bytes_to_delete = j2_ptr - j1_ptr;
+		LOG_INFO("bytes_to_delete %d", bytes_to_delete);
+
+		size_t remaining_bytes = node1->length - j2_ptr;
+
+		memmove(node1->line + j1_ptr, node1->line + j2_ptr, remaining_bytes);
+		node1->length -= bytes_to_delete;
+		node1->line[node1->length] = '\0';
+
+		// Recalculate width for the entire line
+		node1->width = calculate_width(node1->line);
+	} else {
+		// Multi-line deletion
+		node1->line[j1_ptr] = 0;
+		node1->length = j1_ptr;  // byte length
+		Node_append(node1, node2->line + j2_ptr);
+
+		// update line count
+		self->n_lines -= ep2->y - ep1->y;
+
+		// Update linked list - remove intermediate nodes
+		node1->next = node2->next;
+		if (node2->next == NULL) {
+			self->tail = node1;
+		} else {
+			node2->next->prev = node1;
+		}
+
+		// TODO: Free intermediate nodes between node1 and node2
+	}
 
 	// Reinitialize the iterator for the modified line and position at target column
 	MyStr_init(&ep1->str_ite, node1->line);
@@ -780,17 +831,6 @@ void EditorPointer_delete_region(EditorWindow *self, EditorPointer *ep1, EditorP
 
 	// merge pointers
 	*ep2 = *ep1;
-
-	node1->next = node2->next;
-    if (node2->next == NULL) {
-        self->tail = node1;
-    } else {
-        node2->next->prev = node1;
-    }
-
-	// todo delete in between lines
-	//node1->next = node2;
-	//node2->prev = node1;
 
 	update_lexer_state(node1, 1, self->language);
 }
@@ -851,7 +891,7 @@ void EditorWindow_action_start_of_line(EditorWindow *self) {
 }
 
 void EditorWindow_action_end_of_line(EditorWindow *self) {
-    MyStr_get_grapheme_at_column(&self->cursor.str_ite, 999);
+    MyStr_get_last_grapheme(&self->cursor.str_ite);
 }
 
 void _EditorWindow_up(EditorWindow *self) {
@@ -870,23 +910,21 @@ void _EditorWindow_down(EditorWindow *self) {
     EditorPointer_vertical_move(&self->cursor, 0, 1, 1);
 }
 
+
 void _EditorWindow_right(EditorWindow *self) {
-    if (MyStr_is_end(&self->cursor.str_ite)) { // if end of line
-        EditorPointer_vertical_move(&self->cursor, 0, 1, 0);
-        // EditorPointer_down(&self->cursor);
-    } else { // if not end of line
-        MyStr_next_cluster(&self->cursor.str_ite);
-    }
+  EditorPointer_right(&self->cursor);
 }
 
+
 void _EditorWindow_left(EditorWindow *self) {
-    if (self->cursor.str_ite.pos_cluster == 0) { // if end of line
+  EditorPointer_left(&self->cursor);
+  /*if (self->cursor.str_ite.pos_cluster == 0) { // if end of line
         EditorPointer_vertical_move(&self->cursor, 1, 1, 0);
         EditorWindow_action_end_of_line(self);
         // EditorPointer_up(&self->cursor);
     } else { // if not end of line
         MyStr_prev_cluster(&self->cursor.str_ite);
-    }
+		}*/
 }
 
 void EditorWindow_up(EditorWindow *self) {
@@ -990,6 +1028,14 @@ void EditorWindow_prev_word(EditorWindow *self) {
         }
     }
     EditorWindow_make_cursor_visible(self);
+}
+
+void EditorWindow_backspace(EditorWindow *self) {
+    set_modified(self, 1);
+	EditorPointer pointer;
+	pointer = self->cursor;
+	EditorPointer_left(&pointer);
+	EditorPointer_delete_region(self, &self->cursor, &pointer);
 }
 
 void EditorWindow_delete_word(EditorWindow *self) {
@@ -1564,10 +1610,10 @@ void status_bar_draw(Window *w, int hasFocus) {
     MyStr *str_ite = &self->editor->cursor.str_ite;
     snprintf(self->status_str, sizeof(self->status_str),
              "line:%d/%d (%d%%) column:%d cp:U+%04X codepoints:%d width_column:%d "
-             "cluster_start:%d cluster_size:%d",
+             "cluster_start:%d cluster_size:%d pos_cluster:%d",
              line, n_lines, pct, str_ite->pos_column, str_ite->first_codepoint,
              str_ite->first_codepoint, str_ite->width_column, str_ite->cluster_start,
-             str_ite->cluster_size);
+             str_ite->cluster_size, str_ite->pos_cluster);
     // LOG_INFO("line %s y:%d, geo.x:%d, geo.width:%d", self->status_str, y, geo.x, geo.width);
     Buffer_print(&main_buf, y, geo.x, geo.width, strdup(self->status_str), fg, bg);
 }
