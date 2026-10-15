@@ -754,12 +754,15 @@ void EditorPointer_delete_region(EditorWindow *self, EditorPointer *ep1, EditorP
         ep1 = ep2;
         ep2 = tmp;
     }
-	
+
     Node *node1 = ep1->node;
     Node *node2 = ep2->node;
 
-	int j1_ptr = ep1->str_ite.pos_cluster;
-	int j2_ptr = ep2->str_ite.pos_cluster;
+	// Save the column position before deletion
+	int target_column = ep1->str_ite.pos_column;
+
+	int j1_ptr = ep1->str_ite.cluster_start;  // byte position, not cluster number
+	int j2_ptr = ep2->str_ite.cluster_start;  // byte position, not cluster number
     node1->line[j1_ptr] = 0;
 	node1->length = j1_ptr;  // byte length
 	Node_append(node1, node2->line + j2_ptr);
@@ -767,9 +770,14 @@ void EditorPointer_delete_region(EditorWindow *self, EditorPointer *ep1, EditorP
 	// update line count
     self->n_lines -= ep2->y - ep1->y;
 
-	// update iterator in case it reallocated
-	ep1->str_ite.utf8 = node1->line;
-	
+	// Reinitialize the iterator for the modified line and position at target column
+	MyStr_init(&ep1->str_ite, node1->line);
+	MyStr_next_cluster(&ep1->str_ite);
+	MyStr_get_grapheme_at_column(&ep1->str_ite, target_column);
+
+	// Update node reference
+	ep1->node = node1;
+
 	// merge pointers
 	*ep2 = *ep1;
 
@@ -783,7 +791,7 @@ void EditorPointer_delete_region(EditorWindow *self, EditorPointer *ep1, EditorP
 	// todo delete in between lines
 	//node1->next = node2;
 	//node2->prev = node1;
-	
+
 	update_lexer_state(node1, 1, self->language);
 }
 
