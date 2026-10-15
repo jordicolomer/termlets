@@ -498,78 +498,79 @@ int has_missing_width(int max_width, char *s) {
     MyStr_init(&mystr, s);
     int total_width = 0;
     while (MyStr_next_cluster(&mystr)) {
-	  int len = mystr.cluster_size;
-	  int width = hashmap_get(mystr.utf8 + mystr.cluster_start, len);
-	  if (width == -1) return 1;
-	  total_width+=width;
-	  if (total_width >= max_width) break;
-	}
-	return 0;
-  
+        int len = mystr.cluster_size;
+        int width = hashmap_get(mystr.utf8 + mystr.cluster_start, len);
+        if (width == -1)
+            return 1;
+        total_width += width;
+        if (total_width >= max_width)
+            break;
+    }
+    return 0;
 }
 
 void Buffer_print_and_cache(int y, int x, int max_width, char *s, int fg, int bg) {
-  fprintf(stdout, "\033[%d;%dH", y, x+1);
-  fprintf(stdout, "\033[38;5;%d;48;5;%dm", fg, bg);
+    fprintf(stdout, "\033[%d;%dH", y, x + 1);
+    fprintf(stdout, "\033[38;5;%d;48;5;%dm", fg, bg);
 
-  MyStr mystr;
-  MyStr_init(&mystr, s);
-  int total_width = 0;
-  while (MyStr_next_cluster(&mystr)) {
-	  int len = mystr.cluster_size;
-	  char * data = mystr.utf8 + mystr.cluster_start;
-	  int width = hashmap_get(data, len);
-	  if (width == -1) {
-		int row0, col0;
-		get_cursor_position(&row0, &col0);
-		//fflush(stdout);
-		//usleep(10000);
-		fprintf(stdout, "%.*s", (int)len, data);
-		fflush(stdout);
-		usleep(10000);
-		int row1, col1;
-		get_cursor_position(&row1, &col1);
-		//fflush(stdout);
-		//usleep(10000);
-		width = col1 - col0;
-		//LOG_INFO("hashmap_put \"%.*s\" width:%d col0:%d col1:%d len:%d", (int)len, data, width, col0, col1, len);
-		//int corrected = wcstwidth_u8(s, len, 1, terminal);
-		hashmap_put(data, len, width);
-	  } else {
-		//LOG_INFO("write %d bytes", len);
-		fprintf(stdout, "%.*s", (int)len, data);
-	  }
-	  
-	  total_width+=width;
-	  //LOG_INFO("%d >= %d", total_width, width);
-	  if (total_width >= max_width) break;
-	}  
+    MyStr mystr;
+    MyStr_init(&mystr, s);
+    int total_width = 0;
+    while (MyStr_next_cluster(&mystr)) {
+        int len = mystr.cluster_size;
+        char *data = mystr.utf8 + mystr.cluster_start;
+        int width = hashmap_get(data, len);
+        if (width == -1) {
+            int row0, col0;
+            get_cursor_position(&row0, &col0);
+            // fflush(stdout);
+            // usleep(10000);
+            fprintf(stdout, "%.*s", (int)len, data);
+            fflush(stdout);
+            usleep(10000);
+            int row1, col1;
+            get_cursor_position(&row1, &col1);
+            // fflush(stdout);
+            // usleep(10000);
+            width = col1 - col0;
+            // LOG_INFO("hashmap_put \"%.*s\" width:%d col0:%d col1:%d len:%d", (int)len, data,
+            // width, col0, col1, len); int corrected = wcstwidth_u8(s, len, 1, terminal);
+            hashmap_put(data, len, width);
+        } else {
+            // LOG_INFO("write %d bytes", len);
+            fprintf(stdout, "%.*s", (int)len, data);
+        }
+
+        total_width += width;
+        // LOG_INFO("%d >= %d", total_width, width);
+        if (total_width >= max_width)
+            break;
+    }
 }
 
-void Buffer_print3_update(int y, int x, int width, char *s, int fg, int bg) {
-}
+void Buffer_print3_update(int y, int x, int width, char *s, int fg, int bg) {}
 
 #include "wcwidth/wcwidth.h"
 void Buffer_cache(char *s) {
-  const char *terminal = "iterm2";
-  MyStr mystr;
-  MyStr_init(&mystr, s);
-  while (MyStr_next_cluster(&mystr)) {
-	int len = mystr.cluster_size;
-	char * data = mystr.utf8 + mystr.cluster_start;
-	int corrected = wcstwidth_u8(data, len, 1, terminal);
-	hashmap_put(data, len, corrected);
-  }
+    const char *terminal = "iterm2";
+    MyStr mystr;
+    MyStr_init(&mystr, s);
+    while (MyStr_next_cluster(&mystr)) {
+        int len = mystr.cluster_size;
+        char *data = mystr.utf8 + mystr.cluster_start;
+        int corrected = wcstwidth_u8(data, len, 1, terminal);
+        hashmap_put(data, len, corrected);
+    }
 }
 
 void Buffer_print_buf(Buffer2 *buf, int y, int x, int width, char *s, int fg, int bg) {
-  //if (has_missing_width(width, s)){
-  //LOG_INFO("has_missing_width");
-	//Buffer_print_and_cache(y, x, width, s, fg, bg);
-	//Buffer_cache(s);
-	//Buffer_print3_update(y, x, width, s, fg, bg);
-	//}
-  
+    // if (has_missing_width(width, s)){
+    // LOG_INFO("has_missing_width");
+    // Buffer_print_and_cache(y, x, width, s, fg, bg);
+    // Buffer_cache(s);
+    // Buffer_print3_update(y, x, width, s, fg, bg);
+    // }
+
     // LOG_INFO("Buffer_print2 %s %d\n", s, width);
     y -= 1;
     for (int i = 0; i < width; i++) {
@@ -583,11 +584,11 @@ void Buffer_print_buf(Buffer2 *buf, int y, int x, int width, char *s, int fg, in
     // return;
     MyStr mystr;
     MyStr_init(&mystr, s);
-    //int offset = 0;
+    // int offset = 0;
     while (MyStr_next_cluster(&mystr)) {
-	  //if (offset >= width)
-	  //    break;
-		if (mystr.pos_column + mystr.width_column > width)
+        // if (offset >= width)
+        //     break;
+        if (mystr.pos_column + mystr.width_column > width)
             break;
 
         if (mystr.width_codepoints == 1 && s[mystr.cluster_start] == '\t') {
@@ -597,7 +598,7 @@ void Buffer_print_buf(Buffer2 *buf, int y, int x, int width, char *s, int fg, in
                 cell->size = strlen(cell->utf8);
                 cell->width = 1;
             }
-            //offset += tab_width;
+            // offset += tab_width;
 
         } else {
             if (mystr.width_column > 0) {
@@ -606,12 +607,12 @@ void Buffer_print_buf(Buffer2 *buf, int y, int x, int width, char *s, int fg, in
                 // LOG_INFO("cluster_size %d", mystr.cluster_size);
                 cell->size = mystr.cluster_size;
                 cell->width = mystr.width_column;
-				//cell->width = hashmap_get(cell->utf8, mystr.cluster_size);
-                //if (mystr.width_codepoints != 1 && mystr.first_codepoint >= 256) {
-				if (mystr.first_codepoint >= 256) {
+                // cell->width = hashmap_get(cell->utf8, mystr.cluster_size);
+                // if (mystr.width_codepoints != 1 && mystr.first_codepoint >= 256) {
+                if (mystr.first_codepoint >= 256) {
                     cell->reposition = 1;
                 }
-                //offset += cell->width;
+                // offset += cell->width;
             }
         }
     }
@@ -676,8 +677,7 @@ Buffer main_buf;
 
 int buf0_Cell_equals(Cell *cell1, Cell *cell2) {
     // If either cell is completely zeroed (uninitialized), consider them different
-    if ((cell1->utf8 == NULL && cell1->size == 0) ||
-        (cell2->utf8 == NULL && cell2->size == 0)) {
+    if ((cell1->utf8 == NULL && cell1->size == 0) || (cell2->utf8 == NULL && cell2->size == 0)) {
         return 0;
     }
 
@@ -702,7 +702,7 @@ int buf0_Cell_equals(Cell *cell1, Cell *cell2) {
 }
 
 void Buffer_print_to_screen(Buffer *buf) {
-  //clear_screen();
+    // clear_screen();
     int cursor_movement_count = 0;
     int color_count = 0;
 
@@ -731,10 +731,10 @@ void Buffer_print_to_screen(Buffer *buf) {
 
             // Skip unchanged single-width cells only (safe optimization)
             if (buf0_Cell_equals(cell0, cell1)) {
-			  if (width > 1) {
-                x += width - 1;
-			  }
-			  continue;
+                if (width > 1) {
+                    x += width - 1;
+                }
+                continue;
             }
 
             char *utf8 = cell0->utf8;
@@ -749,26 +749,24 @@ void Buffer_print_to_screen(Buffer *buf) {
                 width = 1;
                 size = 1;
             }
-            //if (utf8[0] == '\t') {
-            //    width = 4;
-            //}
+            // if (utf8[0] == '\t') {
+            //     width = 4;
+            // }
 
             // cursor movement only when needed
-            //if (reposition == 1 || x != terminal_x || y != terminal_y)
-            if (x != terminal_x || y != terminal_y)
-			{
+            // if (reposition == 1 || x != terminal_x || y != terminal_y)
+            if (x != terminal_x || y != terminal_y) {
                 cursor_movement_count += 1;
 
                 append_fmt(out, &pos, "\033[%d;%dH", y + 1, x + 1);
-				//for(int i=0;i<width;i++) append_fmt(out, &pos, " ");
-                //append_fmt(out, &pos, "\033[%d;%dH", y + 1, x + 1);
+                // for(int i=0;i<width;i++) append_fmt(out, &pos, " ");
+                // append_fmt(out, &pos, "\033[%d;%dH", y + 1, x + 1);
                 terminal_x = x;
                 terminal_y = y;
             }
 
             // color update only when changed
-            if (bg != current_bg || fg != current_fg)
-			  {
+            if (bg != current_bg || fg != current_fg) {
                 color_count += 1;
 
                 append_fmt(out, &pos, "\033[38;5;%d;48;5;%dm", fg, bg);
@@ -797,8 +795,8 @@ void Buffer_print_to_screen(Buffer *buf) {
     append_fmt(out, &pos, "\033[%d;1H", buf->height + 1);
 
     write(STDOUT_FILENO, out, pos);
-	
-    //LOG_INFO("STDOUT_FILENO: %.*s", pos, out);
+
+    // LOG_INFO("STDOUT_FILENO: %.*s", pos, out);
 
     clock_t end = clock();
 

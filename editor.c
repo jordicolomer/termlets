@@ -203,6 +203,7 @@ void EditorWindow_backspace(EditorWindow *self) {
     // update_lexer_state(self->head);
 }
 
+/*
 void _EditorWindow_copy2(EditorWindow *self) {
     if (self->selection.y == -1)
         return;
@@ -266,7 +267,7 @@ void _EditorWindow_copy2(EditorWindow *self) {
     clipboard_copy(buffer);
     free(buffer);
 }
-
+*/
 
 void EditorWindow_paste(EditorWindow *self) {
     Node *current = EditorWindow_get_line_number(self, self->cursor.y);
@@ -398,7 +399,6 @@ void EditorWindow_delete_region(EditorWindow *self) {
     update_lexer_state(node1, 1, self->language);
     set_modified(self, 1);
 }
-
 
 void EditorWindow_save(EditorWindow *self) {
     FILE *file = fopen(self->file_path, "w");
@@ -599,14 +599,13 @@ void EditorWindow_reload(EditorWindow *editor_window) {
 }
 
 void EditorWindow_start_selection(EditorWindow *self) {
-  //self->selection.y = self->cursor.y;
-    //self->selection.x = self->cursor.x;
-    //self->selection.ptr = self->cursor.ptr;
-	//memcpy(&b, &a, sizeof(a));
-  self->selection = self->cursor;
+    // self->selection.y = self->cursor.y;
+    // self->selection.x = self->cursor.x;
+    // self->selection.ptr = self->cursor.ptr;
+    // memcpy(&b, &a, sizeof(a));
+    self->selection = self->cursor;
 }
 
-// EditorPointer
 
 /*
 void EditorPointer_down(EditorPointer *ep){
@@ -627,6 +626,9 @@ void EditorPointer_up(EditorPointer *ep){
   }
 }
 */
+
+// EditorPointer
+// this should enclose the underlying data structure. every editor operation should be done through this class
 
 void EditorPointer_vertical_move(EditorPointer *ep, int is_up, int count, int keep_horizontal) {
     int pos_column = ep->str_ite.pos_column;
@@ -649,67 +651,130 @@ void EditorPointer_vertical_move(EditorPointer *ep, int is_up, int count, int ke
 }
 
 int EditorPointer_cmp(EditorPointer *ep1, EditorPointer *ep2) {
-  if (ep1->y < ep2->y) return -1;
-  if (ep1->y > ep2->y) return 1;
-  if (ep1->str_ite.pos_bytes < ep2->str_ite.pos_bytes) return -1;
-  if (ep1->str_ite.pos_bytes > ep2->str_ite.pos_bytes) return 1;
-  return 0;
+    if (ep1->y < ep2->y)
+        return -1;
+    if (ep1->y > ep2->y)
+        return 1;
+    if (ep1->str_ite.pos_bytes < ep2->str_ite.pos_bytes)
+        return -1;
+    if (ep1->str_ite.pos_bytes > ep2->str_ite.pos_bytes)
+        return 1;
+    return 0;
 }
 
 // return size in bytes required to store the region in memory
 // ep1 comes before ep2
 int EditorPointer_region_size(EditorPointer *ep1, EditorPointer *ep2) {
-  int size = 1; // ending NULL value
-  size += - ep1->str_ite.pos_bytes; // first line
-  size += ep2->str_ite.pos_bytes; // last line
-  size += ep2->y - ep1->y; // newline characters
-  Node * node = ep1->node;
-  while (node != NULL && node != ep2->node){
-	size += node->length;
-	node = node->next;
-  }
-  return size;
+    if (ep1->node == ep2->node) {
+        // Same line selection
+        return ep2->str_ite.cluster_start - ep1->str_ite.cluster_start + 1;
+    } else {
+        // Multi-line selection
+        int size = 1;  // ending NULL value
+        size += ep1->node->length - ep1->str_ite.cluster_start;  // first line
+        size += ep2->str_ite.cluster_start;  // last line
+        size += ep2->y - ep1->y;  // newline characters
+
+        Node *node = ep1->node->next;
+        while (node != NULL && node != ep2->node) {
+            size += node->length;
+            node = node->next;
+        }
+        return size;
+    }
 }
 
-char * EditorPointer_copy_region_to_memory(EditorPointer *ep1, EditorPointer *ep2) {
-  int cmp = EditorPointer_cmp(ep1, ep2);
-  if (cmp == 0) return NULL;
-  if (cmp == 1){
-	EditorPointer *tmp = ep1;
-	ep1 = ep2;
-	ep2 = tmp;
-  }
-  
-  int size = EditorPointer_region_size(ep1, ep2);
-  if (size == 0) return NULL;
-  char * buf = (char *) malloc(size);
-  
-  char *dst = buf;
-  Node *node = ep1->node;
-  int first_len = node->length - ep1->str_ite.cluster_start;
-  memcpy(dst, node->line + ep1->str_ite.cluster_start, first_len);
-  dst += first_len;
-  node = node->next;
-  // Copy intermediate lines, including newline characters.
-  while (node != NULL && node != ep2->node) {
-	*dst++ = '\n';
-	memcpy(dst, node->line, node->length);
-	dst += node->length;
+char *EditorPointer_copy_region_to_memory(EditorPointer *ep1, EditorPointer *ep2) {
+    int cmp = EditorPointer_cmp(ep1, ep2);
+    if (cmp == 0)
+        return NULL;
+    if (cmp == 1) {
+        EditorPointer *tmp = ep1;
+        ep1 = ep2;
+        ep2 = tmp;
+    }
+
+    int size = EditorPointer_region_size(ep1, ep2);
+    if (size == 0)
+        return NULL;
+    char *buf = (char *)malloc(size);
+
+    char *dst = buf;
+    Node *node = ep1->node;
+
+    if (ep1->node == ep2->node) {
+        // Same line selection
+        int len = ep2->str_ite.cluster_start - ep1->str_ite.cluster_start;
+        memcpy(dst, node->line + ep1->str_ite.cluster_start, len);
+        dst += len;
+    } else {
+        // Multi-line selection
+        // Copy first line from start position to end
+        int first_len = node->length - ep1->str_ite.cluster_start;
+        memcpy(dst, node->line + ep1->str_ite.cluster_start, first_len);
+        dst += first_len;
+        node = node->next;
+
+        // Copy intermediate lines, including newline characters.
+        while (node != NULL && node != ep2->node) {
+            *dst++ = '\n';
+            memcpy(dst, node->line, node->length);
+            dst += node->length;
+
+            node = node->next;
+        }
+
+        // Copy from the beginning of the last line to the ending position.
+        if (node != NULL) {
+            *dst++ = '\n';
+            int last_len = ep2->str_ite.cluster_start;
+            memcpy(dst, node->line, last_len);
+            dst += last_len;
+        }
+    }
+
+    *dst = '\0';
+    return buf;
+}
+
+void EditorPointer_delete_region(EditorWindow *self, EditorPointer *ep1, EditorPointer *ep2) {
+    int cmp = EditorPointer_cmp(ep1, ep2);
+    if (cmp == 0)
+        return;
+    if (cmp == 1) {
+        EditorPointer *tmp = ep1;
+        ep1 = ep2;
+        ep2 = tmp;
+    }
 	
-	node = node->next;
-  }
+    Node *node1 = ep1->node;
+    Node *node2 = ep2->node;
 
-  // Copy from the beginning of the last line to the ending position.
-  if (node != NULL) {
-	*dst++ = '\n';
-	int last_len = ep2->str_ite.cluster_start;
-	memcpy(dst, node->line, last_len);
-	dst += last_len;
-  }
+	int j1_ptr = ep1->str_ite.pos_cluster;
+	int j2_ptr = ep2->str_ite.pos_cluster;
+    node1->line[j1_ptr] = 0;
+	node1->length = j1_ptr;  // byte length
+	Node_append(node1, node2->line + j2_ptr);
 
-  *dst = '\0';
-  return buf;
-  
+	// update iterator in case it reallocated
+	ep1->str_ite.utf8 = node1->line;
+
+	// merge pointers
+	*ep2 = *ep1;
+
+	node1->next = node2->next;
+    if (node2->next == NULL) {
+        self->tail = node1;
+    } else {
+        node2->next->prev = node1;
+    }
+
+	// todo delete in between lines
+	//node1->next = node2;
+	//node2->prev = node1;
+	
+    self->n_lines -= ep2->y - ep1->y;
+	update_lexer_state(node1, 1, self->language);
 }
 
 // EditorWindow
@@ -723,11 +788,11 @@ void EditorWindow_page_down(EditorWindow *self) {
 }*/
 
 void _EditorWindow_copy(EditorWindow *self) {
-  char * buffer = EditorPointer_copy_region_to_memory(&self->cursor, &self->selection);
-  if (buffer != NULL){
-    clipboard_copy(buffer);
-    free(buffer);
-  }
+    char *buffer = EditorPointer_copy_region_to_memory(&self->cursor, &self->selection);
+    if (buffer != NULL) {
+        clipboard_copy(buffer);
+        free(buffer);
+    }
 }
 
 void EditorWindow_copy(EditorWindow *self) {
@@ -737,10 +802,13 @@ void EditorWindow_copy(EditorWindow *self) {
 
 void EditorWindow_cut(EditorWindow *self) {
     _EditorWindow_copy(self);
-    EditorWindow_delete_region(self);
+    //EditorWindow_delete_region(self);
+	EditorPointer_delete_region(self, &self->cursor, &self->selection);
+	
+    EditorWindow_update_height(self);
+    set_modified(self, 1);
+    self->selection.y = -1;
 }
-
-
 
 void EditorWindow_first_line(EditorWindow *self) {
     if (self->head) {
@@ -1343,7 +1411,7 @@ void EditorWindow_draw(struct Window *w, int hasFocus) {
         if (current != NULL)
             str = current->line;
 
-		//for(int x=0;x<geo.width;x++) Buffer_print(&main_buf, geo.y + i, geo.x+x, 1, " ", 16, bg);
+        // for(int x=0;x<geo.width;x++) Buffer_print(&main_buf, geo.y + i, geo.x+x, 1, " ", 16, bg);
         Buffer_print(&main_buf, geo.y + i, geo.x, geo.width, str, 16, bg);
 
         // syntax highlighter
@@ -1480,8 +1548,8 @@ void status_bar_draw(Window *w, int hasFocus) {
              "line:%d/%d (%d%%) column:%d cp:U+%04X codepoints:%d width_column:%d "
              "cluster_start:%d cluster_size:%d",
              line, n_lines, pct, str_ite->pos_column, str_ite->first_codepoint,
-             str_ite->first_codepoint, str_ite->width_column,
-             str_ite->cluster_start, str_ite->cluster_size);
+             str_ite->first_codepoint, str_ite->width_column, str_ite->cluster_start,
+             str_ite->cluster_size);
     // LOG_INFO("line %s y:%d, geo.x:%d, geo.width:%d", self->status_str, y, geo.x, geo.width);
     Buffer_print(&main_buf, y, geo.x, geo.width, strdup(self->status_str), fg, bg);
 }

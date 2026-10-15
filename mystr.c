@@ -181,7 +181,7 @@ int wc_len(char *text, int length) {
     unsigned int index;
 
     uwidth_init(&state, uwidth_profile_east_asian);
-    //uwidth_init(&state, uwidth_profile_narrow);
+    // uwidth_init(&state, uwidth_profile_narrow);
     size_t len = strlen(text);
     size_t pos = 0;
     for (index = 0U; index < length; ++index) {
@@ -200,29 +200,28 @@ int wc_len(char *text, int length) {
             if (current == 0x0603)
                 return 2;
         }
-		        /*if (length == 2 && index == 1) {
-            if (prev == 0x20 && current == 0xBBE)
-                return 2;
-            if (prev == 0x20 && current == 0xBBF)
-                return 2;
-            if (prev == 0x20 && current == 0xBC0)
-                return 2;
-            if (prev == 0x20 && current == 0xBC1)
-                return 2;
-            if (prev == 0x20 && current == 0xBC2)
-                return 2;
-            if (prev == 0x20 && current == 0xBC6)
-                return 2;
-            if (prev == 0x20 && current == 0xBC7)
-                return 2;
-            if (prev == 0x20 && current == 0xBC8)
-                return 2;
-            if (prev == 0x20 && current == 0xBCA)
-                return 2;
-            if (prev == 0x20 && current == 0xBCB)
-                return 2;
-				}*/
-
+        /*if (length == 2 && index == 1) {
+if (prev == 0x20 && current == 0xBBE)
+return 2;
+if (prev == 0x20 && current == 0xBBF)
+return 2;
+if (prev == 0x20 && current == 0xBC0)
+return 2;
+if (prev == 0x20 && current == 0xBC1)
+return 2;
+if (prev == 0x20 && current == 0xBC2)
+return 2;
+if (prev == 0x20 && current == 0xBC6)
+return 2;
+if (prev == 0x20 && current == 0xBC7)
+return 2;
+if (prev == 0x20 && current == 0xBC8)
+return 2;
+if (prev == 0x20 && current == 0xBCA)
+return 2;
+if (prev == 0x20 && current == 0xBCB)
+return 2;
+                }*/
 
         if (length == 1) {
             if (current == 9633)
@@ -349,7 +348,7 @@ int MyStr_is_end(MyStr *mystr) {
 
 #include "wcwidth/wcwidth.h"
 int MyStr_next_cluster(MyStr *mystr) {
-  const char *terminal = "iterm2";
+    const char *terminal = "iterm2";
     // input is pos_bytes only
     utf8proc_int32_t state = 0;
     // printf("MyStr_next_cluster\n");
@@ -380,10 +379,11 @@ int MyStr_next_cluster(MyStr *mystr) {
     mystr->width_codepoints += 1;
 ret:
     mystr->pos_cluster += 1;
-    //mystr->width_column = wc_len(mystr->utf8 + mystr->cluster_start, mystr->width_codepoints);
-	mystr->width_column = wcstwidth_u8(mystr->utf8 + mystr->cluster_start, mystr->cluster_size, 1, terminal);
-	if (mystr->utf8[mystr->cluster_start] == '\t' && mystr->cluster_size == 1)
-	  mystr->width_column = tab_width;
+    // mystr->width_column = wc_len(mystr->utf8 + mystr->cluster_start, mystr->width_codepoints);
+    mystr->width_column =
+        wcstwidth_u8(mystr->utf8 + mystr->cluster_start, mystr->cluster_size, 1, terminal);
+    if (mystr->utf8[mystr->cluster_start] == '\t' && mystr->cluster_size == 1)
+        mystr->width_column = tab_width;
     return 1;
 }
 
