@@ -607,9 +607,11 @@ void EditorWindow_reload(EditorWindow *editor_window) {
 }
 
 void EditorWindow_start_selection(EditorWindow *self) {
-    self->selection.y = self->cursor.y;
-    self->selection.x = self->cursor.x;
-    self->selection.ptr = self->cursor.ptr;
+  //self->selection.y = self->cursor.y;
+    //self->selection.x = self->cursor.x;
+    //self->selection.ptr = self->cursor.ptr;
+	//memcpy(&b, &a, sizeof(a));
+  self->selection = self->cursor;
 }
 
 // EditorPointer
@@ -1210,33 +1212,33 @@ void EditorWindow_draw_selection(struct Window *w, EditorPointer p1, EditorPoint
             }
             if (p2.y == top_line + i) { // line with selection
                 // generic case (both markers in same line)
-                int idx1 = min(p1.x, p2.x);
-                int idx2 = max(p1.x, p2.x);
+                int idx1 = min(p1.str_ite.pos_column, p2.str_ite.pos_column);
+                int idx2 = max(p1.str_ite.pos_column, p2.str_ite.pos_column);
                 // if selection marker above
                 if (p2.y < p1.y) {
-                    idx1 = p2.x;
+                    idx1 = p2.str_ite.pos_column;
                     idx2 = geo.width;
                 }
                 // if selection marker below
                 if (p1.y < p2.y) {
                     idx1 = 0;
-                    idx2 = p2.x;
+                    idx2 = p2.str_ite.pos_column;
                 }
                 int diff = idx2 - idx1;
                 Buffer_set_bg(&main_buf, geo.y + i, geo.x + idx1, diff, color);
             }
             if (p1.y == top_line + i) { // line with cursor
                 // generic case (both markers in same line)
-                int idx1 = min(p1.x, p2.x);
-                int idx2 = max(p1.x, p2.x);
+                int idx1 = min(p1.str_ite.pos_column, p2.str_ite.pos_column);
+                int idx2 = max(p1.str_ite.pos_column, p2.str_ite.pos_column);
                 // if cursor above
                 if (p2.y < p1.y) {
                     idx1 = 0;
-                    idx2 = p1.x;
+                    idx2 = p1.str_ite.pos_column;
                 }
                 // if cursor below
                 if (p1.y < p2.y) {
-                    idx1 = p1.x;
+                    idx1 = p1.str_ite.pos_column;
                     idx2 = geo.width;
                 }
                 int diff = idx2 - idx1;
