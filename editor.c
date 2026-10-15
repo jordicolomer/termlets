@@ -270,7 +270,7 @@ void _EditorWindow_copy2(EditorWindow *self) {
 */
 
 void EditorWindow_paste(EditorWindow *self) {
-    Node *current = EditorWindow_get_line_number(self, self->cursor.y);
+    Node *current = self->cursor.node;
     Node *next_line = current->next;
     char *cb = clipboard_paste();
 
@@ -282,13 +282,13 @@ void EditorWindow_paste(EditorWindow *self) {
     }
     set_modified(self, 1);
 
-    // Use cursor_ptr to get the byte position for splitting the line
-    // size_t byte_pos = (uint8_t *)self->cursor_ptr - (uint8_t *)current->line;
+    // Get the byte position for splitting the line
+    size_t byte_pos = self->cursor.str_ite.cluster_start;
 
-    char *tail = strdup(current->line + self->cursor.ptr);
-    current->line[self->cursor.ptr] = '\0';
-    current->length = self->cursor.ptr; // byte length
-    current->width = self->cursor.x;    // display width
+    char *tail = strdup(current->line + byte_pos);
+    current->line[byte_pos] = '\0';
+    current->length = byte_pos; // byte length
+    current->width = self->cursor.str_ite.pos_column;    // display width
 
     char *line = cb;
     int i = 0;
@@ -332,9 +332,18 @@ void EditorWindow_paste(EditorWindow *self) {
     Node_append(current, tail);
     free(tail);
 
-    // Update cursor position to where we were before appending tail
-    self->cursor.x = calculate_width_n(current->line, pos_before_tail);
-    self->cursor.ptr = pos_before_tail;
+    // Update cursor position and iterator
+    self->cursor.node = current;
+    self->cursor.y += i;
+    MyStr_init(&self->cursor.str_ite, current->line);
+
+    // Move iterator to position where we were before appending tail
+    size_t target_pos = pos_before_tail;
+    while (self->cursor.str_ite.cluster_start < target_pos &&
+           self->cursor.str_ite.cluster_start < current->length) {
+        if (!MyStr_next_cluster(&self->cursor.str_ite))
+            break;
+    }
 
     current->next = next_line;
     if (next_line != NULL) {
@@ -343,7 +352,6 @@ void EditorWindow_paste(EditorWindow *self) {
         self->tail = current;
     }
 
-    self->cursor.y += i;
     EditorWindow_update_height(self);
     EditorWindow_make_cursor_visible(self);
 
@@ -756,9 +764,12 @@ void EditorPointer_delete_region(EditorWindow *self, EditorPointer *ep1, EditorP
 	node1->length = j1_ptr;  // byte length
 	Node_append(node1, node2->line + j2_ptr);
 
+	// update line count
+    self->n_lines -= ep2->y - ep1->y;
+
 	// update iterator in case it reallocated
 	ep1->str_ite.utf8 = node1->line;
-
+	
 	// merge pointers
 	*ep2 = *ep1;
 
@@ -773,7 +784,6 @@ void EditorPointer_delete_region(EditorWindow *self, EditorPointer *ep1, EditorP
 	//node1->next = node2;
 	//node2->prev = node1;
 	
-    self->n_lines -= ep2->y - ep1->y;
 	update_lexer_state(node1, 1, self->language);
 }
 
