@@ -693,6 +693,8 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus) {
         int bg = 208;
         if (insert_mode == 1)
             bg = 27;
+        if (hasFocus == 0)
+            bg = 248;
         if (0 <= i && i <= geo.height) {
             Buffer_set_bg(&main_buf, geo.y + i, geo.x + terminal->cursor.x, 1, bg);
         }

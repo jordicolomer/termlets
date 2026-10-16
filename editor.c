@@ -1344,6 +1344,8 @@ void EditorWindow_draw(struct Window *w, int hasFocus) {
     int bg = 208;
     if (insert_mode == 1)
         bg = 27;
+    if (hasFocus == 0)
+        bg = 248;
     i = self->cursor.y + self->win.shift;
     if (0 <= i && i < geo.height)
         Buffer_set_bg(&main_buf, geo.y + i, geo.x + self->cursor.str_ite.pos_column, 1, bg);
