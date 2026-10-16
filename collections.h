@@ -39,7 +39,7 @@ typedef struct {
     UT_hash_handle hh;
 } Entry;
 
-Entry * hashmap_put(char *key, int key_size);
-Entry * hashmap_get(char *key, int key_size);
+Entry *hashmap_put(char *key, int key_size);
+Entry *hashmap_get(char *key, int key_size);
 
 #endif

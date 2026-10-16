@@ -564,12 +564,12 @@ void Buffer_cache(char *s) {
 }
 */
 
-void use_grapheme_dictionary(Cell *cell){
-  Entry * entry = hashmap_get(cell->utf8, cell->size);
-  if (entry == NULL){
-	entry = hashmap_put(cell->utf8, cell->size);
-  }
-  cell->utf8 = entry->key;
+void use_grapheme_dictionary(Cell *cell) {
+    Entry *entry = hashmap_get(cell->utf8, cell->size);
+    if (entry == NULL) {
+        entry = hashmap_put(cell->utf8, cell->size);
+    }
+    cell->utf8 = entry->key;
 }
 
 void Buffer_print_buf(Buffer2 *buf, int y, int x, int width, char *s, int fg, int bg) {
@@ -606,7 +606,7 @@ void Buffer_print_buf(Buffer2 *buf, int y, int x, int width, char *s, int fg, in
                 cell->utf8 = "→";
                 cell->size = strlen(cell->utf8);
                 cell->width = 1;
-				use_grapheme_dictionary(cell);
+                use_grapheme_dictionary(cell);
             }
             // offset += tab_width;
 
@@ -623,7 +623,7 @@ void Buffer_print_buf(Buffer2 *buf, int y, int x, int width, char *s, int fg, in
                     cell->reposition = 1;
                 }
                 // offset += cell->width;
-				use_grapheme_dictionary(cell);
+                use_grapheme_dictionary(cell);
             }
         }
     }

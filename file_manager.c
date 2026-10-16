@@ -136,7 +136,7 @@ void FileExplorer_bg_set_item(Window *item, int bg) {
     }
 }
 
-void FileExplorer_paint_selection_item(FileItemWindow *item) {
+void FileExplorer_paint_selection_item(FileItemWindow *item, int hasFocus) {
     if (item == NULL)
         return;
     int bg = 0;
@@ -150,10 +150,14 @@ void FileExplorer_paint_selection_item(FileItemWindow *item) {
         if (item->is_selected == 0) {
             bg = 255;
         } else {
-            if (insert_mode == 1) {
-                bg = 27;
+            if (hasFocus) {
+                if (insert_mode == 1) {
+                    bg = 27;
+                } else {
+                    bg = 208;
+                }
             } else {
-                bg = 208;
+                bg = 248;
             }
         }
     }
@@ -166,7 +170,7 @@ void FileExplorer_unselect_item(FileItemWindow *item) {
     if (item->is_selected == 0)
         return;
     item->is_selected = 0;
-    FileExplorer_paint_selection_item(item);
+    FileExplorer_paint_selection_item(item, 1);
 }
 
 void FileExplorer_select_item(FileItemWindow *item) {
@@ -175,7 +179,7 @@ void FileExplorer_select_item(FileItemWindow *item) {
     if (item->is_selected == 1)
         return;
     item->is_selected = 1;
-    FileExplorer_paint_selection_item(item);
+    FileExplorer_paint_selection_item(item, 1);
 }
 
 void FileExplorer_toggle_selection_item(ExplorerWindow *self, FileItemWindow *item) {
@@ -184,7 +188,7 @@ void FileExplorer_toggle_selection_item(ExplorerWindow *self, FileItemWindow *it
     item->is_selected = 1 - item->is_selected;
     if (item->is_selected == 1)
         self->selected = item;
-    FileExplorer_paint_selection_item(item);
+    FileExplorer_paint_selection_item(item, 1);
 }
 
 void FileExplorer_unselect_all(ExplorerWindow *self) {
@@ -673,7 +677,7 @@ void ExplorerWindow_search(ExplorerWindow *self, char *query, FileItemWindow *si
             }
             current->is_marked = (p != NULL);
         }
-        FileExplorer_paint_selection_item(current);
+        FileExplorer_paint_selection_item(current, 1);
         current = (FileItemWindow *)current->win.next;
     }
 
@@ -684,7 +688,7 @@ void ExplorerWindow_unmark_all(ExplorerWindow *self) {
     FileItemWindow *current = self->fm->head;
     while (current != NULL) {
         current->is_marked = 0;
-        FileExplorer_paint_selection_item(current);
+        FileExplorer_paint_selection_item(current, 1);
         current = (FileItemWindow *)current->win.next;
     }
 }
@@ -841,7 +845,7 @@ void FileExplorer_shortcut_set_target(ExplorerWindow *self, Window *shortcut, ch
 
 void FileExplorer_draw(Window *w, int hasFocus) {
     ExplorerWindow *self = w;
-    FileExplorer_paint_selection_item(self->selected);
+    FileExplorer_paint_selection_item(self->selected, hasFocus);
     return Window_draw(self, hasFocus);
 }
 

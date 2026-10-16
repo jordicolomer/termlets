@@ -457,9 +457,9 @@ int MyStr_get_grapheme_at_idx(MyStr *mystr, int idx) {
 }
 
 void MyStr_get_last_grapheme(MyStr *self) {
-  while (!MyStr_is_end(self)) {
-	MyStr_next_cluster(self);
-  }
+    while (!MyStr_is_end(self)) {
+        MyStr_next_cluster(self);
+    }
 }
 
 int MyStr_get_grapheme_at_column(MyStr *mystr, int column_number) {

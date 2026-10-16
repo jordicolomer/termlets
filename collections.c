@@ -81,22 +81,22 @@ void ArrayList_reset(ArrayList *self) {
 
 Entry *map;
 
-Entry * hashmap_put(char *key, int key_size) {
+Entry *hashmap_put(char *key, int key_size) {
     Entry *e = malloc(sizeof(*e));
     e->key = malloc(key_size);
     memcpy(e->key, key, key_size);
     e->key_len = key_size;
-	
+
     HASH_ADD_KEYPTR(hh, map, e->key, e->key_len, e);
-	return e;
+    return e;
 }
 
-Entry * hashmap_get(char *key, int key_size) {
+Entry *hashmap_get(char *key, int key_size) {
     Entry *found;
 
     HASH_FIND(hh, map, key, key_size, found);
 
-	return found;
+    return found;
 }
 
 /*
