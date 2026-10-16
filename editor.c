@@ -981,7 +981,7 @@ void EditorWindow_action_indent(EditorWindow *self) {
     int open_bracket = 0;
     int close_bracket = 0;
     int prev_tabs = 0;
-    Node *current_node = EditorWindow_get_line_number(self, self->cursor.y);
+    Node *current_node = self->cursor.node;
     int current_tabs = count_tabs(self, current_node);
     close_bracket = current_node->line[strlen(current_node->line) - 1] == '}';
 
@@ -991,16 +991,23 @@ void EditorWindow_action_indent(EditorWindow *self) {
         open_bracket = prev_node->line[strlen(prev_node->line) - 1] == '{';
     }
 
-    int x = self->cursor.x;
-
     int leading_tabs_or_spaces = count_leading_tabs_or_spaces(self, current_node);
     if (leading_tabs_or_spaces > 0) {
-        self->cursor.x = leading_tabs_or_spaces;
-        self->cursor.ptr = leading_tabs_or_spaces;
-        self->selection.y = self->cursor.y;
-        self->selection.x = 0;
-        self->selection.ptr = 0;
-        EditorWindow_delete_region(self);
+        // Create a pointer at end of leading whitespace
+        EditorPointer end_ptr = self->cursor;
+        MyStr_init(&end_ptr.str_ite, current_node->line);
+        MyStr_next_cluster(&end_ptr.str_ite);
+        MyStr_get_grapheme_at_idx(&end_ptr.str_ite, leading_tabs_or_spaces);
+
+        // Create a pointer at start of line
+        EditorPointer start_ptr = self->cursor;
+        MyStr_init(&start_ptr.str_ite, current_node->line);
+        MyStr_next_cluster(&start_ptr.str_ite);
+
+        EditorPointer_delete_region(self, &end_ptr, &start_ptr);
+
+        // Update cursor to the start position after deletion
+        self->cursor = start_ptr;
     }
 
     if (is_empty(current_node))
@@ -1010,7 +1017,6 @@ void EditorWindow_action_indent(EditorWindow *self) {
     int diff = prev_tabs + open_bracket - close_bracket;
     for (int i = 0; i < diff; i++) {
         EditorWindow_insert(self, '\t');
-        x += tab_width;
     }
 }
 
