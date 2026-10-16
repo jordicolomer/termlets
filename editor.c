@@ -638,7 +638,7 @@ void EditorPointer_up(EditorPointer *ep){
 }
 */
 
-// EditorPointer
+// begin EditorPointer
 // this should enclose the underlying data structure. every editor operation should be done through this class
 
 
@@ -662,6 +662,14 @@ void EditorPointer_vertical_move(EditorPointer *ep, int is_up, int count, int ke
         MyStr_get_grapheme_at_column(&ep->str_ite, pos_column);
 }
 
+int EditorPointer_is_beginning(EditorPointer * cursor){
+  return cursor->node->prev == NULL && cursor->str_ite.pos_cluster <= 0;
+}
+
+int EditorPointer_is_end(EditorPointer * cursor){
+  return cursor->node->next == NULL && MyStr_is_end(&cursor->str_ite);
+}
+
 void EditorPointer_right(EditorPointer * cursor){
     if (MyStr_is_end(&cursor->str_ite)) { // if end of line
         EditorPointer_vertical_move(cursor, 0, 1, 0);
@@ -679,6 +687,67 @@ void EditorPointer_left(EditorPointer * cursor){
         MyStr_prev_cluster(&cursor->str_ite);
     }
 }
+
+int all_different(char * str, int size, char * query){
+  char * q = query;
+  while(*q != NULL){
+	if(size == 1 && str[0] == *q) return 0;
+	q++;
+  }
+  return 1;
+}
+
+int any_same(char * str, int size, char * query){
+  char * q = query;
+  while(*q != NULL){
+	if(size == 1 && str[0] == *q) return 1;
+	q++;
+  }
+  return 0;
+}
+
+void EditorPointer_next_char(EditorPointer * cursor, char * query){
+  int state = 0;
+  while(!EditorPointer_is_end(cursor)){
+	EditorPointer_right(cursor);
+
+	char * str = cursor->str_ite.utf8 + cursor->str_ite.cluster_start;
+	int size = size;
+
+	if (state == 0){
+	  if (all_different(str, size, query)) {
+		state = 1;
+	  }
+	}
+	else if (state == 1){
+	  if (any_same(str, size, query)) {
+		return;
+	  }
+	}
+  }
+}
+
+void EditorPointer_prev_char(EditorPointer * cursor, char * query){
+  int state = 0;
+  while(!EditorPointer_is_beginning(cursor)){
+	EditorPointer_left(cursor);
+
+	char * str = cursor->str_ite.utf8 + cursor->str_ite.cluster_start;
+	int size = size;
+
+	if (state == 0){
+	  if (all_different(str, size, query)) {
+		state = 1;
+	  }
+	}
+	else if (state == 1){
+	  if (any_same(str, size, query)) {
+		return;
+	  }
+	}
+  }
+}
+
 
 int EditorPointer_cmp(EditorPointer *ep1, EditorPointer *ep2) {
     if (ep1->y < ep2->y)
@@ -768,7 +837,6 @@ char *EditorPointer_copy_region_to_memory(EditorPointer *ep1, EditorPointer *ep2
 }
 
 void EditorPointer_delete_region(EditorWindow *self, EditorPointer *ep1, EditorPointer *ep2) {
-	LOG_INFO("EditorPointer_delete_region1");
     int cmp = EditorPointer_cmp(ep1, ep2);
     if (cmp == 0)
         return;
@@ -786,12 +854,10 @@ void EditorPointer_delete_region(EditorWindow *self, EditorPointer *ep1, EditorP
 
 	int j1_ptr = ep1->str_ite.cluster_start;  // byte position, not cluster number
 	int j2_ptr = ep2->str_ite.cluster_start;  // byte position, not cluster number
-	LOG_INFO("EditorPointer_delete_region2");
 
 	if (node1 == node2) {
 		// Same line deletion - use memmove to handle overlapping memory
 		size_t bytes_to_delete = j2_ptr - j1_ptr;
-		LOG_INFO("bytes_to_delete %d", bytes_to_delete);
 
 		size_t remaining_bytes = node1->length - j2_ptr;
 
@@ -834,6 +900,10 @@ void EditorPointer_delete_region(EditorWindow *self, EditorPointer *ep1, EditorP
 
 	update_lexer_state(node1, 1, self->language);
 }
+// end EditorPointer
+
+
+
 
 // EditorWindow
 /*void EditorWindow_page_up(EditorWindow *self) {
@@ -963,7 +1033,17 @@ void EditorWindow_shift_right(EditorWindow *self) { _EditorWindow_right(self); }
 
 void EditorWindow_shift_left(EditorWindow *self) { _EditorWindow_left(self); }
 
+char * next_word_chars = " \t{}()";
+
 void EditorWindow_next_word(EditorWindow *self) {
+  EditorPointer_next_char(&self->cursor, next_word_chars);
+}
+
+void EditorWindow_prev_word(EditorWindow *self) {
+  EditorPointer_prev_char(&self->cursor, next_word_chars);
+}
+
+/*void EditorWindow_next_word(EditorWindow *self) {
     int state = 0;
     while (1) {
         Node *node = EditorWindow_get_line_number(self, self->cursor.y);
@@ -994,7 +1074,7 @@ void EditorWindow_next_word(EditorWindow *self) {
         }
     }
     EditorWindow_make_cursor_visible(self);
-}
+	}
 
 void EditorWindow_prev_word(EditorWindow *self) {
     int state = 0;
@@ -1028,7 +1108,7 @@ void EditorWindow_prev_word(EditorWindow *self) {
         }
     }
     EditorWindow_make_cursor_visible(self);
-}
+}*/
 
 void EditorWindow_backspace(EditorWindow *self) {
     set_modified(self, 1);
@@ -1039,15 +1119,22 @@ void EditorWindow_backspace(EditorWindow *self) {
 }
 
 void EditorWindow_delete_word(EditorWindow *self) {
-    EditorWindow_start_selection(self);
-    EditorWindow_prev_word(self);
-    EditorWindow_delete_region(self);
+    set_modified(self, 1);
+	EditorPointer pointer;
+	pointer = self->cursor;
+	EditorPointer_prev_char(&pointer, next_word_chars);
+	EditorPointer_delete_region(self, &self->cursor, &pointer);  
 }
 
 void EditorWindow_delete(EditorWindow *self) {
-    EditorWindow_right(self);
+  /*EditorWindow_right(self);
     EditorWindow_backspace(self);
-    self->selection.y = -1;
+    self->selection.y = -1;*/
+    set_modified(self, 1);
+	EditorPointer pointer;
+	pointer = self->cursor;
+	EditorPointer_right(&pointer);
+	EditorPointer_delete_region(self, &self->cursor, &pointer);
 }
 
 void EditorWindow_send_sequence(Window *win, const char *seq, int len) {
