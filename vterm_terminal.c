@@ -980,7 +980,7 @@ void vterm_send_key(struct Window *wg, char c) {
             make_cursor_visible(terminal);
             return;
         }
-        if (action == ACTION_PAGE_UP) {
+        if (action == ACTION_PAGE_DOWN) {
             if (terminal->cursor.y == -1)
                 return;
             terminal->cursor.y += terminal->win.calculated.height;
@@ -990,7 +990,7 @@ void vterm_send_key(struct Window *wg, char c) {
             make_cursor_visible(terminal);
             return;
         }
-        if (action == ACTION_PAGE_DOWN) {
+        if (action == ACTION_PAGE_UP) {
             if (terminal->cursor.y < 0)
                 terminal->cursor.y = terminal->scrollback.count;
             else {
@@ -1042,7 +1042,7 @@ void vterm_send_key(struct Window *wg, char c) {
             write(terminal->master, cb, strlen(cb));
             return;
         }
-        if (action == ACTION_FIRST_LINE) {
+        if (action == ACTION_LAST_LINE) {
             terminal->cursor.x = terminal->term_cursor.x;
             terminal->cursor.y = terminal->term_cursor.y;
             if (VTermTerminal_cursors_same_y(terminal))
@@ -1050,7 +1050,7 @@ void vterm_send_key(struct Window *wg, char c) {
             make_cursor_visible(terminal);
             return;
         }
-        if (action == ACTION_LAST_LINE) {
+        if (action == ACTION_FIRST_LINE) {
             terminal->cursor.y = 0;
             if (VTermTerminal_cursors_same_y(terminal))
                 terminal->cursor.y = -1;

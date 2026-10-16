@@ -771,7 +771,7 @@ void FileExplorer_send_key(Window *win, char c) {
         FileExplorer_up(self);
         return;
     }
-    if (action == ACTION_PAGE_UP) {
+    if (action == ACTION_PAGE_DOWN) {
         if (self->selected != NULL) {
             Window *selected = &self->selected->win;
             for (int i = 0; i < win->calculated.height && selected->next; i++)
@@ -780,7 +780,7 @@ void FileExplorer_send_key(Window *win, char c) {
         }
         return;
     }
-    if (action == ACTION_PAGE_DOWN) {
+    if (action == ACTION_PAGE_UP) {
         if (self->selected != NULL) {
             Window *selected = &self->selected->win;
             for (int i = 0; i < win->calculated.height && selected->prev; i++)
@@ -789,11 +789,11 @@ void FileExplorer_send_key(Window *win, char c) {
         }
         return;
     }
-    if (action == ACTION_FIRST_LINE) {
+    if (action == ACTION_LAST_LINE) {
         FileExplorer_select_single_item(self, self->fm->tail);
         return;
     }
-    if (action == ACTION_LAST_LINE) {
+    if (action == ACTION_FIRST_LINE) {
         FileExplorer_select_single_item(self, self->fm->head);
         return;
     }
