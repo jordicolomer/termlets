@@ -30,7 +30,16 @@ char *ArrayListIteratorElement(ArrayList *self, ArrayListIterator *ite);
 void ArrayList_append(ArrayList *self, char *data);
 void ArrayList_reset(ArrayList *self);
 
-void hashmap_put(char *key, int key_size, int value);
-int hashmap_get(char *key, int key_size);
+#include "uthash/uthash.h"
+
+typedef struct {
+    char *key;
+    size_t key_len;
+
+    UT_hash_handle hh;
+} Entry;
+
+Entry * hashmap_put(char *key, int key_size);
+Entry * hashmap_get(char *key, int key_size);
 
 #endif

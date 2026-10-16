@@ -79,18 +79,27 @@ void ArrayList_reset(ArrayList *self) {
 
 // hashmap
 
-#include "uthash/uthash.h"
-
-typedef struct {
-    char *key;
-    size_t key_len;
-    int value;
-
-    UT_hash_handle hh;
-} Entry;
-
 Entry *map;
 
+Entry * hashmap_put(char *key, int key_size) {
+    Entry *e = malloc(sizeof(*e));
+    e->key = malloc(key_size);
+    memcpy(e->key, key, key_size);
+    e->key_len = key_size;
+	
+    HASH_ADD_KEYPTR(hh, map, e->key, e->key_len, e);
+	return e;
+}
+
+Entry * hashmap_get(char *key, int key_size) {
+    Entry *found;
+
+    HASH_FIND(hh, map, key, key_size, found);
+
+	return found;
+}
+
+/*
 void hashmap_put(char *key, int key_size, int value) {
     Entry *e = malloc(sizeof(*e));
     e->key = malloc(key_size);
@@ -117,3 +126,4 @@ int hashmap_get(char *key, int key_size) {
     // free(e->key);
     // free(e);
 }
+*/

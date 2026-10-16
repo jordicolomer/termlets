@@ -493,6 +493,7 @@ int get_idx_pos(char *s, int i) {
     return acc;
 }
 
+/*
 int has_missing_width(int max_width, char *s) {
     MyStr mystr;
     MyStr_init(&mystr, s);
@@ -547,7 +548,6 @@ void Buffer_print_and_cache(int y, int x, int max_width, char *s, int fg, int bg
             break;
     }
 }
-
 void Buffer_print3_update(int y, int x, int width, char *s, int fg, int bg) {}
 
 #include "wcwidth/wcwidth.h"
@@ -561,6 +561,15 @@ void Buffer_cache(char *s) {
         int corrected = wcstwidth_u8(data, len, 1, terminal);
         hashmap_put(data, len, corrected);
     }
+}
+*/
+
+void use_grapheme_dictionary(Cell *cell){
+  Entry * entry = hashmap_get(cell->utf8, cell->size);
+  if (entry == NULL){
+	entry = hashmap_put(cell->utf8, cell->size);
+  }
+  cell->utf8 = entry->key;
 }
 
 void Buffer_print_buf(Buffer2 *buf, int y, int x, int width, char *s, int fg, int bg) {
@@ -597,6 +606,7 @@ void Buffer_print_buf(Buffer2 *buf, int y, int x, int width, char *s, int fg, in
                 cell->utf8 = "→";
                 cell->size = strlen(cell->utf8);
                 cell->width = 1;
+				use_grapheme_dictionary(cell);
             }
             // offset += tab_width;
 
@@ -613,6 +623,7 @@ void Buffer_print_buf(Buffer2 *buf, int y, int x, int width, char *s, int fg, in
                     cell->reposition = 1;
                 }
                 // offset += cell->width;
+				use_grapheme_dictionary(cell);
             }
         }
     }
@@ -702,7 +713,6 @@ int buf0_Cell_equals(Cell *cell1, Cell *cell2) {
 }
 
 void Buffer_print_to_screen(Buffer *buf) {
-    // clear_screen();
     int cursor_movement_count = 0;
     int color_count = 0;
 
