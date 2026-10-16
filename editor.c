@@ -109,6 +109,7 @@ void update_lexer_state(Node *current, int fast, int language) {
     }
 }
 
+/*
 void EditorWindow_insert(EditorWindow *self, char c) {
     set_modified(self, 1);
     Node *node = EditorWindow_get_line_number(self, self->cursor.y);
@@ -134,6 +135,7 @@ void EditorWindow_insert(EditorWindow *self, char c) {
     EditorWindow_make_cursor_visible(self);
     update_lexer_state(node, 1, self->language);
 }
+*/
 
 void Node_append(Node *node, char *text) {
     if (!node || !text || *text == '\0')
@@ -272,26 +274,16 @@ void _EditorWindow_copy2(EditorWindow *self) {
 }
 */
 
-void EditorWindow_paste(EditorWindow *self) {
-    Node *current = self->cursor.node;
+void EditorPointer_insert(EditorWindow *self, EditorPointer *cursor, char *cb) {
+    Node *current = cursor->node;
     Node *next_line = current->next;
-    char *cb = clipboard_paste();
-
-    // Check if clipboard is empty
-    if (cb == NULL || *cb == '\0') {
-        if (cb)
-            free(cb);
-        return;
-    }
-    set_modified(self, 1);
-
     // Get the byte position for splitting the line
-    size_t byte_pos = self->cursor.str_ite.cluster_start;
+    size_t byte_pos = cursor->str_ite.cluster_start;
 
     char *tail = strdup(current->line + byte_pos);
     current->line[byte_pos] = '\0';
     current->length = byte_pos; // byte length
-    current->width = self->cursor.str_ite.pos_column;    // display width
+    current->width = cursor->str_ite.pos_column;    // display width
 
     char *line = cb;
     int i = 0;
@@ -336,15 +328,15 @@ void EditorWindow_paste(EditorWindow *self) {
     free(tail);
 
     // Update cursor position and iterator
-    self->cursor.node = current;
-    self->cursor.y += i;
-    MyStr_init(&self->cursor.str_ite, current->line);
+    cursor->node = current;
+    cursor->y += i;
+    MyStr_init(&cursor->str_ite, current->line);
 
     // Move iterator to position where we were before appending tail
     size_t target_pos = pos_before_tail;
     while (self->cursor.str_ite.cluster_start < target_pos &&
            self->cursor.str_ite.cluster_start < current->length) {
-        if (!MyStr_next_cluster(&self->cursor.str_ite))
+        if (!MyStr_next_cluster(&cursor->str_ite))
             break;
     }
 
@@ -354,13 +346,29 @@ void EditorWindow_paste(EditorWindow *self) {
     } else {
         self->tail = current;
     }
+	
+    update_lexer_state(current, 1, self->language);
+}
+
+void EditorWindow_paste(EditorWindow *self) {
+    char *cb = clipboard_paste();
+
+	EditorPointer_insert(self, &self->cursor, cb);
+
+    // Check if clipboard is empty
+    if (cb == NULL || *cb == '\0') {
+        if (cb)
+            free(cb);
+        return;
+    }
+    set_modified(self, 1);
+
 
     EditorWindow_update_height(self);
     EditorWindow_make_cursor_visible(self);
 
     free(cb);
 
-    update_lexer_state(current, 1, self->language);
 }
 
 void EditorWindow_delete_region(EditorWindow *self) {
@@ -915,6 +923,14 @@ void EditorPointer_delete_region(EditorWindow *self, EditorPointer *ep1, EditorP
 void EditorWindow_page_down(EditorWindow *self) {
 }*/
 
+void EditorWindow_insert(EditorWindow *self, char c) {
+    set_modified(self, 1);
+	char buf[2];
+	buf[0] = c;
+	buf[1] = 0;	
+	EditorPointer_insert(self, &self->cursor, buf);
+}
+
 void _EditorWindow_copy(EditorWindow *self) {
     char *buffer = EditorPointer_copy_region_to_memory(&self->cursor, &self->selection);
     if (buffer != NULL) {
@@ -1042,73 +1058,6 @@ void EditorWindow_next_word(EditorWindow *self) {
 void EditorWindow_prev_word(EditorWindow *self) {
   EditorPointer_prev_char(&self->cursor, next_word_chars);
 }
-
-/*void EditorWindow_next_word(EditorWindow *self) {
-    int state = 0;
-    while (1) {
-        Node *node = EditorWindow_get_line_number(self, self->cursor.y);
-        if (node->line[self->cursor.ptr] != 0) {
-            uint32_t cp = utf8_decode2(node->line, &self->cursor.ptr);
-            int w = cp_width(cp);
-            self->cursor.x += w;
-            if (state == 0) {
-                if (cp != ' ' && cp != '\t' && cp != '{' && cp != '}' && cp != '(' && cp != ')')
-                    state = 1;
-            } else if (state == 1) {
-                if (cp == ' ' || cp == '\t' || cp == '{' || cp == '}' || cp == '(' || cp == ')') {
-                    _EditorWindow_left(self);
-                    EditorWindow_make_cursor_visible(self);
-                    return;
-                }
-            }
-        } else {
-            if (self->cursor.y < self->n_lines - 1) {
-                self->cursor.y += 1;
-                self->cursor.x = 0;
-                Node *node = EditorWindow_get_line_number(self, self->cursor.y);
-                self->cursor.ptr = 0;
-            } else {
-                EditorWindow_make_cursor_visible(self);
-                return;
-            }
-        }
-    }
-    EditorWindow_make_cursor_visible(self);
-	}
-
-void EditorWindow_prev_word(EditorWindow *self) {
-    int state = 0;
-    while (1) {
-        if (self->cursor.x == 0) {
-            if (self->cursor.y > 0) {
-                self->cursor.y -= 1;
-                Node *node = EditorWindow_get_line_number(self, self->cursor.y);
-                self->cursor.x = node->width;
-                self->cursor.ptr = node->length;
-            } else {
-                EditorWindow_make_cursor_visible(self);
-                return;
-            }
-        } else {
-            Node *node = EditorWindow_get_line_number(self, self->cursor.y);
-            uint32_t cp = utf8_decode_left2(node->line, &self->cursor.ptr);
-            int w = cp_width(cp);
-            self->cursor.x -= w;
-
-            if (state == 0) {
-                if (cp != ' ' && cp != '\t' && cp != '{' && cp != '}' && cp != '(' && cp != ')')
-                    state = 1;
-            } else if (state == 1) {
-                if (cp == ' ' || cp == '\t' || cp == '{' || cp == '}' || cp == '(' || cp == ')') {
-                    _EditorWindow_right(self);
-                    EditorWindow_make_cursor_visible(self);
-                    return;
-                }
-            }
-        }
-    }
-    EditorWindow_make_cursor_visible(self);
-}*/
 
 void EditorWindow_backspace(EditorWindow *self) {
     set_modified(self, 1);
@@ -1348,8 +1297,8 @@ void EditorWindow_send_key(Window *win, char c) {
     EditorWindow *self = win;
     Action action = get_action(c, WT_EDITOR);
 
-    if (action == ACTION_SEARCH) {
-        EditorWindow_action_search(self);
+    if (action == ACTION_SEARCH) {//todo
+        EditorWindow_action_search(self); 
         return;
     }
 
@@ -1363,7 +1312,7 @@ void EditorWindow_send_key(Window *win, char c) {
         return;
     }
 
-    if (action == ACTION_INDENT) {
+    if (action == ACTION_INDENT) {//todo
         EditorWindow_action_indent(self);
         return;
     }
@@ -1372,7 +1321,7 @@ void EditorWindow_send_key(Window *win, char c) {
         self->selection.y = -1;
         return;
     }
-    if (action == ACTION_ENTER) {
+    if (action == ACTION_ENTER) {//todo
         EditorWindow_newline(self);
         return;
     }
