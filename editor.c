@@ -437,46 +437,6 @@ void EditorWindow_save(EditorWindow *self) {
     set_modified(self, 0);
 }
 
-void EditorWindow_newline(EditorWindow *self) {
-    set_modified(self, 1);
-    Node *node = EditorWindow_get_line_number(self, self->cursor.y);
-    Node *next = node->next;
-
-    Node *new_node = malloc(sizeof(Node));
-    if (!new_node) {
-        perror("malloc failed");
-        return;
-    }
-    node->next = new_node;
-
-    // Use cursor_ptr (byte position) instead of cursor_x (display width)
-    new_node->line = strdup(node->line + self->cursor.ptr);
-    new_node->length = strlen(new_node->line);
-    new_node->width = calculate_width(new_node->line);
-    new_node->capacity = new_node->length + 1;
-    new_node->next = next;
-    new_node->prev = node;
-    new_node->lexerState = 0;
-
-    if (next == NULL)
-        self->tail = new_node;
-    else
-        next->prev = new_node;
-
-    // Truncate current line at cursor position
-    node->line[self->cursor.ptr] = '\0';
-    node->length = self->cursor.ptr; // byte length, not display width
-    node->width = self->cursor.x;    // display width
-
-    self->n_lines++;
-    EditorWindow_update_height(self);
-    self->cursor.y++;
-    EditorWindow_make_cursor_visible(self);
-    self->cursor.x = 0;
-    self->cursor.ptr = 0; // Point to start of new line
-    self->selection.y = -1;
-}
-
 void EditorWindow_fix_cursor_x(EditorWindow *self) {
     Node *node = EditorWindow_get_line_number(self, self->cursor.y);
     if (node == NULL)
@@ -931,6 +891,10 @@ void EditorWindow_insert(EditorWindow *self, char c) {
 	EditorPointer_insert(self, &self->cursor, buf);
 }
 
+void EditorWindow_newline(EditorWindow *self) {
+  EditorWindow_insert(self, '\n');
+}
+
 void _EditorWindow_copy(EditorWindow *self) {
     char *buffer = EditorPointer_copy_region_to_memory(&self->cursor, &self->selection);
     if (buffer != NULL) {
@@ -1321,7 +1285,7 @@ void EditorWindow_send_key(Window *win, char c) {
         self->selection.y = -1;
         return;
     }
-    if (action == ACTION_ENTER) {//todo
+    if (action == ACTION_ENTER) {
         EditorWindow_newline(self);
         return;
     }
