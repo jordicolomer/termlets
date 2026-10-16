@@ -448,6 +448,14 @@ int MyStr_get_grapheme_at_index(MyStr *mystr, int cluster_id) {
     return 1;
 }
 
+int MyStr_get_grapheme_at_idx(MyStr *mystr, int idx) {
+    while (mystr->cluster_start < idx) {
+        if (!MyStr_next_cluster(mystr))
+            return 0;
+    }
+    return 1;
+}
+
 void MyStr_get_last_grapheme(MyStr *self) {
   while (!MyStr_is_end(self)) {
 	MyStr_next_cluster(self);

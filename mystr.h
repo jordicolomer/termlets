@@ -31,6 +31,7 @@ int MyStr_prev_codepoint(MyStr *mystr);
 int MyStr_next_cluster(MyStr *mystr);
 int MyStr_prev_cluster(MyStr *mystr);
 int MyStr_get_grapheme_at_index(MyStr *mystr, int cluster_id);
+int MyStr_get_grapheme_at_idx(MyStr *mystr, int idx);
 int MyStr_get_grapheme_at_column(MyStr *mystr, int column_number);
 void MyStr_get_last_grapheme(MyStr *self);
 int wc_len(char *text, int length);

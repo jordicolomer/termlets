@@ -109,33 +109,6 @@ void update_lexer_state(Node *current, int fast, int language) {
     }
 }
 
-/*
-void EditorWindow_insert(EditorWindow *self, char c) {
-    set_modified(self, 1);
-    Node *node = EditorWindow_get_line_number(self, self->cursor.y);
-
-    if (node->capacity <= node->length + 1) {
-        double_capacity(node);
-    }
-
-    insert_char(node->line, self->cursor.ptr, c, node->length, node->capacity);
-    node->length++; // Increment byte length
-
-    int w = 1;
-    if (c == '\t') {
-        w = tab_width;
-    }
-    self->cursor.x += w;
-    node->width += w;
-
-    // Update cursor_ptr to point after the inserted character
-    self->cursor.ptr += 1;
-
-    // update_lexer_state(self->head);
-    EditorWindow_make_cursor_visible(self);
-    update_lexer_state(node, 1, self->language);
-}
-*/
 
 void Node_append(Node *node, char *text) {
     if (!node || !text || *text == '\0')
@@ -166,210 +139,6 @@ void Node_append(Node *node, char *text) {
     node->line[node->length] = '\0';
 }
 
-/*
-void EditorWindow_backspace(EditorWindow *self) {
-    set_modified(self, 1);
-    // delete a character
-    if (self->cursor.x == 0) {
-        if (self->cursor.y != 0) { // join two lines
-            Node *node = EditorWindow_get_line_number(self, self->cursor.y);
-            Node *next = node->next;
-            Node *prev = node->prev;
-            self->cursor.x = prev->width; // Use width (display), not length (bytes)
-            int prev_length = prev->length;
-            Node_append(prev, node->line);
-            self->cursor.ptr = prev_length;
-            self->cursor.y--;
-            self->n_lines--;
-            EditorWindow_update_height(self);
-            prev->next = next;
-            if (next == NULL)
-                self->tail = next;
-            else
-                next->prev = prev;
-            update_lexer_state(node, 1, self->language);
-        }
-        return;
-    } else { // delete previous char
-        Node *node = EditorWindow_get_line_number(self, self->cursor.y);
-        int size = node->length - self->cursor.ptr + 1;
-        int before = self->cursor.ptr;
-        uint32_t cp = utf8_decode_left2(node->line, &self->cursor.ptr);
-        int diff = before - self->cursor.ptr;
-        int w = cp_width(cp);
-        memmove(node->line + self->cursor.ptr, node->line + before, size);
-        node->length -= diff;
-        node->width -= w;
-        self->cursor.x -= w;
-        update_lexer_state(node, 1, self->language);
-    }
-    // update_lexer_state(self->head);
-}
-*/
-
-
-/*
-void _EditorWindow_copy2(EditorWindow *self) {
-    if (self->selection.y == -1)
-        return;
-    // get range
-    int i1 = self->cursor.y;
-    // int j1 = self->cursor_x;
-    int j1 = self->cursor.ptr;
-    int i2 = self->selection.y;
-    // int j2 = self->selection_x;
-    int j2 = self->selection.ptr;
-    if (self->selection.y < self->cursor.y ||
-        (self->selection.y == self->cursor.y && self->selection.x < self->cursor.x)) {
-        i1 = self->selection.y;
-        j1 = self->selection.ptr;
-        i2 = self->cursor.y;
-        j2 = self->cursor.ptr;
-    }
-
-    // calculate size
-    int size = 1;
-    Node *first_line = EditorWindow_get_line_number(self, i1);
-    Node *node = first_line;
-    for (int i = 0; i < i2 - i1 + 1; i++) {
-        size += node->length + 1;
-        node = node->next;
-    }
-
-    // create buffer and copy data
-    char *buffer = malloc(size);
-    char *buffer_cursor = buffer;
-    node = first_line;
-    for (int i = 0; i < i2 - i1 + 1; i++) {
-        if (i == 0) {           // first item
-            if (i == i2 - i1) { // first and last item
-                // Copy from j1 to j2 (both on same line)
-                memcpy(buffer_cursor, node->line + j1, j2 - j1);
-                buffer_cursor += j2 - j1;
-            } else { // first item only
-                // Copy from j1 to end of line
-                size_t len = node->length - (j1);
-                memcpy(buffer_cursor, node->line + j1, len);
-                buffer_cursor += len;
-                *buffer_cursor = '\n';
-                buffer_cursor++;
-            }
-        } else if (i == i2 - i1) { // last item
-            // Copy from start of line to j2
-            size_t len = j2;
-            memcpy(buffer_cursor, node->line, len);
-            buffer_cursor += len;
-        } else { // rest
-            memcpy(buffer_cursor, node->line, node->length);
-            buffer_cursor += node->length;
-            *buffer_cursor = '\n';
-            buffer_cursor++;
-        }
-        node = node->next;
-    }
-    *buffer_cursor = '\0';
-
-    clipboard_copy(buffer);
-    free(buffer);
-}
-*/
-
-void EditorPointer_insert(EditorWindow *self, EditorPointer *cursor, char *cb) {
-    Node *current = cursor->node;
-    Node *next_line = current->next;
-    // Get the byte position for splitting the line
-    size_t byte_pos = cursor->str_ite.cluster_start;
-
-    char *tail = strdup(current->line + byte_pos);
-    current->line[byte_pos] = '\0';
-    current->length = byte_pos; // byte length
-    current->width = cursor->str_ite.pos_column;    // display width
-
-    char *line = cb;
-    int i = 0;
-    while (line != NULL /* && *line != '\0'*/) {
-        char *end = strchr(line, '\n');
-
-        if (end != NULL) {
-            *end = '\0'; // temporarily terminate this line
-        }
-
-        if (i == 0) { // first line
-            Node_append(current, line);
-        } else {
-            Node *new_node = malloc(sizeof(Node));
-            new_node->line = strdup(line);
-            new_node->length = strlen(line);
-            new_node->width = calculate_width(line);
-            new_node->capacity = new_node->length + 1;
-            new_node->lexerState = 0;
-            new_node->next = NULL; // Initialize to NULL to prevent garbage pointer
-            current->next = new_node;
-            new_node->prev = current;
-            current = new_node;
-            self->n_lines++;
-        }
-        if (end != NULL) {
-            *end = '\n';
-        }
-
-        if (end == NULL || *line == '\0') {
-            break;
-        }
-
-        line = end + 1;
-        i += 1;
-    }
-
-    // Save byte length before appending tail
-    size_t pos_before_tail = current->length;
-
-    Node_append(current, tail);
-    free(tail);
-
-    // Update cursor position and iterator
-    cursor->node = current;
-    cursor->y += i;
-    MyStr_init(&cursor->str_ite, current->line);
-
-    // Move iterator to position where we were before appending tail
-    size_t target_pos = pos_before_tail;
-    while (self->cursor.str_ite.cluster_start < target_pos &&
-           self->cursor.str_ite.cluster_start < current->length) {
-        if (!MyStr_next_cluster(&cursor->str_ite))
-            break;
-    }
-
-    current->next = next_line;
-    if (next_line != NULL) {
-        next_line->prev = current;
-    } else {
-        self->tail = current;
-    }
-	
-    update_lexer_state(current, 1, self->language);
-}
-
-void EditorWindow_paste(EditorWindow *self) {
-    char *cb = clipboard_paste();
-
-	EditorPointer_insert(self, &self->cursor, cb);
-
-    // Check if clipboard is empty
-    if (cb == NULL || *cb == '\0') {
-        if (cb)
-            free(cb);
-        return;
-    }
-    set_modified(self, 1);
-
-
-    EditorWindow_update_height(self);
-    EditorWindow_make_cursor_visible(self);
-
-    free(cb);
-
-}
 
 void EditorWindow_delete_region(EditorWindow *self) {
     if (self->selection.y == -1)
@@ -585,30 +354,103 @@ void EditorWindow_start_selection(EditorWindow *self) {
     self->selection = self->cursor;
 }
 
-
-/*
-void EditorPointer_down(EditorPointer *ep){
-  if (ep->node->next){
-        ep->node = ep->node->next;
-        MyStr_init(&ep->str_ite, ep->node->line);
-        MyStr_next_cluster(&ep->str_ite);
-        ep->y += 1;
+int all_different(char * str, int size, char * query){
+  char * q = query;
+  while(*q != NULL){
+	if(size == 1 && str[0] == *q) return 0;
+	q++;
   }
+  return 1;
 }
 
-void EditorPointer_up(EditorPointer *ep){
-  if (ep->node->prev){
-        ep->node = ep->node->prev;
-        MyStr_init(&ep->str_ite, ep->node->line);
-        MyStr_next_cluster(&ep->str_ite);
-        ep->y -= 1;
+int any_same(char * str, int size, char * query){
+  char * q = query;
+  while(*q != NULL){
+	if(size == 1 && str[0] == *q) return 1;
+	q++;
   }
+  return 0;
 }
-*/
+
 
 // begin EditorPointer
 // this should enclose the underlying data structure. every editor operation should be done through this class
 
+void EditorPointer_insert(EditorWindow *self, EditorPointer *cursor, char *cb) {
+    Node *current = cursor->node;
+    Node *next_line = current->next;
+    // Get the byte position for splitting the line
+    size_t byte_pos = cursor->str_ite.cluster_start;
+
+    char *tail = strdup(current->line + byte_pos);
+    current->line[byte_pos] = '\0';
+    current->length = byte_pos; // byte length
+    current->width = cursor->str_ite.pos_column;    // display width
+
+    char *line = cb;
+    int i = 0;
+    while (line != NULL /* && *line != '\0'*/) {
+        char *end = strchr(line, '\n');
+
+        if (end != NULL) {
+            *end = '\0'; // temporarily terminate this line
+        }
+
+        if (i == 0) { // first line
+            Node_append(current, line);
+        } else {
+            Node *new_node = malloc(sizeof(Node));
+            new_node->line = strdup(line);
+            new_node->length = strlen(line);
+            new_node->width = calculate_width(line);
+            new_node->capacity = new_node->length + 1;
+            new_node->lexerState = 0;
+            new_node->next = NULL; // Initialize to NULL to prevent garbage pointer
+            current->next = new_node;
+            new_node->prev = current;
+            current = new_node;
+            self->n_lines++;
+        }
+        if (end != NULL) {
+            *end = '\n';
+        }
+
+        if (end == NULL || *line == '\0') {
+            break;
+        }
+
+        line = end + 1;
+        i += 1;
+    }
+
+    // Save byte length before appending tail
+    size_t pos_before_tail = current->length;
+
+    Node_append(current, tail);
+    free(tail);
+
+    // Update cursor position and iterator
+    cursor->node = current;
+    cursor->y += i;
+    MyStr_init(&cursor->str_ite, current->line);
+
+    // Move iterator to position where we were before appending tail
+    size_t target_pos = pos_before_tail;
+    while (self->cursor.str_ite.cluster_start < target_pos &&
+           self->cursor.str_ite.cluster_start < current->length) {
+        if (!MyStr_next_cluster(&cursor->str_ite))
+            break;
+    }
+
+    current->next = next_line;
+    if (next_line != NULL) {
+        next_line->prev = current;
+    } else {
+        self->tail = current;
+    }
+	
+    update_lexer_state(current, 1, self->language);
+}
 
 void EditorPointer_vertical_move(EditorPointer *ep, int is_up, int count, int keep_horizontal) {
     int pos_column = ep->str_ite.pos_column;
@@ -656,20 +498,24 @@ void EditorPointer_left(EditorPointer * cursor){
     }
 }
 
-int all_different(char * str, int size, char * query){
-  char * q = query;
-  while(*q != NULL){
-	if(size == 1 && str[0] == *q) return 0;
-	q++;
-  }
-  return 1;
-}
-
-int any_same(char * str, int size, char * query){
-  char * q = query;
-  while(*q != NULL){
-	if(size == 1 && str[0] == *q) return 1;
-	q++;
+int EditorPointer_search(EditorPointer * cursor, char * query){
+  Node * node = cursor->node;
+  while (node != NULL){
+	char * str = node->line;
+	int start = 0;
+	if (node == cursor->node){
+	  start = cursor->str_ite.cluster_start;
+	}
+	char *found = strstr(str+start, query);
+	if (found != NULL) {
+	  int position = found-str;
+	  cursor->node = node;
+	  MyStr_init(&cursor->str_ite, str);
+	  MyStr_get_grapheme_at_idx(&cursor->str_ite, position);
+	  return 1;
+	}
+	node = node->next;
+	cursor->y++;
   }
   return 0;
 }
@@ -874,14 +720,27 @@ void EditorPointer_delete_region(EditorWindow *self, EditorPointer *ep1, EditorP
 
 
 // EditorWindow
-/*void EditorWindow_page_up(EditorWindow *self) {
-  int pos_column = self->cursor.str_ite.pos_column;
-  EditorPointer_up(&self->cursor);
-  MyStr_get_grapheme_at_column(&self->cursor.str_ite, pos_column);
-}
 
-void EditorWindow_page_down(EditorWindow *self) {
-}*/
+void EditorWindow_paste(EditorWindow *self) {
+    char *cb = clipboard_paste();
+
+	EditorPointer_insert(self, &self->cursor, cb);
+
+    // Check if clipboard is empty
+    if (cb == NULL || *cb == '\0') {
+        if (cb)
+            free(cb);
+        return;
+    }
+    set_modified(self, 1);
+
+
+    EditorWindow_update_height(self);
+    EditorWindow_make_cursor_visible(self);
+
+    free(cb);
+
+}
 
 void EditorWindow_insert(EditorWindow *self, char c) {
     set_modified(self, 1);
@@ -910,7 +769,6 @@ void EditorWindow_copy(EditorWindow *self) {
 
 void EditorWindow_cut(EditorWindow *self) {
     _EditorWindow_copy(self);
-    //EditorWindow_delete_region(self);
 	EditorPointer_delete_region(self, &self->cursor, &self->selection);
 	
     EditorWindow_update_height(self);
@@ -945,18 +803,11 @@ void EditorWindow_action_end_of_line(EditorWindow *self) {
 }
 
 void _EditorWindow_up(EditorWindow *self) {
-    // int pos_column = self->cursor.str_ite.pos_column;
-    // EditorPointer_up(&self->cursor);
-    // MyStr_get_grapheme_at_column(&self->cursor.str_ite, pos_column);
     EditorPointer_vertical_move(&self->cursor, 1, 1, 1);
-    // EditorWindow_make_cursor_visible(self);
 }
 
 void _EditorWindow_down(EditorWindow *self) {
     int pos_column = self->cursor.str_ite.pos_column;
-    // EditorPointer_down(&self->cursor);
-    // MyStr_get_grapheme_at_column(&self->cursor.str_ite, pos_column);
-    // EditorWindow_make_cursor_visible(self);
     EditorPointer_vertical_move(&self->cursor, 0, 1, 1);
 }
 
@@ -968,13 +819,6 @@ void _EditorWindow_right(EditorWindow *self) {
 
 void _EditorWindow_left(EditorWindow *self) {
   EditorPointer_left(&self->cursor);
-  /*if (self->cursor.str_ite.pos_cluster == 0) { // if end of line
-        EditorPointer_vertical_move(&self->cursor, 1, 1, 0);
-        EditorWindow_action_end_of_line(self);
-        // EditorPointer_up(&self->cursor);
-    } else { // if not end of line
-        MyStr_prev_cluster(&self->cursor.str_ite);
-		}*/
 }
 
 void EditorWindow_up(EditorWindow *self) {
@@ -1040,9 +884,6 @@ void EditorWindow_delete_word(EditorWindow *self) {
 }
 
 void EditorWindow_delete(EditorWindow *self) {
-  /*EditorWindow_right(self);
-    EditorWindow_backspace(self);
-    self->selection.y = -1;*/
     set_modified(self, 1);
 	EditorPointer pointer;
 	pointer = self->cursor;
@@ -1175,7 +1016,7 @@ void EditorWindow_action_indent(EditorWindow *self) {
 
 // start of search
 
-void EditorWindow_search(EditorWindow *self, char *query) {
+void _EditorWindow_search(EditorWindow *self, char *query) {
     EditorPointer ptr = self->highlight_end;
 
     if (ptr.y == -1) {
@@ -1203,6 +1044,15 @@ void EditorWindow_search(EditorWindow *self, char *query) {
 
         EditorWindow_show_line(self, self->highlight_end.y);
     }
+}
+
+void EditorWindow_search(EditorWindow *self, char *query) {
+  EditorPointer ptr = self->cursor;
+  if (EditorPointer_search(&ptr, query)){
+	self->highlight_start = ptr;
+	self->highlight_end = ptr;
+	MyStr_get_grapheme_at_idx(&self->highlight_end.str_ite, self->highlight_end.str_ite.cluster_start+strlen(query));
+  }
 }
 
 void EditorWindow_searchbox_exit(EditorWindow *self) {
