@@ -1355,10 +1355,30 @@ void EditorWindow_on_mouse_down(Window *win, int x, int y) {
     EditorFrame *frame = Window_get_frame(win);
 
     EditorWindow *self = win;
-    self->cursor.y = y - win->shift - win->calculated.y;
-    self->cursor.y = min(self->cursor.y, self->n_lines - 1);
-    self->cursor.x = x - win->calculated.x;
-    EditorWindow_fix_cursor_x(self);
+
+    // Calculate target line
+    int target_y = y - win->shift - win->calculated.y;
+    target_y = min(target_y, self->n_lines - 1);
+    target_y = max(target_y, 0);
+
+    // Calculate target column
+    int target_x = x - win->calculated.x;
+    target_x = max(target_x, 0);
+
+    // Get the node for the target line
+    Node *node = EditorWindow_get_line_number(self, target_y);
+    if (node == NULL)
+        return;
+
+    // Update cursor position
+    self->cursor.y = target_y;
+    self->cursor.node = node;
+
+    // Initialize iterator and position at target column
+    MyStr_init(&self->cursor.str_ite, node->line);
+    MyStr_next_cluster(&self->cursor.str_ite);
+    MyStr_get_grapheme_at_column(&self->cursor.str_ite, target_x);
+
     EditorWindow_make_cursor_visible(self);
     self->selection = self->cursor;
     self->selecting = 1;
@@ -1370,20 +1390,36 @@ void EditorWindow_on_hover(Window *win, int x, int y) {
     if (self->selecting == 0)
         return;
 
-    int relative_x = x - self->win.calculated.x;
-    int relative_y = y - self->win.calculated.y;
+    // Calculate target line
+    int target_y = y - win->shift - win->calculated.y;
+    target_y = min(target_y, self->n_lines - 1);
+    target_y = max(target_y, 0);
 
-    self->cursor.y = relative_y - win->shift;
-    self->cursor.y = min(self->cursor.y, self->n_lines - 1);
-    self->cursor.x = relative_x;
-    EditorWindow_fix_cursor_x(self);
+    // Calculate target column
+    int target_x = x - win->calculated.x;
+    target_x = max(target_x, 0);
+
+    // Get the node for the target line
+    Node *node = EditorWindow_get_line_number(self, target_y);
+    if (node == NULL)
+        return;
+
+    // Update cursor position
+    self->cursor.y = target_y;
+    self->cursor.node = node;
+
+    // Initialize iterator and position at target column
+    MyStr_init(&self->cursor.str_ite, node->line);
+    MyStr_next_cluster(&self->cursor.str_ite);
+    MyStr_get_grapheme_at_column(&self->cursor.str_ite, target_x);
+
     EditorWindow_make_cursor_visible(self);
 }
 
 void EditorWindow_on_mouse_up(Window *win) {
     EditorWindow *self = win;
     self->selecting = 0;
-    if (self->cursor.y == self->selection.y && self->cursor.x == self->selection.x)
+    if (EditorPointer_cmp(&self->cursor, &self->selection) == 0)
         self->selection.y = -1;
 }
 
