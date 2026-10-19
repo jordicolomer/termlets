@@ -106,6 +106,30 @@ ssize_t utf8_iterate_backward(const uint8_t *str) {
     return size;
 }
 
+void cluster_codepoints_to_string(MyStr *str_ite, char *output, size_t output_size) {
+    size_t offset = 0;
+    size_t bytes_processed = 0;
+
+    while (bytes_processed < str_ite->cluster_size && offset < output_size - 10) {
+        int32_t codepoint = 0;
+        ssize_t bytes_read = utf8_iterate(
+            (const uint8_t *)str_ite->utf8 + str_ite->cluster_start + bytes_processed,
+            str_ite->cluster_size - bytes_processed,
+            &codepoint
+        );
+
+        if (bytes_read <= 0) break;
+
+        if (bytes_processed > 0) {
+            offset += snprintf(output + offset, output_size - offset, " ");
+        }
+        offset += snprintf(output + offset, output_size - offset, "U+%04X", codepoint);
+
+        bytes_processed += bytes_read;
+    }
+}
+
+
 uint32_t utf8_next_codepoint(const uint8_t *s, int *idx) {
     const uint8_t *p = s + *idx;
     uint32_t cp = 0;
@@ -619,7 +643,7 @@ int main(void) {
     test();
 }
 */
-int MyStr_prev_cluster(MyStr *mystr) {
+int MyStr_prev_cluster_fast(MyStr *mystr) {
     const char *terminal = get_terminal_type();
 
     // Check if we're at the beginning
@@ -674,4 +698,8 @@ int MyStr_prev_cluster(MyStr *mystr) {
     mystr->pos_column -= mystr->width_column;
 
     return 1;
+}
+
+int MyStr_prev_cluster(MyStr *mystr) {
+    MyStr_get_grapheme_at_index(mystr, mystr->pos_cluster - 1);
 }

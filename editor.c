@@ -1463,6 +1463,7 @@ EditorWindow *EditorWindow_new() {
     return self;
 }
 
+
 void status_bar_draw(Window *w, int hasFocus) {
     Geometry geo = w->calculated;
     int y = geo.y;
@@ -1486,14 +1487,18 @@ void status_bar_draw(Window *w, int hasFocus) {
                 }*/
 
     MyStr *str_ite = &self->editor->cursor.str_ite;
+
+    char codepoints_str[256] = "";
+    cluster_codepoints_to_string(str_ite, codepoints_str, sizeof(codepoints_str));
+
     snprintf(self->status_str, sizeof(self->status_str),
-             "line:%d/%d (%d%%) column:%d cp:U+%04X codepoints:%d width_column:%d "
+             "line:%d/%d (%d%%) column:%d [%s] width:%d "
              "cluster_start:%d cluster_size:%d pos_cluster:%d",
-             line, n_lines, pct, str_ite->pos_column, str_ite->first_codepoint,
-             str_ite->first_codepoint, str_ite->width_column, str_ite->cluster_start,
+             line, n_lines, pct, str_ite->pos_column, codepoints_str,
+             str_ite->width_column, str_ite->cluster_start,
              str_ite->cluster_size, str_ite->pos_cluster);
     // LOG_INFO("line %s y:%d, geo.x:%d, geo.width:%d", self->status_str, y, geo.x, geo.width);
-    Buffer_print(&main_buf, y, geo.x, geo.width, strdup(self->status_str), fg, bg);
+    Buffer_print(&main_buf, y, geo.x, geo.width, self->status_str, fg, bg);
 }
 
 StatusWindow *status_bar_create() {
