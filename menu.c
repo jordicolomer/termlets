@@ -173,7 +173,7 @@ void Menu_change_color_selected(Window *w, int x, int y) {
 }
 
 Window *Menu_add_element(Menu *self, char *name, Lambda *lambda) {
-    int len = calculate_width(name);
+    int len = strlen(name);
     Window *win = NULL;
     if (self->vertical == 1) {
         win = Window_add_widget(self, 0, 0, self->offset, -1, -1, 1, name, 232, 253);

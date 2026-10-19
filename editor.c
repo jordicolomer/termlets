@@ -114,7 +114,7 @@ void Node_append(Node *node, char *text) {
         return;
 
     size_t text_len = strlen(text);
-    int width = calculate_width(text);
+    //int width = calculate_width(text);
 
     // Check if we need to grow the buffer
     if (node->length + text_len + 1 > node->capacity) {
@@ -134,7 +134,7 @@ void Node_append(Node *node, char *text) {
     // Append the text
     memcpy(node->line + node->length, text, text_len);
     node->length += text_len;
-    node->width += width;
+    //node->width += width;
     node->line[node->length] = '\0';
 }
 
@@ -230,7 +230,7 @@ Node *create_node(const char *text) {
     }
     new_node->line = strdup(text); // copy string
     new_node->length = strlen(text);
-    new_node->width = calculate_width(text);
+    //new_node->width = calculate_width(text);
     new_node->capacity = new_node->length + 1;
     new_node->next = NULL;
     new_node->prev = NULL;
@@ -402,7 +402,7 @@ void EditorPointer_insert(EditorWindow *self, EditorPointer *cursor, char *cb) {
             Node *new_node = malloc(sizeof(Node));
             new_node->line = strdup(line);
             new_node->length = strlen(line);
-            new_node->width = calculate_width(line);
+            //new_node->width = calculate_width(line);
             new_node->capacity = new_node->length + 1;
             new_node->lexerState = 0;
             new_node->next = NULL; // Initialize to NULL to prevent garbage pointer
@@ -677,7 +677,7 @@ void EditorPointer_delete_region(EditorWindow *self, EditorPointer *ep1, EditorP
         node1->line[node1->length] = '\0';
 
         // Recalculate width for the entire line
-        node1->width = calculate_width(node1->line);
+        //node1->width = calculate_width(node1->line);
     } else {
         // Multi-line deletion
         node1->line[j1_ptr] = 0;
@@ -1003,7 +1003,7 @@ void EditorWindow_action_indent(EditorWindow *self) {
 }
 
 // start of search
-
+/*
 void _EditorWindow_search(EditorWindow *self, char *query) {
     EditorPointer ptr = self->highlight_end;
 
@@ -1023,7 +1023,7 @@ void _EditorWindow_search(EditorWindow *self, char *query) {
 
     if (p != NULL) {
         self->highlight_start.y = n;
-        self->highlight_start.x = calculate_width_n(node->line, p - node->line);
+        //self->highlight_start.x = calculate_width_n(node->line, p - node->line);
         self->highlight_start.ptr = p - node->line;
 
         self->highlight_end.y = n;
@@ -1033,6 +1033,7 @@ void _EditorWindow_search(EditorWindow *self, char *query) {
         EditorWindow_show_line(self, self->highlight_end.y);
     }
 }
+*/
 
 void EditorWindow_search(EditorWindow *self, char *query) {
     EditorPointer ptr = self->cursor;
@@ -1710,7 +1711,7 @@ void Editor_open_file(EditorFrame *editor_frame, char *file_path) {
         return;
     }
     // if file already been opened, give focus
-    LOG_INFO("Editor_open_file: checking if already open");
+    LOG_INFO("Editor_open_file: checking if already open %p", editor_frame->tabs->first);
     Tab *tab = editor_frame->tabs->first;
     int tab_count = 0;
     while (tab != NULL) {
@@ -1719,8 +1720,8 @@ void Editor_open_file(EditorFrame *editor_frame, char *file_path) {
             LOG_INFO("Editor_open_file: ERROR infinite loop detected in tab list!");
             break;
         }
-        if (tab->child != NULL && tab->child->head != NULL) {
-            EditorWindow *child = tab->child->head;
+        if (tab->child != NULL && tab->child->head != NULL && tab->child->head->head != NULL) {
+            EditorWindow *child = tab->child->head->head;
             LOG_INFO("Editor_open_file: tab has child, file_path=%p", child->file_path);
             if (child->file_path != NULL && strcmp(file_path, child->file_path) == 0) {
                 LOG_INFO("Editor_open_file: file already open, switching to tab");

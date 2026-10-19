@@ -634,10 +634,6 @@ int MyStr_prev_cluster(MyStr *mystr) {
     size_t prev_cluster_end = mystr->cluster_start;
     size_t prev_cluster_size = prev_cluster_end - prev_cluster_start;
 
-    // Update position tracking
-    mystr->pos_cluster -= 1;
-    mystr->pos_column -= mystr->width_column;
-
     // Set the cluster boundaries
     mystr->cluster_start = prev_cluster_start;
     mystr->cluster_size = prev_cluster_size;
@@ -672,6 +668,10 @@ int MyStr_prev_cluster(MyStr *mystr) {
                                        mystr->cluster_size, 1, terminal);
     if (mystr->utf8[mystr->cluster_start] == '\t' && mystr->cluster_size == 1)
         mystr->width_column = tab_width;
+
+    // Update position tracking AFTER calculating the new width_column
+    mystr->pos_cluster -= 1;
+    mystr->pos_column -= mystr->width_column;
 
     return 1;
 }
