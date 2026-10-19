@@ -20,46 +20,58 @@ const char *get_terminal_type(void) {
     if (cached_terminal != NULL)
         return cached_terminal;
 
-    // Check TERM_PROGRAM first (macOS and some other systems)
     const char *term_program = getenv("TERM_PROGRAM");
+    const char *term = getenv("TERM");
+
+    // Check TERM_PROGRAM first (macOS and some other systems)
     if (term_program != NULL) {
         if (strstr(term_program, "iTerm") != NULL) {
             cached_terminal = "iterm2";
+            LOG_INFO("Terminal detected: %s (from TERM_PROGRAM=%s)", cached_terminal, term_program);
             return cached_terminal;
         }
         if (strstr(term_program, "Apple_Terminal") != NULL) {
             cached_terminal = "apple";
+            LOG_INFO("Terminal detected: %s (from TERM_PROGRAM=%s)", cached_terminal, term_program);
             return cached_terminal;
         }
         if (strstr(term_program, "vscode") != NULL) {
             cached_terminal = "konsole";  // VSCode behaves similar to konsole
+            LOG_INFO("Terminal detected: %s (from TERM_PROGRAM=%s)", cached_terminal, term_program);
             return cached_terminal;
         }
     }
 
     // Check TERM environment variable
-    const char *term = getenv("TERM");
     if (term != NULL) {
         if (strstr(term, "kitty") != NULL) {
             cached_terminal = "kitty";
+            LOG_INFO("Terminal detected: %s (from TERM=%s)", cached_terminal, term);
             return cached_terminal;
         }
         if (strstr(term, "alacritty") != NULL) {
             cached_terminal = "konsole";  // Alacritty is similar to konsole
+            LOG_INFO("Terminal detected: %s (from TERM=%s)", cached_terminal, term);
             return cached_terminal;
         }
         if (strstr(term, "konsole") != NULL) {
             cached_terminal = "konsole";
+            LOG_INFO("Terminal detected: %s (from TERM=%s)", cached_terminal, term);
             return cached_terminal;
         }
         if (strstr(term, "xterm") != NULL) {
             cached_terminal = "xterm";
+            LOG_INFO("Terminal detected: %s (from TERM=%s)", cached_terminal, term);
             return cached_terminal;
         }
     }
 
     // Default fallback
     cached_terminal = "iterm2";
+    LOG_INFO("Terminal detected: %s (default fallback, TERM_PROGRAM=%s, TERM=%s)",
+             cached_terminal,
+             term_program ? term_program : "null",
+             term ? term : "null");
     return cached_terminal;
 }
 
