@@ -9,6 +9,8 @@
 #include <stdint.h>
 #include <stddef.h>
 
+#include "wcwidth/grapheme.h"
+
 ssize_t utf8_iterate(const uint8_t *str, ssize_t strlen, int32_t *codepoint_ref) {
     if (str[0] < 0x80) {
         *codepoint_ref = str[0];
@@ -554,6 +556,58 @@ int main(void) {
 }
 */
 int MyStr_prev_cluster(MyStr *mystr) {
-    // this can be optimized with a trie
-    MyStr_get_grapheme_at_index(mystr, mystr->pos_cluster - 1);
+    const char *terminal = "iterm2";
+
+    // Check if we're at the beginning
+    if (mystr->pos_cluster <= 0 || mystr->cluster_start == 0)
+        return 0;
+
+    // Use wcwidth_grapheme_boundary_before to find the previous cluster start efficiently
+    size_t prev_cluster_start = wcwidth_grapheme_boundary_before(
+        mystr->utf8, mystr->len_bytes, mystr->cluster_start);
+
+    // Calculate the previous cluster's size
+    size_t prev_cluster_end = mystr->cluster_start;
+    size_t prev_cluster_size = prev_cluster_end - prev_cluster_start;
+
+    // Update position tracking
+    mystr->pos_cluster -= 1;
+    mystr->pos_column -= mystr->width_column;
+
+    // Set the cluster boundaries
+    mystr->cluster_start = prev_cluster_start;
+    mystr->cluster_size = prev_cluster_size;
+    mystr->pos_bytes = prev_cluster_start;
+
+    // Scan through the previous cluster to extract codepoint information
+    mystr->width_codepoints = 0;
+    mystr->first_codepoint = -1;
+
+    size_t offset = prev_cluster_start;
+    utf8proc_int32_t codepoint;
+
+    while (offset < prev_cluster_end) {
+        ssize_t bytes_read = utf8proc_iterate(
+            (const utf8proc_uint8_t *)(mystr->utf8 + offset),
+            prev_cluster_end - offset, &codepoint);
+
+        if (bytes_read <= 0)
+            break;
+
+        if (mystr->first_codepoint == -1)
+            mystr->first_codepoint = codepoint;
+
+        mystr->current = codepoint;
+        mystr->width_bytes = bytes_read;
+        mystr->width_codepoints += 1;
+        offset += bytes_read;
+    }
+
+    // Calculate display width using wcwidth
+    mystr->width_column = wcstwidth_u8(mystr->utf8 + mystr->cluster_start,
+                                       mystr->cluster_size, 1, terminal);
+    if (mystr->utf8[mystr->cluster_start] == '\t' && mystr->cluster_size == 1)
+        mystr->width_column = tab_width;
+
+    return 1;
 }
