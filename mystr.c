@@ -8,8 +8,60 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include <stdlib.h>
 
 #include "wcwidth/grapheme.h"
+
+// Detect terminal type from environment variables
+// Returns a cached terminal string suitable for wcwidth functions
+const char *get_terminal_type(void) {
+    static const char *cached_terminal = NULL;
+
+    if (cached_terminal != NULL)
+        return cached_terminal;
+
+    // Check TERM_PROGRAM first (macOS and some other systems)
+    const char *term_program = getenv("TERM_PROGRAM");
+    if (term_program != NULL) {
+        if (strstr(term_program, "iTerm") != NULL) {
+            cached_terminal = "iterm2";
+            return cached_terminal;
+        }
+        if (strstr(term_program, "Apple_Terminal") != NULL) {
+            cached_terminal = "apple";
+            return cached_terminal;
+        }
+        if (strstr(term_program, "vscode") != NULL) {
+            cached_terminal = "konsole";  // VSCode behaves similar to konsole
+            return cached_terminal;
+        }
+    }
+
+    // Check TERM environment variable
+    const char *term = getenv("TERM");
+    if (term != NULL) {
+        if (strstr(term, "kitty") != NULL) {
+            cached_terminal = "kitty";
+            return cached_terminal;
+        }
+        if (strstr(term, "alacritty") != NULL) {
+            cached_terminal = "konsole";  // Alacritty is similar to konsole
+            return cached_terminal;
+        }
+        if (strstr(term, "konsole") != NULL) {
+            cached_terminal = "konsole";
+            return cached_terminal;
+        }
+        if (strstr(term, "xterm") != NULL) {
+            cached_terminal = "xterm";
+            return cached_terminal;
+        }
+    }
+
+    // Default fallback
+    cached_terminal = "iterm2";
+    return cached_terminal;
+}
 
 ssize_t utf8_iterate(const uint8_t *str, ssize_t strlen, int32_t *codepoint_ref) {
     if (str[0] < 0x80) {
@@ -350,7 +402,7 @@ int MyStr_is_end(MyStr *mystr) {
 
 #include "wcwidth/wcwidth.h"
 int MyStr_next_cluster(MyStr *mystr) {
-    const char *terminal = "iterm2";
+    const char *terminal = get_terminal_type();
     // input is pos_bytes only
     utf8proc_int32_t state = 0;
     // printf("MyStr_next_cluster\n");
@@ -556,7 +608,7 @@ int main(void) {
 }
 */
 int MyStr_prev_cluster(MyStr *mystr) {
-    const char *terminal = "iterm2";
+    const char *terminal = get_terminal_type();
 
     // Check if we're at the beginning
     if (mystr->pos_cluster <= 0 || mystr->cluster_start == 0)

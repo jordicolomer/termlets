@@ -35,5 +35,6 @@ int MyStr_get_grapheme_at_idx(MyStr *mystr, int idx);
 int MyStr_get_grapheme_at_column(MyStr *mystr, int column_number);
 void MyStr_get_last_grapheme(MyStr *self);
 int wc_len(char *text, int length);
+const char *get_terminal_type(void);
 
 #endif

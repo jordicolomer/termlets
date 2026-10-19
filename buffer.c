@@ -552,7 +552,7 @@ void Buffer_print3_update(int y, int x, int width, char *s, int fg, int bg) {}
 
 #include "wcwidth/wcwidth.h"
 void Buffer_cache(char *s) {
-    const char *terminal = "iterm2";
+    const char *terminal = get_terminal_type();
     MyStr mystr;
     MyStr_init(&mystr, s);
     while (MyStr_next_cluster(&mystr)) {
