@@ -15,6 +15,7 @@
 // Detect terminal type from environment variables
 // Returns a cached terminal string suitable for wcwidth functions
 const char *get_terminal_type(void) {
+  //return "kitty2";
     static const char *cached_terminal = NULL;
 
     if (cached_terminal != NULL)
@@ -40,6 +41,11 @@ const char *get_terminal_type(void) {
             LOG_INFO("Terminal detected: %s (from TERM_PROGRAM=%s)", cached_terminal, term_program);
             return cached_terminal;
         }
+        if (strstr(term_program, "ghostty") != NULL) {
+            cached_terminal = "ghostty";
+            LOG_INFO("Terminal detected: %s (from TERM_PROGRAM=%s)", cached_terminal, term_program);
+            return cached_terminal;
+        }
     }
 
     // Check TERM environment variable
@@ -60,7 +66,7 @@ const char *get_terminal_type(void) {
             return cached_terminal;
         }
         if (strstr(term, "xterm") != NULL) {
-            cached_terminal = "xterm";
+            cached_terminal = "alacritty";
             LOG_INFO("Terminal detected: %s (from TERM=%s)", cached_terminal, term);
             return cached_terminal;
         }
@@ -471,7 +477,7 @@ ret:
     mystr->pos_cluster += 1;
     // mystr->width_column = wc_len(mystr->utf8 + mystr->cluster_start, mystr->width_codepoints);
     mystr->width_column =
-        wcstwidth_u8(mystr->utf8 + mystr->cluster_start, mystr->cluster_size, 1, terminal);
+	  wcstwidth_u8(mystr->utf8 + mystr->cluster_start, mystr->cluster_size, 1, terminal); // alacritty
     if (mystr->utf8[mystr->cluster_start] == '\t' && mystr->cluster_size == 1)
         mystr->width_column = tab_width;
     return 1;

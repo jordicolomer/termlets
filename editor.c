@@ -1493,10 +1493,10 @@ void status_bar_draw(Window *w, int hasFocus) {
 
     snprintf(self->status_str, sizeof(self->status_str),
              "line:%d/%d (%d%%) column:%d [%s] width:%d "
-             "cluster_start:%d cluster_size:%d pos_cluster:%d",
+             "cluster_start:%d cluster_size:%d pos_cluster:%d width_codepoints:%d",
              line, n_lines, pct, str_ite->pos_column, codepoints_str,
              str_ite->width_column, str_ite->cluster_start,
-             str_ite->cluster_size, str_ite->pos_cluster);
+             str_ite->cluster_size, str_ite->pos_cluster, str_ite->width_codepoints);
     // LOG_INFO("line %s y:%d, geo.x:%d, geo.width:%d", self->status_str, y, geo.x, geo.width);
     Buffer_print(&main_buf, y, geo.x, geo.width, self->status_str, fg, bg);
 }
