@@ -1036,7 +1036,12 @@ void _EditorWindow_search(EditorWindow *self, char *query) {
 */
 
 void EditorWindow_search(EditorWindow *self, char *query) {
-    EditorPointer ptr = self->cursor;
+    EditorPointer ptr = self->highlight_end;
+
+    if (ptr.y == -1) {
+        ptr = self->cursor;
+    }
+    //EditorPointer ptr = self->cursor;
     if (EditorPointer_search(&ptr, query)) {
         self->highlight_start = ptr;
         self->highlight_end = ptr;
