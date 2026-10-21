@@ -1067,8 +1067,12 @@ void Editor_searchbox_on_enter(EditorWindow *self) {
     self->search_box->win.hidden = 1;
     search_mode = 0;
     self->win.focused = NULL;
-    self->cursor = self->highlight_end;
-    self->highlight_start.y = -1;
+	if (self->highlight_end.y != -1){
+	  self->cursor = self->highlight_end;
+	  self->highlight_start.y = -1;
+	}
+	//EditorWindow_show_line(self, self->cursor.y);
+	EditorWindow_make_cursor_visible(self);
 }
 
 Window *EditorWindow_searchbox(EditorWindow *self) {
