@@ -1047,6 +1047,7 @@ void EditorWindow_search(EditorWindow *self, char *query) {
         self->highlight_end = ptr;
         MyStr_get_grapheme_at_idx(&self->highlight_end.str_ite,
                                   self->highlight_end.str_ite.cluster_start + strlen(query));
+        EditorWindow_show_line(self, ptr.y);
     }
 }
 
@@ -1474,7 +1475,9 @@ void status_bar_draw(Window *w, int hasFocus) {
     int y = geo.y;
     StatusWindow *self = w;
     int fg = 232;
-    int bg = 253;
+    //int bg = 250;
+    int bg = 39;
+	if (hasFocus == 0) bg = 250;
     int line = self->editor->cursor.y + 1;
 
     int n_lines = self->editor->n_lines;
