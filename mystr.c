@@ -478,8 +478,15 @@ ret:
     // mystr->width_column = wc_len(mystr->utf8 + mystr->cluster_start, mystr->width_codepoints);
     mystr->width_column =
 	  wcstwidth_u8(mystr->utf8 + mystr->cluster_start, mystr->cluster_size, 1, terminal); // alacritty
-    if (mystr->utf8[mystr->cluster_start] == '\t' && mystr->cluster_size == 1)
+    if (mystr->utf8[mystr->cluster_start] == '\t' && mystr->cluster_size == 1){
         mystr->width_column = tab_width;
+	}/*else if (mystr->cluster_size == 4 &&
+			  memcmp(mystr->utf8 + mystr->cluster_start,
+					 "\xF0\x9F\x8F\x9E", 4) == 0) {
+	  mystr->width_column = 2;
+	  }*/
+    //printf("cluster: \"%.*s\"\n", (int)(mystr->cluster_size), mystr->utf8 + mystr->cluster_start);
+	//LOG_INFO("wcstwidth_u8: %.*s %d", mystr->cluster_size, mystr->utf8 + mystr->cluster_start, mystr->width_column);
     return 1;
 }
 
