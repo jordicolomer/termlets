@@ -610,9 +610,9 @@ void EditorPointer_insert(EditorWindow *self, EditorPointer *cursor, char *cb) {
 
 void EditorPointer_undo_insert(EditorWindow *self, EditorPointer *cursor, char *cb) {
   ArrayList_append(&self->undo_stack, (char *)&(UndoNode){
-        .str = cb,
+	  .str = strdup(cb),
         .y = cursor->y,
-        .ptr = cursor->ptr,
+        .ptr = cursor->str_ite.pos_bytes,
 		.is_insert = 0
     });
   EditorPointer_insert(self, cursor, cb);
@@ -880,11 +880,20 @@ void EditorPointer_delete_region(EditorWindow *self, EditorPointer *ep1, EditorP
 // end EditorPointer
 
 void EditorPointer_undo_delete_region(EditorWindow *self, EditorPointer *ep1, EditorPointer *ep2) {
+    int cmp = EditorPointer_cmp(ep1, ep2);
+    if (cmp == 0)
+        return;
+    if (cmp == 1) {
+        EditorPointer *tmp = ep1;
+        ep1 = ep2;
+        ep2 = tmp;
+    }
+  
   char * cb = EditorPointer_copy_region_to_memory(ep1, ep2);
   ArrayList_append(&self->undo_stack, (char *)&(UndoNode){
         .str = cb,
         .y = ep1->y,
-        .ptr = ep1->ptr,
+        .ptr = ep1->str_ite.pos_bytes,
 		.is_insert = 1
     });
   EditorPointer_delete_region(self, ep1, ep2);
