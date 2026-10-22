@@ -393,20 +393,17 @@ void FileExplorer_list_files(ExplorerWindow *self, char *dire) {
             icon = "📁";
             file_item->is_dir = 1;
         }
-        if (ends_with(entry->d_name, ".png") ||
-			ends_with(entry->d_name, ".jpeg") ||
-			ends_with(entry->d_name, ".jpg")) {
+        if (ends_with(entry->d_name, ".png") || ends_with(entry->d_name, ".jpeg") ||
+            ends_with(entry->d_name, ".jpg")) {
             icon = "🏞 ";
-            //icon = "📷";
+            // icon = "📷";
         }
-        if (ends_with(entry->d_name, ".wav") ||
-			ends_with(entry->d_name, ".mp3") ||
-			ends_with(entry->d_name, ".ogg")) {
+        if (ends_with(entry->d_name, ".wav") || ends_with(entry->d_name, ".mp3") ||
+            ends_with(entry->d_name, ".ogg")) {
             icon = "🎵";
         }
-        if (ends_with(entry->d_name, ".avi") ||
-			ends_with(entry->d_name, ".mpg") ||
-			ends_with(entry->d_name, ".mkv")) {
+        if (ends_with(entry->d_name, ".avi") || ends_with(entry->d_name, ".mpg") ||
+            ends_with(entry->d_name, ".mkv")) {
             icon = "🎬";
         }
         if (ends_with(entry->d_name, ".py")) {
@@ -415,22 +412,16 @@ void FileExplorer_list_files(ExplorerWindow *self, char *dire) {
         if (ends_with(entry->d_name, ".html")) {
             icon = "🌐";
         }
-        if (ends_with(entry->d_name, ".txt") ||
-			ends_with(entry->d_name, ".c") ||
-			ends_with(entry->d_name, ".h") ||
-			ends_with(entry->d_name, ".js")) {
+        if (ends_with(entry->d_name, ".txt") || ends_with(entry->d_name, ".c") ||
+            ends_with(entry->d_name, ".h") || ends_with(entry->d_name, ".js")) {
             icon = "📝";
         }
-        if (ends_with(entry->d_name, ".pdf") ||
-			ends_with(entry->d_name, ".docx") ||
-			ends_with(entry->d_name, ".doc")
-			) {
+        if (ends_with(entry->d_name, ".pdf") || ends_with(entry->d_name, ".docx") ||
+            ends_with(entry->d_name, ".doc")) {
             icon = "📖";
         }
-        if (ends_with(entry->d_name, ".zip") ||
-			ends_with(entry->d_name, ".tar.bz2") ||
-			ends_with(entry->d_name, ".tar.gz")
-			) {
+        if (ends_with(entry->d_name, ".zip") || ends_with(entry->d_name, ".tar.bz2") ||
+            ends_with(entry->d_name, ".tar.gz")) {
             icon = "📦";
         }
         if (ends_with(entry->d_name, ".csv")) {

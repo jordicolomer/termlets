@@ -114,7 +114,7 @@ void Node_append(Node *node, char *text) {
         return;
 
     size_t text_len = strlen(text);
-    //int width = calculate_width(text);
+    // int width = calculate_width(text);
 
     // Check if we need to grow the buffer
     if (node->length + text_len + 1 > node->capacity) {
@@ -134,7 +134,7 @@ void Node_append(Node *node, char *text) {
     // Append the text
     memcpy(node->line + node->length, text, text_len);
     node->length += text_len;
-    //node->width += width;
+    // node->width += width;
     node->line[node->length] = '\0';
 }
 
@@ -230,7 +230,7 @@ Node *create_node(const char *text) {
     }
     new_node->line = strdup(text); // copy string
     new_node->length = strlen(text);
-    //new_node->width = calculate_width(text);
+    // new_node->width = calculate_width(text);
     new_node->capacity = new_node->length + 1;
     new_node->next = NULL;
     new_node->prev = NULL;
@@ -258,10 +258,161 @@ void append(EditorWindow *self, const char *text) {
 
 #define MAX_LINE 10240
 
+int file_is_utf8(const char *filename) {
+    FILE *file = fopen(filename, "r");
+    if (!file) {
+        return 0;
+    }
+
+    char buffer[MAX_LINE];
+
+    int line_count = 0;
+    while (fgets(buffer, MAX_LINE, file)) {
+        size_t pos = 0;
+        size_t len = strlen(buffer);
+        while (pos < len) {
+            utf8proc_int32_t current;
+
+            utf8proc_ssize_t bytes =
+                utf8proc_iterate((const utf8proc_uint8_t *)buffer + pos, len - pos, &current);
+
+            if (bytes < 0) {
+                printf("Invalid UTF-8\n");
+                fclose(file);
+                return 0;
+            }
+            pos += bytes;
+        }
+    }
+    fclose(file);
+    return 1;
+}
+
+#include <stdio.h>
+#include <stddef.h>
+#include <limits.h>
+#include <ctype.h>
+
+int hex_dump(char *dst, size_t dst_size, const char *src, size_t src_len) {
+    const unsigned char *bytes = (const unsigned char *)src;
+    size_t pos = 0;
+
+    for (size_t i = 0; i < src_len; i += 16) {
+        size_t n = src_len - i < 16 ? src_len - i : 16;
+
+        int written = snprintf(dst + (pos < dst_size ? pos : dst_size),
+                               pos < dst_size ? dst_size - pos : 0, "%08zX  ", i);
+
+        if (written < 0)
+            return -1;
+        pos += (size_t)written;
+
+        for (size_t j = 0; j < 16; j++) {
+            if (j < n)
+                written = snprintf(dst + (pos < dst_size ? pos : dst_size),
+                                   pos < dst_size ? dst_size - pos : 0, "%02X ", bytes[i + j]);
+            else
+                written = snprintf(dst + (pos < dst_size ? pos : dst_size),
+                                   pos < dst_size ? dst_size - pos : 0, "   ");
+
+            if (written < 0)
+                return -1;
+            pos += (size_t)written;
+
+            if (j == 7) {
+                if (pos < dst_size && dst_size - pos > 1)
+                    dst[pos] = ' ';
+                pos++;
+            }
+        }
+
+        written = snprintf(dst + (pos < dst_size ? pos : dst_size),
+                           pos < dst_size ? dst_size - pos : 0, " |");
+
+        if (written < 0)
+            return -1;
+        pos += (size_t)written;
+
+        for (size_t j = 0; j < n; j++) {
+            char c = isprint(bytes[i + j]) ? (char)bytes[i + j] : '.';
+
+            if (pos < dst_size && dst_size - pos > 1)
+                dst[pos] = c;
+            pos++;
+        }
+
+        written = snprintf(dst + (pos < dst_size ? pos : dst_size),
+                           pos < dst_size ? dst_size - pos : 0, "|\n");
+
+        if (written < 0)
+            return -1;
+        pos += (size_t)written;
+    }
+
+    if (dst_size > 0)
+        dst[pos < dst_size ? pos : dst_size - 1] = '\0';
+
+    return pos > INT_MAX ? -1 : (int)pos;
+}
+
+void load_file_hex(EditorWindow *self, const char *filename) {
+    FILE *file = fopen(filename, "rb");
+    if (!file) {
+        perror("fopen failed");
+        return;
+    }
+
+    Tab_set_title(self->tab_window, filename);
+
+    unsigned char buffer[16];
+    char hex_line[256];
+    size_t bytes_read;
+    size_t offset = 0;
+
+    while ((bytes_read = fread(buffer, 1, 16, file)) > 0) {
+        hex_dump(hex_line, sizeof(hex_line), (const char *)buffer, bytes_read);
+
+        // Remove trailing newline from hex_dump output
+        size_t len = strlen(hex_line);
+        if (len > 0 && hex_line[len - 1] == '\n') {
+            hex_line[len - 1] = '\0';
+        }
+
+        append(self, hex_line);
+        self->n_lines++;
+        offset += bytes_read;
+    }
+
+    if (self->n_lines == 0) {
+        append(self, "");
+        self->n_lines++;
+    }
+
+    fclose(file);
+
+    EditorWindow_update_height(self);
+
+    self->cursor.ptr = 0;
+
+    // init cursor
+    if (self->head) {
+        MyStr_init(&self->cursor.str_ite, self->head->line);
+        MyStr_next_cluster(&self->cursor.str_ite);
+    }
+    self->cursor.node = self->head;
+    self->cursor.y = 0;
+}
+
 void load_file(EditorWindow *self, const char *filename) {
     if (self == NULL) {
         return;
     }
+    int is_utf8 = file_is_utf8(filename);
+    if (!is_utf8) {
+        load_file_hex(self, filename);
+        return;
+    }
+
     LOG_INFO("load_file %s", filename);
     Tab_set_title(self->tab_window, filename);
     FILE *file = fopen(filename, "r");
@@ -402,7 +553,7 @@ void EditorPointer_insert(EditorWindow *self, EditorPointer *cursor, char *cb) {
             Node *new_node = malloc(sizeof(Node));
             new_node->line = strdup(line);
             new_node->length = strlen(line);
-            //new_node->width = calculate_width(line);
+            // new_node->width = calculate_width(line);
             new_node->capacity = new_node->length + 1;
             new_node->lexerState = 0;
             new_node->next = NULL; // Initialize to NULL to prevent garbage pointer
@@ -677,7 +828,7 @@ void EditorPointer_delete_region(EditorWindow *self, EditorPointer *ep1, EditorP
         node1->line[node1->length] = '\0';
 
         // Recalculate width for the entire line
-        //node1->width = calculate_width(node1->line);
+        // node1->width = calculate_width(node1->line);
     } else {
         // Multi-line deletion
         node1->line[j1_ptr] = 0;
@@ -1041,7 +1192,7 @@ void EditorWindow_search(EditorWindow *self, char *query) {
     if (ptr.y == -1) {
         ptr = self->cursor;
     }
-    //EditorPointer ptr = self->cursor;
+    // EditorPointer ptr = self->cursor;
     if (EditorPointer_search(&ptr, query)) {
         self->highlight_start = ptr;
         self->highlight_end = ptr;
@@ -1067,12 +1218,12 @@ void Editor_searchbox_on_enter(EditorWindow *self) {
     self->search_box->win.hidden = 1;
     search_mode = 0;
     self->win.focused = NULL;
-	if (self->highlight_end.y != -1){
-	  self->cursor = self->highlight_end;
-	  self->highlight_start.y = -1;
-	}
-	//EditorWindow_show_line(self, self->cursor.y);
-	EditorWindow_make_cursor_visible(self);
+    if (self->highlight_end.y != -1) {
+        self->cursor = self->highlight_end;
+        self->highlight_start.y = -1;
+    }
+    // EditorWindow_show_line(self, self->cursor.y);
+    EditorWindow_make_cursor_visible(self);
 }
 
 Window *EditorWindow_searchbox(EditorWindow *self) {
@@ -1473,15 +1624,15 @@ EditorWindow *EditorWindow_new() {
     return self;
 }
 
-
 void status_bar_draw(Window *w, int hasFocus) {
     Geometry geo = w->calculated;
     int y = geo.y;
     StatusWindow *self = w;
     int fg = 232;
-    //int bg = 250;
+    // int bg = 250;
     int bg = 39;
-	if (hasFocus == 0) bg = 250;
+    if (hasFocus == 0)
+        bg = 250;
     int line = self->editor->cursor.y + 1;
 
     int n_lines = self->editor->n_lines;
@@ -1506,9 +1657,9 @@ void status_bar_draw(Window *w, int hasFocus) {
     snprintf(self->status_str, sizeof(self->status_str),
              "line:%d/%d (%d%%) column:%d [%s] width:%d "
              "cluster_start:%d cluster_size:%d pos_cluster:%d width_codepoints:%d",
-             line, n_lines, pct, str_ite->pos_column, codepoints_str,
-             str_ite->width_column, str_ite->cluster_start,
-             str_ite->cluster_size, str_ite->pos_cluster, str_ite->width_codepoints);
+             line, n_lines, pct, str_ite->pos_column, codepoints_str, str_ite->width_column,
+             str_ite->cluster_start, str_ite->cluster_size, str_ite->pos_cluster,
+             str_ite->width_codepoints);
     // LOG_INFO("line %s y:%d, geo.x:%d, geo.width:%d", self->status_str, y, geo.x, geo.width);
     Buffer_print(&main_buf, y, geo.x, geo.width, self->status_str, fg, bg);
 }

@@ -15,7 +15,7 @@
 // Detect terminal type from environment variables
 // Returns a cached terminal string suitable for wcwidth functions
 const char *get_terminal_type(void) {
-  //return "kitty2";
+    // return "kitty2";
     static const char *cached_terminal = NULL;
 
     if (cached_terminal != NULL)
@@ -37,7 +37,7 @@ const char *get_terminal_type(void) {
             return cached_terminal;
         }
         if (strstr(term_program, "vscode") != NULL) {
-            cached_terminal = "konsole";  // VSCode behaves similar to konsole
+            cached_terminal = "konsole"; // VSCode behaves similar to konsole
             LOG_INFO("Terminal detected: %s (from TERM_PROGRAM=%s)", cached_terminal, term_program);
             return cached_terminal;
         }
@@ -56,7 +56,7 @@ const char *get_terminal_type(void) {
             return cached_terminal;
         }
         if (strstr(term, "alacritty") != NULL) {
-            cached_terminal = "konsole";  // Alacritty is similar to konsole
+            cached_terminal = "konsole"; // Alacritty is similar to konsole
             LOG_INFO("Terminal detected: %s (from TERM=%s)", cached_terminal, term);
             return cached_terminal;
         }
@@ -74,10 +74,8 @@ const char *get_terminal_type(void) {
 
     // Default fallback
     cached_terminal = "iterm2";
-    LOG_INFO("Terminal detected: %s (default fallback, TERM_PROGRAM=%s, TERM=%s)",
-             cached_terminal,
-             term_program ? term_program : "null",
-             term ? term : "null");
+    LOG_INFO("Terminal detected: %s (default fallback, TERM_PROGRAM=%s, TERM=%s)", cached_terminal,
+             term_program ? term_program : "null", term ? term : "null");
     return cached_terminal;
 }
 
@@ -118,13 +116,12 @@ void cluster_codepoints_to_string(MyStr *str_ite, char *output, size_t output_si
 
     while (bytes_processed < str_ite->cluster_size && offset < output_size - 10) {
         int32_t codepoint = 0;
-        ssize_t bytes_read = utf8_iterate(
-            (const uint8_t *)str_ite->utf8 + str_ite->cluster_start + bytes_processed,
-            str_ite->cluster_size - bytes_processed,
-            &codepoint
-        );
+        ssize_t bytes_read =
+            utf8_iterate((const uint8_t *)str_ite->utf8 + str_ite->cluster_start + bytes_processed,
+                         str_ite->cluster_size - bytes_processed, &codepoint);
 
-        if (bytes_read <= 0) break;
+        if (bytes_read <= 0)
+            break;
 
         if (bytes_processed > 0) {
             offset += snprintf(output + offset, output_size - offset, " ");
@@ -134,7 +131,6 @@ void cluster_codepoints_to_string(MyStr *str_ite, char *output, size_t output_si
         bytes_processed += bytes_read;
     }
 }
-
 
 uint32_t utf8_next_codepoint(const uint8_t *s, int *idx) {
     const uint8_t *p = s + *idx;
@@ -476,18 +472,19 @@ int MyStr_next_cluster(MyStr *mystr) {
 ret:
     mystr->pos_cluster += 1;
     // mystr->width_column = wc_len(mystr->utf8 + mystr->cluster_start, mystr->width_codepoints);
-    mystr->width_column =
-	  wcstwidth_u8(mystr->utf8 + mystr->cluster_start, mystr->cluster_size, 1, terminal); // alacritty
-    if (mystr->utf8[mystr->cluster_start] == '\t' && mystr->cluster_size == 1){
+    mystr->width_column = wcstwidth_u8(mystr->utf8 + mystr->cluster_start, mystr->cluster_size, 1,
+                                       terminal); // alacritty
+    if (mystr->utf8[mystr->cluster_start] == '\t' && mystr->cluster_size == 1) {
         mystr->width_column = tab_width;
-	}/*else if (mystr->cluster_size == 4 &&
-			  memcmp(mystr->utf8 + mystr->cluster_start,
-					 "\xF0\x9F\x8F\x9E", 4) == 0) {
-	  mystr->width_column = 2;
-	  }*/
-	//if (mystr->width_column == -1) mystr->width_column = 0;
-    //printf("cluster: \"%.*s\"\n", (int)(mystr->cluster_size), mystr->utf8 + mystr->cluster_start);
-	//LOG_INFO("wcstwidth_u8: %.*s %d", mystr->cluster_size, mystr->utf8 + mystr->cluster_start, mystr->width_column);
+    } /*else if (mystr->cluster_size == 4 &&
+                       memcmp(mystr->utf8 + mystr->cluster_start,
+                                      "\xF0\x9F\x8F\x9E", 4) == 0) {
+       mystr->width_column = 2;
+       }*/
+    // if (mystr->width_column == -1) mystr->width_column = 0;
+    // printf("cluster: \"%.*s\"\n", (int)(mystr->cluster_size), mystr->utf8 +
+    // mystr->cluster_start); LOG_INFO("wcstwidth_u8: %.*s %d", mystr->cluster_size, mystr->utf8 +
+    // mystr->cluster_start, mystr->width_column);
     return 1;
 }
 
@@ -665,8 +662,8 @@ int MyStr_prev_cluster_fast(MyStr *mystr) {
         return 0;
 
     // Use wcwidth_grapheme_boundary_before to find the previous cluster start efficiently
-    size_t prev_cluster_start = wcwidth_grapheme_boundary_before(
-        mystr->utf8, mystr->len_bytes, mystr->cluster_start);
+    size_t prev_cluster_start =
+        wcwidth_grapheme_boundary_before(mystr->utf8, mystr->len_bytes, mystr->cluster_start);
 
     // Calculate the previous cluster's size
     size_t prev_cluster_end = mystr->cluster_start;
@@ -685,9 +682,8 @@ int MyStr_prev_cluster_fast(MyStr *mystr) {
     utf8proc_int32_t codepoint;
 
     while (offset < prev_cluster_end) {
-        ssize_t bytes_read = utf8proc_iterate(
-            (const utf8proc_uint8_t *)(mystr->utf8 + offset),
-            prev_cluster_end - offset, &codepoint);
+        ssize_t bytes_read = utf8proc_iterate((const utf8proc_uint8_t *)(mystr->utf8 + offset),
+                                              prev_cluster_end - offset, &codepoint);
 
         if (bytes_read <= 0)
             break;
@@ -702,8 +698,8 @@ int MyStr_prev_cluster_fast(MyStr *mystr) {
     }
 
     // Calculate display width using wcwidth
-    mystr->width_column = wcstwidth_u8(mystr->utf8 + mystr->cluster_start,
-                                       mystr->cluster_size, 1, terminal);
+    mystr->width_column =
+        wcstwidth_u8(mystr->utf8 + mystr->cluster_start, mystr->cluster_size, 1, terminal);
     if (mystr->utf8[mystr->cluster_start] == '\t' && mystr->cluster_size == 1)
         mystr->width_column = tab_width;
 
@@ -714,6 +710,4 @@ int MyStr_prev_cluster_fast(MyStr *mystr) {
     return 1;
 }
 
-int MyStr_prev_cluster(MyStr *mystr) {
-    MyStr_get_grapheme_at_index(mystr, mystr->pos_cluster - 1);
-}
+int MyStr_prev_cluster(MyStr *mystr) { MyStr_get_grapheme_at_index(mystr, mystr->pos_cluster - 1); }
