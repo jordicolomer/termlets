@@ -712,6 +712,26 @@ int buf0_Cell_equals(Cell *cell1, Cell *cell2) {
     return 1;
 }
 
+int count_same_color_in_a_row(Buffer *buf, int orig_x, int y, int bg, int fg){
+  int x = orig_x;
+  int big_count = 0;
+  while (1){
+	int idx = y * buf->width + x;
+	Cell *cell0 = &buf0->cells[idx];
+	if ((int)cell0->bg != bg || (int)cell0->fg != fg || x >= buf->width) {
+	  if (big_count > 0) return x - orig_x;
+	  return 0;
+	}
+	int width = (int)cell0->width;
+	int size = (int)cell0->size;
+	if (size > 1) big_count++;
+	if (width > 1) {
+	  x += width - 1;
+	}
+	x++;
+  }
+}
+
 void Buffer_print_to_screen(Buffer *buf) {
     int cursor_movement_count = 0;
     int color_count = 0;
@@ -762,10 +782,30 @@ void Buffer_print_to_screen(Buffer *buf) {
             // if (utf8[0] == '\t') {
             //     width = 4;
             // }
+            // color update only when changed
+            if (bg != current_bg || fg != current_fg) {
+                color_count += 1;
+
+                append_fmt(out, &pos, "\033[38;5;%d;48;5;%dm", fg, bg);
+
+                current_bg = bg;
+                current_fg = fg;
+
+				// trigger a reposition
+				terminal_x = -1;
+
+				// first stroke without text
+				int same_color_in_a_row = count_same_color_in_a_row(buf, x, y, bg, fg);
+				if (same_color_in_a_row > 1){
+				  append_fmt(out, &pos, "\033[%d;%dH", y + 1, x + 1);
+				  for (int i=0;i<same_color_in_a_row;i++) append_bytes(out, &pos, " ", 1);
+				}
+
+			}
 
             // cursor movement only when needed
             // if (reposition == 1 || x != terminal_x || y != terminal_y)
-            if (x != terminal_x || y != terminal_y) {
+            if (/*size > 1 ||*/ x != terminal_x || y != terminal_y) {
                 cursor_movement_count += 1;
 
                 append_fmt(out, &pos, "\033[%d;%dH", y + 1, x + 1);
@@ -775,18 +815,11 @@ void Buffer_print_to_screen(Buffer *buf) {
                 terminal_y = y;
             }
 
-            // color update only when changed
-            if (bg != current_bg || fg != current_fg) {
-                color_count += 1;
-
-                append_fmt(out, &pos, "\033[38;5;%d;48;5;%dm", fg, bg);
-
-                current_bg = bg;
-                current_fg = fg;
-            }
 
             // encode UTF-8
             if (size > 0) {
+			  /*if (!(size == 1 && (unsigned char)utf8[0] < 0x20 ||
+				size == 1 && (unsigned char)utf8[0] == 0x7F))*/
                 append_bytes(out, &pos, (char *)utf8, size);
             }
 

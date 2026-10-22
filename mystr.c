@@ -485,6 +485,7 @@ ret:
 					 "\xF0\x9F\x8F\x9E", 4) == 0) {
 	  mystr->width_column = 2;
 	  }*/
+	//if (mystr->width_column == -1) mystr->width_column = 0;
     //printf("cluster: \"%.*s\"\n", (int)(mystr->cluster_size), mystr->utf8 + mystr->cluster_start);
 	//LOG_INFO("wcstwidth_u8: %.*s %d", mystr->cluster_size, mystr->utf8 + mystr->cluster_start, mystr->width_column);
     return 1;
