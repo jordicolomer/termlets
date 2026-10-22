@@ -38,6 +38,8 @@
     X(NEXT_WINDOW)                                                                                 \
     X(DELETE)                                                                                      \
     X(DELETE_WORD)                                                                                 \
+    X(UNDO)                                                                                 \
+    X(REDO)                                                                                 \
     X(INDENT)
 
 #define MAKE_ENUM(name) ACTION_##name,

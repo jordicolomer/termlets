@@ -4,6 +4,7 @@
 #include "tabs.h"
 #include "mini_edit.h"
 #include "mystr.h"
+#include "collections.h"
 
 typedef struct Node {
     char *line;
@@ -14,6 +15,13 @@ typedef struct Node {
     size_t capacity; // allocated bytes
     int lexerState;  // used for syntax highlighting
 } Node;
+
+typedef struct UndoNode {
+    char * str;
+    int y;
+    int ptr;
+    int is_insert;
+} UndoNode;
 
 typedef struct EditorPointer {
     int y;
@@ -43,6 +51,7 @@ typedef struct EditorWindow { // this is the scrollable part of the editor
     int language; // specifies the syntax highlighting language
     int selecting;
     LineEditorWindow *search_box;
+    ArrayList undo_stack;
 } EditorWindow;
 
 typedef struct StatusWindow {

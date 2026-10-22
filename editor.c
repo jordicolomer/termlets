@@ -23,6 +23,7 @@
 #include "common.h"
 #include "config.h"
 #include "mystr.h"
+#include "collections.h"
 
 // int restore_insert_mode;
 
@@ -138,6 +139,7 @@ void Node_append(Node *node, char *text) {
     node->line[node->length] = '\0';
 }
 
+/*
 void EditorWindow_delete_region(EditorWindow *self) {
     if (self->selection.y == -1)
         return;
@@ -185,6 +187,7 @@ void EditorWindow_delete_region(EditorWindow *self) {
     update_lexer_state(node1, 1, self->language);
     set_modified(self, 1);
 }
+*/
 
 void EditorWindow_save(EditorWindow *self) {
     FILE *file = fopen(self->file_path, "w");
@@ -451,6 +454,8 @@ void load_file(EditorWindow *self, const char *filename) {
     }
     self->cursor.node = self->head;
     self->cursor.y = 0;
+	
+	ArrayList_init(&self->undo_stack, sizeof(UndoNode), 10);
 }
 
 void EditorWindow_run_lexer(EditorWindow *self) {
@@ -601,6 +606,16 @@ void EditorPointer_insert(EditorWindow *self, EditorPointer *cursor, char *cb) {
     }
 
     update_lexer_state(current, 1, self->language);
+}
+
+void EditorPointer_undo_insert(EditorWindow *self, EditorPointer *cursor, char *cb) {
+  ArrayList_append(&self->undo_stack, (char *)&(UndoNode){
+        .str = cb,
+        .y = cursor->y,
+        .ptr = cursor->ptr,
+		.is_insert = 0
+    });
+  EditorPointer_insert(self, cursor, cb);
 }
 
 void EditorPointer_vertical_move(EditorPointer *ep, int is_up, int count, int keep_horizontal) {
@@ -864,12 +879,23 @@ void EditorPointer_delete_region(EditorWindow *self, EditorPointer *ep1, EditorP
 }
 // end EditorPointer
 
+void EditorPointer_undo_delete_region(EditorWindow *self, EditorPointer *ep1, EditorPointer *ep2) {
+  char * cb = EditorPointer_copy_region_to_memory(ep1, ep2);
+  ArrayList_append(&self->undo_stack, (char *)&(UndoNode){
+        .str = cb,
+        .y = ep1->y,
+        .ptr = ep1->ptr,
+		.is_insert = 1
+    });
+  EditorPointer_delete_region(self, ep1, ep2);
+}
+
 // EditorWindow
 
 void EditorWindow_paste(EditorWindow *self) {
     char *cb = clipboard_paste();
 
-    EditorPointer_insert(self, &self->cursor, cb);
+    EditorPointer_undo_insert(self, &self->cursor, cb);
 
     // Check if clipboard is empty
     if (cb == NULL || *cb == '\0') {
@@ -890,7 +916,7 @@ void EditorWindow_insert(EditorWindow *self, char c) {
     char buf[2];
     buf[0] = c;
     buf[1] = 0;
-    EditorPointer_insert(self, &self->cursor, buf);
+    EditorPointer_undo_insert(self, &self->cursor, buf);
 }
 
 void EditorWindow_newline(EditorWindow *self) { EditorWindow_insert(self, '\n'); }
@@ -910,7 +936,7 @@ void EditorWindow_copy(EditorWindow *self) {
 
 void EditorWindow_cut(EditorWindow *self) {
     _EditorWindow_copy(self);
-    EditorPointer_delete_region(self, &self->cursor, &self->selection);
+    EditorPointer_undo_delete_region(self, &self->cursor, &self->selection);
 
     EditorWindow_update_height(self);
     set_modified(self, 1);
@@ -1005,7 +1031,7 @@ void EditorWindow_backspace(EditorWindow *self) {
     EditorPointer pointer;
     pointer = self->cursor;
     EditorPointer_left(&pointer);
-    EditorPointer_delete_region(self, &self->cursor, &pointer);
+    EditorPointer_undo_delete_region(self, &self->cursor, &pointer);
 }
 
 void EditorWindow_delete_word(EditorWindow *self) {
@@ -1013,7 +1039,7 @@ void EditorWindow_delete_word(EditorWindow *self) {
     EditorPointer pointer;
     pointer = self->cursor;
     EditorPointer_prev_char(&pointer, next_word_chars);
-    EditorPointer_delete_region(self, &self->cursor, &pointer);
+    EditorPointer_undo_delete_region(self, &self->cursor, &pointer);
 }
 
 void EditorWindow_delete(EditorWindow *self) {
@@ -1021,7 +1047,7 @@ void EditorWindow_delete(EditorWindow *self) {
     EditorPointer pointer;
     pointer = self->cursor;
     EditorPointer_right(&pointer);
-    EditorPointer_delete_region(self, &self->cursor, &pointer);
+    EditorPointer_undo_delete_region(self, &self->cursor, &pointer);
 }
 
 void EditorWindow_send_sequence(Window *win, const char *seq, int len) {
@@ -1137,7 +1163,7 @@ void EditorWindow_action_indent(EditorWindow *self) {
         MyStr_init(&start_ptr.str_ite, current_node->line);
         MyStr_next_cluster(&start_ptr.str_ite);
 
-        EditorPointer_delete_region(self, &end_ptr, &start_ptr);
+        EditorPointer_undo_delete_region(self, &end_ptr, &start_ptr);
 
         // Update cursor to the start position after deletion
         self->cursor = start_ptr;
@@ -1256,6 +1282,22 @@ void EditorWindow_action_search(EditorWindow *self) {
 }
 
 // end of search
+
+void EditorWindow_undo(EditorWindow *self) {
+  LOG_INFO("EditorWindow_undo");
+  ArrayList *stack = &self->undo_stack;
+  ArrayListIterator ite = stack->first;
+  while (ArrayListIteratorValid(stack, &ite)){
+	UndoNode * undo_node = ArrayListIteratorElement(stack, &ite);
+	if (undo_node != NULL){
+	  LOG_INFO("EditorWindow_undo %s %d %d %d", undo_node->str, undo_node->y, undo_node->ptr, undo_node->is_insert);
+	}
+	ArrayListIteratorNext(stack, &ite);
+  }
+}
+
+void EditorWindow_redo(EditorWindow *self) {
+}
 
 void EditorWindow_send_key(Window *win, char c) {
 
@@ -1395,6 +1437,14 @@ void EditorWindow_send_key(Window *win, char c) {
     }
     if (action == ACTION_DELETE_WORD) {
         EditorWindow_delete_word(self);
+        return;
+    }
+    if (action == ACTION_UNDO) {
+        EditorWindow_undo(self);
+        return;
+    }
+    if (action == ACTION_REDO) {
+        EditorWindow_redo(self);
         return;
     }
     if ((c > 31 || c == '\t')) {
@@ -1778,6 +1828,10 @@ Window *Editor_menu(EditorFrame *self) {
                      create_lambda(Editor_on_selected, 2, self, EditorWindow_copy));
     Menu_add_element(edit, " 📌 Paste  Ctrl+V",
                      create_lambda(Editor_on_selected, 2, self, EditorWindow_paste));
+    Menu_add_element(edit, " ↩️ Undo   z",
+                     create_lambda(Editor_on_selected, 2, self, EditorWindow_undo));
+    Menu_add_element(edit, " ↪️ Redo   Z",
+                     create_lambda(Editor_on_selected, 2, self, EditorWindow_redo));
     Menu_add_element(edit, "", NULL);
     Menu_add_submenu(menu, " Edit ", edit);
 
@@ -1827,6 +1881,10 @@ Window *Editor_toolbar(EditorFrame *self) {
                      create_lambda(Editor_on_selected, 2, self, EditorWindow_copy));
     Menu_add_element(toolbar, " 📌 Paste ",
                      create_lambda(Editor_on_selected, 2, self, EditorWindow_paste));
+    Menu_add_element(toolbar, " ↩️ Undo ",
+                     create_lambda(Editor_on_selected, 2, self, EditorWindow_undo));
+    Menu_add_element(toolbar, " ↪️ Redo ",
+                     create_lambda(Editor_on_selected, 2, self, EditorWindow_redo));
 
     toolbar->top = 1;
 
