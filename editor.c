@@ -949,13 +949,13 @@ void EditorWindow_undo(EditorWindow *self) {
 		    EditorPointer cursor = get_cursor(self, undo_node->y, undo_node->ptr);
             if (undo_node->is_insert == 1) {
                 EditorPointer_insert(self, &cursor, undo_node->str);
-				self->cursor = cursor;
             } else {
 			    int n_bytes = strlen(undo_node->str);
 				//LOG_INFO("EditorWindow_undo %s %d %d %d %d", undo_node->str, n_bytes, undo_node->y, undo_node->ptr, undo_node->is_insert);
 				EditorPointer_delete_region_bytes(self, &cursor, n_bytes);
-				self->cursor = cursor;
 			}
+			self->cursor = cursor;
+			EditorWindow_make_cursor_visible(self);
         }
         ArrayListIteratorPrev(stack, &self->undo_pointer);
     }

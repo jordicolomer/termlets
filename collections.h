@@ -19,6 +19,8 @@ typedef struct ArrayListIterator {
 typedef struct ArrayList {
     ArrayListIterator first;
     ArrayListIterator last;
+    ArrayListNode *first_node;
+    ArrayListNode *last_node;
     uint32_t elementSize;
     uint32_t arraySize;
     uint32_t count;
