@@ -23,6 +23,7 @@ void _ArrayList_add_node(ArrayList *self) {
     if (self->last.ar != NULL) {
         self->last.ar->next = node;
     }
+    node->prev = self->last.ar;
     self->last.ar = node;
 }
 
@@ -42,12 +43,24 @@ void ArrayListIteratorNext(ArrayList *self, ArrayListIterator *ite) {
     }
 }
 
+void ArrayListIteratorPrev(ArrayList *self, ArrayListIterator *ite) {
+    ite->idx--;
+    if (ite->idx < 0) {
+        ite->ar = ite->ar->prev;
+        ite->idx = self->arraySize - 1;
+    }
+}
+
 int ArrayListIteratorValid(ArrayList *self, ArrayListIterator *ite) {
     if (ite->ar == NULL)
         return 0;
     if (ite->ar == self->last.ar && ite->idx > self->last.idx)
         return 0;
     return 1;
+}
+
+int ArrayListIteratorIsFirst(ArrayList *self, ArrayListIterator *ite) {
+    return (ite->ar == self->first.ar && ite->idx == 0);
 }
 
 char *ArrayListIteratorElement(ArrayList *self, ArrayListIterator *ite) {

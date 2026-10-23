@@ -454,8 +454,8 @@ void load_file(EditorWindow *self, const char *filename) {
     }
     self->cursor.node = self->head;
     self->cursor.y = 0;
-	
-	ArrayList_init(&self->undo_stack, sizeof(UndoNode), 10);
+
+    ArrayList_init(&self->undo_stack, sizeof(UndoNode), 10);
 }
 
 void EditorWindow_run_lexer(EditorWindow *self) {
@@ -606,16 +606,6 @@ void EditorPointer_insert(EditorWindow *self, EditorPointer *cursor, char *cb) {
     }
 
     update_lexer_state(current, 1, self->language);
-}
-
-void EditorPointer_undo_insert(EditorWindow *self, EditorPointer *cursor, char *cb) {
-  ArrayList_append(&self->undo_stack, (char *)&(UndoNode){
-	  .str = strdup(cb),
-        .y = cursor->y,
-        .ptr = cursor->str_ite.pos_bytes,
-		.is_insert = 0
-    });
-  EditorPointer_insert(self, cursor, cb);
 }
 
 void EditorPointer_vertical_move(EditorPointer *ep, int is_up, int count, int keep_horizontal) {
@@ -867,6 +857,7 @@ void EditorPointer_delete_region(EditorWindow *self, EditorPointer *ep1, EditorP
     // Reinitialize the iterator for the modified line and position at target column
     MyStr_init(&ep1->str_ite, node1->line);
     MyStr_next_cluster(&ep1->str_ite);
+	//LOG_INFO("MyStr_get_grapheme_at_column %d", target_column);
     MyStr_get_grapheme_at_column(&ep1->str_ite, target_column);
 
     // Update node reference
@@ -879,6 +870,18 @@ void EditorPointer_delete_region(EditorWindow *self, EditorPointer *ep1, EditorP
 }
 // end EditorPointer
 
+// start undo
+void EditorPointer_undo_insert(EditorWindow *self, EditorPointer *cursor, char *cb) {
+    ArrayList *stack = &self->undo_stack;
+	//LOG_INFO("EditorPointer_undo_insert %d", cursor->str_ite.cluster_start);
+    ArrayList_append(stack, (char *)&(UndoNode){.str = strdup(cb),
+                                                .y = cursor->y,
+                                                .ptr = cursor->str_ite.cluster_start,
+                                                .is_insert = 0});
+    self->undo_pointer = stack->last;
+    EditorPointer_insert(self, cursor, cb);
+}
+
 void EditorPointer_undo_delete_region(EditorWindow *self, EditorPointer *ep1, EditorPointer *ep2) {
     int cmp = EditorPointer_cmp(ep1, ep2);
     if (cmp == 0)
@@ -888,16 +891,78 @@ void EditorPointer_undo_delete_region(EditorWindow *self, EditorPointer *ep1, Ed
         ep1 = ep2;
         ep2 = tmp;
     }
-  
-  char * cb = EditorPointer_copy_region_to_memory(ep1, ep2);
-  ArrayList_append(&self->undo_stack, (char *)&(UndoNode){
-        .str = cb,
-        .y = ep1->y,
-        .ptr = ep1->str_ite.pos_bytes,
-		.is_insert = 1
-    });
-  EditorPointer_delete_region(self, ep1, ep2);
+
+    char *cb = EditorPointer_copy_region_to_memory(ep1, ep2);
+    ArrayList *stack = &self->undo_stack;
+    ArrayList_append(
+        stack,
+        (char *)&(UndoNode){.str = cb, .y = ep1->y, .ptr = ep1->str_ite.cluster_start, .is_insert = 1});
+    self->undo_pointer = stack->last;
+    EditorPointer_delete_region(self, ep1, ep2);
 }
+
+EditorPointer get_cursor(EditorWindow *self, int y, int ptr) {
+    EditorPointer pointer;
+    Node *node = EditorWindow_get_line_number(self, y);
+
+    MyStr_init(&pointer.str_ite, node->line);
+    MyStr_get_grapheme_at_idx(&pointer.str_ite, ptr);
+    pointer.node = node;
+    pointer.y = y;
+    return pointer;
+}
+
+void EditorPointer_advance_bytes(EditorPointer *cursor, int n_bytes) {
+  while (n_bytes > 0){
+	EditorPointer_right(cursor);
+	n_bytes -= cursor->str_ite.width_bytes;
+  }
+}
+
+void EditorPointer_delete_region_bytes(EditorWindow *self, EditorPointer *ep1, int n_bytes) {
+  EditorPointer ep2 = *ep1;
+  EditorPointer_advance_bytes(&ep2, n_bytes);
+  EditorPointer_delete_region(self, ep1, &ep2);
+}
+
+void EditorWindow_undo(EditorWindow *self) {
+    /*LOG_INFO("EditorWindow_undo");
+    ArrayListIterator ite = stack->first;
+    while (ArrayListIteratorValid(stack, &ite)){
+          UndoNode * undo_node = ArrayListIteratorElement(stack, &ite);
+          if (undo_node != NULL){
+            LOG_INFO("EditorWindow_undo %s %d %d %d", undo_node->str, undo_node->y, undo_node->ptr,
+    undo_node->is_insert);
+          }
+          ArrayListIteratorNext(stack, &ite);
+    }
+    ite = stack->last;
+    UndoNode * undo_node = ArrayListIteratorElement(stack, &ite);
+    if (undo_node != NULL){
+          LOG_INFO("EditorWindow_undo (last) %s %d %d %d", undo_node->str, undo_node->y,
+    undo_node->ptr, undo_node->is_insert);
+          }*/
+    ArrayList *stack = &self->undo_stack;
+    if (ArrayListIteratorValid (stack, &self->undo_pointer)) {
+        UndoNode *undo_node = ArrayListIteratorElement(stack, &self->undo_pointer);
+        if (undo_node != NULL) {
+		    EditorPointer cursor = get_cursor(self, undo_node->y, undo_node->ptr);
+            if (undo_node->is_insert == 1) {
+                EditorPointer_insert(self, &cursor, undo_node->str);
+				self->cursor = cursor;
+            } else {
+			    int n_bytes = strlen(undo_node->str);
+				//LOG_INFO("EditorWindow_undo %s %d %d %d %d", undo_node->str, n_bytes, undo_node->y, undo_node->ptr, undo_node->is_insert);
+				EditorPointer_delete_region_bytes(self, &cursor, n_bytes);
+				self->cursor = cursor;
+			}
+        }
+        ArrayListIteratorPrev(stack, &self->undo_pointer);
+    }
+}
+
+void EditorWindow_redo(EditorWindow *self) {}
+// end undo
 
 // EditorWindow
 
@@ -1291,22 +1356,6 @@ void EditorWindow_action_search(EditorWindow *self) {
 }
 
 // end of search
-
-void EditorWindow_undo(EditorWindow *self) {
-  LOG_INFO("EditorWindow_undo");
-  ArrayList *stack = &self->undo_stack;
-  ArrayListIterator ite = stack->first;
-  while (ArrayListIteratorValid(stack, &ite)){
-	UndoNode * undo_node = ArrayListIteratorElement(stack, &ite);
-	if (undo_node != NULL){
-	  LOG_INFO("EditorWindow_undo %s %d %d %d", undo_node->str, undo_node->y, undo_node->ptr, undo_node->is_insert);
-	}
-	ArrayListIteratorNext(stack, &ite);
-  }
-}
-
-void EditorWindow_redo(EditorWindow *self) {
-}
 
 void EditorWindow_send_key(Window *win, char c) {
 
@@ -1779,7 +1828,7 @@ EditorFrame *last_frame;
 
 EditorWindow *Editor_get_focused_window(EditorFrame *self) {
     Tab *tab = self->tabs->selected_tab;
-    return tab->child->head;
+    return tab->child->head->head;
 }
 
 void Editor_on_selected(EditorFrame *self, void fn()) {

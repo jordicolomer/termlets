@@ -7,6 +7,7 @@ typedef struct ArrayListNode ArrayListNode;
 
 typedef struct ArrayListNode {
     ArrayListNode *next;
+    ArrayListNode *prev;
     char data[];
 } ArrayListNode;
 
@@ -26,6 +27,8 @@ typedef struct ArrayList {
 void ArrayList_init(ArrayList *self, uint32_t elementSize, uint32_t arraySize);
 int ArrayListIteratorValid(ArrayList *self, ArrayListIterator *ite);
 void ArrayListIteratorNext(ArrayList *self, ArrayListIterator *ite);
+void ArrayListIteratorPrev(ArrayList *self, ArrayListIterator *ite);
+int ArrayListIteratorIsFirst(ArrayList *self, ArrayListIterator *ite);
 char *ArrayListIteratorElement(ArrayList *self, ArrayListIterator *ite);
 void ArrayList_append(ArrayList *self, char *data);
 void ArrayList_reset(ArrayList *self);

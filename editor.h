@@ -17,7 +17,7 @@ typedef struct Node {
 } Node;
 
 typedef struct UndoNode {
-    char * str;
+    char *str;
     int y;
     int ptr;
     int is_insert;
@@ -52,6 +52,7 @@ typedef struct EditorWindow { // this is the scrollable part of the editor
     int selecting;
     LineEditorWindow *search_box;
     ArrayList undo_stack;
+    ArrayListIterator undo_pointer;
 } EditorWindow;
 
 typedef struct StatusWindow {
