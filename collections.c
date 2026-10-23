@@ -11,7 +11,7 @@ void ArrayList_init(ArrayList *self, uint32_t elementSize, uint32_t arraySize) {
     self->first.idx = 0;
     self->last.ar = NULL;
     self->last.idx = 0;
-    self->count = 0;
+    //self->count = 0;
     self->first_node = NULL;
     self->last_node = NULL;
 }
@@ -58,6 +58,12 @@ int ArrayListIteratorValid(ArrayList *self, ArrayListIterator *ite) {
     return 1;
 }
 
+int ArrayListIteratorEquals(ArrayListIterator *ite2, ArrayListIterator *ite1) {
+    if (ite1->ar != ite2->ar) return 0;
+    if (ite1->idx != ite2->idx) return 0;
+	return 1;
+}
+
 int ArrayListIteratorIsFirst(ArrayList *self, ArrayListIterator *ite) {
     return (ite->ar == self->first.ar && ite->idx == 0);
 }
@@ -83,13 +89,13 @@ void ArrayList_append(ArrayList *self, char *data) {
     char *elem = ArrayListIteratorElement(self, &self->last);
     //LOG_INFO("ArrayList_append: %p", elem);
     memcpy(elem, data, self->elementSize);
-    self->count++;
+    //self->count++;
 }
 
 void ArrayList_reset(ArrayList *self) {
     self->last.ar = NULL;
     self->last.idx = 0;
-    self->count = 0;
+    //self->count = 0;
 }
 
 // hashmap

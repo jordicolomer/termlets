@@ -456,6 +456,10 @@ void load_file(EditorWindow *self, const char *filename) {
     self->cursor.y = 0;
 
     ArrayList_init(&self->undo_stack, sizeof(UndoNode), 10);
+
+	// add sentinel
+	ArrayList_append(&self->undo_stack, (char *)&(UndoNode){.str = 0,.y = 0,.ptr = 0,.is_insert = 0});
+    self->undo_pointer = self->undo_stack.last;
 }
 
 void EditorWindow_run_lexer(EditorWindow *self) {
@@ -875,6 +879,10 @@ void EditorPointer_delete_region(EditorWindow *self, EditorPointer *ep1, EditorP
 void EditorPointer_undo_insert(EditorWindow *self, EditorPointer *cursor, char *cb) {
     ArrayList *stack = &self->undo_stack;
 	//LOG_INFO("EditorPointer_undo_insert %d", cursor->str_ite.cluster_start);
+	/*if (!ArrayListIteratorEquals(&stack->last, &self->undo_pointer)){
+	  LOG_INFO("this should not happen");
+	  }*/
+	stack->last = self->undo_pointer;
     ArrayList_append(stack, (char *)&(UndoNode){.str = strdup(cb),
                                                 .y = cursor->y,
                                                 .ptr = cursor->str_ite.cluster_start,
@@ -897,6 +905,10 @@ void EditorPointer_undo_delete_region(EditorWindow *self, EditorPointer *ep1, Ed
     ArrayList *stack = &self->undo_stack;
 	//LOG_INFO("EditorPointer_undo_delete_region ep1 %d %d", ep1->str_ite.cluster_start, ep1->str_ite.width_bytes);
 	//LOG_INFO("EditorPointer_undo_delete_region ep2 %d %d", ep2->str_ite.cluster_start, ep2->str_ite.width_bytes);
+	/*if (!ArrayListIteratorEquals(&stack->last, &self->undo_pointer)){
+	  LOG_INFO("this should not happen %d %d %d %d", stack->last.ar, stack->last.idx, self->undo_pointer.ar, self->undo_pointer.idx);
+	  }*/
+	stack->last = self->undo_pointer;
     ArrayList_append(
         stack,
         (char *)&(UndoNode){.str = cb, .y = ep1->y, .ptr = ep1->str_ite.cluster_start, .is_insert = 1});
@@ -952,10 +964,11 @@ void EditorWindow_undo(EditorWindow *self) {
     undo_node->ptr, undo_node->is_insert);
           }*/
     ArrayList *stack = &self->undo_stack;
-	if (!ArrayListIteratorValid (stack, &self->undo_pointer) && self->undo_pointer.ar != NULL) {
-	  self->undo_pointer = stack->last;
-	}
-    if (ArrayListIteratorValid (stack, &self->undo_pointer)) {
+	//if (!ArrayListIteratorValid (stack, &self->undo_pointer) && self->undo_pointer.ar != NULL) {
+	//  self->undo_pointer = stack->last;
+	//}
+    //if (ArrayListIteratorValid (stack, &self->undo_pointer)) {
+	if (!ArrayListIteratorEquals(&stack->first, &self->undo_pointer)) {
         UndoNode *undo_node = ArrayListIteratorElement(stack, &self->undo_pointer);
         if (undo_node != NULL) {
 		    EditorPointer cursor = get_cursor(self, undo_node->y, undo_node->ptr);
@@ -977,14 +990,16 @@ void EditorWindow_redo(EditorWindow *self) {
     ArrayList *stack = &self->undo_stack;
 
 	// if before first, init to first
-	if (self->undo_pointer.ar == NULL){
-	  self->undo_pointer.ar = stack->first_node;
-	  self->undo_pointer.idx = 0;
-	}
-    if (ArrayListIteratorValid (stack, &self->undo_pointer)) {
+	//if (self->undo_pointer.ar == NULL){
+	//  self->undo_pointer.ar = stack->first_node;
+	//  self->undo_pointer.idx = 0;
+	//}
+    //if (ArrayListIteratorValid (stack, &self->undo_pointer)) {
+	if (!ArrayListIteratorEquals(&stack->last, &self->undo_pointer)) {
+        ArrayListIteratorNext(stack, &self->undo_pointer);
         UndoNode *undo_node = ArrayListIteratorElement(stack, &self->undo_pointer);
 		int n_bytes = strlen(undo_node->str);
-		LOG_INFO("EditorWindow_redo %s %d %d %d %d", undo_node->str, n_bytes, undo_node->y, undo_node->ptr, undo_node->is_insert);
+		//LOG_INFO("EditorWindow_redo %s %d %d %d %d", undo_node->str, n_bytes, undo_node->y, undo_node->ptr, undo_node->is_insert);
         if (undo_node != NULL) {
 		    EditorPointer cursor = get_cursor(self, undo_node->y, undo_node->ptr);
             if (undo_node->is_insert == 0) {
@@ -997,7 +1012,6 @@ void EditorWindow_redo(EditorWindow *self) {
 			self->cursor = get_cursor(self, undo_node->y, undo_node->ptr);
 			EditorWindow_make_cursor_visible(self);
         }
-        ArrayListIteratorNext(stack, &self->undo_pointer);
     }
 }
 // end undo
