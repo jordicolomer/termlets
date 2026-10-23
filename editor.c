@@ -803,6 +803,7 @@ char *EditorPointer_copy_region_to_memory(EditorPointer *ep1, EditorPointer *ep2
     return buf;
 }
 
+// i think ep1 is excluded and ep2 included
 void EditorPointer_delete_region(EditorWindow *self, EditorPointer *ep1, EditorPointer *ep2) {
     int cmp = EditorPointer_cmp(ep1, ep2);
     if (cmp == 0)
@@ -894,28 +895,36 @@ void EditorPointer_undo_delete_region(EditorWindow *self, EditorPointer *ep1, Ed
 
     char *cb = EditorPointer_copy_region_to_memory(ep1, ep2);
     ArrayList *stack = &self->undo_stack;
+	//LOG_INFO("EditorPointer_undo_delete_region ep1 %d %d", ep1->str_ite.cluster_start, ep1->str_ite.width_bytes);
+	//LOG_INFO("EditorPointer_undo_delete_region ep2 %d %d", ep2->str_ite.cluster_start, ep2->str_ite.width_bytes);
     ArrayList_append(
         stack,
         (char *)&(UndoNode){.str = cb, .y = ep1->y, .ptr = ep1->str_ite.cluster_start, .is_insert = 1});
     self->undo_pointer = stack->last;
     EditorPointer_delete_region(self, ep1, ep2);
+	//LOG_INFO("EditorPointer_undo_delete_region %d %d", ep1->str_ite.cluster_start, ep1->str_ite.width_bytes);
 }
 
 EditorPointer get_cursor(EditorWindow *self, int y, int ptr) {
     EditorPointer pointer;
     Node *node = EditorWindow_get_line_number(self, y);
+	
+	//LOG_INFO("get_cursor %s", node->line);
 
     MyStr_init(&pointer.str_ite, node->line);
     MyStr_get_grapheme_at_idx(&pointer.str_ite, ptr);
+	//LOG_INFO("ptr:%d pos_column:%d width_bytes:%d", ptr, pointer.str_ite.pos_column, pointer.str_ite.width_bytes);
     pointer.node = node;
     pointer.y = y;
     return pointer;
 }
 
 void EditorPointer_advance_bytes(EditorPointer *cursor, int n_bytes) {
+  //LOG_INFO("EditorPointer_advance_bytes");
   while (n_bytes > 0){
+	//LOG_INFO("EditorPointer_right cluster_size:%d n_bytes:%d", cursor->str_ite.cluster_size, n_bytes);
+	n_bytes -= cursor->str_ite.cluster_size;
 	EditorPointer_right(cursor);
-	n_bytes -= cursor->str_ite.width_bytes;
   }
 }
 
@@ -981,6 +990,8 @@ void EditorWindow_redo(EditorWindow *self) {
             if (undo_node->is_insert == 0) {
                 EditorPointer_insert(self, &cursor, undo_node->str);
             } else {
+			  //LOG_INFO("cursor %.*s", cursor.str_ite.width_bytes, cursor.str_ite.current+cursor.str_ite.pos_bytes);
+			  LOG_INFO("cursor %d", cursor.str_ite.width_column);
 				EditorPointer_delete_region_bytes(self, &cursor, n_bytes);
 			}
 			self->cursor = get_cursor(self, undo_node->y, undo_node->ptr);
