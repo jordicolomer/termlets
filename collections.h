@@ -23,7 +23,7 @@ typedef struct ArrayList {
     ArrayListNode *last_node;
     uint32_t elementSize;
     uint32_t arraySize;
-  //uint32_t count; // this should be in iterator if you need it
+    // uint32_t count; // this should be in iterator if you need it
 } ArrayList;
 
 void ArrayList_init(ArrayList *self, uint32_t elementSize, uint32_t arraySize);

@@ -373,7 +373,6 @@ int start() {
 
 #include "debug.h"
 
-
 int parse_args(int argc, char **argv) {
 
     for (int i = 1; i < argc; i++) {
