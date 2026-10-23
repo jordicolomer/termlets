@@ -550,6 +550,9 @@ int MyStr_get_grapheme_at_index(MyStr *mystr, int cluster_id) {
 }
 
 int MyStr_get_grapheme_at_idx(MyStr *mystr, int idx) {
+  if (idx == 0){
+	return MyStr_next_cluster(mystr);
+  }
     while (mystr->cluster_start < idx) {
         if (!MyStr_next_cluster(mystr))
             return 0;

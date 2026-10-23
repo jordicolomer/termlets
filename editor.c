@@ -943,25 +943,52 @@ void EditorWindow_undo(EditorWindow *self) {
     undo_node->ptr, undo_node->is_insert);
           }*/
     ArrayList *stack = &self->undo_stack;
+	if (!ArrayListIteratorValid (stack, &self->undo_pointer) && self->undo_pointer.ar != NULL) {
+	  self->undo_pointer = stack->last;
+	}
     if (ArrayListIteratorValid (stack, &self->undo_pointer)) {
         UndoNode *undo_node = ArrayListIteratorElement(stack, &self->undo_pointer);
         if (undo_node != NULL) {
 		    EditorPointer cursor = get_cursor(self, undo_node->y, undo_node->ptr);
+			int n_bytes = strlen(undo_node->str);
+			LOG_INFO("EditorWindow_undo %s %d %d %d %d", undo_node->str, n_bytes, undo_node->y, undo_node->ptr, undo_node->is_insert);
             if (undo_node->is_insert == 1) {
                 EditorPointer_insert(self, &cursor, undo_node->str);
             } else {
-			    int n_bytes = strlen(undo_node->str);
-				//LOG_INFO("EditorWindow_undo %s %d %d %d %d", undo_node->str, n_bytes, undo_node->y, undo_node->ptr, undo_node->is_insert);
 				EditorPointer_delete_region_bytes(self, &cursor, n_bytes);
 			}
-			self->cursor = cursor;
+			self->cursor = get_cursor(self, undo_node->y, undo_node->ptr);
 			EditorWindow_make_cursor_visible(self);
         }
         ArrayListIteratorPrev(stack, &self->undo_pointer);
     }
 }
 
-void EditorWindow_redo(EditorWindow *self) {}
+void EditorWindow_redo(EditorWindow *self) {
+    ArrayList *stack = &self->undo_stack;
+
+	// if before first, init to first
+	if (self->undo_pointer.ar == NULL){
+	  self->undo_pointer.ar = stack->first_node;
+	  self->undo_pointer.idx = 0;
+	}
+    if (ArrayListIteratorValid (stack, &self->undo_pointer)) {
+        UndoNode *undo_node = ArrayListIteratorElement(stack, &self->undo_pointer);
+		int n_bytes = strlen(undo_node->str);
+		LOG_INFO("EditorWindow_redo %s %d %d %d %d", undo_node->str, n_bytes, undo_node->y, undo_node->ptr, undo_node->is_insert);
+        if (undo_node != NULL) {
+		    EditorPointer cursor = get_cursor(self, undo_node->y, undo_node->ptr);
+            if (undo_node->is_insert == 0) {
+                EditorPointer_insert(self, &cursor, undo_node->str);
+            } else {
+				EditorPointer_delete_region_bytes(self, &cursor, n_bytes);
+			}
+			self->cursor = get_cursor(self, undo_node->y, undo_node->ptr);
+			EditorWindow_make_cursor_visible(self);
+        }
+        ArrayListIteratorNext(stack, &self->undo_pointer);
+    }
+}
 // end undo
 
 // EditorWindow
@@ -1764,10 +1791,10 @@ void status_bar_draw(Window *w, int hasFocus) {
 
     snprintf(self->status_str, sizeof(self->status_str),
              "line:%d/%d (%d%%) column:%d [%s] width:%d "
-             "cluster_start:%d cluster_size:%d pos_cluster:%d width_codepoints:%d",
+             "cluster_start:%d cluster_size:%d pos_cluster:%d width_codepoints:%d width_bytes:%d",
              line, n_lines, pct, str_ite->pos_column, codepoints_str, str_ite->width_column,
              str_ite->cluster_start, str_ite->cluster_size, str_ite->pos_cluster,
-             str_ite->width_codepoints);
+             str_ite->width_codepoints, str_ite->width_bytes);
     // LOG_INFO("line %s y:%d, geo.x:%d, geo.width:%d", self->status_str, y, geo.x, geo.width);
     Buffer_print(&main_buf, y, geo.x, geo.width, self->status_str, fg, bg);
 }
