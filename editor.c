@@ -1642,6 +1642,7 @@ void EditorWindow_draw(struct Window *w, int hasFocus) {
         if (self->language > LANG_NONE) {
             Lexer lexer;
             Token token;
+			token.start_screen = 0;
             lexer_init(&lexer, str, self->language);
             if (current != NULL)
                 lexer.state = current->lexerState;
