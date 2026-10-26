@@ -357,6 +357,318 @@ static const char *java_types[] = {
     "", // sentinel
 };
 
+static const char *js_keywords[] = {
+    /* Control flow */
+    "if",
+    "else",
+    "switch",
+    "case",
+    "default",
+    "while",
+    "do",
+    "for",
+
+    /* Jump statements */
+    "return",
+    "break",
+    "continue",
+
+    /* Function keywords */
+    "function",
+    "async",
+    "await",
+    "yield",
+
+    /* Variable declarations */
+    "var",
+    "let",
+    "const",
+
+    /* OOP keywords */
+    "class",
+    "extends",
+    "super",
+    "this",
+    "new",
+    "static",
+
+    /* Exception handling */
+    "try",
+    "catch",
+    "finally",
+    "throw",
+
+    /* Operators */
+    "typeof",
+    "instanceof",
+    "delete",
+    "in",
+    "of",
+    "void",
+
+    /* Module system */
+    "import",
+    "export",
+    "from",
+    "as",
+    "default",
+
+    /* Other keywords */
+    "with",
+    "debugger",
+
+    /* Reserved for future use */
+    "enum",
+    "implements",
+    "interface",
+    "package",
+    "private",
+    "protected",
+    "public",
+
+    "", // sentinel
+};
+
+static const char *js_types[] = {
+    /* Primitive wrapper objects */
+    "Object",
+    "Array",
+    "String",
+    "Number",
+    "Boolean",
+    "Symbol",
+    "BigInt",
+
+    /* Special values */
+    "undefined",
+    "null",
+    "true",
+    "false",
+    "NaN",
+    "Infinity",
+
+    /* Built-in objects */
+    "Function",
+    "Date",
+    "RegExp",
+    "Error",
+    "TypeError",
+    "ReferenceError",
+    "SyntaxError",
+    "RangeError",
+
+    /* Collections */
+    "Map",
+    "Set",
+    "WeakMap",
+    "WeakSet",
+    "Promise",
+
+    /* Typed arrays */
+    "ArrayBuffer",
+    "Int8Array",
+    "Uint8Array",
+    "Int16Array",
+    "Uint16Array",
+    "Int32Array",
+    "Uint32Array",
+    "Float32Array",
+    "Float64Array",
+
+    /* Global objects */
+    "Math",
+    "JSON",
+    "console",
+    "window",
+    "document",
+    "global",
+    "process",
+
+    /* Reflect and Proxy */
+    "Reflect",
+    "Proxy",
+
+    "", // sentinel
+};
+
+static const char *ts_keywords[] = {
+    /* Control flow */
+    "if",
+    "else",
+    "switch",
+    "case",
+    "default",
+    "while",
+    "do",
+    "for",
+
+    /* Jump statements */
+    "return",
+    "break",
+    "continue",
+
+    /* Function keywords */
+    "function",
+    "async",
+    "await",
+    "yield",
+
+    /* Variable declarations */
+    "var",
+    "let",
+    "const",
+
+    /* OOP keywords */
+    "class",
+    "extends",
+    "super",
+    "this",
+    "new",
+    "static",
+
+    /* Exception handling */
+    "try",
+    "catch",
+    "finally",
+    "throw",
+
+    /* Operators */
+    "typeof",
+    "instanceof",
+    "delete",
+    "in",
+    "of",
+    "void",
+
+    /* Module system */
+    "import",
+    "export",
+    "from",
+    "as",
+    "default",
+
+    /* TypeScript-specific keywords */
+    "interface",
+    "type",
+    "enum",
+    "namespace",
+    "module",
+    "declare",
+    "abstract",
+    "implements",
+    "public",
+    "private",
+    "protected",
+    "readonly",
+    "get",
+    "set",
+    "constructor",
+
+    /* Type operators */
+    "keyof",
+    "infer",
+    "is",
+    "asserts",
+    "satisfies",
+
+    /* Other keywords */
+    "with",
+    "debugger",
+    "package",
+
+    "", // sentinel
+};
+
+static const char *ts_types[] = {
+    /* TypeScript primitive types */
+    "any",
+    "unknown",
+    "never",
+    "void",
+    "string",
+    "number",
+    "boolean",
+    "bigint",
+    "symbol",
+    "object",
+    "undefined",
+    "null",
+
+    /* Special values */
+    "true",
+    "false",
+    "NaN",
+    "Infinity",
+
+    /* Built-in utility types */
+    "Partial",
+    "Required",
+    "Readonly",
+    "Record",
+    "Pick",
+    "Omit",
+    "Exclude",
+    "Extract",
+    "NonNullable",
+    "ReturnType",
+    "InstanceType",
+    "Parameters",
+    "ConstructorParameters",
+    "Awaited",
+
+    /* Primitive wrapper objects */
+    "Object",
+    "Array",
+    "String",
+    "Number",
+    "Boolean",
+    "Symbol",
+    "BigInt",
+
+    /* Built-in objects */
+    "Function",
+    "Date",
+    "RegExp",
+    "Error",
+    "TypeError",
+    "ReferenceError",
+    "SyntaxError",
+    "RangeError",
+
+    /* Collections */
+    "Map",
+    "Set",
+    "WeakMap",
+    "WeakSet",
+    "Promise",
+
+    /* Typed arrays */
+    "ArrayBuffer",
+    "Int8Array",
+    "Uint8Array",
+    "Int16Array",
+    "Uint16Array",
+    "Int32Array",
+    "Uint32Array",
+    "Float32Array",
+    "Float64Array",
+
+    /* Global objects */
+    "Math",
+    "JSON",
+    "console",
+    "window",
+    "document",
+    "global",
+    "process",
+
+    /* Reflect and Proxy */
+    "Reflect",
+    "Proxy",
+
+    "", // sentinel
+};
+
 void lexer_init(Lexer *l, const char *source, int lang) {
     l->source = source;
     l->pos = 0;
@@ -373,6 +685,12 @@ void lexer_init(Lexer *l, const char *source, int lang) {
     } else if (lang == LANG_JAVA){
 	  l->keywords = java_keywords;
 	  l->types = java_types;
+    } else if (lang == LANG_JS){
+	  l->keywords = js_keywords;
+	  l->types = js_types;
+    } else if (lang == LANG_TS){
+	  l->keywords = ts_keywords;
+	  l->types = ts_types;
     }
 	MyStr_init(&l->mystr, source);
 }
