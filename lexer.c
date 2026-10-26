@@ -669,6 +669,171 @@ static const char *ts_types[] = {
     "", // sentinel
 };
 
+static const char *python_keywords[] = {
+    /* Control flow */
+    "if",
+    "elif",
+    "else",
+    "while",
+    "for",
+    "break",
+    "continue",
+    "pass",
+
+    /* Function keywords */
+    "def",
+    "return",
+    "yield",
+    "lambda",
+
+    /* Class keywords */
+    "class",
+
+    /* Exception handling */
+    "try",
+    "except",
+    "finally",
+    "raise",
+    "assert",
+
+    /* Context managers */
+    "with",
+    "as",
+
+    /* Import statements */
+    "import",
+    "from",
+
+    /* Boolean and None */
+    "True",
+    "False",
+    "None",
+
+    /* Logical operators */
+    "and",
+    "or",
+    "not",
+    "is",
+    "in",
+
+    /* Variable scope */
+    "global",
+    "nonlocal",
+    "del",
+
+    /* Async */
+    "async",
+    "await",
+
+    /* Other */
+    "match",
+    "case",
+
+    "", // sentinel
+};
+
+static const char *python_types[] = {
+    /* Built-in types */
+    "int",
+    "float",
+    "complex",
+    "str",
+    "bool",
+    "list",
+    "tuple",
+    "dict",
+    "set",
+    "frozenset",
+    "bytes",
+    "bytearray",
+    "memoryview",
+    "range",
+
+    /* Special objects */
+    "object",
+    "type",
+    "super",
+    "property",
+    "staticmethod",
+    "classmethod",
+
+    /* Common built-in functions that look like types */
+    "len",
+    "enumerate",
+    "zip",
+    "map",
+    "filter",
+    "iter",
+    "next",
+    "reversed",
+    "sorted",
+    "sum",
+    "min",
+    "max",
+    "abs",
+    "round",
+    "pow",
+    "divmod",
+    "all",
+    "any",
+    "callable",
+    "isinstance",
+    "issubclass",
+    "hasattr",
+    "getattr",
+    "setattr",
+    "delattr",
+    "dir",
+    "vars",
+    "id",
+    "hash",
+    "hex",
+    "oct",
+    "bin",
+    "chr",
+    "ord",
+    "ascii",
+    "repr",
+    "format",
+    "open",
+    "input",
+    "print",
+
+    /* Common exceptions */
+    "Exception",
+    "BaseException",
+    "ValueError",
+    "TypeError",
+    "KeyError",
+    "IndexError",
+    "AttributeError",
+    "NameError",
+    "RuntimeError",
+    "NotImplementedError",
+    "StopIteration",
+    "ImportError",
+    "IOError",
+    "FileNotFoundError",
+    "ZeroDivisionError",
+    "KeyboardInterrupt",
+    "SystemExit",
+
+    /* Special names */
+    "self",
+    "cls",
+    "__init__",
+    "__name__",
+    "__main__",
+    "__file__",
+    "__doc__",
+    "__dict__",
+    "__class__",
+    "__str__",
+    "__repr__",
+
+    "", // sentinel
+};
+
 void lexer_init(Lexer *l, const char *source, int lang) {
     l->source = source;
     l->pos = 0;
@@ -691,6 +856,9 @@ void lexer_init(Lexer *l, const char *source, int lang) {
     } else if (lang == LANG_TS){
 	  l->keywords = ts_keywords;
 	  l->types = ts_types;
+    } else if (lang == LANG_PY){
+	  l->keywords = python_keywords;
+	  l->types = python_types;
     }
 	MyStr_init(&l->mystr, source);
 }
