@@ -886,7 +886,8 @@ ExplorerWindow *FileExplorer_file_list(Tabs *self) {
     w->win.id = "file list";
     int j = 0;
 
-    w->sort_by = -1;
+    w->sort_by = SORT_BY_DATE;
+    w->reversed[1] = 1;
 
     Window_add_widget(w, 0, 0, j, -1, -1, 1, w->path_label, 232, 255);
     j++;
