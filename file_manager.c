@@ -1224,17 +1224,17 @@ Window *FileExplorer_menu(ExplorerFrame *self) {
 
 Window *FileExplorer_toolbar(ExplorerFrame *self) {
     Menu *toolbar_menu = (Menu *)Menu_create_horizontal();
-    Menu_add_element(toolbar_menu, " ❌ Delete ", create_lambda(FileExplorer_menu_delete, 1, self));
-    Menu_add_element(toolbar_menu, " 🔪 Cut ", create_lambda(FileExplorer_menu_cut, 1, self));
-    Menu_add_element(toolbar_menu, " 📋 Copy ", create_lambda(FileExplorer_menu_copy, 1, self));
-    Menu_add_element(toolbar_menu, " 📌 Paste ", create_lambda(FileExplorer_menu_paste, 1, self));
-    Menu_add_element(toolbar_menu, " 🔤 Rename ", create_lambda(FileExplorer_menu_rename, 1, self));
-    Menu_add_element(toolbar_menu, " 🔄 Refresh ", create_lambda(ExplorerFrame_refresh, 1, self));
-    Menu_add_element(toolbar_menu, " 🔝 Up ",
+    Menu_add_element(toolbar_menu, " ❌ Delete", create_lambda(FileExplorer_menu_delete, 1, self));
+    Menu_add_element(toolbar_menu, " 🔪 Cut", create_lambda(FileExplorer_menu_cut, 1, self));
+    Menu_add_element(toolbar_menu, " 📋 Copy", create_lambda(FileExplorer_menu_copy, 1, self));
+    Menu_add_element(toolbar_menu, " 📌 Paste", create_lambda(FileExplorer_menu_paste, 1, self));
+    Menu_add_element(toolbar_menu, " 🔤 Rename", create_lambda(FileExplorer_menu_rename, 1, self));
+    Menu_add_element(toolbar_menu, " 🔄 Refresh", create_lambda(ExplorerFrame_refresh, 1, self));
+    Menu_add_element(toolbar_menu, " 🔝 Up",
                      create_lambda(ExplorerFrame_on_selected, 2, self, FileExplorer_up_one_level));
-    Menu_add_element(toolbar_menu, " 📝 Edit ",
+    Menu_add_element(toolbar_menu, " 📝 Edit",
                      create_lambda(ExplorerFrame_on_selected, 2, self, FileExplorer_edit));
-    Menu_add_element(toolbar_menu, " 💻 Terminal ",
+    Menu_add_element(toolbar_menu, " 💻 Terminal",
                      create_lambda(ExplorerFrame_on_selected, 2, self, FileExplorer_terminal));
 
     toolbar_menu->win.top = 1;

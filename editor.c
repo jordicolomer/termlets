@@ -1981,21 +1981,21 @@ Window *Editor_menu(EditorFrame *self) {
 
 Window *Editor_toolbar(EditorFrame *self) {
     Window *toolbar = Menu_create_horizontal();
-    Menu_add_element(toolbar, " 💾 Save ",
+    Menu_add_element(toolbar, " 💾 Save",
                      create_lambda(Editor_on_selected, 2, self, EditorWindow_save));
     // Menu_add_element(toolbar, " 📄 New ", create_lambda(Editor_menu_new, 1, self));
     // Menu_add_element(toolbar, " 🔄 Undo ", create_lambda(Editor_menu_new, 1, self));
     // Menu_add_element(toolbar, " ❌ Close ", create_lambda(Editor_menu_new, 1, self));
     // Menu_add_element(toolbar, " ❌ Delete ", create_lambda(Editor_menu_new, 1, self));
-    Menu_add_element(toolbar, " 🔪 Cut ",
+    Menu_add_element(toolbar, " 🔪 Cut",
                      create_lambda(Editor_on_selected, 2, self, EditorWindow_cut));
-    Menu_add_element(toolbar, " 📋 Copy ",
+    Menu_add_element(toolbar, " 📋 Copy",
                      create_lambda(Editor_on_selected, 2, self, EditorWindow_copy));
-    Menu_add_element(toolbar, " 📌 Paste ",
+    Menu_add_element(toolbar, " 📌 Paste",
                      create_lambda(Editor_on_selected, 2, self, EditorWindow_paste));
-    Menu_add_element(toolbar, " ↩️ Undo ",
+    Menu_add_element(toolbar, " ↩️ Undo",
                      create_lambda(Editor_on_selected, 2, self, EditorWindow_undo));
-    Menu_add_element(toolbar, " ↪️ Redo ",
+    Menu_add_element(toolbar, " ↪️ Redo",
                      create_lambda(Editor_on_selected, 2, self, EditorWindow_redo));
 
     toolbar->top = 1;
