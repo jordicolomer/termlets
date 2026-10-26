@@ -476,11 +476,12 @@ void EditorWindow_open_file(EditorWindow *editor_window, char *file_path) {
         editor_window->slider->id = file_path;
     }
     editor_window->file_path = strdup(file_path);
+	editor_window->language = LANG_NONE;
     if (ends_with_ignore_case(file_path, ".c"))
         editor_window->language = LANG_C;
     else if (ends_with_ignore_case(file_path, ".h"))
         editor_window->language = LANG_C;
-    else if (ends_with_ignore_case(file_path, ".cpp"))
+    else if (ends_with_ignore_case(file_path, ".cpp") || ends_with_ignore_case(file_path, ".cc"))
         editor_window->language = LANG_CPP;
     else if (ends_with_ignore_case(file_path, ".hpp"))
         editor_window->language = LANG_CPP;
@@ -492,7 +493,8 @@ void EditorWindow_open_file(EditorWindow *editor_window, char *file_path) {
         editor_window->language = LANG_TS;
     else if (ends_with_ignore_case(file_path, ".py"))
         editor_window->language = LANG_PY;
-    EditorWindow_run_lexer(editor_window);
+	if (editor_window->language != LANG_NONE)
+	  EditorWindow_run_lexer(editor_window);
 }
 
 void EditorWindow_reload(EditorWindow *editor_window) {
@@ -1059,6 +1061,7 @@ void EditorWindow_copy(EditorWindow *self) {
 }
 
 void EditorWindow_cut(EditorWindow *self) {
+  if (self->selection.y == -1) return;
     _EditorWindow_copy(self);
     EditorPointer_undo_delete_region(self, &self->cursor, &self->selection);
 
@@ -1814,9 +1817,9 @@ void status_bar_draw(Window *w, int hasFocus) {
     cluster_codepoints_to_string(str_ite, codepoints_str, sizeof(codepoints_str));
 
     snprintf(self->status_str, sizeof(self->status_str),
-             "line:%d/%d (%d%%) column:%d [%s] width:%d "
+             "lexerState:%d line:%d/%d (%d%%) column:%d [%s] width:%d "
              "cluster_start:%d cluster_size:%d pos_cluster:%d width_codepoints:%d width_bytes:%d",
-             line, n_lines, pct, str_ite->pos_column, codepoints_str, str_ite->width_column,
+             self->editor->cursor.node->lexerState, line, n_lines, pct, str_ite->pos_column, codepoints_str, str_ite->width_column,
              str_ite->cluster_start, str_ite->cluster_size, str_ite->pos_cluster,
              str_ite->width_codepoints, str_ite->width_bytes);
     // LOG_INFO("line %s y:%d, geo.x:%d, geo.width:%d", self->status_str, y, geo.x, geo.width);

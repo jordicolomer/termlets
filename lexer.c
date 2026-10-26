@@ -7,6 +7,7 @@
 #include <string.h>
 #include "lexer.h"
 #include "buffer.h"
+#include "mystr.h"
 
 int isalpha(char c) { return 'a' <= c && c <= 'z' || 'A' <= c && c <= 'Z'; }
 
@@ -104,6 +105,139 @@ static const char *c_types[] = {
     "", // sentinel
 };
 
+static const char *cpp_keywords[] = {
+    /* Control flow */
+    "if",
+    "else",
+    "switch",
+    "case",
+    "default",
+    "while",
+    "do",
+    "for",
+
+    /* Jump statements */
+    "return",
+    "break",
+    "continue",
+    "goto",
+
+    /* Exception handling */
+    "try",
+    "catch",
+    "throw",
+
+    /* OOP keywords */
+    "class",
+    "namespace",
+    "using",
+    "public",
+    "private",
+    "protected",
+    "friend",
+    "virtual",
+    "override",
+    "final",
+
+    /* Memory management */
+    "new",
+    "delete",
+    "this",
+
+    /* Template keywords */
+    "template",
+    "typename",
+
+    /* Type keywords */
+    "decltype",
+    "auto",
+
+    /* Function specifiers */
+    "explicit",
+    "inline",
+    "constexpr",
+    "consteval",
+    "constinit",
+    "noexcept",
+
+    /* Other keywords */
+    "operator",
+    "sizeof",
+    "typeid",
+    "static_cast",
+    "dynamic_cast",
+    "const_cast",
+    "reinterpret_cast",
+    "nullptr",
+    "alignof",
+    "alignas",
+    "static_assert",
+    "concept",
+    "requires",
+    "co_await",
+    "co_return",
+    "co_yield",
+
+    "", // sentinel
+};
+
+static const char *cpp_types[] = {
+    /* Fundamental types */
+    "void",
+    "bool",
+    "char",
+    "wchar_t",
+    "char8_t",
+    "char16_t",
+    "char32_t",
+    "short",
+    "int",
+    "long",
+    "float",
+    "double",
+    "signed",
+    "unsigned",
+
+    /* Type modifiers / qualifiers */
+    "const",
+    "volatile",
+    "mutable",
+    "constexpr",
+    "consteval",
+    "constinit",
+
+    /* Storage class */
+    "auto",
+    "register",
+    "static",
+    "extern",
+    "thread_local",
+
+    /* User-defined types */
+    "struct",
+    "union",
+    "enum",
+    "class",
+    "typedef",
+
+    /* Common typedefs */
+    "size_t",
+    "ptrdiff_t",
+    "nullptr_t",
+    "intptr_t",
+    "uintptr_t",
+    "int8_t",
+    "int16_t",
+    "int32_t",
+    "int64_t",
+    "uint8_t",
+    "uint16_t",
+    "uint32_t",
+    "uint64_t",
+
+    "", // sentinel
+};
+
 void lexer_init(Lexer *l, const char *source, int lang) {
     l->source = source;
     l->pos = 0;
@@ -111,10 +245,14 @@ void lexer_init(Lexer *l, const char *source, int lang) {
     l->state = LEX_BEGIN;
     l->finished = 0;
     l->lang = lang;
-    // if (lang == LANG_C){
-    l->keywords = c_keywords;
-    l->types = c_types;
-    //}
+    if (lang == LANG_C){
+	  l->keywords = c_keywords;
+	  l->types = c_types;
+    } else if (lang == LANG_CPP){
+	  l->keywords = cpp_keywords;
+	  l->types = cpp_types;
+    }
+	MyStr_init(&l->mystr, source);
 }
 
 int in_list(const char *c, int len, const char *kw[]) {
@@ -140,7 +278,20 @@ int lexer_next(Lexer *l, Token *out_token) {
 
     int emit = 0;
     while (1) {
-        char c = l->source[l->pos];
+	  //char c = l->source[l->pos];
+	  char c;
+		if (l->reprocess == 1){
+		  l->reprocess = 0;
+		} else {
+		  if (MyStr_next_cluster(&l->mystr)) {
+			if (l->mystr.width_codepoints > 1) continue;
+			if (l->mystr.first_codepoint > 256) continue;
+		  }
+		  else{
+			l->mystr.first_codepoint = 0;
+		  }
+		}
+		c = l->mystr.first_codepoint;
 
         switch (l->state) {
         case LEX_LITERAL_STRING_ESCAPE:
@@ -152,7 +303,8 @@ int lexer_next(Lexer *l, Token *out_token) {
             }
             if (c == '"') {
                 out_token->end = l->pos;
-                out_token->end_screen = l->pos_screen;
+                //out_token->end_screen = l->pos_screen;
+				out_token->end_screen = l->mystr.pos_column;
                 out_token->color = 125; // red
                 emit = 1;
                 l->state = LEX_NORMAL;
@@ -161,7 +313,8 @@ int lexer_next(Lexer *l, Token *out_token) {
         case LEX_BEGIN_HASH:
             if (c == '\0') {
                 out_token->end = l->pos;
-                out_token->end_screen = l->pos_screen;
+                //out_token->end_screen = l->pos_screen;
+				out_token->end_screen = l->mystr.pos_column;
                 out_token->color = 94; // brown
                 emit = 1;
                 l->finished = 1;
@@ -169,14 +322,15 @@ int lexer_next(Lexer *l, Token *out_token) {
             }
             break;
         case LEX_BEGIN:
+            /* fall through */ // ← Add this comment
+        case LEX_NORMAL:
             if (c == '#') {
                 l->state = LEX_BEGIN_HASH;
                 out_token->type = TOK_PREPROC;
                 out_token->start = l->pos;
-                out_token->start_screen = l->pos_screen;
+                //out_token->start_screen = l->pos_screen;
+                out_token->start_screen = l->mystr.pos_column;
             }
-            /* fall through */ // ← Add this comment
-        case LEX_NORMAL:
             if (c == '/') {
                 l->state = LEX_SLASH;
             }
@@ -184,14 +338,17 @@ int lexer_next(Lexer *l, Token *out_token) {
                 l->state = LEX_LITERAL_STRING;
                 out_token->type = TOK_LITERAL_STRING;
                 out_token->start = l->pos;
-                out_token->start_screen = l->pos_screen;
+                //out_token->start_screen = l->pos_screen;
+                out_token->start_screen = l->mystr.pos_column;
             }
             if (c == '{' || c == '}' || c == '(' || c == ')' || c == '[' || c == ']') {
                 out_token->type = TOK_BRACKET;
                 out_token->start = l->pos;
                 out_token->end = l->pos + 1;
-                out_token->start_screen = l->pos_screen;
-                out_token->end_screen = l->pos_screen + 1;
+                //out_token->start_screen = l->pos_screen;
+                out_token->start_screen = l->mystr.pos_column;
+                //out_token->end_screen = l->pos_screen + 1;
+                out_token->end_screen = l->mystr.pos_column + 1;
                 out_token->color = 27; // blue
                 emit = 1;
             }
@@ -199,20 +356,24 @@ int lexer_next(Lexer *l, Token *out_token) {
                 out_token->type = TOK_BRACKET;
                 out_token->start = l->pos;
                 out_token->end = l->pos + 1;
-                out_token->start_screen = l->pos_screen;
-                out_token->end_screen = l->pos_screen + 1;
+                //out_token->start_screen = l->pos_screen;
+                out_token->start_screen = l->mystr.pos_column;
+                //out_token->end_screen = l->pos_screen + 1;
+                out_token->end_screen = l->mystr.pos_column + 1;
                 out_token->color = 240;
                 emit = 1;
             }
             if (isalpha(c) || c == '_') {
                 out_token->start = l->pos;
-                out_token->start_screen = l->pos_screen;
+                //out_token->start_screen = l->pos_screen;
+                out_token->start_screen = l->mystr.pos_column;
                 l->state = LEX_IDENTIFIER;
             }
             if (isnumber(c)) {
                 out_token->type = TOK_LITERAL_NUMBER;
                 out_token->start = l->pos;
-                out_token->start_screen = l->pos_screen;
+                //out_token->start_screen = l->pos_screen;
+                out_token->start_screen = l->mystr.pos_column;
                 l->state = LEX_LITERAL_NUMBER;
             }
             break;
@@ -221,10 +382,12 @@ int lexer_next(Lexer *l, Token *out_token) {
             } else {
                 out_token->type = TOK_LITERAL_NUMBER;
                 out_token->end = l->pos;
-                out_token->end_screen = l->pos_screen;
+                //out_token->end_screen = l->pos_screen;
+				out_token->end_screen = l->mystr.pos_column;
                 out_token->color = 28; // green
                 emit = 1;
                 l->state = LEX_NORMAL;
+				l->reprocess = 1;
                 l->pos--;
                 l->pos_screen--; // reprocess character that ended the literal
             }
@@ -234,18 +397,21 @@ int lexer_next(Lexer *l, Token *out_token) {
             } else if (c == '(') {
                 out_token->type = TOK_FUNCTION;
                 out_token->end = l->pos;
-                out_token->end_screen = l->pos_screen;
+                //out_token->end_screen = l->pos_screen;
+                out_token->end_screen = l->mystr.pos_column;
                 // out_token->color = 20; // blue
                 // out_token->color = 5; // purple
                 out_token->color = 94; // brown
                 emit = 1;
                 l->state = LEX_NORMAL;
+				l->reprocess = 1;
                 l->pos--;        // reprocess c in normal mode
                 l->pos_screen--; // reprocess c in normal mode
             } else {
                 out_token->type = TOK_IDENTIFIER;
                 out_token->end = l->pos;
-                out_token->end_screen = l->pos_screen;
+                //out_token->end_screen = l->pos_screen;
+                out_token->end_screen = l->mystr.pos_column;
                 out_token->color = 16; // black
                 char *str = l->source + out_token->start;
                 int width = out_token->end - out_token->start;
@@ -258,6 +424,7 @@ int lexer_next(Lexer *l, Token *out_token) {
                     out_token->color = 27; // blue
                 emit = 1;
                 l->state = LEX_NORMAL;
+				l->reprocess = 1;
                 l->pos_screen--; // reprocess c in normal mode
                 l->pos--;        // reprocess c in normal mode
             }
@@ -281,7 +448,8 @@ int lexer_next(Lexer *l, Token *out_token) {
             if (c == '\0') {
                 out_token->type = TOK_COMMENT;
                 out_token->end = l->pos;
-                out_token->end_screen = l->pos_screen;
+                //out_token->end_screen = l->pos_screen;
+				out_token->end_screen = l->mystr.pos_column;
                 out_token->color = 28; // green
                 emit = 1;
                 l->finished = 1;
@@ -292,7 +460,8 @@ int lexer_next(Lexer *l, Token *out_token) {
             if (c == '\0') {
                 out_token->type = TOK_COMMENT;
                 out_token->end = l->pos;
-                out_token->end_screen = l->pos_screen;
+                //out_token->end_screen = l->pos_screen;
+				out_token->end_screen = l->mystr.pos_column;
                 out_token->color = 28; // green
                 emit = 1;
                 l->finished = 1;
@@ -305,7 +474,8 @@ int lexer_next(Lexer *l, Token *out_token) {
             if (c == '/') {
                 out_token->type = TOK_COMMENT;
                 out_token->end = l->pos + 1;
-                out_token->end_screen = l->pos_screen + 1;
+                //out_token->end_screen = l->pos_screen + 1;
+                out_token->end_screen = l->mystr.pos_column + 1;
                 out_token->color = 28; // green
 
                 emit = 1;

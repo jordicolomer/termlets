@@ -2,6 +2,7 @@
 #define LEXER_H
 
 #include <stdlib.h>
+#include "mystr.h"
 
 enum Language { LANG_UNSELECT, LANG_NONE, LANG_C, LANG_CPP, LANG_JAVA, LANG_JS, LANG_TS, LANG_PY };
 
@@ -48,6 +49,7 @@ typedef struct Token {
 
 typedef struct Lexer {
     const char *source;
+    int reprocess;
     size_t pos;
     size_t pos_screen;
     // int loc;
@@ -56,6 +58,7 @@ typedef struct Lexer {
     int lang;
     char **keywords;
     char **types;
+  MyStr mystr;
     // ... other fields
 } Lexer;
 
