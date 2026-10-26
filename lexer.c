@@ -933,21 +933,41 @@ int lexer_next(Lexer *l, Token *out_token) {
             /* fall through */ // ← Add this comment
         case LEX_NORMAL:
             if (c == '#') {
-                l->state = LEX_BEGIN_HASH;
-                out_token->type = TOK_PREPROC;
-                out_token->start = l->pos;
-                //out_token->start_screen = l->pos_screen;
-                out_token->start_screen = l->mystr.pos_column;
+                if (l->lang == LANG_PY) {
+                    // Python comments
+                    l->state = LEX_SLASH_SLASH;
+                    out_token->type = TOK_COMMENT;
+                    out_token->start = l->pos;
+                    out_token->start_screen = l->mystr.pos_column;
+                } else {
+                    // C/C++ preprocessor directives
+                    l->state = LEX_BEGIN_HASH;
+                    out_token->type = TOK_PREPROC;
+                    out_token->start = l->pos;
+                    out_token->start_screen = l->mystr.pos_column;
+                }
             }
             if (c == '/') {
                 l->state = LEX_SLASH;
             }
             if (c == '"') {
-                l->state = LEX_LITERAL_STRING;
-                out_token->type = TOK_LITERAL_STRING;
-                out_token->start = l->pos;
-                //out_token->start_screen = l->pos_screen;
-                out_token->start_screen = l->mystr.pos_column;
+                if (l->lang == LANG_PY) {
+                    l->state = LEX_PY_QUOTE_DOUBLE_1;
+                    out_token->start = l->pos;
+                    out_token->start_screen = l->mystr.pos_column;
+                } else {
+                    l->state = LEX_LITERAL_STRING;
+                    out_token->type = TOK_LITERAL_STRING;
+                    out_token->start = l->pos;
+                    out_token->start_screen = l->mystr.pos_column;
+                }
+            }
+            if (c == '\'') {
+                if (l->lang == LANG_PY) {
+                    l->state = LEX_PY_QUOTE_SINGLE_1;
+                    out_token->start = l->pos;
+                    out_token->start_screen = l->mystr.pos_column;
+                }
             }
             if (c == '{' || c == '}' || c == '(' || c == ')' || c == '[' || c == ']') {
                 out_token->type = TOK_BRACKET;
@@ -1092,6 +1112,162 @@ int lexer_next(Lexer *l, Token *out_token) {
                 l->state = LEX_SLASH_STAR_STAR;
             } else {
                 l->state = LEX_SLASH_STAR;
+            }
+            break;
+
+        // Python string states
+        case LEX_PY_QUOTE_DOUBLE_1:
+            if (c == '"') {
+                l->state = LEX_PY_QUOTE_DOUBLE_2;
+            } else {
+                // Single " string
+                l->state = LEX_LITERAL_STRING;
+                out_token->type = TOK_LITERAL_STRING;
+                l->reprocess = 1;
+                l->pos--;
+                l->pos_screen--;
+            }
+            break;
+
+        case LEX_PY_QUOTE_DOUBLE_2:
+            if (c == '"') {
+                // Triple quote!
+                l->state = LEX_PYTHON_TRIPLE_DOUBLE;
+                out_token->type = TOK_LITERAL_STRING;
+            } else {
+                // Empty string "", emit it
+                out_token->type = TOK_LITERAL_STRING;
+                out_token->end = l->pos;
+                out_token->end_screen = l->mystr.pos_column;
+                out_token->color = 125;
+                emit = 1;
+                l->state = LEX_NORMAL;
+                l->reprocess = 1;
+                l->pos--;
+                l->pos_screen--;
+            }
+            break;
+
+        case LEX_PY_QUOTE_SINGLE_1:
+            if (c == '\'') {
+                l->state = LEX_PY_QUOTE_SINGLE_2;
+            } else {
+                // Single ' string
+                l->state = LEX_LITERAL_STRING_SINGLE;
+                out_token->type = TOK_LITERAL_STRING;
+                l->reprocess = 1;
+                l->pos--;
+                l->pos_screen--;
+            }
+            break;
+
+        case LEX_PY_QUOTE_SINGLE_2:
+            if (c == '\'') {
+                // Triple quote!
+                l->state = LEX_PYTHON_TRIPLE_SINGLE;
+                out_token->type = TOK_LITERAL_STRING;
+            } else {
+                // Empty string '', emit it
+                out_token->type = TOK_LITERAL_STRING;
+                out_token->end = l->pos;
+                out_token->end_screen = l->mystr.pos_column;
+                out_token->color = 125;
+                emit = 1;
+                l->state = LEX_NORMAL;
+                l->reprocess = 1;
+                l->pos--;
+                l->pos_screen--;
+            }
+            break;
+
+        case LEX_LITERAL_STRING_SINGLE:
+            if (c == '\\') {
+                l->state = LEX_LITERAL_STRING_SINGLE_ESCAPE;
+            }
+            if (c == '\'') {
+                out_token->end = l->pos;
+                out_token->end_screen = l->mystr.pos_column;
+                out_token->color = 125; // red
+                emit = 1;
+                l->state = LEX_NORMAL;
+            }
+            break;
+
+        case LEX_LITERAL_STRING_SINGLE_ESCAPE:
+            l->state = LEX_LITERAL_STRING_SINGLE;
+            break;
+
+        case LEX_PYTHON_TRIPLE_DOUBLE:
+            if (c == '"') {
+                l->state = LEX_PYTHON_TRIPLE_DOUBLE_1;
+            }
+            if (c == '\0') {
+                out_token->type = TOK_LITERAL_STRING;
+                out_token->end = l->pos;
+                out_token->end_screen = l->mystr.pos_column;
+                out_token->color = 125; // red
+                emit = 1;
+                l->finished = 1;
+            }
+            break;
+
+        case LEX_PYTHON_TRIPLE_DOUBLE_1:
+            if (c == '"') {
+                l->state = LEX_PYTHON_TRIPLE_DOUBLE_2;
+            } else {
+                // False alarm, back to triple quote
+                l->state = LEX_PYTHON_TRIPLE_DOUBLE;
+            }
+            break;
+
+        case LEX_PYTHON_TRIPLE_DOUBLE_2:
+            if (c == '"') {
+                // Closing triple quote!
+                out_token->end = l->pos + 1;
+                out_token->end_screen = l->mystr.pos_column + 1;
+                out_token->color = 125;
+                emit = 1;
+                l->state = LEX_NORMAL;
+            } else {
+                // False alarm, back to triple quote
+                l->state = LEX_PYTHON_TRIPLE_DOUBLE;
+            }
+            break;
+
+        case LEX_PYTHON_TRIPLE_SINGLE:
+            if (c == '\'') {
+                l->state = LEX_PYTHON_TRIPLE_SINGLE_1;
+            }
+            if (c == '\0') {
+                out_token->type = TOK_LITERAL_STRING;
+                out_token->end = l->pos;
+                out_token->end_screen = l->mystr.pos_column;
+                out_token->color = 125; // red
+                emit = 1;
+                l->finished = 1;
+            }
+            break;
+
+        case LEX_PYTHON_TRIPLE_SINGLE_1:
+            if (c == '\'') {
+                l->state = LEX_PYTHON_TRIPLE_SINGLE_2;
+            } else {
+                // False alarm, back to triple quote
+                l->state = LEX_PYTHON_TRIPLE_SINGLE;
+            }
+            break;
+
+        case LEX_PYTHON_TRIPLE_SINGLE_2:
+            if (c == '\'') {
+                // Closing triple quote!
+                out_token->end = l->pos + 1;
+                out_token->end_screen = l->mystr.pos_column + 1;
+                out_token->color = 125;
+                emit = 1;
+                l->state = LEX_NORMAL;
+            } else {
+                // False alarm, back to triple quote
+                l->state = LEX_PYTHON_TRIPLE_SINGLE;
             }
             break;
         }
