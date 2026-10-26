@@ -238,6 +238,125 @@ static const char *cpp_types[] = {
     "", // sentinel
 };
 
+static const char *java_keywords[] = {
+    /* Control flow */
+    "if",
+    "else",
+    "switch",
+    "case",
+    "default",
+    "while",
+    "do",
+    "for",
+
+    /* Jump statements */
+    "return",
+    "break",
+    "continue",
+
+    /* Exception handling */
+    "try",
+    "catch",
+    "finally",
+    "throw",
+    "throws",
+
+    /* OOP keywords */
+    "class",
+    "interface",
+    "enum",
+    "package",
+    "import",
+    "extends",
+    "implements",
+    "public",
+    "private",
+    "protected",
+    "abstract",
+    "final",
+    "static",
+    "synchronized",
+    "native",
+    "strictfp",
+    "transient",
+    "volatile",
+
+    /* Object-related */
+    "new",
+    "this",
+    "super",
+    "instanceof",
+
+    /* Boolean literals */
+    "true",
+    "false",
+    "null",
+
+    /* Module system (Java 9+) */
+    "module",
+    "requires",
+    "exports",
+    "opens",
+    "provides",
+    "uses",
+    "with",
+
+    /* Other keywords */
+    "assert",
+    "var",
+
+    "", // sentinel
+};
+
+static const char *java_types[] = {
+    /* Primitive types */
+    "void",
+    "boolean",
+    "byte",
+    "char",
+    "short",
+    "int",
+    "long",
+    "float",
+    "double",
+
+    /* Common wrapper classes */
+    "Boolean",
+    "Byte",
+    "Character",
+    "Short",
+    "Integer",
+    "Long",
+    "Float",
+    "Double",
+    "String",
+    "Object",
+
+    /* Common collection interfaces */
+    "List",
+    "Set",
+    "Map",
+    "Collection",
+    "Iterable",
+    "Iterator",
+    "ArrayList",
+    "HashMap",
+    "HashSet",
+    "LinkedList",
+
+    /* Common utility classes */
+    "System",
+    "Math",
+    "Thread",
+    "Runnable",
+    "Exception",
+    "RuntimeException",
+    "Error",
+    "Class",
+
+    "", // sentinel
+};
+
 void lexer_init(Lexer *l, const char *source, int lang) {
     l->source = source;
     l->pos = 0;
@@ -251,6 +370,9 @@ void lexer_init(Lexer *l, const char *source, int lang) {
     } else if (lang == LANG_CPP){
 	  l->keywords = cpp_keywords;
 	  l->types = cpp_types;
+    } else if (lang == LANG_JAVA){
+	  l->keywords = java_keywords;
+	  l->types = java_types;
     }
 	MyStr_init(&l->mystr, source);
 }
