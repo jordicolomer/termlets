@@ -430,7 +430,7 @@ void load_file(EditorWindow *self, const char *filename) {
     while (fgets(buffer, MAX_LINE, file)) {
         line_count++;
         // Optional: remove newline
-        buffer[strcspn(buffer, "\n")] = '\0';
+		 buffer[strcspn(buffer, "\r\n")] = '\0';
 
         append(self, buffer);
         self->n_lines++;
