@@ -430,7 +430,7 @@ void load_file(EditorWindow *self, const char *filename) {
     while (fgets(buffer, MAX_LINE, file)) {
         line_count++;
         // Optional: remove newline
-		 buffer[strcspn(buffer, "\r\n")] = '\0';
+        buffer[strcspn(buffer, "\r\n")] = '\0';
 
         append(self, buffer);
         self->n_lines++;
@@ -476,7 +476,7 @@ void EditorWindow_open_file(EditorWindow *editor_window, char *file_path) {
         editor_window->slider->id = file_path;
     }
     editor_window->file_path = strdup(file_path);
-	editor_window->language = LANG_NONE;
+    editor_window->language = LANG_NONE;
     if (ends_with_ignore_case(file_path, ".c"))
         editor_window->language = LANG_C;
     else if (ends_with_ignore_case(file_path, ".h"))
@@ -493,8 +493,8 @@ void EditorWindow_open_file(EditorWindow *editor_window, char *file_path) {
         editor_window->language = LANG_TS;
     else if (ends_with_ignore_case(file_path, ".py"))
         editor_window->language = LANG_PY;
-	if (editor_window->language != LANG_NONE)
-	  EditorWindow_run_lexer(editor_window);
+    if (editor_window->language != LANG_NONE)
+        EditorWindow_run_lexer(editor_window);
 }
 
 void EditorWindow_reload(EditorWindow *editor_window) {
@@ -1061,7 +1061,8 @@ void EditorWindow_copy(EditorWindow *self) {
 }
 
 void EditorWindow_cut(EditorWindow *self) {
-  if (self->selection.y == -1) return;
+    if (self->selection.y == -1)
+        return;
     _EditorWindow_copy(self);
     EditorPointer_undo_delete_region(self, &self->cursor, &self->selection);
 
@@ -1645,7 +1646,7 @@ void EditorWindow_draw(struct Window *w, int hasFocus) {
         if (self->language > LANG_NONE) {
             Lexer lexer;
             Token token;
-			token.start_screen = 0;
+            token.start_screen = 0;
             lexer_init(&lexer, str, self->language);
             if (current != NULL)
                 lexer.state = current->lexerState;
@@ -1819,9 +1820,9 @@ void status_bar_draw(Window *w, int hasFocus) {
     snprintf(self->status_str, sizeof(self->status_str),
              "lexerState:%d line:%d/%d (%d%%) column:%d [%s] width:%d "
              "cluster_start:%d cluster_size:%d pos_cluster:%d width_codepoints:%d width_bytes:%d",
-             self->editor->cursor.node->lexerState, line, n_lines, pct, str_ite->pos_column, codepoints_str, str_ite->width_column,
-             str_ite->cluster_start, str_ite->cluster_size, str_ite->pos_cluster,
-             str_ite->width_codepoints, str_ite->width_bytes);
+             self->editor->cursor.node->lexerState, line, n_lines, pct, str_ite->pos_column,
+             codepoints_str, str_ite->width_column, str_ite->cluster_start, str_ite->cluster_size,
+             str_ite->pos_cluster, str_ite->width_codepoints, str_ite->width_bytes);
     // LOG_INFO("line %s y:%d, geo.x:%d, geo.width:%d", self->status_str, y, geo.x, geo.width);
     Buffer_print(&main_buf, y, geo.x, geo.width, self->status_str, fg, bg);
 }

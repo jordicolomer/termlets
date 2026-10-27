@@ -471,8 +471,9 @@ int MyStr_next_cluster(MyStr *mystr) {
     mystr->width_codepoints += 1;
 ret:
     mystr->pos_cluster += 1;
-    //mystr->width_column = wc_len(mystr->utf8 + mystr->cluster_start, mystr->width_codepoints);
-    mystr->width_column = wcstwidth_u8(mystr->utf8 + mystr->cluster_start, mystr->cluster_size, 1, terminal); // alacritty
+    // mystr->width_column = wc_len(mystr->utf8 + mystr->cluster_start, mystr->width_codepoints);
+    mystr->width_column = wcstwidth_u8(mystr->utf8 + mystr->cluster_start, mystr->cluster_size, 1,
+                                       terminal); // alacritty
     if (mystr->utf8[mystr->cluster_start] == '\t' && mystr->cluster_size == 1) {
         mystr->width_column = tab_width;
     } /*else if (mystr->cluster_size == 4 &&

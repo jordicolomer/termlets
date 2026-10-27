@@ -72,7 +72,7 @@ typedef struct Lexer {
     int lang;
     char **keywords;
     char **types;
-  MyStr mystr;
+    MyStr mystr;
     // ... other fields
 } Lexer;
 
