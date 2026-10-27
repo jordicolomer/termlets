@@ -270,7 +270,7 @@ void remove_newlines(char *str) {
     *dst = '\0';
 }
 
-char *make_string(const char *src) {
+/*char *make_string(const char *src) {
     size_t len = 0;
     while (src[len] != '\0')
         len++;
@@ -284,7 +284,7 @@ char *make_string(const char *src) {
     }
 
     return copy;
-}
+	}*/
 
 void human_size(off_t size, char *buf, size_t buflen) {
     const char *units[] = {"Bytes", "KB", "MB", "GB", "TB"};
@@ -341,7 +341,8 @@ void FileExplorer_list_files(ExplorerWindow *self, char *dire) {
 
     if (self->path != dire) {
         // if (self->path != NULL) free(self->path);
-        self->path = make_string(dire);
+        //self->path = make_string(dire);
+	  self->path = strdup(dire);
     }
 
     LOG_INFO("FileExplorer_list_files: %p %s filename:%s", self, dire, self->win.id);
@@ -437,7 +438,8 @@ void FileExplorer_list_files(ExplorerWindow *self, char *dire) {
         strcpy(size, "");
         struct stat st;
         file_item->path = full_path;
-        file_item->name = make_string(entry->d_name);
+        //file_item->name = make_string(entry->d_name);
+		file_item->name = strdup(entry->d_name);
         if (stat(full_path, &st) == 0) {
             struct tm *tm = localtime(&st.st_mtime);
             strftime(date, 32, "%Y-%m-%d %H:%M:%S", tm);
@@ -530,7 +532,8 @@ void get_parent(char *path) {
 }
 
 void FileExplorer_up_one_level(ExplorerWindow *self) {
-    char *s = make_string(self->path);
+  //char *s = make_string(self->path);
+    char *s = strdup(self->path);
     get_parent(s);
     FileExplorer_list_files(self, s);
     free(s);
@@ -642,7 +645,7 @@ Window *ExplorerWindow_rename_complete(ExplorerWindow *self, LineEditorWindow *l
                                        char *origin) {
     char *target = NULL;
 
-    char *parent = make_string(origin);
+    char *parent = strdup(origin);
     get_parent(parent);
     asprintf(&target, "%s/%s", parent, line_edit->buffer);
     free(parent);
@@ -1107,7 +1110,7 @@ void string_set(char **target, const char *origin) {
         return;
 
     free(*target); // free(NULL) is safe
-    *target = make_string(origin);
+    *target = strdup(origin);
 }
 
 Window *FileExplorer_menu_cut(ExplorerFrame *self) {
