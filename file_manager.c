@@ -531,11 +531,33 @@ void get_parent(char *path) {
     }
 }
 
+const char *get_filename(const char *path) {
+    const char *filename = path;
+
+    for (const char *p = path; *p; p++) {
+        if (*p == '/' || *p == '\\')
+            filename = p + 1;
+    }
+
+    return filename;
+}
+
 void FileExplorer_up_one_level(ExplorerWindow *self) {
   //char *s = make_string(self->path);
     char *s = strdup(self->path);
+	char * filename = get_filename(s);
     get_parent(s);
     FileExplorer_list_files(self, s);
+
+	// select directory
+	FileItemWindow * fi = self->fm->head;
+	while (fi){
+	  if (strcmp(fi->name, filename) == 0){
+		FileExplorer_select_single_item(self, fi);
+	  }
+	  fi = fi->win.next;
+	}
+	
     free(s);
 }
 
