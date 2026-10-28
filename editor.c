@@ -1982,7 +1982,7 @@ Window *Editor_menu(EditorFrame *self) {
 
 Window *Editor_toolbar(EditorFrame *self) {
     Window *toolbar = Menu_create_horizontal();
-    Menu_add_element(toolbar, " 💾 Save",
+    Menu_add_element(toolbar, " 💾 Save ",
                      create_lambda(Editor_on_selected, 2, self, EditorWindow_save));
     // Menu_add_element(toolbar, " 📄 New ", create_lambda(Editor_menu_new, 1, self));
     // Menu_add_element(toolbar, " 🔄 Undo ", create_lambda(Editor_menu_new, 1, self));

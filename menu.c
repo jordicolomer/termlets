@@ -167,6 +167,11 @@ void Menu_change_color_normal(Window *w, int x, int y) {
     w->bg = 253;
 }
 
+void Menu_change_color_darker(Window *w, int x, int y) {
+    w->fg = 232;
+    w->bg = 248;
+}
+
 void Menu_change_color_selected(Window *w, int x, int y) {
     w->fg = 232;
     w->bg = SELECTED_COLOR;
@@ -176,13 +181,13 @@ Window *Menu_add_element(Menu *self, char *name, Lambda *lambda) {
     int len = strlen(name);
     Window *win = NULL;
     if (self->vertical == 1) {
-        win = Window_add_widget(self, 0, 0, self->offset, -1, -1, 1, name, 232, 253);
+        win = Window_add_widget(self, 0, 0, self->offset, -1, -1, 1, name, 232, 248);
         self->win.width = max(self->win.width, len + 2);
         self->win.height += 1;
         self->offset += 1;
         if (lambda != NULL) {
             win->on_hover = Menu_change_color_hover;
-            win->undo_on_hover = Menu_change_color_normal;
+            win->undo_on_hover = Menu_change_color_darker;
             win->lambda = lambda;
             win->on_mouse_down = Execute_lambda_and_close_parent;
         }
