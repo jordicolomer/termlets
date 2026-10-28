@@ -53,6 +53,7 @@ typedef struct EditorWindow { // this is the scrollable part of the editor
     LineEditorWindow *search_box;
     ArrayList undo_stack;
     ArrayListIterator undo_pointer;
+    int show_line_numbers;
 } EditorWindow;
 
 typedef struct StatusWindow {

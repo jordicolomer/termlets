@@ -1411,6 +1411,10 @@ void EditorWindow_action_search(EditorWindow *self) {
 
 // end of search
 
+void EditorWindow_toggle_show_line_numbers(EditorWindow *self){
+  self->show_line_numbers = 1 - self->show_line_numbers;
+}
+
 void EditorWindow_send_key(Window *win, char c) {
 
     EditorWindow *self = win;
@@ -1566,7 +1570,7 @@ void EditorWindow_send_key(Window *win, char c) {
     }
 }
 
-void EditorWindow_draw_selection(struct Window *w, EditorPointer p1, EditorPointer p2, int color) {
+void EditorWindow_draw_selection(struct Window *w, EditorPointer p1, EditorPointer p2, int color, int x_margin) {
     if (p1.y == -1)
         return;
     if (p2.y == -1)
@@ -1579,7 +1583,7 @@ void EditorWindow_draw_selection(struct Window *w, EditorPointer p1, EditorPoint
         if (p2.y != -1) {
             if ((p1.y < top_line + i && top_line + i < p2.y) ||
                 (p2.y < top_line + i && top_line + i < p1.y)) {
-                Buffer_set_bg(&main_buf, geo.y + i, geo.x + 0, geo.width, color);
+                Buffer_set_bg(&main_buf, geo.y + i, geo.x + x_margin + 0, geo.width - x_margin, color);
             }
             if (p2.y == top_line + i) { // line with selection
                 // generic case (both markers in same line)
@@ -1588,7 +1592,7 @@ void EditorWindow_draw_selection(struct Window *w, EditorPointer p1, EditorPoint
                 // if selection marker above
                 if (p2.y < p1.y) {
                     idx1 = p2.str_ite.pos_column;
-                    idx2 = geo.width;
+                    idx2 = geo.width - x_margin;
                 }
                 // if selection marker below
                 if (p1.y < p2.y) {
@@ -1596,7 +1600,7 @@ void EditorWindow_draw_selection(struct Window *w, EditorPointer p1, EditorPoint
                     idx2 = p2.str_ite.pos_column;
                 }
                 int diff = idx2 - idx1;
-                Buffer_set_bg(&main_buf, geo.y + i, geo.x + idx1, diff, color);
+                Buffer_set_bg(&main_buf, geo.y + i, geo.x + x_margin + idx1, diff, color);
             }
             if (p1.y == top_line + i) { // line with cursor
                 // generic case (both markers in same line)
@@ -1610,10 +1614,10 @@ void EditorWindow_draw_selection(struct Window *w, EditorPointer p1, EditorPoint
                 // if cursor below
                 if (p1.y < p2.y) {
                     idx1 = p1.str_ite.pos_column;
-                    idx2 = geo.width;
+                    idx2 = geo.width - x_margin;
                 }
                 int diff = idx2 - idx1;
-                Buffer_set_bg(&main_buf, geo.y + i, geo.x + idx1, diff, color);
+                Buffer_set_bg(&main_buf, geo.y + i, geo.x + x_margin + idx1, diff, color);
             }
         }
         i++;
@@ -1628,6 +1632,9 @@ void EditorWindow_draw(struct Window *w, int hasFocus) {
     int top_line = -self->win.shift;
     Node *current = EditorWindow_get_line_number(self, top_line);
 
+	int x_margin = 0;
+	if (self->show_line_numbers) x_margin = 4;
+
     while (i < geo.height) {
         // background color
         int bg = 255;
@@ -1639,7 +1646,13 @@ void EditorWindow_draw(struct Window *w, int hasFocus) {
             str = current->line;
 
         // for(int x=0;x<geo.width;x++) Buffer_print(&main_buf, geo.y + i, geo.x+x, 1, " ", 16, bg);
-        Buffer_print(&main_buf, geo.y + i, geo.x, geo.width, str, 16, bg);
+		if (self->show_line_numbers) {
+		  char str[5];
+		  int num = top_line + i + 1;
+		  snprintf(str, sizeof(str), "%d", num);
+		  Buffer_print(&main_buf, geo.y + i, geo.x, 4, str, 16, bg);
+		}
+        Buffer_print(&main_buf, geo.y + i, geo.x+x_margin, geo.width-x_margin, str, 16, bg);
 
         // syntax highlighter
 
@@ -1652,9 +1665,9 @@ void EditorWindow_draw(struct Window *w, int hasFocus) {
                 lexer.state = current->lexerState;
             while (lexer_next(&lexer, &token)) {
                 int width = token.end_screen - token.start_screen;
-                int maxWidth = geo.width - token.start;
+                int maxWidth = geo.width-x_margin - token.start;
                 width = min(width, maxWidth);
-                Buffer_set_fg(&main_buf, geo.y + i, geo.x + token.start_screen, width, token.color);
+                Buffer_set_fg(&main_buf, geo.y + i, geo.x + x_margin + token.start_screen, width, token.color);
             }
         }
 
@@ -1662,8 +1675,8 @@ void EditorWindow_draw(struct Window *w, int hasFocus) {
         if (current != NULL)
             current = current->next;
     }
-    EditorWindow_draw_selection(w, self->cursor, self->selection, 117);
-    EditorWindow_draw_selection(w, self->highlight_start, self->highlight_end, 227);
+    EditorWindow_draw_selection(w, self->cursor, self->selection, 117, x_margin);
+    EditorWindow_draw_selection(w, self->highlight_start, self->highlight_end, 227, x_margin);
 
     // draw cursor
     int bg = 208;
@@ -1673,7 +1686,7 @@ void EditorWindow_draw(struct Window *w, int hasFocus) {
         bg = 248;
     i = self->cursor.y + self->win.shift;
     if (0 <= i && i < geo.height)
-        Buffer_set_bg(&main_buf, geo.y + i, geo.x + self->cursor.str_ite.pos_column, 1, bg);
+        Buffer_set_bg(&main_buf, geo.y + i, geo.x + x_margin + self->cursor.str_ite.pos_column, 1, bg);
 }
 
 void EditorWindow_on_mouse_down(Window *win, int x, int y) {
@@ -1781,6 +1794,8 @@ EditorWindow *EditorWindow_new() {
     self->win.on_mouse_down = EditorWindow_on_mouse_down;
     self->win.on_hover = EditorWindow_on_hover;
     self->win.on_mouse_up = EditorWindow_on_mouse_up;
+
+    self->show_line_numbers = 0;
 
     latestEditorWindow = self;
 
@@ -1950,9 +1965,16 @@ Window *Editor_menu(EditorFrame *self) {
 
     Window *view = Menu_create_vertical(self);
     // Menu_add_element(view, " ⤶ Word wrap", create_lambda(Editor_menu_new, 1, self));
+	
     char *show_tabs_label = strdup("   Show Tabs");
+	Editor_show_tabs(self, show_tabs_label); // init show_tabs_label
     Menu_add_element(view, show_tabs_label,
                      create_lambda(Editor_show_tabs, 2, self, show_tabs_label));
+
+    char *show_lines_label = strdup("   Show lines");
+    Menu_add_element(view, show_lines_label,
+					 create_lambda(Editor_on_selected, 2, self, EditorWindow_toggle_show_line_numbers));
+	
     Menu_add_element(view, "", NULL);
     Menu_add_submenu(menu, " View ", view);
 
