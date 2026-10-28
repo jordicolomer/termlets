@@ -211,9 +211,9 @@ void Menu_list_windows_item_selected(Tab *tab, Window *menu) {
 }
 
 Window *Menu_list_windows(Menu *menu, Tabs *tabs, struct Window *window_menu_item, Menu *submenu) {
-    Menu_toggle_auto_expand(menu);
-    if (menu != auto_expand)
-        return NULL;
+  //Menu_toggle_auto_expand(menu);
+  // if (menu != auto_expand)
+  //    return NULL;
 
     submenu->win.head = NULL;
     submenu->win.tail = NULL;
@@ -243,17 +243,36 @@ Window *Menu_list_windows(Menu *menu, Tabs *tabs, struct Window *window_menu_ite
     return (Window *)submenu;
 }
 
+Window *Menu_list_toggle_windows(Menu *menu, Tabs *tabs, struct Window *window_menu_item, Menu *submenu) {
+    Menu_toggle_auto_expand(menu);
+    if (menu != auto_expand)
+        return NULL;
+	return Menu_list_windows(menu, tabs, window_menu_item, submenu);
+}
+
+void Menu_windows_hover(Window *w, int x, int y) {
+    w->fg = 232;
+    w->bg = 27;
+    Menu *self = w;
+    Menu *parent = w->parent;
+    if (auto_expand == parent) {
+	  invoke_lambda(w->data3);
+    }
+}
+
 void Menu_add_windows(Menu *menu, char *name, Tabs *tabs, Window *self) {
     int len = strlen(name);
     menu->offset += 1;
     Window *window_menu_item =
         Window_add_widget(menu, menu->offset, -1, 0, -1, len, 1, name, 232, 253);
-    window_menu_item->on_hover = Menu_change_color_hover_and_open;
+    window_menu_item->on_hover = Menu_windows_hover;
     window_menu_item->undo_on_hover = Menu_change_color_normal;
     menu->offset += len + 1;
 
     Menu *submenu = Menu_create_vertical(self);
     window_menu_item->lambda =
+        create_lambda(Menu_list_toggle_windows, 4, menu, tabs, window_menu_item, submenu);
+    window_menu_item->data3 =
         create_lambda(Menu_list_windows, 4, menu, tabs, window_menu_item, submenu);
     window_menu_item->on_mouse_down = Execute_lambda;
 
