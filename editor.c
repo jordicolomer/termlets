@@ -12,7 +12,6 @@
 #include "logger.h"
 #include "string.h"
 #include "buffer.h"
-#include "utils.h"
 #include "taskbar.h"
 #include "lambda.h"
 #include "menu.h"
@@ -1633,7 +1632,7 @@ void EditorWindow_draw(struct Window *w, int hasFocus) {
     Node *current = EditorWindow_get_line_number(self, top_line);
 
 	int x_margin = 0;
-	if (self->show_line_numbers) x_margin = 4;
+	if (self->show_line_numbers) x_margin = count_digits(self->n_lines) + 1;
 
     while (i < geo.height) {
         // background color
@@ -1647,10 +1646,10 @@ void EditorWindow_draw(struct Window *w, int hasFocus) {
 
         // for(int x=0;x<geo.width;x++) Buffer_print(&main_buf, geo.y + i, geo.x+x, 1, " ", 16, bg);
 		if (self->show_line_numbers) {
-		  char str[5];
+		  char str[x_margin+1];
 		  int num = top_line + i + 1;
 		  snprintf(str, sizeof(str), "%d", num);
-		  Buffer_print(&main_buf, geo.y + i, geo.x, 4, str, 16, bg);
+		  Buffer_print(&main_buf, geo.y + i, geo.x, x_margin, str, 16, bg-1);
 		}
         Buffer_print(&main_buf, geo.y + i, geo.x+x_margin, geo.width-x_margin, str, 16, bg);
 
