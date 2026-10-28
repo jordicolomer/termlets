@@ -1649,7 +1649,7 @@ void EditorWindow_draw(struct Window *w, int hasFocus) {
 		  char str[x_margin+1];
 		  int num = top_line + i + 1;
 		  snprintf(str, sizeof(str), "%d", num);
-		  Buffer_print(&main_buf, geo.y + i, geo.x, x_margin, str, 16, bg-1);
+		  Buffer_print(&main_buf, geo.y + i, geo.x, x_margin, str, 16, bg-5);
 		}
         Buffer_print(&main_buf, geo.y + i, geo.x+x_margin, geo.width-x_margin, str, 16, bg);
 
@@ -1674,6 +1674,8 @@ void EditorWindow_draw(struct Window *w, int hasFocus) {
         if (current != NULL)
             current = current->next;
     }
+    //LOG_INFO("draw self->cursor.str_ite.pos_column:%d", self->cursor.str_ite.pos_column);	
+    //LOG_INFO("draw self->selection.str_ite.pos_column:%d", self->selection.str_ite.pos_column);	
     EditorWindow_draw_selection(w, self->cursor, self->selection, 117, x_margin);
     EditorWindow_draw_selection(w, self->highlight_start, self->highlight_end, 227, x_margin);
 
@@ -1699,7 +1701,11 @@ void EditorWindow_on_mouse_down(Window *win, int x, int y) {
     target_y = max(target_y, 0);
 
     // Calculate target column
-    int target_x = x - win->calculated.x;
+	int x_margin = 0;
+	if (self->show_line_numbers) x_margin = count_digits(self->n_lines) + 1;
+	
+    int target_x = x - win->calculated.x - x_margin;
+    //LOG_INFO("target_x:%d", target_x);	
     target_x = max(target_x, 0);
 
     // Get the node for the target line
@@ -1719,6 +1725,8 @@ void EditorWindow_on_mouse_down(Window *win, int x, int y) {
     EditorWindow_make_cursor_visible(self);
     self->selection = self->cursor;
     self->selecting = 1;
+    //LOG_INFO("self->cursor.str_ite.pos_column:%d", self->cursor.str_ite.pos_column);	
+    //LOG_INFO("self->selection.str_ite.pos_column:%d", self->selection.str_ite.pos_column);	
 }
 
 void EditorWindow_on_hover(Window *win, int x, int y) {
@@ -1733,7 +1741,9 @@ void EditorWindow_on_hover(Window *win, int x, int y) {
     target_y = max(target_y, 0);
 
     // Calculate target column
-    int target_x = x - win->calculated.x;
+	int x_margin = 0;
+	if (self->show_line_numbers) x_margin = count_digits(self->n_lines) + 1;
+    int target_x = x - win->calculated.x - x_margin;
     target_x = max(target_x, 0);
 
     // Get the node for the target line
@@ -1970,7 +1980,7 @@ Window *Editor_menu(EditorFrame *self) {
     Menu_add_element(view, show_tabs_label,
                      create_lambda(Editor_show_tabs, 2, self, show_tabs_label));
 
-    char *show_lines_label = strdup("   Show lines");
+    char *show_lines_label = strdup("   Line numbers");
     Menu_add_element(view, show_lines_label,
 					 create_lambda(Editor_on_selected, 2, self, EditorWindow_toggle_show_line_numbers));
 	
