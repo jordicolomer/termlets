@@ -178,10 +178,14 @@ void Menu_change_color_selected(Window *w, int x, int y) {
 }
 
 void Menu_draw(struct Window *current, int hasFocus) {
+  Menu *self = current;
+  if (self->show_check_lambda == NULL){
+	Widget_draw(current, hasFocus);
+	return;
+  }
     if (current->hidden == 1) {
         return;
     }
-  Menu *self = current;
   Geometry geo = current->calculated;
   int fg = current->fg;
   int bg = current->bg;
