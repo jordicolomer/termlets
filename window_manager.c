@@ -15,6 +15,7 @@
 #include "logger.h"
 #include "utils.h"
 #include "mini_edit.h"
+#include "clipboard.h"
 
 void WM_draw(struct Window *w, int hasFocus) {
   WM * self = w;
@@ -60,9 +61,17 @@ void WM_search(WM *self) {
   parent->focused = self->line_edit;
 }
 
+void WM_copy(WM *self) {
+  clipboard_copy(self->selected_tab->str);
+}
+
 void WM_send_key(Window *self, char c) {
     Action action = get_action(c, WT_WINDOW_MANAGER);
 
+    if (action == ACTION_COPY) {
+        WM_copy(self);
+        return;
+    }
     if (action == ACTION_SEARCH) {
         WM_search(self);
         return;
