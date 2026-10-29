@@ -38,5 +38,6 @@ int wc_len(char *text, int length);
 const char *get_terminal_type(void);
 ssize_t utf8_iterate(const uint8_t *str, ssize_t strlen, int32_t *codepoint_ref);
 void cluster_codepoints_to_string(MyStr *str_ite, char *output, size_t output_size);
+int MyStr_reset(MyStr *mystr);
 
 #endif

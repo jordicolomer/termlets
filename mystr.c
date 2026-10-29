@@ -717,3 +717,9 @@ int MyStr_prev_cluster_fast(MyStr *mystr) {
 }
 
 int MyStr_prev_cluster(MyStr *mystr) { MyStr_get_grapheme_at_index(mystr, mystr->pos_cluster - 1); }
+
+int MyStr_reset(MyStr *mystr) {
+  int pos_cluster = mystr->pos_cluster;
+  MyStr_init(mystr, mystr->utf8);
+  MyStr_get_grapheme_at_index(mystr, pos_cluster);
+}

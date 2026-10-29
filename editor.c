@@ -1449,6 +1449,54 @@ void EditorWindow_action_search(EditorWindow *self) {
 
 
 // end of search
+char *EditorPointer_change_case(EditorPointer *ep1, EditorPointer *ep2, int is_uppercase) {
+    int cmp = EditorPointer_cmp(ep1, ep2);
+    if (cmp == 0)
+        return NULL;
+    if (cmp == 1) {
+        EditorPointer *tmp = ep1;
+        ep1 = ep2;
+        ep2 = tmp;
+    }
+	unsigned char low = 'a';
+	unsigned char high = 'z';
+	unsigned char conversion = 'A'-'a';
+	if (!is_uppercase){
+	  low = 'A';
+	  high = 'Z';
+	  conversion = -conversion;
+	}
+	while (EditorPointer_cmp(ep1, ep2) == -1){
+	  utf8proc_int32_t first_codepoint = ep1->str_ite.first_codepoint;
+	  if (ep1->str_ite.width_codepoints == 1 &&
+		  low <= first_codepoint && first_codepoint <= high){
+		char * utf8 = ep1->str_ite.utf8;
+		int idx = ep1->str_ite.pos_cluster;
+		utf8[idx] = utf8[idx]+conversion;
+	  }
+	  EditorPointer_right(ep1);
+	}
+}
+
+void EditorWindow_action_upcase(EditorWindow *self){
+  if (self->selection.y == -1) return;
+  EditorPointer ep1 = self->cursor;
+  EditorPointer ep2 = self->selection;
+  EditorPointer_change_case(&ep1, &ep2, 1);
+  // reload changes
+  MyStr_reset(&self->cursor.str_ite);
+  MyStr_reset(&self->selection.str_ite);
+}
+
+void EditorWindow_action_downcase(EditorWindow *self){
+  if (self->selection.y == -1) return;
+  EditorPointer ep1 = self->cursor;
+  EditorPointer ep2 = self->selection;
+  EditorPointer_change_case(&ep1, &ep2, 0);
+  // reload changes
+  MyStr_reset(&self->cursor.str_ite);
+  MyStr_reset(&self->selection.str_ite);
+}
 
 void EditorWindow_toggle_show_line_numbers(EditorWindow *self){
   self->show_line_numbers = 1 - self->show_line_numbers;
@@ -2032,6 +2080,10 @@ Window *Editor_menu(EditorFrame *self) {
     Menu_add_element(edit, " 🔍 Search Ctrl+S",
                      create_lambda(Editor_on_selected, 2, self, EditorWindow_action_search));
     Menu_add_element(edit, "", NULL);
+    Menu_add_element(edit, " a→A Uppercase",
+                     create_lambda(Editor_on_selected, 3, self, EditorWindow_action_upcase));
+    Menu_add_element(edit, " A→a Downcase",
+                     create_lambda(Editor_on_selected, 3, self, EditorWindow_action_downcase));
     Menu_add_submenu(menu, " Edit ", edit);
 
     Window *view = Menu_create_vertical(self);
