@@ -682,6 +682,42 @@ int EditorPointer_search(EditorPointer *cursor, char *query) {
     return 0;
 }
 
+int EditorPointer_search_reverse(EditorPointer *cursor, char *query) {
+    if (query == NULL || *query == '\0') {
+        return 0;
+    }
+
+    Node *node = cursor->node;
+    int query_len = strlen(query);
+
+    while (node != NULL) {
+        char *str = node->line;
+        int end = node->length;
+
+        if (node == cursor->node) {
+            end = cursor->str_ite.cluster_start;
+        }
+
+        // Skip if there's no range to search
+        if (end > query_len && str != NULL) {
+            // Search backwards: find the last occurrence before 'end'
+            char *found = strrstr(str, str + end, query);
+
+            if (found != NULL) {
+                int position = found - str;
+                cursor->node = node;
+                MyStr_init(&cursor->str_ite, str);
+                MyStr_get_grapheme_at_idx(&cursor->str_ite, position);
+                return 1;
+            }
+        }
+
+        node = node->prev;
+        cursor->y--;
+    }
+    return 0;
+}
+
 void EditorPointer_next_char(EditorPointer *cursor, char *query) {
     int state = 0;
     while (!EditorPointer_is_end(cursor)) {
@@ -1355,8 +1391,37 @@ void EditorWindow_search(EditorWindow *self, char *query) {
     }
 }
 
+void EditorWindow_search_reverse(EditorWindow *self, char *query) {
+    if (query == NULL || *query == '\0') {
+        return;
+    }
+
+    EditorPointer ptr = self->highlight_end;
+
+    if (ptr.y == -1) {
+        ptr = self->cursor;
+    } else{
+	  EditorPointer_left(&ptr);
+	}
+    // EditorPointer ptr = self->cursor;
+    if (EditorPointer_search_reverse(&ptr, query)) {
+        self->highlight_start = ptr;
+        self->highlight_end = ptr;
+        MyStr_get_grapheme_at_idx(&self->highlight_end.str_ite,
+                                  self->highlight_end.str_ite.cluster_start + strlen(query));
+        EditorWindow_show_line(self, ptr.y);
+    }
+}
+
 void EditorWindow_searchbox_exit(EditorWindow *self) {
     self->search_box->win.hidden = 1;
+    search_mode = 0;
+    self->win.focused = NULL;
+    self->highlight_start.y = -1;
+}
+
+void EditorWindow_searchrbox_exit(EditorWindow *self) {
+    self->searchr_box->win.hidden = 1;
     search_mode = 0;
     self->win.focused = NULL;
     self->highlight_start.y = -1;
@@ -1367,8 +1432,25 @@ void EditorWindow_searchbox_on_modify(EditorWindow *self) {
     EditorWindow_search(self, self->search_box->buffer);
 }
 
+void EditorWindow_searchrbox_on_modify(EditorWindow *self) {
+    self->highlight_end.y = -1;
+    EditorWindow_search_reverse(self, self->searchr_box->buffer);
+}
+
 void Editor_searchbox_on_enter(EditorWindow *self) {
     self->search_box->win.hidden = 1;
+    search_mode = 0;
+    self->win.focused = NULL;
+    if (self->highlight_end.y != -1) {
+        self->cursor = self->highlight_end;
+        self->highlight_start.y = -1;
+    }
+    // EditorWindow_show_line(self, self->cursor.y);
+    EditorWindow_make_cursor_visible(self);
+}
+
+void Editor_searchrbox_on_enter(EditorWindow *self) {
+    self->searchr_box->win.hidden = 1;
     search_mode = 0;
     self->win.focused = NULL;
     if (self->highlight_end.y != -1) {
@@ -1408,6 +1490,17 @@ void EditorWindow_action_search(EditorWindow *self) {
     }
 }
 
+void EditorWindow_action_search_reverse(EditorWindow *self) {
+    if (self->searchr_box->win.hidden == 1) {
+        self->searchr_box->win.hidden = 0;
+        search_mode = 1;
+        self->win.focused = self->searchr_box;
+        LineEditorWindow_reset(self->searchr_box);
+    } else {
+        EditorWindow_search_reverse(self, self->searchr_box->buffer);
+    }
+}
+
 // end of search
 
 void EditorWindow_toggle_show_line_numbers(EditorWindow *self){
@@ -1427,6 +1520,10 @@ void EditorWindow_send_key(Window *win, char c) {
         EditorWindow_action_search(self);
         return;
     }
+    if (action == ACTION_SEARCHR) { // todo
+        EditorWindow_action_search_reverse(self);
+        return;
+		}
 
     Window *focused_cursor = win->focused;
     if (focused_cursor != NULL)
@@ -1892,7 +1989,13 @@ Window *EditorWindow_new_tab(Tabs *self) {
 
     Window *searchbox = EditorWindow_searchbox(editor);
     editor->search_box = searchbox;
+    editor->searchr_box = EditorWindow_searchbox(editor);
+	//LOG_INFO("EditorWindow_new_tab %p %p", editor, editor->searchr_box);
+	editor->searchr_box->on_exit = create_lambda(EditorWindow_searchrbox_exit, 1, editor);
+	editor->searchr_box->on_modify = create_lambda(EditorWindow_searchrbox_on_modify, 1, editor);
+	editor->searchr_box->win.lambda = create_lambda(Editor_searchrbox_on_enter, 1, editor);
 
+	
     tab->win.focused = slider;
 
     StatusWindow *status = status_bar_create();
@@ -1900,6 +2003,7 @@ Window *EditorWindow_new_tab(Tabs *self) {
 
     Window_append(tab, slider);
     Window_append(tab, searchbox);
+    Window_append(tab, editor->searchr_box);
     Window_append(tab, status);
 
     return tab;

@@ -6,3 +6,4 @@ int encode_utf8(uint32_t c, char *buf);
 char *strcasestr(const char *haystack, const char *needle);
 int count_digits(int n);
 int contains_ignore_case(const char *str, const char *sub);
+char *strrstr(const char *str, const char *start, const char *sub);

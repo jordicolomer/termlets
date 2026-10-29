@@ -109,3 +109,26 @@ int contains_ignore_case(const char *str, const char *sub) {
 
     return 0;
 }
+
+char *strrstr(const char *str, const char *start, const char *sub) {
+    size_t len = strlen(sub);
+
+    if (len == 0)
+        return (char *)start;
+
+    const char *p = start - len;
+
+    while (p >= str) {
+        size_t i = 0;
+
+        while (i < len && p[i] == sub[i])
+            i++;
+
+        if (i == len)
+            return (char *)p;
+
+        p--;
+    }
+
+    return NULL;
+}
