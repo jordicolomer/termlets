@@ -11,11 +11,12 @@ typedef struct Menu {
     int vertical;
     int auto_expand;
     struct Menu *submenu;
+    Lambda *show_check_lambda;
 } Menu;
 
 Menu *Menu_create_horizontal();
 Menu *Menu_create_vertical(Window *parent);
-Window *Menu_add_element(Menu *self, char *name, Lambda *lambda);
+Menu *Menu_add_element(Menu *self, char *name, Lambda *lambda);
 void Menu_add_windows(Menu *menu, char *name, Tabs *tabs, Window *self);
 void Menu_add_submenu(Menu *self, char *name, Menu *menu);
 

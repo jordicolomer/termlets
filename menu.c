@@ -177,28 +177,60 @@ void Menu_change_color_selected(Window *w, int x, int y) {
     w->bg = SELECTED_COLOR;
 }
 
-Window *Menu_add_element(Menu *self, char *name, Lambda *lambda) {
+void Menu_draw(struct Window *current, int hasFocus) {
+  Menu *self = current;
+  Geometry geo = current->calculated;
+  int fg = current->fg;
+  int bg = current->bg;
+  Buffer_print(&main_buf, geo.y, geo.x, geo.width, current->c, fg, bg);
+  if (self->show_check_lambda != NULL && invoke_lambda(self->show_check_lambda)){
+	char * check_str = "✓";
+	Buffer_print(&main_buf, geo.y, geo.x+1, 1, check_str, fg, bg);
+  }
+}
+
+Menu *Menu_add_menu(Window *w, int left, int right, int top, int bottom, int width,
+                          int height, char *c, int fg, int bg) {
+    Menu *wg = malloc(sizeof *wg);
+  //Window *wg = malloc(sizeof *wg);
+    Window_init(wg, left, right, top, bottom, width, height);
+    wg->win.draw = Menu_draw;
+    wg->win.parent = w;
+    wg->win.c = c;
+    wg->win.id = c;
+    wg->win.fg = fg;
+    wg->win.bg = bg;
+	wg->show_check_lambda = NULL;
+
+    Window_append(w, wg);
+
+    w->virtual_height = max(w->virtual_height, top + height);
+
+    return wg;
+}
+
+Menu *Menu_add_element(Menu *self, char *name, Lambda *lambda) {
     int len = strlen(name);
-    Window *win = NULL;
+    Menu *win = NULL;
     if (self->vertical == 1) {
-        win = Window_add_widget(self, 0, 0, self->offset, -1, -1, 1, name, 232, 248);
+        win = Menu_add_menu(self, 0, 0, self->offset, -1, -1, 1, name, 232, 248);
         self->win.width = max(self->win.width, len + 2);
         self->win.height += 1;
         self->offset += 1;
         if (lambda != NULL) {
-            win->on_hover = Menu_change_color_hover;
-            win->undo_on_hover = Menu_change_color_darker;
-            win->lambda = lambda;
-            win->on_mouse_down = Execute_lambda_and_close_parent;
+            win->win.on_hover = Menu_change_color_hover;
+            win->win.undo_on_hover = Menu_change_color_darker;
+            win->win.lambda = lambda;
+            win->win.on_mouse_down = Execute_lambda_and_close_parent;
         }
     } else {
-        win = Window_add_widget(self, self->offset, -1, 0, -1, len, 1, name, 232, 253);
-        win->on_hover = Menu_change_color_hover_and_open;
-        win->undo_on_hover = Menu_change_color_normal;
+        win = Menu_add_menu(self, self->offset, -1, 0, -1, len, 1, name, 232, 253);
+        win->win.on_hover = Menu_change_color_hover_and_open;
+        win->win.undo_on_hover = Menu_change_color_normal;
         self->offset += len;
         if (lambda != NULL) {
-            win->lambda = lambda;
-            win->on_mouse_down = Execute_lambda;
+            win->win.lambda = lambda;
+            win->win.on_mouse_down = Execute_lambda;
         }
     }
     return win;

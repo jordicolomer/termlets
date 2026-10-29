@@ -1414,6 +1414,10 @@ void EditorWindow_toggle_show_line_numbers(EditorWindow *self){
   self->show_line_numbers = 1 - self->show_line_numbers;
 }
 
+int EditorWindow_get_show_line_numbers(EditorWindow *self){
+  return self->show_line_numbers;
+}
+
 void EditorWindow_send_key(Window *win, char c) {
 
     EditorWindow *self = win;
@@ -1980,9 +1984,9 @@ Window *Editor_menu(EditorFrame *self) {
     Menu_add_element(view, show_tabs_label,
                      create_lambda(Editor_show_tabs, 2, self, show_tabs_label));
 
-    char *show_lines_label = strdup("   Line numbers");
-    Menu_add_element(view, show_lines_label,
+    Menu * show_lines_menu = Menu_add_element(view, "   Line numbers",
 					 create_lambda(Editor_on_selected, 2, self, EditorWindow_toggle_show_line_numbers));
+	show_lines_menu->show_check_lambda = create_lambda(Editor_on_selected, 2, self, EditorWindow_get_show_line_numbers);
 	
     Menu_add_element(view, "", NULL);
     Menu_add_submenu(menu, " View ", view);
