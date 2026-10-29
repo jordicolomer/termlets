@@ -16,54 +16,42 @@
 #include "utils.h"
 
 void WM_draw(struct Window *w, int hasFocus) {
+  WM * self = w;
     if (w->fill == 1)
         Window_fill(w, hasFocus);
     Geometry geo = w->calculated;
     int j = 0;
-    int selected = (int)w->data;
     Tab *tabs = all_tabs_head;
 
     while (tabs != NULL) {
         int bg = 255;
-        if (j == selected)
+        if (j == self->selected)
             bg = SELECTED_COLOR;
-		/*int len = strlen(tabs->str);
-		if (len > geo.width){ // long string
-		  Buffer_print(&main_buf, geo.y + j, geo.x, 2, tabs->str, 232, bg);
-		  Buffer_print(&main_buf, geo.y + j, geo.x+2, 2, "..", 232, bg);
-		  Buffer_print(&main_buf, geo.y + j, geo.x+4, geo.width-4, tabs->str + (len - (geo.width-4)), 232, bg);
-		  j++;
-		}
-		else
-		Buffer_print(&main_buf, geo.y + j++, geo.x, geo.width, tabs->str, 232, bg);*/
 		Buffer_print_dots(&main_buf, geo.y + j++, geo.x, geo.width, tabs->str, 232, bg);
         tabs = tabs->all_tabs_next;
     }
-    w->data2 = (void *)j;
+	self->count = j;
 }
 
-void WM_up(Window *self) {
-    int selected = (int)self->data;
-    self->data = (void *)max(selected - 1, 0);
+void WM_up(WM * self) {
+  self->selected = max(self->selected - 1, 0);
 }
 
-void WM_down(Window *self) {
-    int selected = (int)self->data;
-    int maximum = (int)self->data2;
-    self->data = (void *)min(maximum - 1, selected + 1);
+void WM_down(WM * self) {
+  self->selected = min(self->selected + 1, self->count-1);
 }
 
-void WM_select(Window *self) {
-    int selected = (int)self->data;
+void WM_select(WM *self) {
+  //int selected = (int)self->data;
     int j = 0;
     Tab *tabs = all_tabs_head;
     while (tabs != NULL) {
         int bg = 255;
-        if (j == selected) {
+        if (j == self->selected) {
             select_tab(tabs, 1);
-            self->parent->hidden = 1;
-            Window_bring_to_top(self->parent);
-            self->data = (void *)1;
+            self->win.parent->hidden = 1;
+            Window_bring_to_top(self->win.parent);
+			self->selected = 1;
             return;
         }
         tabs = tabs->all_tabs_next;
@@ -106,13 +94,16 @@ void WM_send_sequence(Window *self, const char *seq, int len) {
 Window *WM_create(int left, int right, int top, int bottom, int width, int height) {
     Window *vm_frame = malloc(sizeof *vm_frame);
     memset(vm_frame, 0, sizeof *vm_frame); // Zero-initialize to prevent garbage values
-    Window *w = Frame_init(vm_frame, left, right, top, bottom, width, height, NULL, 0);
+	WM *child = malloc(sizeof *child);
+	Window_init(child, 0, 0, 1, 0, -1, -1);
+    Window *w = Frame_init(vm_frame, left, right, top, bottom, width, height, child, 0);
+    w->id = "wm child";
     w->bg = 255;
     w->fill = 1;
     w->draw = WM_draw;
     w->send_key = WM_send_key;
     w->send_sequence = WM_send_sequence;
-    w->data = (void *)1;
+	child->selected = 1;
     vm_frame->focused = w;
     return vm_frame;
 }

@@ -279,7 +279,8 @@ Window *Menu_list_windows(Menu *menu, Tabs *tabs, struct Window *window_menu_ite
     while (tab != NULL) {
 	  //char *selected_sign = "   ";
 
-        Window *win = Menu_add_element(submenu, tab->str, NULL);
+	  //Window *win = Menu_add_element(submenu, tab->str, NULL);
+	  Window *win = Menu_add_element(submenu, tab->short_str, NULL);
         win->undo_on_hover = Menu_change_color_darker;
         if (tabs->selected_tab == tab) {
 		  //win->bg = SELECTED_COLOR;
