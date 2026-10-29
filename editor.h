@@ -51,7 +51,8 @@ typedef struct EditorWindow { // this is the scrollable part of the editor
     int language; // specifies the syntax highlighting language
     int selecting;
     LineEditorWindow *search_box;
-    LineEditorWindow *searchr_box;
+    int reverse_search;
+  //LineEditorWindow *searchr_box;
     ArrayList undo_stack;
     ArrayListIterator undo_pointer;
     int show_line_numbers;

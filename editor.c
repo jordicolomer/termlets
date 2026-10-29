@@ -1343,37 +1343,6 @@ void EditorWindow_action_indent(EditorWindow *self) {
 }
 
 // start of search
-/*
-void _EditorWindow_search(EditorWindow *self, char *query) {
-    EditorPointer ptr = self->highlight_end;
-
-    if (ptr.y == -1) {
-        ptr = self->cursor;
-    }
-
-    int n = ptr.y;
-
-    Node *node = EditorWindow_get_line_number(self, n);
-    char *p = strstr(node->line + ptr.ptr, query);
-    while (p == NULL && n < self->n_lines - 1) {
-        n += 1;
-        node = EditorWindow_get_line_number(self, n);
-        p = strstr(node->line, query);
-    }
-
-    if (p != NULL) {
-        self->highlight_start.y = n;
-        //self->highlight_start.x = calculate_width_n(node->line, p - node->line);
-        self->highlight_start.ptr = p - node->line;
-
-        self->highlight_end.y = n;
-        self->highlight_end.x = self->highlight_start.x + strlen(query);
-        self->highlight_end.ptr = self->highlight_start.x + calculate_width(query);
-
-        EditorWindow_show_line(self, self->highlight_end.y);
-    }
-}
-*/
 
 void EditorWindow_search(EditorWindow *self, char *query) {
     EditorPointer ptr = self->highlight_end;
@@ -1420,22 +1389,16 @@ void EditorWindow_searchbox_exit(EditorWindow *self) {
     self->highlight_start.y = -1;
 }
 
-void EditorWindow_searchrbox_exit(EditorWindow *self) {
-    self->searchr_box->win.hidden = 1;
-    search_mode = 0;
-    self->win.focused = NULL;
-    self->highlight_start.y = -1;
-}
 
 void EditorWindow_searchbox_on_modify(EditorWindow *self) {
     self->highlight_end.y = -1;
-    EditorWindow_search(self, self->search_box->buffer);
+	if (self->reverse_search == 1){
+	  EditorWindow_search_reverse(self, self->search_box->buffer);
+	} else {
+	  EditorWindow_search(self, self->search_box->buffer);
+	}
 }
 
-void EditorWindow_searchrbox_on_modify(EditorWindow *self) {
-    self->highlight_end.y = -1;
-    EditorWindow_search_reverse(self, self->searchr_box->buffer);
-}
 
 void Editor_searchbox_on_enter(EditorWindow *self) {
     self->search_box->win.hidden = 1;
@@ -1449,17 +1412,6 @@ void Editor_searchbox_on_enter(EditorWindow *self) {
     EditorWindow_make_cursor_visible(self);
 }
 
-void Editor_searchrbox_on_enter(EditorWindow *self) {
-    self->searchr_box->win.hidden = 1;
-    search_mode = 0;
-    self->win.focused = NULL;
-    if (self->highlight_end.y != -1) {
-        self->cursor = self->highlight_end;
-        self->highlight_start.y = -1;
-    }
-    // EditorWindow_show_line(self, self->cursor.y);
-    EditorWindow_make_cursor_visible(self);
-}
 
 Window *EditorWindow_searchbox(EditorWindow *self) {
     LineEditorWindow *line_edit = LineEditorWindow_new(NULL, "Search");
@@ -1480,26 +1432,21 @@ Window *EditorWindow_searchbox(EditorWindow *self) {
 }
 
 void EditorWindow_action_search(EditorWindow *self) {
+  //self->reverse_search = 0;
     if (self->search_box->win.hidden == 1) {
         self->search_box->win.hidden = 0;
         search_mode = 1;
         self->win.focused = self->search_box;
         LineEditorWindow_reset(self->search_box);
     } else {
+	  if (self->reverse_search == 1){
+        EditorWindow_search_reverse(self, self->search_box->buffer);
+	  } else {
         EditorWindow_search(self, self->search_box->buffer);
+	  }
     }
 }
 
-void EditorWindow_action_search_reverse(EditorWindow *self) {
-    if (self->searchr_box->win.hidden == 1) {
-        self->searchr_box->win.hidden = 0;
-        search_mode = 1;
-        self->win.focused = self->searchr_box;
-        LineEditorWindow_reset(self->searchr_box);
-    } else {
-        EditorWindow_search_reverse(self, self->searchr_box->buffer);
-    }
-}
 
 // end of search
 
@@ -1517,11 +1464,14 @@ void EditorWindow_send_key(Window *win, char c) {
     Action action = get_action(c, WT_EDITOR);
 
     if (action == ACTION_SEARCH) { // todo
+	  self->reverse_search = 0;
         EditorWindow_action_search(self);
         return;
     }
     if (action == ACTION_SEARCHR) { // todo
-        EditorWindow_action_search_reverse(self);
+	  self->reverse_search = 1;
+        EditorWindow_action_search(self);
+	  //EditorWindow_action_search_reverse(self);
         return;
 		}
 
@@ -1989,11 +1939,7 @@ Window *EditorWindow_new_tab(Tabs *self) {
 
     Window *searchbox = EditorWindow_searchbox(editor);
     editor->search_box = searchbox;
-    editor->searchr_box = EditorWindow_searchbox(editor);
-	//LOG_INFO("EditorWindow_new_tab %p %p", editor, editor->searchr_box);
-	editor->searchr_box->on_exit = create_lambda(EditorWindow_searchrbox_exit, 1, editor);
-	editor->searchr_box->on_modify = create_lambda(EditorWindow_searchrbox_on_modify, 1, editor);
-	editor->searchr_box->win.lambda = create_lambda(Editor_searchrbox_on_enter, 1, editor);
+	editor->reverse_search = 0;
 
 	
     tab->win.focused = slider;
@@ -2003,7 +1949,7 @@ Window *EditorWindow_new_tab(Tabs *self) {
 
     Window_append(tab, slider);
     Window_append(tab, searchbox);
-    Window_append(tab, editor->searchr_box);
+    //Window_append(tab, editor->searchr_box);
     Window_append(tab, status);
 
     return tab;
