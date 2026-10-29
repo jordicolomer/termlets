@@ -1985,11 +1985,11 @@ Window *Editor_menu(EditorFrame *self) {
 	
     //char *show_tabs_label = strdup("   Show Tabs");
 	//Editor_show_tabs(self, show_tabs_label); // init show_tabs_label
-    Menu * show_tabs_menu = Menu_add_element(view, "   Show Tabs",
+    Menu * show_tabs_menu = Menu_add_element(view, "Show Tabs",
                      create_lambda(toggle_show_tabs, 0));
 	show_tabs_menu->show_check_lambda = create_lambda(get_show_tabs, 0);
 
-    Menu * show_lines_menu = Menu_add_element(view, "   Line numbers",
+    Menu * show_lines_menu = Menu_add_element(view, "Line numbers ",
 					 create_lambda(Editor_on_selected, 2, self, EditorWindow_toggle_show_line_numbers));
 	show_lines_menu->show_check_lambda = create_lambda(Editor_on_selected, 2, self, EditorWindow_get_show_line_numbers);
 	
@@ -1998,25 +1998,25 @@ Window *Editor_menu(EditorFrame *self) {
 
     Window *syntax = Menu_create_vertical(self);
 	Menu * lang_menu = NULL;
-    lang_menu = Menu_add_element(syntax, strdup("   None"),
+    lang_menu = Menu_add_element(syntax, strdup("None"),
                      create_lambda(Editor_set_language, 2, self, LANG_NONE));
 	lang_menu->show_check_lambda = create_lambda(Editor_cmp_language, 2, self, LANG_NONE);
-    lang_menu = Menu_add_element(syntax, strdup("   🔧 C"),
+    lang_menu = Menu_add_element(syntax, strdup("🔧 C"),
                      create_lambda(Editor_set_language, 2, self, LANG_C));
 	lang_menu->show_check_lambda = create_lambda(Editor_cmp_language, 2, self, LANG_C);
-    lang_menu = Menu_add_element(syntax, strdup("   💠 C++"),
+    lang_menu = Menu_add_element(syntax, strdup("💠 C++"),
                      create_lambda(Editor_set_language, 2, self, LANG_CPP));
 	lang_menu->show_check_lambda = create_lambda(Editor_cmp_language, 2, self, LANG_CPP);
-    lang_menu = Menu_add_element(syntax, strdup("   ☕ Java"),
+    lang_menu = Menu_add_element(syntax, strdup("☕ Java"),
                      create_lambda(Editor_set_language, 2, self, LANG_JAVA));
 	lang_menu->show_check_lambda = create_lambda(Editor_cmp_language, 2, self, LANG_JAVA);
-    lang_menu = Menu_add_element(syntax, strdup("   📜 JavaScript"),
+    lang_menu = Menu_add_element(syntax, strdup("📜 JavaScript"),
                      create_lambda(Editor_set_language, 2, self, LANG_JS));
 	lang_menu->show_check_lambda = create_lambda(Editor_cmp_language, 2, self, LANG_JS);
-    lang_menu = Menu_add_element(syntax, strdup("   📝 TypeScript"),
+    lang_menu = Menu_add_element(syntax, strdup("📝 TypeScript"),
                      create_lambda(Editor_set_language, 2, self, LANG_TS));
 	lang_menu->show_check_lambda = create_lambda(Editor_cmp_language, 2, self, LANG_TS);
-    lang_menu = Menu_add_element(syntax, strdup("   🐍 Python"),
+    lang_menu = Menu_add_element(syntax, strdup("🐍 Python"),
                      create_lambda(Editor_set_language, 2, self, LANG_PY));
 	lang_menu->show_check_lambda = create_lambda(Editor_cmp_language, 2, self, LANG_PY);
     Menu_add_element(syntax, "", NULL);

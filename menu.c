@@ -113,7 +113,7 @@ void Menu_toggle_auto_expand(Menu *self) {
     }
 }
 
-void Menu_mark_selected(Window *win) {
+/*void Menu_mark_selected(Window *win) {
     if (win->lambda == NULL)
         return;
     Window *current = win->head;
@@ -131,20 +131,20 @@ void Menu_mark_selected(Window *win) {
         current = current->next;
         i++;
     }
-}
+	}*/
 
 void Menu_show_submenu(Menu *menu, Window *win) {
     Menu_close_last_opened_submenu();
     last_opened_submenu = menu;
     menu->win.hidden = 0;
     Menu_move_to_button(menu, win);
-    Menu_mark_selected(menu);
+    //Menu_mark_selected(menu);
 }
 
 void Menu_toggle_submenu(Menu *menu, Window *win) {
     menu->win.hidden = 1 - menu->win.hidden;
     Menu_move_to_button(menu, win);
-    Menu_mark_selected(menu);
+    //Menu_mark_selected(menu);
 }
 
 void Menu_change_color_hover_and_open(Window *w, int x, int y) {
@@ -178,12 +178,21 @@ void Menu_change_color_selected(Window *w, int x, int y) {
 }
 
 void Menu_draw(struct Window *current, int hasFocus) {
+    if (current->hidden == 1) {
+        return;
+    }
   Menu *self = current;
   Geometry geo = current->calculated;
   int fg = current->fg;
   int bg = current->bg;
-  Buffer_print(&main_buf, geo.y, geo.x, geo.width, current->c, fg, bg);
+  int x_shift = 0;
+  if (self->show_check_lambda != NULL) x_shift = 3;
+  Buffer_print(&main_buf, geo.y, geo.x, x_shift, "", fg, bg);
+  Buffer_print(&main_buf, geo.y, geo.x+x_shift, geo.width-x_shift, current->c, fg, bg);
+  //LOG_INFO("Menu_draw %s", current->c);
+
   if (self->show_check_lambda != NULL && invoke_lambda(self->show_check_lambda)){
+	//LOG_INFO("show_check");
 	char * check_str = "✓";
 	Buffer_print(&main_buf, geo.y, geo.x+1, 1, check_str, fg, bg);
   }
@@ -214,7 +223,7 @@ Menu *Menu_add_element(Menu *self, char *name, Lambda *lambda) {
     Menu *win = NULL;
     if (self->vertical == 1) {
         win = Menu_add_menu(self, 0, 0, self->offset, -1, -1, 1, name, 232, 248);
-        self->win.width = max(self->win.width, len + 2);
+        self->win.width = max(self->win.width, len + 3);
         self->win.height += 1;
         self->offset += 1;
         if (lambda != NULL) {
@@ -242,6 +251,14 @@ void Menu_list_windows_item_selected(Tab *tab, Window *menu) {
     auto_expand = NULL;
 }
 
+int return_true(){
+  return 1;
+}
+
+int return_false(){
+  return 0;
+}
+
 Window *Menu_list_windows(Menu *menu, Tabs *tabs, struct Window *window_menu_item, Menu *submenu) {
   //Menu_toggle_auto_expand(menu);
   // if (menu != auto_expand)
@@ -255,14 +272,19 @@ Window *Menu_list_windows(Menu *menu, Tabs *tabs, struct Window *window_menu_ite
     Tab *tab = tabs->first;
     int i = 0;
     while (tab != NULL) {
-        char *selected_sign = "   ";
+	  //char *selected_sign = "   ";
 
         Window *win = Menu_add_element(submenu, tab->str, NULL);
         win->undo_on_hover = Menu_change_color_darker;
         if (tabs->selected_tab == tab) {
-            win->bg = SELECTED_COLOR;
-            win->undo_on_hover = Menu_change_color_selected;
-        }
+		  //win->bg = SELECTED_COLOR;
+		  //win->undo_on_hover = Menu_change_color_selected;
+		  Menu * menu = win;
+		  menu->show_check_lambda = create_lambda(return_true, 0);
+        } else {
+		  Menu * menu = win;
+		  menu->show_check_lambda = create_lambda(return_false, 0);
+		}
         win->on_hover = Menu_change_color_hover;
         win->lambda = create_lambda(Menu_list_windows_item_selected, 2, tab, submenu);
         win->on_mouse_down = Execute_lambda;
