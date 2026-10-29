@@ -2015,6 +2015,11 @@ Window *Editor_menu(EditorFrame *self) {
     Menu_add_submenu(menu, " File ", file);
 
     Window *edit = Menu_create_vertical(self);
+    Menu_add_element(edit, " ↩️ Undo   z",
+                     create_lambda(Editor_on_selected, 2, self, EditorWindow_undo));
+    Menu_add_element(edit, " ↪️ Redo   Z",
+                     create_lambda(Editor_on_selected, 2, self, EditorWindow_redo));
+    Menu_add_element(edit, "", NULL);
     Menu_add_element(edit, " ❌ Delete Backspace",
                      create_lambda(Editor_on_selected, 2, self, EditorWindow_backspace));
     Menu_add_element(edit, " 🔪 Cut    Ctrl+X",
@@ -2023,10 +2028,9 @@ Window *Editor_menu(EditorFrame *self) {
                      create_lambda(Editor_on_selected, 2, self, EditorWindow_copy));
     Menu_add_element(edit, " 📌 Paste  Ctrl+V",
                      create_lambda(Editor_on_selected, 2, self, EditorWindow_paste));
-    Menu_add_element(edit, " ↩️ Undo   z",
-                     create_lambda(Editor_on_selected, 2, self, EditorWindow_undo));
-    Menu_add_element(edit, " ↪️ Redo   Z",
-                     create_lambda(Editor_on_selected, 2, self, EditorWindow_redo));
+    Menu_add_element(edit, "", NULL);
+    Menu_add_element(edit, " 🔍 Search Ctrl+S",
+                     create_lambda(Editor_on_selected, 2, self, EditorWindow_action_search));
     Menu_add_element(edit, "", NULL);
     Menu_add_submenu(menu, " Edit ", edit);
 
@@ -2096,6 +2100,8 @@ Window *Editor_toolbar(EditorFrame *self) {
                      create_lambda(Editor_on_selected, 2, self, EditorWindow_undo));
     Menu_add_element(toolbar, " ↪️ Redo",
                      create_lambda(Editor_on_selected, 2, self, EditorWindow_redo));
+    Menu_add_element(toolbar, " 🔍 Search",
+                     create_lambda(Editor_on_selected, 2, self, EditorWindow_action_search));
 
     toolbar->top = 1;
 
