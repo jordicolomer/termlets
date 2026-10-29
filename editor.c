@@ -1467,11 +1467,10 @@ char *EditorPointer_change_case(EditorPointer *ep1, EditorPointer *ep2, int is_u
 	  conversion = -conversion;
 	}
 	while (EditorPointer_cmp(ep1, ep2) == -1){
-	  utf8proc_int32_t first_codepoint = ep1->str_ite.first_codepoint;
+	  char * utf8 = ep1->str_ite.utf8;
+	  int idx = ep1->str_ite.pos_cluster;
 	  if (ep1->str_ite.width_codepoints == 1 &&
-		  low <= first_codepoint && first_codepoint <= high){
-		char * utf8 = ep1->str_ite.utf8;
-		int idx = ep1->str_ite.pos_cluster;
+		  low <= utf8[idx] && utf8[idx] <= high){
 		utf8[idx] = utf8[idx]+conversion;
 	  }
 	  EditorPointer_right(ep1);
@@ -1483,9 +1482,6 @@ void EditorWindow_action_upcase(EditorWindow *self){
   EditorPointer ep1 = self->cursor;
   EditorPointer ep2 = self->selection;
   EditorPointer_change_case(&ep1, &ep2, 1);
-  // reload changes
-  MyStr_reset(&self->cursor.str_ite);
-  MyStr_reset(&self->selection.str_ite);
 }
 
 void EditorWindow_action_downcase(EditorWindow *self){
@@ -1493,9 +1489,6 @@ void EditorWindow_action_downcase(EditorWindow *self){
   EditorPointer ep1 = self->cursor;
   EditorPointer ep2 = self->selection;
   EditorPointer_change_case(&ep1, &ep2, 0);
-  // reload changes
-  MyStr_reset(&self->cursor.str_ite);
-  MyStr_reset(&self->selection.str_ite);
 }
 
 void EditorWindow_toggle_show_line_numbers(EditorWindow *self){
