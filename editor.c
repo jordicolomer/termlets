@@ -1933,18 +1933,17 @@ int Editor_get_current_tab_language(EditorFrame *self) {
     return ew->language;
 }
 
-void Editor_show_tabs(EditorFrame *self, char *show_tabs_label) {
-    show_tabs = 1 - show_tabs;
-    if (show_tabs) {
-        show_tabs_label[1] = 'x';
-    } else {
-        show_tabs_label[1] = ' ';
-    }
-}
-
 void EditorWindow_close(EditorFrame *self) {
     Tab *tab = self->tabs->selected_tab;
     tabs_remove_tab(tab);
+}
+
+int get_show_tabs(){
+  return show_tabs;
+}
+
+void toggle_show_tabs() {
+    show_tabs = 1 - show_tabs;
 }
 
 Window *Editor_menu(EditorFrame *self) {
@@ -1979,10 +1978,11 @@ Window *Editor_menu(EditorFrame *self) {
     Window *view = Menu_create_vertical(self);
     // Menu_add_element(view, " ⤶ Word wrap", create_lambda(Editor_menu_new, 1, self));
 	
-    char *show_tabs_label = strdup("   Show Tabs");
-	Editor_show_tabs(self, show_tabs_label); // init show_tabs_label
-    Menu_add_element(view, show_tabs_label,
-                     create_lambda(Editor_show_tabs, 2, self, show_tabs_label));
+    //char *show_tabs_label = strdup("   Show Tabs");
+	//Editor_show_tabs(self, show_tabs_label); // init show_tabs_label
+    Menu * show_tabs_menu = Menu_add_element(view, "   Show Tabs",
+                     create_lambda(toggle_show_tabs, 0));
+	show_tabs_menu->show_check_lambda = create_lambda(get_show_tabs, 0);
 
     Menu * show_lines_menu = Menu_add_element(view, "   Line numbers",
 					 create_lambda(Editor_on_selected, 2, self, EditorWindow_toggle_show_line_numbers));
