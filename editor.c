@@ -1928,6 +1928,11 @@ Window *Editor_set_language(EditorFrame *self, int lang) {
     ew->language = lang;
 }
 
+int Editor_cmp_language(EditorFrame *self, int lang) {
+    EditorWindow *ew = Editor_get_focused_window(self);
+    return (ew->language == lang);
+}
+
 int Editor_get_current_tab_language(EditorFrame *self) {
     EditorWindow *ew = Editor_get_focused_window(self);
     return ew->language;
@@ -1992,23 +1997,31 @@ Window *Editor_menu(EditorFrame *self) {
     Menu_add_submenu(menu, " View ", view);
 
     Window *syntax = Menu_create_vertical(self);
-    Menu_add_element(syntax, strdup("   None"),
+	Menu * lang_menu = NULL;
+    lang_menu = Menu_add_element(syntax, strdup("   None"),
                      create_lambda(Editor_set_language, 2, self, LANG_NONE));
-    Menu_add_element(syntax, strdup("   🔧 C"),
+	lang_menu->show_check_lambda = create_lambda(Editor_cmp_language, 2, self, LANG_NONE);
+    lang_menu = Menu_add_element(syntax, strdup("   🔧 C"),
                      create_lambda(Editor_set_language, 2, self, LANG_C));
-    Menu_add_element(syntax, strdup("   💠 C++"),
+	lang_menu->show_check_lambda = create_lambda(Editor_cmp_language, 2, self, LANG_C);
+    lang_menu = Menu_add_element(syntax, strdup("   💠 C++"),
                      create_lambda(Editor_set_language, 2, self, LANG_CPP));
-    Menu_add_element(syntax, strdup("   ☕ Java"),
+	lang_menu->show_check_lambda = create_lambda(Editor_cmp_language, 2, self, LANG_CPP);
+    lang_menu = Menu_add_element(syntax, strdup("   ☕ Java"),
                      create_lambda(Editor_set_language, 2, self, LANG_JAVA));
-    Menu_add_element(syntax, strdup("   📜 JavaScript"),
+	lang_menu->show_check_lambda = create_lambda(Editor_cmp_language, 2, self, LANG_JAVA);
+    lang_menu = Menu_add_element(syntax, strdup("   📜 JavaScript"),
                      create_lambda(Editor_set_language, 2, self, LANG_JS));
-    Menu_add_element(syntax, strdup("   📝 TypeScript"),
+	lang_menu->show_check_lambda = create_lambda(Editor_cmp_language, 2, self, LANG_JS);
+    lang_menu = Menu_add_element(syntax, strdup("   📝 TypeScript"),
                      create_lambda(Editor_set_language, 2, self, LANG_TS));
-    Menu_add_element(syntax, strdup("   🐍 Python"),
+	lang_menu->show_check_lambda = create_lambda(Editor_cmp_language, 2, self, LANG_TS);
+    lang_menu = Menu_add_element(syntax, strdup("   🐍 Python"),
                      create_lambda(Editor_set_language, 2, self, LANG_PY));
+	lang_menu->show_check_lambda = create_lambda(Editor_cmp_language, 2, self, LANG_PY);
     Menu_add_element(syntax, "", NULL);
     Menu_add_submenu(menu, " Sytnax ", syntax);
-    syntax->lambda = create_lambda(Editor_get_current_tab_language, 1, self);
+    //syntax->lambda = create_lambda(Editor_get_current_tab_language, 1, self);
 
     Menu_add_windows(menu, " Window ", self->tabs->win.data, self);
 
