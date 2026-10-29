@@ -27,7 +27,7 @@ void WM_draw(struct Window *w, int hasFocus) {
         int bg = 255;
         if (j == selected)
             bg = SELECTED_COLOR;
-		int len = strlen(tabs->str);
+		/*int len = strlen(tabs->str);
 		if (len > geo.width){ // long string
 		  Buffer_print(&main_buf, geo.y + j, geo.x, 2, tabs->str, 232, bg);
 		  Buffer_print(&main_buf, geo.y + j, geo.x+2, 2, "..", 232, bg);
@@ -35,7 +35,8 @@ void WM_draw(struct Window *w, int hasFocus) {
 		  j++;
 		}
 		else
-		  Buffer_print(&main_buf, geo.y + j++, geo.x, geo.width, tabs->str, 232, bg);
+		Buffer_print(&main_buf, geo.y + j++, geo.x, geo.width, tabs->str, 232, bg);*/
+		Buffer_print_dots(&main_buf, geo.y + j++, geo.x, geo.width, tabs->str, 232, bg);
         tabs = tabs->all_tabs_next;
     }
     w->data2 = (void *)j;

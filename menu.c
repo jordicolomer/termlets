@@ -192,7 +192,8 @@ void Menu_draw(struct Window *current, int hasFocus) {
   int x_shift = 0;
   if (self->show_check_lambda != NULL) x_shift = 3;
   Buffer_print(&main_buf, geo.y, geo.x, x_shift, "", fg, bg);
-  Buffer_print(&main_buf, geo.y, geo.x+x_shift, geo.width-x_shift, current->c, fg, bg);
+  //Buffer_print(&main_buf, geo.y, geo.x+x_shift, geo.width-x_shift, current->c, fg, bg);
+  Buffer_print_dots(&main_buf, geo.y, geo.x+x_shift, geo.width-x_shift, current->c, fg, bg);
   //LOG_INFO("Menu_draw %s", current->c);
 
   if (self->show_check_lambda != NULL && invoke_lambda(self->show_check_lambda)){

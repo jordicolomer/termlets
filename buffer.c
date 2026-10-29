@@ -641,6 +641,17 @@ void Buffer_print(Buffer *buf, int y, int x, int width, char *s, int fg, int bg)
     Buffer_print_buf(buf0, y, x, width, s, fg, bg);
 }
 
+// prints dots if line is too long
+void Buffer_print_dots(Buffer *buf, int y, int x, int width, char *s, int fg, int bg) {
+    int len = strlen(s);
+	if (len > width){ // long string
+	  Buffer_print(buf, y, x, 2, s, fg, bg);
+	  Buffer_print(buf, y, x+2, 2, "..", fg, bg);
+	  Buffer_print(buf, y, x+4, width-4, s + (len - (width-4)), fg, bg);
+	} else
+	  Buffer_print(buf, y, x, width, s, fg, bg);
+}
+
 void Buffer_set_fg(Buffer *buf, int y, int x, int width, int fg) {
     y -= 1;
     for (int i = 0; i < width; i++) {
