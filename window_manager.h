@@ -2,11 +2,15 @@
 #define WINDOW_MANAGER_H
 
 #include "window.h"
+#include "mini_edit.h"
+#include "tabs.h"
 
 typedef struct WM {
-    Window win;
+  Window win;
   int selected;
+  Tab *selected_tab;
   int count;
+  LineEditorWindow *line_edit;
 } WM;
 
 

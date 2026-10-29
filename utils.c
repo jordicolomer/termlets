@@ -86,3 +86,26 @@ int count_digits(int n) {
 
     return count;
 }
+
+
+int contains_ignore_case(const char *str, const char *sub) {
+    if (*sub == '\0')
+        return 1;
+
+    for (; *str; str++) {
+        const char *s = str;
+        const char *p = sub;
+
+        while (*s && *p &&
+               tolower((unsigned char)*s) ==
+               tolower((unsigned char)*p)) {
+            s++;
+            p++;
+        }
+
+        if (*p == '\0')
+            return 1;
+    }
+
+    return 0;
+}
