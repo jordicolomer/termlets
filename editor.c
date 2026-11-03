@@ -1484,9 +1484,6 @@ void EditorWindow_action_search(EditorWindow *self) {
   }
 }
 
-// when clicking the x in search box
-
-
 // when the user clicks on the search input
 void SearchWindow_on_click(struct Window *wg, int x, int y){
   //wg->parent->focused = wg;
@@ -1515,6 +1512,13 @@ void EditorWindow_search_button_close_clicked(EditorWindow *self) {
   Window_focus(self);
   search_mode = 0;
   self->selection.y = -1;
+}
+
+void EditorWindow_search_button_replace_clicked(EditorWindow *self) {
+  // if selection doesnt match search input, then call search
+  EditorWindow_cut(self);
+  EditorPointer_undo_insert(self, &self->cursor, self->replace_window->replace_box->buffer);
+  EditorWindow_search_button_next_clicked(self);
 }
 
 // on EditorWindow init
@@ -1597,14 +1601,18 @@ SearchWindow * EditorWindow_create_replace_window(EditorWindow *self) {
     line_edit->win.hidden = 0;
     line_edit->win.id = "EditorWindow_searchbox";
     line_edit->on_exit = create_lambda(EditorWindow_searchbox_exit, 1, self);
-    line_edit->on_modify = create_lambda(EditorWindow_searchbox_on_modify, 1, self);
+    //line_edit->on_modify = create_lambda(EditorWindow_searchbox_on_modify, 1, self);
+	line_edit->win.on_mouse_down = SearchWindow_on_click;
     line_edit->win.lambda = create_lambda(Editor_searchbox_on_enter, 1, self);
     Window_append(search_window, line_edit);
 	search_window->search_box = line_edit;
 
 
-	Window * button_next = Window_add_widget(search_window, line_edit->win.width+2, -1, 0, -1, 2, 1, "🔄", 15, 15);
-	Window * button_prev = Window_add_widget(search_window, line_edit->win.width+5, -1, 0, -1, 2, 1, "🔁", 15, 15);
+	Window * button_replace = Window_add_widget(search_window, line_edit->win.width+2, -1, 0, -1, 2, 1, "🔄", 15, 15);
+    button_replace->lambda = create_lambda(EditorWindow_search_button_replace_clicked, 1, self);
+	button_replace->on_mouse_down = Window_execute_lambda;
+
+	Window * button_replace_all = Window_add_widget(search_window, line_edit->win.width+5, -1, 0, -1, 2, 1, "🔁", 15, 15);
 	//Window * button_close = Window_add_widget(search_window, searchbox->win.width+8, -1, 0, -1, 2, 1, "✖️", 15, 15);
 
 	return search_window;
