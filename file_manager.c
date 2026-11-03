@@ -284,7 +284,7 @@ void remove_newlines(char *str) {
     }
 
     return copy;
-	}*/
+        }*/
 
 void human_size(off_t size, char *buf, size_t buflen) {
     const char *units[] = {"Bytes", "KB", "MB", "GB", "TB"};
@@ -341,8 +341,8 @@ void FileExplorer_list_files(ExplorerWindow *self, char *dire) {
 
     if (self->path != dire) {
         // if (self->path != NULL) free(self->path);
-        //self->path = make_string(dire);
-	  self->path = strdup(dire);
+        // self->path = make_string(dire);
+        self->path = strdup(dire);
     }
 
     LOG_INFO("FileExplorer_list_files: %p %s filename:%s", self, dire, self->win.id);
@@ -438,8 +438,8 @@ void FileExplorer_list_files(ExplorerWindow *self, char *dire) {
         strcpy(size, "");
         struct stat st;
         file_item->path = full_path;
-        //file_item->name = make_string(entry->d_name);
-		file_item->name = strdup(entry->d_name);
+        // file_item->name = make_string(entry->d_name);
+        file_item->name = strdup(entry->d_name);
         if (stat(full_path, &st) == 0) {
             struct tm *tm = localtime(&st.st_mtime);
             strftime(date, 32, "%Y-%m-%d %H:%M:%S", tm);
@@ -543,21 +543,21 @@ const char *get_filename(const char *path) {
 }
 
 void FileExplorer_up_one_level(ExplorerWindow *self) {
-  //char *s = make_string(self->path);
+    // char *s = make_string(self->path);
     char *s = strdup(self->path);
-	char * filename = get_filename(s);
+    char *filename = get_filename(s);
     get_parent(s);
     FileExplorer_list_files(self, s);
 
-	// select directory
-	FileItemWindow * fi = self->fm->head;
-	while (fi){
-	  if (strcmp(fi->name, filename) == 0){
-		FileExplorer_select_single_item(self, fi);
-	  }
-	  fi = fi->win.next;
-	}
-	
+    // select directory
+    FileItemWindow *fi = self->fm->head;
+    while (fi) {
+        if (strcmp(fi->name, filename) == 0) {
+            FileExplorer_select_single_item(self, fi);
+        }
+        fi = fi->win.next;
+    }
+
     free(s);
 }
 

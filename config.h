@@ -40,8 +40,9 @@
     X(DELETE_WORD)                                                                                 \
     X(UNDO)                                                                                        \
     X(REDO)                                                                                        \
-    X(INDENT) \
-    X(SEARCHR)
+    X(INDENT)                                                                                      \
+    X(SEARCHR)                                                                                     \
+    X(REPLACE)
 
 #define MAKE_ENUM(name) ACTION_##name,
 

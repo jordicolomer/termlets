@@ -1342,7 +1342,7 @@ void EditorWindow_action_indent(EditorWindow *self) {
     }
 }
 
-// start of search
+// begin search
 
 void EditorWindow_search(EditorWindow *self, char *query) {
     EditorPointer ptr = self->highlight_end;
@@ -1369,9 +1369,9 @@ void EditorWindow_search_reverse(EditorWindow *self, char *query) {
 
     if (ptr.y == -1) {
         ptr = self->cursor;
-    } else{
-	  EditorPointer_left(&ptr);
-	}
+    } else {
+        EditorPointer_left(&ptr);
+    }
     // EditorPointer ptr = self->cursor;
     if (EditorPointer_search_reverse(&ptr, query)) {
         self->highlight_start = ptr;
@@ -1389,16 +1389,14 @@ void EditorWindow_searchbox_exit(EditorWindow *self) {
     self->highlight_start.y = -1;
 }
 
-
 void EditorWindow_searchbox_on_modify(EditorWindow *self) {
     self->highlight_end.y = -1;
-	if (self->reverse_search == 1){
-	  EditorWindow_search_reverse(self, self->search_box->buffer);
-	} else {
-	  EditorWindow_search(self, self->search_box->buffer);
-	}
+    if (self->reverse_search == 1) {
+        EditorWindow_search_reverse(self, self->search_box->buffer);
+    } else {
+        EditorWindow_search(self, self->search_box->buffer);
+    }
 }
-
 
 void Editor_searchbox_on_enter(EditorWindow *self) {
     self->search_box->win.hidden = 1;
@@ -1411,7 +1409,6 @@ void Editor_searchbox_on_enter(EditorWindow *self) {
     // EditorWindow_show_line(self, self->cursor.y);
     EditorWindow_make_cursor_visible(self);
 }
-
 
 Window *EditorWindow_searchbox(EditorWindow *self) {
     LineEditorWindow *line_edit = LineEditorWindow_new(NULL, "Search");
@@ -1432,23 +1429,31 @@ Window *EditorWindow_searchbox(EditorWindow *self) {
 }
 
 void EditorWindow_action_search(EditorWindow *self) {
-  //self->reverse_search = 0;
+    // self->reverse_search = 0;
     if (self->search_box->win.hidden == 1) {
         self->search_box->win.hidden = 0;
         search_mode = 1;
         self->win.focused = self->search_box;
         LineEditorWindow_reset(self->search_box);
     } else {
-	  if (self->reverse_search == 1){
-        EditorWindow_search_reverse(self, self->search_box->buffer);
-	  } else {
-        EditorWindow_search(self, self->search_box->buffer);
-	  }
+        if (self->reverse_search == 1) {
+            EditorWindow_search_reverse(self, self->search_box->buffer);
+        } else {
+            EditorWindow_search(self, self->search_box->buffer);
+        }
     }
 }
 
+// end search
 
-// end of search
+// begin replace
+
+void EditorWindow_action_replace(EditorWindow *self) {
+
+}
+
+// end replace
+
 char *EditorPointer_change_case(EditorPointer *ep1, EditorPointer *ep2, int is_uppercase) {
     int cmp = EditorPointer_cmp(ep1, ep2);
     if (cmp == 0)
@@ -1458,46 +1463,45 @@ char *EditorPointer_change_case(EditorPointer *ep1, EditorPointer *ep2, int is_u
         ep1 = ep2;
         ep2 = tmp;
     }
-	unsigned char low = 'a';
-	unsigned char high = 'z';
-	unsigned char conversion = 'A'-'a';
-	if (!is_uppercase){
-	  low = 'A';
-	  high = 'Z';
-	  conversion = -conversion;
-	}
-	while (EditorPointer_cmp(ep1, ep2) == -1){
-	  char * utf8 = ep1->str_ite.utf8;
-	  int idx = ep1->str_ite.pos_cluster;
-	  if (ep1->str_ite.width_codepoints == 1 &&
-		  low <= utf8[idx] && utf8[idx] <= high){
-		utf8[idx] = utf8[idx]+conversion;
-	  }
-	  EditorPointer_right(ep1);
-	}
+    unsigned char low = 'a';
+    unsigned char high = 'z';
+    unsigned char conversion = 'A' - 'a';
+    if (!is_uppercase) {
+        low = 'A';
+        high = 'Z';
+        conversion = -conversion;
+    }
+    while (EditorPointer_cmp(ep1, ep2) == -1) {
+        char *utf8 = ep1->str_ite.utf8;
+        int idx = ep1->str_ite.pos_cluster;
+        if (ep1->str_ite.width_codepoints == 1 && low <= utf8[idx] && utf8[idx] <= high) {
+            utf8[idx] = utf8[idx] + conversion;
+        }
+        EditorPointer_right(ep1);
+    }
 }
 
-void EditorWindow_action_upcase(EditorWindow *self){
-  if (self->selection.y == -1) return;
-  EditorPointer ep1 = self->cursor;
-  EditorPointer ep2 = self->selection;
-  EditorPointer_change_case(&ep1, &ep2, 1);
+void EditorWindow_action_upcase(EditorWindow *self) {
+    if (self->selection.y == -1)
+        return;
+    EditorPointer ep1 = self->cursor;
+    EditorPointer ep2 = self->selection;
+    EditorPointer_change_case(&ep1, &ep2, 1);
 }
 
-void EditorWindow_action_downcase(EditorWindow *self){
-  if (self->selection.y == -1) return;
-  EditorPointer ep1 = self->cursor;
-  EditorPointer ep2 = self->selection;
-  EditorPointer_change_case(&ep1, &ep2, 0);
+void EditorWindow_action_downcase(EditorWindow *self) {
+    if (self->selection.y == -1)
+        return;
+    EditorPointer ep1 = self->cursor;
+    EditorPointer ep2 = self->selection;
+    EditorPointer_change_case(&ep1, &ep2, 0);
 }
 
-void EditorWindow_toggle_show_line_numbers(EditorWindow *self){
-  self->show_line_numbers = 1 - self->show_line_numbers;
+void EditorWindow_toggle_show_line_numbers(EditorWindow *self) {
+    self->show_line_numbers = 1 - self->show_line_numbers;
 }
 
-int EditorWindow_get_show_line_numbers(EditorWindow *self){
-  return self->show_line_numbers;
-}
+int EditorWindow_get_show_line_numbers(EditorWindow *self) { return self->show_line_numbers; }
 
 void EditorWindow_send_key(Window *win, char c) {
 
@@ -1505,16 +1509,20 @@ void EditorWindow_send_key(Window *win, char c) {
     Action action = get_action(c, WT_EDITOR);
 
     if (action == ACTION_SEARCH) { // todo
-	  self->reverse_search = 0;
+        self->reverse_search = 0;
         EditorWindow_action_search(self);
         return;
     }
-    if (action == ACTION_SEARCHR) { // todo
-	  self->reverse_search = 1;
+    if (action == ACTION_SEARCHR) {
+        self->reverse_search = 1;
         EditorWindow_action_search(self);
-	  //EditorWindow_action_search_reverse(self);
         return;
-		}
+    }
+    if (action == ACTION_REPLACE) {
+        self->reverse_search = 0;
+        EditorWindow_action_search(self);
+        return;
+    }
 
     Window *focused_cursor = win->focused;
     if (focused_cursor != NULL)
@@ -1661,7 +1669,8 @@ void EditorWindow_send_key(Window *win, char c) {
     }
 }
 
-void EditorWindow_draw_selection(struct Window *w, EditorPointer p1, EditorPointer p2, int color, int x_margin) {
+void EditorWindow_draw_selection(struct Window *w, EditorPointer p1, EditorPointer p2, int color,
+                                 int x_margin) {
     if (p1.y == -1)
         return;
     if (p2.y == -1)
@@ -1674,7 +1683,8 @@ void EditorWindow_draw_selection(struct Window *w, EditorPointer p1, EditorPoint
         if (p2.y != -1) {
             if ((p1.y < top_line + i && top_line + i < p2.y) ||
                 (p2.y < top_line + i && top_line + i < p1.y)) {
-                Buffer_set_bg(&main_buf, geo.y + i, geo.x + x_margin + 0, geo.width - x_margin, color);
+                Buffer_set_bg(&main_buf, geo.y + i, geo.x + x_margin + 0, geo.width - x_margin,
+                              color);
             }
             if (p2.y == top_line + i) { // line with selection
                 // generic case (both markers in same line)
@@ -1723,8 +1733,9 @@ void EditorWindow_draw(struct Window *w, int hasFocus) {
     int top_line = -self->win.shift;
     Node *current = EditorWindow_get_line_number(self, top_line);
 
-	int x_margin = 0;
-	if (self->show_line_numbers) x_margin = count_digits(self->n_lines) + 1;
+    int x_margin = 0;
+    if (self->show_line_numbers)
+        x_margin = count_digits(self->n_lines) + 1;
 
     while (i < geo.height) {
         // background color
@@ -1737,13 +1748,13 @@ void EditorWindow_draw(struct Window *w, int hasFocus) {
             str = current->line;
 
         // for(int x=0;x<geo.width;x++) Buffer_print(&main_buf, geo.y + i, geo.x+x, 1, " ", 16, bg);
-		if (self->show_line_numbers) {
-		  char str[x_margin+1];
-		  int num = top_line + i + 1;
-		  snprintf(str, sizeof(str), "%d", num);
-		  Buffer_print(&main_buf, geo.y + i, geo.x, x_margin, str, 16, bg-5);
-		}
-        Buffer_print(&main_buf, geo.y + i, geo.x+x_margin, geo.width-x_margin, str, 16, bg);
+        if (self->show_line_numbers) {
+            char str[x_margin + 1];
+            int num = top_line + i + 1;
+            snprintf(str, sizeof(str), "%d", num);
+            Buffer_print(&main_buf, geo.y + i, geo.x, x_margin, str, 16, bg - 5);
+        }
+        Buffer_print(&main_buf, geo.y + i, geo.x + x_margin, geo.width - x_margin, str, 16, bg);
 
         // syntax highlighter
 
@@ -1756,9 +1767,10 @@ void EditorWindow_draw(struct Window *w, int hasFocus) {
                 lexer.state = current->lexerState;
             while (lexer_next(&lexer, &token)) {
                 int width = token.end_screen - token.start_screen;
-                int maxWidth = geo.width-x_margin - token.start;
+                int maxWidth = geo.width - x_margin - token.start;
                 width = min(width, maxWidth);
-                Buffer_set_fg(&main_buf, geo.y + i, geo.x + x_margin + token.start_screen, width, token.color);
+                Buffer_set_fg(&main_buf, geo.y + i, geo.x + x_margin + token.start_screen, width,
+                              token.color);
             }
         }
 
@@ -1766,8 +1778,8 @@ void EditorWindow_draw(struct Window *w, int hasFocus) {
         if (current != NULL)
             current = current->next;
     }
-    //LOG_INFO("draw self->cursor.str_ite.pos_column:%d", self->cursor.str_ite.pos_column);	
-    //LOG_INFO("draw self->selection.str_ite.pos_column:%d", self->selection.str_ite.pos_column);	
+    // LOG_INFO("draw self->cursor.str_ite.pos_column:%d", self->cursor.str_ite.pos_column);
+    // LOG_INFO("draw self->selection.str_ite.pos_column:%d", self->selection.str_ite.pos_column);
     EditorWindow_draw_selection(w, self->cursor, self->selection, 117, x_margin);
     EditorWindow_draw_selection(w, self->highlight_start, self->highlight_end, 227, x_margin);
 
@@ -1779,7 +1791,8 @@ void EditorWindow_draw(struct Window *w, int hasFocus) {
         bg = 248;
     i = self->cursor.y + self->win.shift;
     if (0 <= i && i < geo.height)
-        Buffer_set_bg(&main_buf, geo.y + i, geo.x + x_margin + self->cursor.str_ite.pos_column, 1, bg);
+        Buffer_set_bg(&main_buf, geo.y + i, geo.x + x_margin + self->cursor.str_ite.pos_column, 1,
+                      bg);
 }
 
 void EditorWindow_on_mouse_down(Window *win, int x, int y) {
@@ -1793,11 +1806,12 @@ void EditorWindow_on_mouse_down(Window *win, int x, int y) {
     target_y = max(target_y, 0);
 
     // Calculate target column
-	int x_margin = 0;
-	if (self->show_line_numbers) x_margin = count_digits(self->n_lines) + 1;
-	
+    int x_margin = 0;
+    if (self->show_line_numbers)
+        x_margin = count_digits(self->n_lines) + 1;
+
     int target_x = x - win->calculated.x - x_margin;
-    //LOG_INFO("target_x:%d", target_x);	
+    // LOG_INFO("target_x:%d", target_x);
     target_x = max(target_x, 0);
 
     // Get the node for the target line
@@ -1817,8 +1831,8 @@ void EditorWindow_on_mouse_down(Window *win, int x, int y) {
     EditorWindow_make_cursor_visible(self);
     self->selection = self->cursor;
     self->selecting = 1;
-    //LOG_INFO("self->cursor.str_ite.pos_column:%d", self->cursor.str_ite.pos_column);	
-    //LOG_INFO("self->selection.str_ite.pos_column:%d", self->selection.str_ite.pos_column);	
+    // LOG_INFO("self->cursor.str_ite.pos_column:%d", self->cursor.str_ite.pos_column);
+    // LOG_INFO("self->selection.str_ite.pos_column:%d", self->selection.str_ite.pos_column);
 }
 
 void EditorWindow_on_hover(Window *win, int x, int y) {
@@ -1833,8 +1847,9 @@ void EditorWindow_on_hover(Window *win, int x, int y) {
     target_y = max(target_y, 0);
 
     // Calculate target column
-	int x_margin = 0;
-	if (self->show_line_numbers) x_margin = count_digits(self->n_lines) + 1;
+    int x_margin = 0;
+    if (self->show_line_numbers)
+        x_margin = count_digits(self->n_lines) + 1;
     int target_x = x - win->calculated.x - x_margin;
     target_x = max(target_x, 0);
 
@@ -1980,9 +1995,8 @@ Window *EditorWindow_new_tab(Tabs *self) {
 
     Window *searchbox = EditorWindow_searchbox(editor);
     editor->search_box = searchbox;
-	editor->reverse_search = 0;
+    editor->reverse_search = 0;
 
-	
     tab->win.focused = slider;
 
     StatusWindow *status = status_bar_create();
@@ -1990,7 +2004,7 @@ Window *EditorWindow_new_tab(Tabs *self) {
 
     Window_append(tab, slider);
     Window_append(tab, searchbox);
-    //Window_append(tab, editor->searchr_box);
+    // Window_append(tab, editor->searchr_box);
     Window_append(tab, status);
 
     return tab;
@@ -2034,13 +2048,9 @@ void EditorWindow_close(EditorFrame *self) {
     tabs_remove_tab(tab);
 }
 
-int get_show_tabs(){
-  return show_tabs;
-}
+int get_show_tabs() { return show_tabs; }
 
-void toggle_show_tabs() {
-    show_tabs = 1 - show_tabs;
-}
+void toggle_show_tabs() { show_tabs = 1 - show_tabs; }
 
 Window *Editor_menu(EditorFrame *self) {
     Window *menu = Menu_create_horizontal();
@@ -2072,6 +2082,8 @@ Window *Editor_menu(EditorFrame *self) {
     Menu_add_element(edit, "", NULL);
     Menu_add_element(edit, " 🔍 Search Ctrl+S",
                      create_lambda(Editor_on_selected, 2, self, EditorWindow_action_search));
+    Menu_add_element(edit, " 🔄 Replace Ctrl+R",
+                     create_lambda(Editor_on_selected, 2, self, EditorWindow_action_replace));
     Menu_add_element(edit, "", NULL);
     Menu_add_element(edit, " a→A Uppercase",
                      create_lambda(Editor_on_selected, 3, self, EditorWindow_action_upcase));
@@ -2081,46 +2093,47 @@ Window *Editor_menu(EditorFrame *self) {
 
     Window *view = Menu_create_vertical(self);
     // Menu_add_element(view, " ⤶ Word wrap", create_lambda(Editor_menu_new, 1, self));
-	
-    //char *show_tabs_label = strdup("   Show Tabs");
-	//Editor_show_tabs(self, show_tabs_label); // init show_tabs_label
-    Menu * show_tabs_menu = Menu_add_element(view, "Show Tabs",
-                     create_lambda(toggle_show_tabs, 0));
-	show_tabs_menu->show_check_lambda = create_lambda(get_show_tabs, 0);
 
-    Menu * show_lines_menu = Menu_add_element(view, "Line numbers ",
-					 create_lambda(Editor_on_selected, 2, self, EditorWindow_toggle_show_line_numbers));
-	show_lines_menu->show_check_lambda = create_lambda(Editor_on_selected, 2, self, EditorWindow_get_show_line_numbers);
-	
+    // char *show_tabs_label = strdup("   Show Tabs");
+    // Editor_show_tabs(self, show_tabs_label); // init show_tabs_label
+    Menu *show_tabs_menu = Menu_add_element(view, "Show Tabs", create_lambda(toggle_show_tabs, 0));
+    show_tabs_menu->show_check_lambda = create_lambda(get_show_tabs, 0);
+
+    Menu *show_lines_menu = Menu_add_element(
+        view, "Line numbers ",
+        create_lambda(Editor_on_selected, 2, self, EditorWindow_toggle_show_line_numbers));
+    show_lines_menu->show_check_lambda =
+        create_lambda(Editor_on_selected, 2, self, EditorWindow_get_show_line_numbers);
+
     Menu_add_element(view, "", NULL);
     Menu_add_submenu(menu, " View ", view);
 
     Window *syntax = Menu_create_vertical(self);
-	Menu * lang_menu = NULL;
+    Menu *lang_menu = NULL;
     lang_menu = Menu_add_element(syntax, strdup("None"),
-                     create_lambda(Editor_set_language, 2, self, LANG_NONE));
-	lang_menu->show_check_lambda = create_lambda(Editor_cmp_language, 2, self, LANG_NONE);
+                                 create_lambda(Editor_set_language, 2, self, LANG_NONE));
+    lang_menu->show_check_lambda = create_lambda(Editor_cmp_language, 2, self, LANG_NONE);
     lang_menu = Menu_add_element(syntax, strdup("🔧 C"),
-                     create_lambda(Editor_set_language, 2, self, LANG_C));
-	lang_menu->show_check_lambda = create_lambda(Editor_cmp_language, 2, self, LANG_C);
+                                 create_lambda(Editor_set_language, 2, self, LANG_C));
+    lang_menu->show_check_lambda = create_lambda(Editor_cmp_language, 2, self, LANG_C);
     lang_menu = Menu_add_element(syntax, strdup("💠 C++"),
-                     create_lambda(Editor_set_language, 2, self, LANG_CPP));
-	lang_menu->show_check_lambda = create_lambda(Editor_cmp_language, 2, self, LANG_CPP);
+                                 create_lambda(Editor_set_language, 2, self, LANG_CPP));
+    lang_menu->show_check_lambda = create_lambda(Editor_cmp_language, 2, self, LANG_CPP);
     lang_menu = Menu_add_element(syntax, strdup("☕ Java"),
-                     create_lambda(Editor_set_language, 2, self, LANG_JAVA));
-	lang_menu->show_check_lambda = create_lambda(Editor_cmp_language, 2, self, LANG_JAVA);
+                                 create_lambda(Editor_set_language, 2, self, LANG_JAVA));
+    lang_menu->show_check_lambda = create_lambda(Editor_cmp_language, 2, self, LANG_JAVA);
     lang_menu = Menu_add_element(syntax, strdup("📜 JavaScript"),
-                     create_lambda(Editor_set_language, 2, self, LANG_JS));
-	lang_menu->show_check_lambda = create_lambda(Editor_cmp_language, 2, self, LANG_JS);
+                                 create_lambda(Editor_set_language, 2, self, LANG_JS));
+    lang_menu->show_check_lambda = create_lambda(Editor_cmp_language, 2, self, LANG_JS);
     lang_menu = Menu_add_element(syntax, strdup("📝 TypeScript"),
-                     create_lambda(Editor_set_language, 2, self, LANG_TS));
-	lang_menu->show_check_lambda = create_lambda(Editor_cmp_language, 2, self, LANG_TS);
+                                 create_lambda(Editor_set_language, 2, self, LANG_TS));
+    lang_menu->show_check_lambda = create_lambda(Editor_cmp_language, 2, self, LANG_TS);
     lang_menu = Menu_add_element(syntax, strdup("🐍 Python"),
-                     create_lambda(Editor_set_language, 2, self, LANG_PY));
-	lang_menu->show_check_lambda = create_lambda(Editor_cmp_language, 2, self, LANG_PY);
+                                 create_lambda(Editor_set_language, 2, self, LANG_PY));
+    lang_menu->show_check_lambda = create_lambda(Editor_cmp_language, 2, self, LANG_PY);
     Menu_add_element(syntax, "", NULL);
     Menu_add_submenu(menu, " Sytnax ", syntax);
-    //syntax->lambda = create_lambda(Editor_get_current_tab_language, 1, self);
+    // syntax->lambda = create_lambda(Editor_get_current_tab_language, 1, self);
 
     Menu_add_windows(menu, " Window ", self->tabs->win.data, self);
 
@@ -2147,6 +2160,8 @@ Window *Editor_toolbar(EditorFrame *self) {
                      create_lambda(Editor_on_selected, 2, self, EditorWindow_redo));
     Menu_add_element(toolbar, " 🔍 Search",
                      create_lambda(Editor_on_selected, 2, self, EditorWindow_action_search));
+    Menu_add_element(toolbar, " 🔄 Replace",
+                     create_lambda(Editor_on_selected, 2, self, EditorWindow_action_replace));
 
     toolbar->top = 1;
 

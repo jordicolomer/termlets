@@ -6,13 +6,12 @@
 #include "tabs.h"
 
 typedef struct WM {
-  Window win;
-  int selected;
-  Tab *selected_tab;
-  int count;
-  LineEditorWindow *line_edit;
+    Window win;
+    int selected;
+    Tab *selected_tab;
+    int count;
+    LineEditorWindow *line_edit;
 } WM;
-
 
 Window *WM_create(int left, int right, int top, int bottom, int width, int height);
 Window *WM_show();

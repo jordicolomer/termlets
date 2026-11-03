@@ -131,20 +131,20 @@ void Menu_toggle_auto_expand(Menu *self) {
         current = current->next;
         i++;
     }
-	}*/
+        }*/
 
 void Menu_show_submenu(Menu *menu, Window *win) {
     Menu_close_last_opened_submenu();
     last_opened_submenu = menu;
     menu->win.hidden = 0;
     Menu_move_to_button(menu, win);
-    //Menu_mark_selected(menu);
+    // Menu_mark_selected(menu);
 }
 
 void Menu_toggle_submenu(Menu *menu, Window *win) {
     menu->win.hidden = 1 - menu->win.hidden;
     Menu_move_to_button(menu, win);
-    //Menu_mark_selected(menu);
+    // Menu_mark_selected(menu);
 }
 
 void Menu_change_color_hover_and_open(Window *w, int x, int y) {
@@ -178,35 +178,36 @@ void Menu_change_color_selected(Window *w, int x, int y) {
 }
 
 void Menu_draw(struct Window *current, int hasFocus) {
-  Menu *self = current;
-  if (self->show_check_lambda == NULL){
-	Widget_draw(current, hasFocus);
-	return;
-  }
+    Menu *self = current;
+    if (self->show_check_lambda == NULL) {
+        Widget_draw(current, hasFocus);
+        return;
+    }
     if (current->hidden == 1) {
         return;
     }
-  Geometry geo = current->calculated;
-  int fg = current->fg;
-  int bg = current->bg;
-  int x_shift = 0;
-  if (self->show_check_lambda != NULL) x_shift = 3;
-  Buffer_print(&main_buf, geo.y, geo.x, x_shift, "", fg, bg);
-  //Buffer_print(&main_buf, geo.y, geo.x+x_shift, geo.width-x_shift, current->c, fg, bg);
-  Buffer_print_dots(&main_buf, geo.y, geo.x+x_shift, geo.width-x_shift, current->c, fg, bg);
-  //LOG_INFO("Menu_draw %s", current->c);
+    Geometry geo = current->calculated;
+    int fg = current->fg;
+    int bg = current->bg;
+    int x_shift = 0;
+    if (self->show_check_lambda != NULL)
+        x_shift = 3;
+    Buffer_print(&main_buf, geo.y, geo.x, x_shift, "", fg, bg);
+    // Buffer_print(&main_buf, geo.y, geo.x+x_shift, geo.width-x_shift, current->c, fg, bg);
+    Buffer_print_dots(&main_buf, geo.y, geo.x + x_shift, geo.width - x_shift, current->c, fg, bg);
+    // LOG_INFO("Menu_draw %s", current->c);
 
-  if (self->show_check_lambda != NULL && invoke_lambda(self->show_check_lambda)){
-	//LOG_INFO("show_check");
-	char * check_str = "✓";
-	Buffer_print(&main_buf, geo.y, geo.x+1, 1, check_str, fg, bg);
-  }
+    if (self->show_check_lambda != NULL && invoke_lambda(self->show_check_lambda)) {
+        // LOG_INFO("show_check");
+        char *check_str = "✓";
+        Buffer_print(&main_buf, geo.y, geo.x + 1, 1, check_str, fg, bg);
+    }
 }
 
-Menu *Menu_add_menu(Window *w, int left, int right, int top, int bottom, int width,
-                          int height, char *c, int fg, int bg) {
+Menu *Menu_add_menu(Window *w, int left, int right, int top, int bottom, int width, int height,
+                    char *c, int fg, int bg) {
     Menu *wg = malloc(sizeof *wg);
-  //Window *wg = malloc(sizeof *wg);
+    // Window *wg = malloc(sizeof *wg);
     Window_init(wg, left, right, top, bottom, width, height);
     wg->win.draw = Menu_draw;
     wg->win.parent = w;
@@ -214,7 +215,7 @@ Menu *Menu_add_menu(Window *w, int left, int right, int top, int bottom, int wid
     wg->win.id = c;
     wg->win.fg = fg;
     wg->win.bg = bg;
-	wg->show_check_lambda = NULL;
+    wg->show_check_lambda = NULL;
 
     Window_append(w, wg);
 
@@ -256,18 +257,14 @@ void Menu_list_windows_item_selected(Tab *tab, Window *menu) {
     auto_expand = NULL;
 }
 
-int return_true(){
-  return 1;
-}
+int return_true() { return 1; }
 
-int return_false(){
-  return 0;
-}
+int return_false() { return 0; }
 
 Window *Menu_list_windows(Menu *menu, Tabs *tabs, struct Window *window_menu_item, Menu *submenu) {
-  //Menu_toggle_auto_expand(menu);
-  // if (menu != auto_expand)
-  //    return NULL;
+    // Menu_toggle_auto_expand(menu);
+    //  if (menu != auto_expand)
+    //     return NULL;
 
     submenu->win.head = NULL;
     submenu->win.tail = NULL;
@@ -277,20 +274,20 @@ Window *Menu_list_windows(Menu *menu, Tabs *tabs, struct Window *window_menu_ite
     Tab *tab = tabs->first;
     int i = 0;
     while (tab != NULL) {
-	  //char *selected_sign = "   ";
+        // char *selected_sign = "   ";
 
-	  //Window *win = Menu_add_element(submenu, tab->str, NULL);
-	  Window *win = Menu_add_element(submenu, tab->short_str, NULL);
+        // Window *win = Menu_add_element(submenu, tab->str, NULL);
+        Window *win = Menu_add_element(submenu, tab->short_str, NULL);
         win->undo_on_hover = Menu_change_color_darker;
         if (tabs->selected_tab == tab) {
-		  //win->bg = SELECTED_COLOR;
-		  //win->undo_on_hover = Menu_change_color_selected;
-		  Menu * menu = win;
-		  menu->show_check_lambda = create_lambda(return_true, 0);
+            // win->bg = SELECTED_COLOR;
+            // win->undo_on_hover = Menu_change_color_selected;
+            Menu *menu = win;
+            menu->show_check_lambda = create_lambda(return_true, 0);
         } else {
-		  Menu * menu = win;
-		  menu->show_check_lambda = create_lambda(return_false, 0);
-		}
+            Menu *menu = win;
+            menu->show_check_lambda = create_lambda(return_false, 0);
+        }
         win->on_hover = Menu_change_color_hover;
         win->lambda = create_lambda(Menu_list_windows_item_selected, 2, tab, submenu);
         win->on_mouse_down = Execute_lambda;
@@ -303,11 +300,12 @@ Window *Menu_list_windows(Menu *menu, Tabs *tabs, struct Window *window_menu_ite
     return (Window *)submenu;
 }
 
-Window *Menu_list_toggle_windows(Menu *menu, Tabs *tabs, struct Window *window_menu_item, Menu *submenu) {
+Window *Menu_list_toggle_windows(Menu *menu, Tabs *tabs, struct Window *window_menu_item,
+                                 Menu *submenu) {
     Menu_toggle_auto_expand(menu);
     if (menu != auto_expand)
         return NULL;
-	return Menu_list_windows(menu, tabs, window_menu_item, submenu);
+    return Menu_list_windows(menu, tabs, window_menu_item, submenu);
 }
 
 void Menu_windows_hover(Window *w, int x, int y) {
@@ -316,7 +314,7 @@ void Menu_windows_hover(Window *w, int x, int y) {
     Menu *self = w;
     Menu *parent = w->parent;
     if (auto_expand == parent) {
-	  invoke_lambda(w->data3);
+        invoke_lambda(w->data3);
     }
 }
 
