@@ -32,6 +32,16 @@ typedef struct EditorPointer {
     // int new_y;
 } EditorPointer;
 
+typedef struct ReplaceWindow {
+    struct Window win;
+  LineEditorWindow *replace_box;
+} ReplaceWindow;
+
+typedef struct SearchWindow {
+    struct Window win;
+  LineEditorWindow *search_box;
+} SearchWindow;
+
 typedef struct EditorWindow { // this is the scrollable part of the editor
     struct Window win;
     TabWindow *tab_window;
@@ -56,6 +66,8 @@ typedef struct EditorWindow { // this is the scrollable part of the editor
     ArrayList undo_stack;
     ArrayListIterator undo_pointer;
     int show_line_numbers;
+  SearchWindow * search_window;
+  SearchWindow * replace_window;
 } EditorWindow;
 
 typedef struct StatusWindow {
