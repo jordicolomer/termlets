@@ -1449,6 +1449,31 @@ void EditorWindow_action_search(EditorWindow *self) {
   self->replace_window->win.hidden = 1;
 }
 
+void Window_focus(struct Window *w){
+  Window *current = root;
+  while (current->focused != NULL){
+	Window *focused = current->focused;
+	current->focused = NULL;
+	current = focused;
+  }
+  
+  current = w;
+  while (current != NULL){
+	if (current->parent != NULL)
+	  current->parent->focused = current;
+	current = current->parent;
+  }
+}
+
+// when the user clicks on the search input
+void SearchWindow_on_click(struct Window *wg, int x, int y){
+  //wg->parent->focused = wg;
+  //LOG_INFO("SearchWindow_on_click");
+  Window_focus(wg);
+  search_mode = 1;
+  //self->win.focused = NULL;  
+}
+
 // on EditorWindow init
 SearchWindow * EditorWindow_create_search_window(EditorWindow *self) {
   //return NULL;
@@ -1473,6 +1498,7 @@ SearchWindow * EditorWindow_create_search_window(EditorWindow *self) {
     searchbox->win.right = -1;
     searchbox->win.width = 18;
     searchbox->win.height = 1;
+	searchbox->win.on_mouse_down = SearchWindow_on_click;
     Window_append(search_window, searchbox);
 	search_window->search_box = searchbox;
 
@@ -1923,6 +1949,8 @@ void EditorWindow_on_mouse_down(Window *win, int x, int y) {
     self->selecting = 1;
     // LOG_INFO("self->cursor.str_ite.pos_column:%d", self->cursor.str_ite.pos_column);
     // LOG_INFO("self->selection.str_ite.pos_column:%d", self->selection.str_ite.pos_column);
+	Window_focus(win);
+	search_mode = 0;
 }
 
 void EditorWindow_on_hover(Window *win, int x, int y) {
