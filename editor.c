@@ -1389,12 +1389,13 @@ void EditorWindow_searchbox_exit(EditorWindow *self) {
     self->highlight_start.y = -1;
 }
 
+// when typing into the search input
 void EditorWindow_searchbox_on_modify(EditorWindow *self) {
     self->highlight_end.y = -1;
     if (self->reverse_search == 1) {
-        EditorWindow_search_reverse(self, self->search_box->buffer);
+        EditorWindow_search_reverse(self, self->search_window->search_box->buffer);
     } else {
-        EditorWindow_search(self, self->search_box->buffer);
+        EditorWindow_search(self, self->search_window->search_box->buffer);
     }
 }
 
@@ -1446,6 +1447,12 @@ void EditorWindow_action_search(EditorWindow *self) {
   //}
   if (self->replace_window->win.hidden)
 	self->search_window->win.hidden = 1-self->search_window->win.hidden;
+  self->replace_window->win.hidden = 1;
+}
+
+// when clicking the x in search box
+void EditorWindow_action_search_close(EditorWindow *self) {
+  self->search_window->win.hidden = 1;
   self->replace_window->win.hidden = 1;
 }
 
@@ -1505,6 +1512,8 @@ SearchWindow * EditorWindow_create_search_window(EditorWindow *self) {
 	Window * button_next = Window_add_widget(search_window, searchbox->win.width+2, -1, 0, -1, 2, 1, "⬇️", 15, 15);
 	Window * button_prev = Window_add_widget(search_window, searchbox->win.width+5, -1, 0, -1, 2, 1, "⬆️", 15, 15);
 	Window * button_close = Window_add_widget(search_window, searchbox->win.width+8, -1, 0, -1, 2, 1, "✖️", 15, 15);
+	button_close->lambda = create_lambda(EditorWindow_action_search_close, 1, self);
+	button_close->on_mouse_down = Window_execute_lambda;
 
 	return search_window;
 }
