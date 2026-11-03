@@ -414,3 +414,19 @@ Window *Window_get_frame(struct Window *w) {
     }
     return current;
 }
+
+void Window_focus(struct Window *w){
+  Window *current = root;
+  while (current->focused != NULL){
+	Window *focused = current->focused;
+	current->focused = NULL;
+	current = focused;
+  }
+  
+  current = w;
+  while (current != NULL){
+	if (current->parent != NULL)
+	  current->parent->focused = current;
+	current = current->parent;
+  }
+}

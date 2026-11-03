@@ -1374,7 +1374,7 @@ void EditorWindow_search(EditorWindow *self, char *query, int cursor) {
     }
 }
 
-
+/*
 void EditorWindow_search_reverse(EditorWindow *self, char *query) {
     if (query == NULL || *query == '\0') {
         return;
@@ -1396,7 +1396,20 @@ void EditorWindow_search_reverse(EditorWindow *self, char *query) {
         EditorWindow_show_line(self, ptr.y);
     }
 }
+*/
+void EditorWindow_search_reverse(EditorWindow *self, char *query, int cursor) {
+    EditorPointer ptr = self->cursor;
+	if (!cursor && self->selection.y != -1)
+	  ptr = self->selection;
 
+    if (EditorPointer_search_reverse(&ptr, query)) {
+        self->cursor = ptr;
+        self->selection = ptr;
+        MyStr_get_grapheme_at_idx(&self->selection.str_ite,
+                                  self->selection.str_ite.cluster_start + strlen(query));
+        EditorWindow_show_line(self, ptr.y);
+    }
+}
 
 void EditorWindow_searchbox_exit(EditorWindow *self) {
     self->search_box->win.hidden = 1;
@@ -1409,7 +1422,7 @@ void EditorWindow_searchbox_exit(EditorWindow *self) {
 void EditorWindow_searchbox_on_modify(EditorWindow *self) {
     self->highlight_end.y = -1;
     if (self->reverse_search == 1) {
-        EditorWindow_search_reverse(self, self->search_window->search_box->buffer);
+	  EditorWindow_search_reverse(self, self->search_window->search_box->buffer, 0);
     } else {
 	  EditorWindow_search(self, self->search_window->search_box->buffer, 0);
     }
@@ -1464,25 +1477,15 @@ void EditorWindow_action_search(EditorWindow *self) {
   if (self->replace_window->win.hidden)
 	self->search_window->win.hidden = 1-self->search_window->win.hidden;
   self->replace_window->win.hidden = 1;
+  if (self->search_window->win.hidden){
+	Window_focus(self);
+	search_mode = 0;
+	self->selection.y = -1;
+  }
 }
 
 // when clicking the x in search box
 
-void Window_focus(struct Window *w){
-  Window *current = root;
-  while (current->focused != NULL){
-	Window *focused = current->focused;
-	current->focused = NULL;
-	current = focused;
-  }
-  
-  current = w;
-  while (current != NULL){
-	if (current->parent != NULL)
-	  current->parent->focused = current;
-	current = current->parent;
-  }
-}
 
 // when the user clicks on the search input
 void SearchWindow_on_click(struct Window *wg, int x, int y){
@@ -1502,13 +1505,16 @@ void EditorWindow_search_button_next_clicked(EditorWindow *self){
 // when clicking the prev button in search
 void EditorWindow_search_button_prev_clicked(EditorWindow *self){
   self->reverse_search = 1;
-  EditorWindow_search_reverse(self, self->search_window->search_box->buffer);
+  EditorWindow_search_reverse(self, self->search_window->search_box->buffer, 1);
 }
 
 // when clicking the x button in search
 void EditorWindow_search_button_close_clicked(EditorWindow *self) {
   self->search_window->win.hidden = 1;
   self->replace_window->win.hidden = 1;
+  Window_focus(self);
+  search_mode = 0;
+  self->selection.y = -1;
 }
 
 // on EditorWindow init
@@ -1611,6 +1617,11 @@ SearchWindow * EditorWindow_create_replace_window(EditorWindow *self) {
 void EditorWindow_action_replace(EditorWindow *self) {
   self->replace_window->win.hidden = 1-self->replace_window->win.hidden;
   self->search_window->win.hidden = self->replace_window->win.hidden;
+  if (self->search_window->win.hidden){
+	Window_focus(self);
+	search_mode = 0;
+	self->selection.y = -1;
+  }
 }
 
 // end replace
