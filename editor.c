@@ -55,6 +55,7 @@ void EditorWindow_show_line(EditorWindow *self, int n) {
     int diff = n + self->win.shift;
     if (diff < 0)
         self->win.shift = -(n) + margin;
+    self->win.shift = min(self->win.shift, 0);
     if (diff > height - 1)
         self->win.shift = height - 1 - n - margin;
 }
