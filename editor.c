@@ -53,11 +53,14 @@ void EditorWindow_show_line(EditorWindow *self, int n) {
     int height = self->win.calculated.height;
     int margin = 10;
     int diff = n + self->win.shift;
-    if (diff < 0)
+    if (diff < 0){
         self->win.shift = -(n) + margin;
-    self->win.shift = min(self->win.shift, 0);
-    if (diff > height - 1)
+        self->win.shift = min(self->win.shift, 0);
+    }
+    if (diff > height - 1){
         self->win.shift = height - 1 - n - margin;
+        self->win.shift = max(self->win.shift, -(self->n_lines - height));
+    }
 }
 
 void EditorWindow_make_cursor_visible(EditorWindow *self) {
