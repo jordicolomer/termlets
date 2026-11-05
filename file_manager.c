@@ -542,14 +542,7 @@ const char *get_filename(const char *path) {
     return filename;
 }
 
-void FileExplorer_up_one_level(ExplorerWindow *self) {
-    // char *s = make_string(self->path);
-    char *s = strdup(self->path);
-    char *filename = get_filename(s);
-    get_parent(s);
-    FileExplorer_list_files(self, s);
-
-    // select directory
+void FileExplorer_select_file(ExplorerWindow *self, char *filename) {
     FileItemWindow *fi = self->fm->head;
     while (fi) {
         if (strcmp(fi->name, filename) == 0) {
@@ -557,6 +550,23 @@ void FileExplorer_up_one_level(ExplorerWindow *self) {
         }
         fi = fi->win.next;
     }
+}
+
+void FileExplorer_up_one_level(ExplorerWindow *self) {
+    // char *s = make_string(self->path);
+    char *s = strdup(self->path);
+    char *filename = get_filename(s);
+    get_parent(s);
+    FileExplorer_list_files(self, s);
+    FileExplorer_select_file(self, filename);
+    // select directory
+    /*FileItemWindow *fi = self->fm->head;
+    while (fi) {
+        if (strcmp(fi->name, filename) == 0) {
+            FileExplorer_select_single_item(self, fi);
+        }
+        fi = fi->win.next;
+    }*/
 
     free(s);
 }
@@ -689,6 +699,7 @@ Window *ExplorerWindow_rename_complete(ExplorerWindow *self, LineEditorWindow *l
     self->win.focused = NULL;
     //Window_focus(self);
     FileExplorer_refresh(self);
+    FileExplorer_select_file(self, line_edit->buffer);
 }
 
 Window *ExplorerWindow_rename(ExplorerWindow *self) {
@@ -698,6 +709,7 @@ Window *ExplorerWindow_rename(ExplorerWindow *self) {
 
     // create line edit and copy geometry from label
     LineEditorWindow *line_edit = LineEditorWindow_new(selected->name, "");
+    line_edit->win.bg = 2;
     Window *label = selected->win.head;
     line_edit->win.left = selected->win.left + 3; // don't include icon
     line_edit->win.right = selected->win.right;
