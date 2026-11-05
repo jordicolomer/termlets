@@ -86,6 +86,7 @@ void double_capacity(Node *node) {
 }
 
 void update_lexer_state(Node *current, int fast, int language) {
+  if (language == LANG_NONE) return;
     /*
      * Run the lexer on all lines and save the lexer state on each line
      * so that we can run the lexer on a random line as if we processed each line before it
@@ -1344,22 +1345,6 @@ void EditorWindow_action_indent(EditorWindow *self) {
 
 // begin search
 
-/*void EditorWindow_search(EditorWindow *self, char *query) {
-    EditorPointer ptr = self->highlight_end;
-
-    if (ptr.y == -1) {
-        ptr = self->cursor;
-    }
-    // EditorPointer ptr = self->cursor;
-    if (EditorPointer_search(&ptr, query)) {
-        self->highlight_start = ptr;
-        self->highlight_end = ptr;
-        MyStr_get_grapheme_at_idx(&self->highlight_end.str_ite,
-                                  self->highlight_end.str_ite.cluster_start + strlen(query));
-        EditorWindow_show_line(self, ptr.y);
-    }
-	}*/
-
 void EditorWindow_search(EditorWindow *self, char *query, int cursor) {
     EditorPointer ptr = self->cursor;
 	if (!cursor && self->selection.y != -1)
@@ -1374,29 +1359,6 @@ void EditorWindow_search(EditorWindow *self, char *query, int cursor) {
     }
 }
 
-/*
-void EditorWindow_search_reverse(EditorWindow *self, char *query) {
-    if (query == NULL || *query == '\0') {
-        return;
-    }
-
-    EditorPointer ptr = self->highlight_end;
-
-    if (ptr.y == -1) {
-        ptr = self->cursor;
-    } else {
-        EditorPointer_left(&ptr);
-    }
-    // EditorPointer ptr = self->cursor;
-    if (EditorPointer_search_reverse(&ptr, query)) {
-        self->highlight_start = ptr;
-        self->highlight_end = ptr;
-        MyStr_get_grapheme_at_idx(&self->highlight_end.str_ite,
-                                  self->highlight_end.str_ite.cluster_start + strlen(query));
-        EditorWindow_show_line(self, ptr.y);
-    }
-}
-*/
 void EditorWindow_search_reverse(EditorWindow *self, char *query, int cursor) {
     EditorPointer ptr = self->cursor;
 	if (!cursor && self->selection.y != -1)
@@ -1460,20 +1422,6 @@ Window *EditorWindow_searchbox(EditorWindow *self) {
 
 // on click on search toolbar button
 void EditorWindow_action_search(EditorWindow *self) {
-  /*if (self->search_box->win.hidden == 1) {
-        self->search_box->win.hidden = 0;
-        search_mode = 1;
-        self->win.focused = self->search_box;
-        LineEditorWindow_reset(self->search_box);
-    } else {
-        if (self->reverse_search == 1) {
-            EditorWindow_search_reverse(self, self->search_box->buffer);
-        } else {
-            EditorWindow_search(self, self->search_box->buffer);
-        }
-		}*/
-  //if (self->search_window->win.hidden == 1) {
-  //}
   if (self->replace_window->win.hidden)
 	self->search_window->win.hidden = 1-self->search_window->win.hidden;
   self->replace_window->win.hidden = 1;
@@ -1482,6 +1430,7 @@ void EditorWindow_action_search(EditorWindow *self) {
 	search_mode = 0;
 	self->selection.y = -1;
   } else {
+    LineEditorWindow_reset(self->search_window->search_box);
 	Window_focus(self->search_window->search_box);
 	search_mode = 1;
   }
@@ -1517,6 +1466,7 @@ void EditorWindow_search_button_close_clicked(EditorWindow *self) {
   self->selection.y = -1;
 }
 
+// when clicking on replace button
 void EditorWindow_search_button_replace_clicked(EditorWindow *self) {
   // if selection doesnt match search input, then call search
   EditorWindow_cut(self);
@@ -1524,6 +1474,7 @@ void EditorWindow_search_button_replace_clicked(EditorWindow *self) {
   EditorWindow_search_button_next_clicked(self);
 }
 
+// when pressing a key in search window
 void EditorWindow_create_search_send_key(Window *win, char c) {
     SearchWindow *self = win;
     Action action = get_action(c, WT_EDITOR);
