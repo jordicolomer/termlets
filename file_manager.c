@@ -676,6 +676,7 @@ Window *ExplorerWindow_rename_complete(ExplorerWindow *self, LineEditorWindow *l
 
     Window_remove(line_edit);
     self->win.focused = NULL;
+    //Window_focus(self);
     FileExplorer_refresh(self);
 }
 
@@ -697,6 +698,7 @@ Window *ExplorerWindow_rename(ExplorerWindow *self) {
         create_lambda(ExplorerWindow_rename_complete, 3, self, line_edit, selected->path);
 
     self->win.focused = line_edit;
+    //Window_focus(line_edit);
 
     Window_append(self->fm, line_edit);
 }

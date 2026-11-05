@@ -158,6 +158,8 @@ void on_mouse_up() {
     }
 }
 
+char * log_file = "app.log";
+
 int start() {
 #ifdef _WIN32
     /* Set console to UTF-8 mode on Windows - MUST be done first */
@@ -171,7 +173,7 @@ int start() {
 
     setlocale(LC_ALL, ""); /* Enable locale-aware character handling */
 
-    log_init("app.log");
+    log_init(log_file);
 
     // Enter alternate screen
     printf("\x1b[?1049h");
@@ -376,12 +378,18 @@ int start() {
 int parse_args(int argc, char **argv) {
 
     for (int i = 1; i < argc; i++) {
-        if (strcmp(argv[i], "--config") == 0) {
+fprintf(stderr, "%s\n", argv[i]);
+        if (strcmp(argv[i], "--log") == 0) {
+            if (i + 1 >= argc) {
+                fprintf(stderr, "--log requires a filename\n");
+                return 1;
+            }
+            log_file = argv[++i];
+        } else if (strcmp(argv[i], "--config") == 0) {
             if (i + 1 >= argc) {
                 fprintf(stderr, "--config requires a filename\n");
                 return 1;
             }
-
             config_file = argv[++i];
         } else if (strcmp(argv[i], "--help") == 0) {
             printf("Usage: %s [options] [file]\n", argv[0]);
@@ -389,7 +397,7 @@ int parse_args(int argc, char **argv) {
             printf("  --help           Show this help\n");
             return 0;
         } else if (argv[i][0] == '-') {
-            fprintf(stderr, "Unknown option: %s\n", argv[i]);
+            fprintf(stderr, "Unknown option3: %s\n", argv[i]);
             return 1;
         }
     }

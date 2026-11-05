@@ -47,8 +47,8 @@ OBJ := $(SRC:.c=.o)
 all: $(TARGET)
 
 # Link object files into executable
-$(TARGET): $(OBJ)
-	$(CC) $(CFLAGS) -o $@ main.o $^ $(LDFLAGS)
+$(TARGET): $(OBJ) main.o
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 test: $(TARGET) test.o
 	$(CC) $(CFLAGS) -o test test.o $(OBJ) $(LDFLAGS)
@@ -59,7 +59,7 @@ test: $(TARGET) test.o
 
 # Clean build files
 clean:
-	rm -f $(OBJ) $(TARGET) $(TEST_TARGET)
+	rm -f $(OBJ) $(TARGET) $(TEST_TARGET) main.o  test.o
 
 # Rebuild everything
 rebuild: clean all
