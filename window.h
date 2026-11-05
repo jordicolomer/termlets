@@ -91,5 +91,6 @@ Window *Window_add_widget(Window *w, int left, int right, int top, int bottom, i
 void Window_execute_lambda(struct Window *w, int x, int y);
 Window *Window_get_frame(struct Window *w);
 void Window_focus(struct Window *w);
+int Window_is_focused(struct Window *w);
 
 #endif

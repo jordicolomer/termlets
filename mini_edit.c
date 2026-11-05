@@ -139,10 +139,8 @@ void LineEditorWindow_draw(struct Window *current, int hasFocus) {
         fg = 7;
     }
     Buffer_print(&main_buf, geo.y, geo.x, geo.width, label, fg, bg);
-    if (current->parent->focused == current)
-        // Buffer_print(&main_buf, geo.y, geo.x + self->cursor, 1, current->c + self->cursor, fg,
-        // 73);
-        Buffer_print(&main_buf, geo.y, geo.x + self->cursor, 1, " ", fg, 73);
+	if (Window_is_focused(current))
+	  Buffer_set_bg(&main_buf, geo.y, geo.x + self->cursor, 1, 73);
 }
 
 LineEditorWindow *LineEditorWindow_new(char *c, char *empty_label) {

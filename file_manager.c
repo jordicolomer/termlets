@@ -697,9 +697,9 @@ Window *ExplorerWindow_rename(ExplorerWindow *self) {
     line_edit->win.lambda =
         create_lambda(ExplorerWindow_rename_complete, 3, self, line_edit, selected->path);
 
-    self->win.focused = line_edit;
     //Window_focus(line_edit);
 
+    self->win.focused = line_edit;
     Window_append(self->fm, line_edit);
 }
 
