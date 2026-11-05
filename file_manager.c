@@ -651,6 +651,17 @@ void FileExplorer_send_sequence(struct Window *win, const char *seq, int len) {
         FileExplorer_down(self);
         return;
     }
+
+    Window *focused_cursor = win->focused;
+    if (focused_cursor != NULL)
+        while (focused_cursor->send_sequence == NULL && focused_cursor->focused != NULL)
+            focused_cursor = focused_cursor->focused;
+
+    if (focused_cursor != NULL && focused_cursor->send_sequence != NULL) {
+	  focused_cursor->send_sequence(focused_cursor, seq, len);
+        return;
+    }
+	
 }
 
 void FileExplorer_scroll_wheel_down(struct Window *w) {
