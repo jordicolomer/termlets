@@ -1481,6 +1481,9 @@ void EditorWindow_action_search(EditorWindow *self) {
 	Window_focus(self);
 	search_mode = 0;
 	self->selection.y = -1;
+  } else {
+	Window_focus(self->search_window->search_box);
+	search_mode = 1;
   }
 }
 
@@ -1521,12 +1524,36 @@ void EditorWindow_search_button_replace_clicked(EditorWindow *self) {
   EditorWindow_search_button_next_clicked(self);
 }
 
+void EditorWindow_create_search_send_key(Window *win, char c) {
+    SearchWindow *self = win;
+    Action action = get_action(c, WT_EDITOR);
+    if (action == ACTION_SEARCH) {
+        EditorWindow_search_button_next_clicked(self->editor);
+        return;
+    }
+    if (action == ACTION_ENTER) {
+        EditorWindow_action_search(self->editor);
+        return;
+    }
+    Window *focused_cursor = win->focused;
+    if (focused_cursor != NULL)
+        while (focused_cursor->send_key == NULL && focused_cursor->focused != NULL)
+            focused_cursor = focused_cursor->focused;
+
+    if (focused_cursor != NULL && focused_cursor->send_key != NULL) {
+        LOG_INFO("FileExplorer_send_key %p %p", self, self->search_box);
+        focused_cursor->send_key(focused_cursor, c);
+        return;
+    }
+}
+
 // on EditorWindow init
 SearchWindow * EditorWindow_create_search_window(EditorWindow *self) {
   //return NULL;
     SearchWindow *search_window = malloc(sizeof *search_window);
     memset(search_window, 0, sizeof *search_window); // Zero-initialize to prevent garbage values
     Window_init(search_window, -1, -1, -1, -1, -1, -1);
+    search_window->win.hidden = 1;
     search_window->win.top = 1;
     search_window->win.bottom = -1;
     search_window->win.left = -1;
@@ -1536,6 +1563,8 @@ SearchWindow * EditorWindow_create_search_window(EditorWindow *self) {
     search_window->win.id = "";
     //search_window->head = NULL; // Explicitly initialize linked list pointers
     //search_window->tail = NULL;
+    search_window->win.send_key = EditorWindow_create_search_send_key;
+    search_window->editor = self;
 
 	LineEditorWindow * searchbox = EditorWindow_searchbox(self);
 	searchbox->win.hidden = 0;
@@ -1569,6 +1598,7 @@ SearchWindow * EditorWindow_create_replace_window(EditorWindow *self) {
     SearchWindow *search_window = malloc(sizeof *search_window);
     memset(search_window, 0, sizeof *search_window); // Zero-initialize to prevent garbage values
     Window_init(search_window, -1, -1, -1, -1, -1, -1);
+    search_window->win.hidden = 1;
     search_window->win.top = 3;
     search_window->win.bottom = -1;
     search_window->win.left = -1;
@@ -1689,15 +1719,16 @@ void EditorWindow_send_key(Window *win, char c) {
     Action action = get_action(c, WT_EDITOR);
 
     if (action == ACTION_SEARCH) { // todo
-        self->reverse_search = 0;
+        //self->reverse_search = 0;
+        //EditorWindow_action_search(self);
         EditorWindow_action_search(self);
         return;
     }
-    if (action == ACTION_SEARCHR) {
+    /*if (action == ACTION_SEARCHR) {
         self->reverse_search = 1;
         EditorWindow_action_search(self);
         return;
-    }
+    }*/
     if (action == ACTION_REPLACE) {
         self->reverse_search = 0;
         EditorWindow_action_search(self);

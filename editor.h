@@ -32,9 +32,12 @@ typedef struct EditorPointer {
     // int new_y;
 } EditorPointer;
 
+typedef struct EditorWindow EditorWindow;
+
 typedef struct SearchWindow {
     struct Window win;
   LineEditorWindow *search_box;
+  EditorWindow * editor;
 } SearchWindow;
 
 typedef struct ReplaceWindow {
