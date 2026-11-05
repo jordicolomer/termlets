@@ -1130,7 +1130,8 @@ Window *FileExplorer_menu_delete_execute(ExplorerFrame *self, ExplorerWindow *ew
     FileItemWindow *current = (FileItemWindow *)ew->fm->head;
     while (current != NULL) {
         if (current->is_selected) {
-            remove(current->path);
+		  //remove(current->path);
+		  remove_recursive(current->path);
         }
         current = (FileItemWindow *)current->win.next;
     }
