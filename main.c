@@ -349,9 +349,12 @@ int start() {
             } else {
                 /* not a mouse event, probably arrow keys or other keyboard sequence */
                 if (focused_cursor != NULL && focused_cursor->send_sequence != NULL) {
+				  LOG_INFO("calling send_sequence in %s", focused_cursor->id);
                     focused_cursor->send_sequence(focused_cursor, seq, i);
                     repaint();
-                }
+                } else {
+				  LOG_INFO("send_sequence not found");
+				}
             }
         }
     }

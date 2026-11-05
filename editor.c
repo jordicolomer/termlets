@@ -1228,7 +1228,19 @@ void EditorWindow_delete(EditorWindow *self) {
 }
 
 void EditorWindow_send_sequence(Window *win, const char *seq, int len) {
+      LOG_INFO("EditorWindow_send_sequence");
     EditorWindow *self = win;
+
+	Window *focused_cursor = win->focused;
+    if (focused_cursor != NULL)
+        while (focused_cursor->send_sequence == NULL && focused_cursor->focused != NULL)
+            focused_cursor = focused_cursor->focused;
+
+    if (focused_cursor != NULL && focused_cursor->send_sequence != NULL) {
+	  focused_cursor->send_sequence(focused_cursor, seq, len);
+        return;
+    }
+	
     if (strlen(seq) == 0) {
         insert_mode = 0;
         return;

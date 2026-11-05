@@ -25,6 +25,8 @@ void LineEditorWindow_right(LineEditorWindow *self) {
 }
 
 void LineEditorWindow_send_sequence(struct Window *win, const char *seq, int len) {
+      LOG_INFO("LineEditorWindow_send_sequence");
+
     LineEditorWindow *self = win;
     if (strcmp(seq, "[C") == 0) {
         LineEditorWindow_right(self);
