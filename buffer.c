@@ -672,6 +672,9 @@ static inline void append_str(char *out, size_t *pos, const char *s) {
 }
 
 static inline void append_bytes(char *out, size_t *pos, const char *s, int len) {
+  if (*pos + len > OUTBUF_SIZE){
+    LOG_INFO("append_bytes overflow");
+  }
     memcpy(out + *pos, s, len);
     *pos += len;
 }
