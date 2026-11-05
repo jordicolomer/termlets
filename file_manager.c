@@ -718,9 +718,8 @@ void ExplorerWindow_search(ExplorerWindow *self, char *query, FileItemWindow *si
             found = 1;
         current->is_selected = 0;
 
-        if (found) {
             char *p = strcasestr(current->name, query);
-            if (p != NULL) {
+            if (found && p != NULL) {
                 if (count == 0) {
                     self->first_occurrence = current;
                     current->is_selected = 1;
@@ -728,7 +727,6 @@ void ExplorerWindow_search(ExplorerWindow *self, char *query, FileItemWindow *si
                 count++;
             }
             current->is_marked = (p != NULL);
-        }
         FileExplorer_paint_selection_item(current, 1);
         current = (FileItemWindow *)current->win.next;
     }
@@ -754,7 +752,7 @@ void ExplorerWindow_searchbox_exit(ExplorerWindow *self) {
 }
 
 void ExplorerWindow_searchbox_on_modify(ExplorerWindow *self) {
-    ExplorerWindow_search(self, self->search_box->buffer, self->fm->head);
+    ExplorerWindow_search(self, self->search_box->buffer, self->selected);
 }
 
 void ExplorerWindow_searchbox_on_enter(ExplorerWindow *self) {
