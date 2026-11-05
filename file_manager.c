@@ -718,15 +718,15 @@ void ExplorerWindow_search(ExplorerWindow *self, char *query, FileItemWindow *si
             found = 1;
         current->is_selected = 0;
 
-            char *p = strcasestr(current->name, query);
-            if (found && p != NULL) {
-                if (count == 0) {
-                    self->first_occurrence = current;
-                    current->is_selected = 1;
-                }
-                count++;
+        char *p = strcasestr(current->name, query);
+        if (found && p != NULL) {
+            if (count == 0) {
+                self->first_occurrence = current;
+                current->is_selected = 1;
             }
-            current->is_marked = (p != NULL);
+            count++;
+        }
+        current->is_marked = (p != NULL);
         FileExplorer_paint_selection_item(current, 1);
         current = (FileItemWindow *)current->win.next;
     }

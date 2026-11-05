@@ -86,7 +86,8 @@ void double_capacity(Node *node) {
 }
 
 void update_lexer_state(Node *current, int fast, int language) {
-  if (language == LANG_NONE) return;
+    if (language == LANG_NONE)
+        return;
     /*
      * Run the lexer on all lines and save the lexer state on each line
      * so that we can run the lexer on a random line as if we processed each line before it
@@ -1347,8 +1348,8 @@ void EditorWindow_action_indent(EditorWindow *self) {
 
 void EditorWindow_search(EditorWindow *self, char *query, int cursor) {
     EditorPointer ptr = self->cursor;
-	if (!cursor && self->selection.y != -1)
-	  ptr = self->selection;
+    if (!cursor && self->selection.y != -1)
+        ptr = self->selection;
 
     if (EditorPointer_search(&ptr, query)) {
         self->cursor = ptr;
@@ -1361,8 +1362,8 @@ void EditorWindow_search(EditorWindow *self, char *query, int cursor) {
 
 void EditorWindow_search_reverse(EditorWindow *self, char *query, int cursor) {
     EditorPointer ptr = self->cursor;
-	if (!cursor && self->selection.y != -1)
-	  ptr = self->selection;
+    if (!cursor && self->selection.y != -1)
+        ptr = self->selection;
 
     if (EditorPointer_search_reverse(&ptr, query)) {
         self->cursor = ptr;
@@ -1384,9 +1385,9 @@ void EditorWindow_searchbox_exit(EditorWindow *self) {
 void EditorWindow_searchbox_on_modify(EditorWindow *self) {
     self->highlight_end.y = -1;
     if (self->reverse_search == 1) {
-	  EditorWindow_search_reverse(self, self->search_window->search_box->buffer, 0);
+        EditorWindow_search_reverse(self, self->search_window->search_box->buffer, 0);
     } else {
-	  EditorWindow_search(self, self->search_window->search_box->buffer, 0);
+        EditorWindow_search(self, self->search_window->search_box->buffer, 0);
     }
 }
 
@@ -1422,56 +1423,56 @@ Window *EditorWindow_searchbox(EditorWindow *self) {
 
 // on click on search toolbar button
 void EditorWindow_action_search(EditorWindow *self) {
-  if (self->replace_window->win.hidden)
-	self->search_window->win.hidden = 1-self->search_window->win.hidden;
-  self->replace_window->win.hidden = 1;
-  if (self->search_window->win.hidden){
-	Window_focus(self);
-	search_mode = 0;
-	self->selection.y = -1;
-  } else {
-    LineEditorWindow_reset(self->search_window->search_box);
-	Window_focus(self->search_window->search_box);
-	search_mode = 1;
-  }
+    if (self->replace_window->win.hidden)
+        self->search_window->win.hidden = 1 - self->search_window->win.hidden;
+    self->replace_window->win.hidden = 1;
+    if (self->search_window->win.hidden) {
+        Window_focus(self);
+        search_mode = 0;
+        self->selection.y = -1;
+    } else {
+        LineEditorWindow_reset(self->search_window->search_box);
+        Window_focus(self->search_window->search_box);
+        search_mode = 1;
+    }
 }
 
 // when the user clicks on the search input
-void SearchWindow_on_click(struct Window *wg, int x, int y){
-  //wg->parent->focused = wg;
-  //LOG_INFO("SearchWindow_on_click");
-  Window_focus(wg);
-  search_mode = 1;
-  //self->win.focused = NULL;  
+void SearchWindow_on_click(struct Window *wg, int x, int y) {
+    // wg->parent->focused = wg;
+    // LOG_INFO("SearchWindow_on_click");
+    Window_focus(wg);
+    search_mode = 1;
+    // self->win.focused = NULL;
 }
 
 // when clicking the next button in search
-void EditorWindow_search_button_next_clicked(EditorWindow *self){
-  self->reverse_search = 0;
-  EditorWindow_search(self, self->search_window->search_box->buffer, 1);
+void EditorWindow_search_button_next_clicked(EditorWindow *self) {
+    self->reverse_search = 0;
+    EditorWindow_search(self, self->search_window->search_box->buffer, 1);
 }
 
 // when clicking the prev button in search
-void EditorWindow_search_button_prev_clicked(EditorWindow *self){
-  self->reverse_search = 1;
-  EditorWindow_search_reverse(self, self->search_window->search_box->buffer, 1);
+void EditorWindow_search_button_prev_clicked(EditorWindow *self) {
+    self->reverse_search = 1;
+    EditorWindow_search_reverse(self, self->search_window->search_box->buffer, 1);
 }
 
 // when clicking the x button in search
 void EditorWindow_search_button_close_clicked(EditorWindow *self) {
-  self->search_window->win.hidden = 1;
-  self->replace_window->win.hidden = 1;
-  Window_focus(self);
-  search_mode = 0;
-  self->selection.y = -1;
+    self->search_window->win.hidden = 1;
+    self->replace_window->win.hidden = 1;
+    Window_focus(self);
+    search_mode = 0;
+    self->selection.y = -1;
 }
 
 // when clicking on replace button
 void EditorWindow_search_button_replace_clicked(EditorWindow *self) {
-  // if selection doesnt match search input, then call search
-  EditorWindow_cut(self);
-  EditorPointer_undo_insert(self, &self->cursor, self->replace_window->replace_box->buffer);
-  EditorWindow_search_button_next_clicked(self);
+    // if selection doesnt match search input, then call search
+    EditorWindow_cut(self);
+    EditorPointer_undo_insert(self, &self->cursor, self->replace_window->replace_box->buffer);
+    EditorWindow_search_button_next_clicked(self);
 }
 
 // when pressing a key in search window
@@ -1499,8 +1500,8 @@ void EditorWindow_create_search_send_key(Window *win, char c) {
 }
 
 // on EditorWindow init
-SearchWindow * EditorWindow_create_search_window(EditorWindow *self) {
-  //return NULL;
+SearchWindow *EditorWindow_create_search_window(EditorWindow *self) {
+    // return NULL;
     SearchWindow *search_window = malloc(sizeof *search_window);
     memset(search_window, 0, sizeof *search_window); // Zero-initialize to prevent garbage values
     Window_init(search_window, -1, -1, -1, -1, -1, -1);
@@ -1512,40 +1513,43 @@ SearchWindow * EditorWindow_create_search_window(EditorWindow *self) {
     search_window->win.width = 30;
     search_window->win.height = 2;
     search_window->win.id = "";
-    //search_window->head = NULL; // Explicitly initialize linked list pointers
-    //search_window->tail = NULL;
+    // search_window->head = NULL; // Explicitly initialize linked list pointers
+    // search_window->tail = NULL;
     search_window->win.send_key = EditorWindow_create_search_send_key;
     search_window->editor = self;
 
-	LineEditorWindow * searchbox = EditorWindow_searchbox(self);
-	searchbox->win.hidden = 0;
+    LineEditorWindow *searchbox = EditorWindow_searchbox(self);
+    searchbox->win.hidden = 0;
     searchbox->win.top = 0;
     searchbox->win.bottom = -1;
     searchbox->win.left = 1;
     searchbox->win.right = -1;
     searchbox->win.width = 18;
     searchbox->win.height = 1;
-	searchbox->win.on_mouse_down = SearchWindow_on_click;
+    searchbox->win.on_mouse_down = SearchWindow_on_click;
     Window_append(search_window, searchbox);
-	search_window->search_box = searchbox;
+    search_window->search_box = searchbox;
 
-	Window * button_next = Window_add_widget(search_window, searchbox->win.width+2, -1, 0, -1, 2, 1, "⬇️", 15, 15);
-	button_next->lambda = create_lambda(EditorWindow_search_button_next_clicked, 1, self);
-	button_next->on_mouse_down = Window_execute_lambda;
-	
-	Window * button_prev = Window_add_widget(search_window, searchbox->win.width+5, -1, 0, -1, 2, 1, "⬆️", 15, 15);
-	button_prev->lambda = create_lambda(EditorWindow_search_button_prev_clicked, 1, self);
-	button_prev->on_mouse_down = Window_execute_lambda;
-	
-	Window * button_close = Window_add_widget(search_window, searchbox->win.width+8, -1, 0, -1, 2, 1, "✖️", 15, 15);
-	button_close->lambda = create_lambda(EditorWindow_search_button_close_clicked, 1, self);
-	button_close->on_mouse_down = Window_execute_lambda;
+    Window *button_next =
+        Window_add_widget(search_window, searchbox->win.width + 2, -1, 0, -1, 2, 1, "⬇️", 15, 15);
+    button_next->lambda = create_lambda(EditorWindow_search_button_next_clicked, 1, self);
+    button_next->on_mouse_down = Window_execute_lambda;
 
-	return search_window;
+    Window *button_prev =
+        Window_add_widget(search_window, searchbox->win.width + 5, -1, 0, -1, 2, 1, "⬆️", 15, 15);
+    button_prev->lambda = create_lambda(EditorWindow_search_button_prev_clicked, 1, self);
+    button_prev->on_mouse_down = Window_execute_lambda;
+
+    Window *button_close =
+        Window_add_widget(search_window, searchbox->win.width + 8, -1, 0, -1, 2, 1, "✖️", 15, 15);
+    button_close->lambda = create_lambda(EditorWindow_search_button_close_clicked, 1, self);
+    button_close->on_mouse_down = Window_execute_lambda;
+
+    return search_window;
 }
 
-SearchWindow * EditorWindow_create_replace_window(EditorWindow *self) {
-  //return NULL;
+SearchWindow *EditorWindow_create_replace_window(EditorWindow *self) {
+    // return NULL;
     SearchWindow *search_window = malloc(sizeof *search_window);
     memset(search_window, 0, sizeof *search_window); // Zero-initialize to prevent garbage values
     Window_init(search_window, -1, -1, -1, -1, -1, -1);
@@ -1557,20 +1561,20 @@ SearchWindow * EditorWindow_create_replace_window(EditorWindow *self) {
     search_window->win.width = 30;
     search_window->win.height = 2;
     search_window->win.id = "";
-    //search_window->head = NULL; // Explicitly initialize linked list pointers
-    //search_window->tail = NULL;
+    // search_window->head = NULL; // Explicitly initialize linked list pointers
+    // search_window->tail = NULL;
 
-	/*LineEditorWindow * searchbox = EditorWindow_searchbox(self);
-	searchbox->win.hidden = 0;
-    searchbox->win.top = 0;
-    searchbox->win.bottom = -1;
-    searchbox->win.left = 1;
-    searchbox->win.right = -1;
-    searchbox->win.width = 18;
-    searchbox->win.height = 1;
-    Window_append(search_window, searchbox);
-	search_window->search_box = searchbox;*/
-	LineEditorWindow *line_edit = LineEditorWindow_new(NULL, "Replace");
+    /*LineEditorWindow * searchbox = EditorWindow_searchbox(self);
+    searchbox->win.hidden = 0;
+searchbox->win.top = 0;
+searchbox->win.bottom = -1;
+searchbox->win.left = 1;
+searchbox->win.right = -1;
+searchbox->win.width = 18;
+searchbox->win.height = 1;
+Window_append(search_window, searchbox);
+    search_window->search_box = searchbox;*/
+    LineEditorWindow *line_edit = LineEditorWindow_new(NULL, "Replace");
     line_edit->win.top = 0;
     line_edit->win.bottom = -1;
     line_edit->win.left = 1;
@@ -1582,21 +1586,23 @@ SearchWindow * EditorWindow_create_replace_window(EditorWindow *self) {
     line_edit->win.hidden = 0;
     line_edit->win.id = "EditorWindow_searchbox";
     line_edit->on_exit = create_lambda(EditorWindow_searchbox_exit, 1, self);
-    //line_edit->on_modify = create_lambda(EditorWindow_searchbox_on_modify, 1, self);
-	line_edit->win.on_mouse_down = SearchWindow_on_click;
+    // line_edit->on_modify = create_lambda(EditorWindow_searchbox_on_modify, 1, self);
+    line_edit->win.on_mouse_down = SearchWindow_on_click;
     line_edit->win.lambda = create_lambda(Editor_searchbox_on_enter, 1, self);
     Window_append(search_window, line_edit);
-	search_window->search_box = line_edit;
+    search_window->search_box = line_edit;
 
-
-	Window * button_replace = Window_add_widget(search_window, line_edit->win.width+2, -1, 0, -1, 2, 1, "🔄", 15, 15);
+    Window *button_replace =
+        Window_add_widget(search_window, line_edit->win.width + 2, -1, 0, -1, 2, 1, "🔄", 15, 15);
     button_replace->lambda = create_lambda(EditorWindow_search_button_replace_clicked, 1, self);
-	button_replace->on_mouse_down = Window_execute_lambda;
+    button_replace->on_mouse_down = Window_execute_lambda;
 
-	Window * button_replace_all = Window_add_widget(search_window, line_edit->win.width+5, -1, 0, -1, 2, 1, "🔁", 15, 15);
-	//Window * button_close = Window_add_widget(search_window, searchbox->win.width+8, -1, 0, -1, 2, 1, "✖️", 15, 15);
+    Window *button_replace_all =
+        Window_add_widget(search_window, line_edit->win.width + 5, -1, 0, -1, 2, 1, "🔁", 15, 15);
+    // Window * button_close = Window_add_widget(search_window, searchbox->win.width+8, -1, 0, -1,
+    // 2, 1, "✖️", 15, 15);
 
-	return search_window;
+    return search_window;
 }
 
 // end search
@@ -1604,13 +1610,13 @@ SearchWindow * EditorWindow_create_replace_window(EditorWindow *self) {
 // begin replace
 
 void EditorWindow_action_replace(EditorWindow *self) {
-  self->replace_window->win.hidden = 1-self->replace_window->win.hidden;
-  self->search_window->win.hidden = self->replace_window->win.hidden;
-  if (self->search_window->win.hidden){
-	Window_focus(self);
-	search_mode = 0;
-	self->selection.y = -1;
-  }
+    self->replace_window->win.hidden = 1 - self->replace_window->win.hidden;
+    self->search_window->win.hidden = self->replace_window->win.hidden;
+    if (self->search_window->win.hidden) {
+        Window_focus(self);
+        search_mode = 0;
+        self->selection.y = -1;
+    }
 }
 
 // end replace
@@ -1670,8 +1676,8 @@ void EditorWindow_send_key(Window *win, char c) {
     Action action = get_action(c, WT_EDITOR);
 
     if (action == ACTION_SEARCH) { // todo
-        //self->reverse_search = 0;
-        //EditorWindow_action_search(self);
+        // self->reverse_search = 0;
+        // EditorWindow_action_search(self);
         EditorWindow_action_search(self);
         return;
     }
@@ -1995,8 +2001,8 @@ void EditorWindow_on_mouse_down(Window *win, int x, int y) {
     self->selecting = 1;
     // LOG_INFO("self->cursor.str_ite.pos_column:%d", self->cursor.str_ite.pos_column);
     // LOG_INFO("self->selection.str_ite.pos_column:%d", self->selection.str_ite.pos_column);
-	Window_focus(win);
-	search_mode = 0;
+    Window_focus(win);
+    search_mode = 0;
 }
 
 void EditorWindow_on_hover(Window *win, int x, int y) {
@@ -2160,9 +2166,9 @@ Window *EditorWindow_new_tab(Tabs *self) {
     Window *searchbox = EditorWindow_searchbox(editor);
     editor->search_box = searchbox;
     editor->reverse_search = 0;
-	//EditorWindow_searchbox_init(editor);
-	editor->search_window = EditorWindow_create_search_window(editor);
-	editor->replace_window = EditorWindow_create_replace_window(editor);
+    // EditorWindow_searchbox_init(editor);
+    editor->search_window = EditorWindow_create_search_window(editor);
+    editor->replace_window = EditorWindow_create_replace_window(editor);
 
     tab->win.focused = slider;
 
@@ -2171,8 +2177,8 @@ Window *EditorWindow_new_tab(Tabs *self) {
 
     Window_append(tab, slider);
     Window_append(tab, searchbox);
-	Window_append(tab, editor->search_window);
-	Window_append(tab, editor->replace_window);
+    Window_append(tab, editor->search_window);
+    Window_append(tab, editor->replace_window);
     // Window_append(tab, editor->searchr_box);
     Window_append(tab, status);
 

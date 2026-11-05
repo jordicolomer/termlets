@@ -40,8 +40,10 @@ void WM_draw(struct Window *w, int hasFocus) {
 }
 
 void WM_up(WM *self) { self->selected = max(self->selected - 1, 0); }
+void WM_first_line(WM *self) { self->selected = 0; }
 
 void WM_down(WM *self) { self->selected = min(self->selected + 1, self->count - 1); }
+void WM_last_line(WM *self) { self->selected = self->count - 1; }
 
 void WM_select(WM *self) {
     select_tab(self->selected_tab, 1);
@@ -74,8 +76,16 @@ void WM_send_key(Window *self, char c) {
         WM_down(self);
         return;
     }
+    if (action == ACTION_LAST_LINE) {
+        WM_last_line(self);
+        return;
+    }
     if (action == ACTION_UP) {
         WM_up(self);
+        return;
+    }
+    if (action == ACTION_FIRST_LINE) {
+        WM_first_line(self);
         return;
     }
     if (action == ACTION_WINDOW_MANAGER || action == ACTION_ENTER) {
