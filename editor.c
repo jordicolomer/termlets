@@ -650,8 +650,12 @@ int EditorPointer_is_end(EditorPointer *cursor) {
 }
 
 void EditorPointer_right(EditorPointer *cursor) {
-    if (MyStr_is_end(&cursor->str_ite)) { // if end of line
-        EditorPointer_vertical_move(cursor, 0, 1, 0);
+    // if end of line
+    if (MyStr_is_end(&cursor->str_ite)) { 
+        // not last line
+        if (cursor->node->next != NULL){
+            EditorPointer_vertical_move(cursor, 0, 1, 0);
+        }
         // EditorPointer_down(&self->cursor);
     } else { // if not end of line
         MyStr_next_cluster(&cursor->str_ite);
@@ -659,9 +663,12 @@ void EditorPointer_right(EditorPointer *cursor) {
 }
 
 void EditorPointer_left(EditorPointer *cursor) {
-    if (cursor->str_ite.pos_cluster <= 0) { // if beginning of line
-        EditorPointer_vertical_move(cursor, 1, 1, 0);
-        MyStr_get_last_grapheme(&cursor->str_ite);
+     // if beginning of line
+    if (cursor->str_ite.pos_cluster <= 0) {
+        if (cursor->y != 0) { // not first line
+            EditorPointer_vertical_move(cursor, 1, 1, 0);
+            MyStr_get_last_grapheme(&cursor->str_ite);
+        }
     } else { // if not end of line
         MyStr_prev_cluster(&cursor->str_ite);
     }
