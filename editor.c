@@ -671,7 +671,7 @@ int EditorPointer_search(EditorPointer *cursor, char *query) {
         if (node == cursor->node) {
             start = cursor->str_ite.cluster_start;
         }
-        char *found = strstr(str + start, query);
+        char *found = strcasestr(str + start, query);
         if (found != NULL) {
             int position = found - str;
             cursor->node = node;
