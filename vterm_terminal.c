@@ -490,6 +490,7 @@ VTermScreenCell VTermTerminal_get_cell(TerminalWindow *terminal, int virtual_lin
 }
 
 void VTermTerminal_copy(TerminalWindow *terminal) {
+    //LOG_INFO("VTermTerminal_copy: %s", terminal->win.id);
     if (terminal->selection.y == -1)
         return;
     Geometry geo = terminal->win.calculated;
@@ -532,8 +533,15 @@ void VTermTerminal_copy(TerminalWindow *terminal) {
         }
     }
     line_buf[buf_idx] = '\0';
+    //LOG_INFO("VTermTerminal_copy: %s", line_buf);
     clipboard_copy(line_buf);
     free(line_buf);
+    terminal->selection.y = -1;
+}
+
+void VTermTerminal_paste(TerminalWindow *terminal) {
+            char *cb = clipboard_paste();
+            write(terminal->master, cb, strlen(cb));
 }
 
 void VTermTerminal_draw(struct Window *wg, int hasFocus) {
@@ -1051,12 +1059,11 @@ void vterm_send_key(struct Window *wg, char c) {
         }
         if (action == ACTION_COPY) {
             VTermTerminal_copy(terminal);
-            terminal->selection.y = -1;
+            //terminal->selection.y = -1;
             return;
         }
         if (action == ACTION_PASTE) {
-            char *cb = clipboard_paste();
-            write(terminal->master, cb, strlen(cb));
+            VTermTerminal_paste(terminal);
             return;
         }
         if (action == ACTION_LAST_LINE) {
@@ -1244,6 +1251,18 @@ void VTermTerminal_close(TerminalFrame *self) {
     tabs_remove_tab(tab);
 }
 
+void VTermTerminal_clear(TerminalWindow *terminal) {
+    terminal->scrollback.head = NULL;
+    terminal->scrollback.tail = NULL;
+    terminal->scrollback.count = 0;
+    terminal->last_line = NULL;
+    terminal->last_line_idx = -1;
+    // todo free mem
+    TerminalWindow_first_line(terminal);
+}
+
+void VTermTerminal_on_selected(TerminalFrame *self, void fn()) { fn(self->tabs->focused->head); }
+
 Window *VTermTerminal_menu(TerminalFrame *self) {
     Window *menu = Menu_create_horizontal();
 
@@ -1257,9 +1276,11 @@ Window *VTermTerminal_menu(TerminalFrame *self) {
     Menu_add_submenu(menu, " File ", file);
 
     Window *edit = Menu_create_vertical(self);
-    Menu_add_element(edit, " 🔪 Cut            Ctrl+X", create_lambda(VTermTerminal_new_tab, 0));
-    Menu_add_element(edit, " 📋 Copy           Ctrl+C", create_lambda(VTermTerminal_new_tab, 0));
-    Menu_add_element(edit, " 📌 Paste          Ctrl+V", create_lambda(VTermTerminal_new_tab, 0));
+    //Menu_add_element(edit, " 🔪 Cut            Ctrl+X", create_lambda(VTermTerminal_new_tab, 0));
+    Menu_add_element(edit, " 📋 Copy           Ctrl+C", create_lambda(
+VTermTerminal_on_selected, 2, self, VTermTerminal_copy));
+    Menu_add_element(edit, " 📌 Paste          Ctrl+V", create_lambda(
+VTermTerminal_on_selected, 2, self, VTermTerminal_paste));
     Menu_add_element(edit, " ❌ Delete         Backspace", create_lambda(VTermTerminal_new_tab, 0));
     Menu_add_element(edit, "", NULL);
     Menu_add_submenu(menu, " Edit ", edit);
@@ -1269,32 +1290,13 @@ Window *VTermTerminal_menu(TerminalFrame *self) {
     return menu;
 }
 
-void VTermTerminal_clear(TerminalWindow *terminal) {
-    //LOG_INFO("VTermTerminalWindow_clear: %s", terminal->win.id);
-    //LOG_INFO("VTermTerminalWindow_clear: %s", terminal->win.head->id);
-    //TerminalWindow_left(terminal);
-    terminal->scrollback.head = NULL;
-    terminal->scrollback.tail = NULL;
-    terminal->scrollback.count = 0;
-    terminal->last_line = NULL;
-    terminal->last_line_idx = -1;
-TerminalWindow_first_line(terminal);
-//TerminalWindow_last_line(terminal);
-}
-
-/*void VTermTerminalFrame_clear(TerminalFrame *self) {
-    Tabs *tabs = self->tabs;
-    Tab *tab = tabs->selected_tab;
-    VTermTerminalWindow_clear(tab->child);
-}*/
-void VTermTerminal_on_selected(TerminalFrame *self, void fn()) { fn(self->tabs->focused->head); }
 
 Window *VTermTerminal_toolbar(TerminalFrame *self) {
     Window *toolbar = Menu_create_horizontal();
     Menu_add_element(toolbar, " + New Tab ", create_lambda(VTermTerminal_new_tab, 1, self));
-    Menu_add_element(toolbar, " 🔪 Cut", create_lambda(VTermTerminal_new_tab, 0));
-    Menu_add_element(toolbar, " 📋 Copy", create_lambda(VTermTerminal_new_tab, 0));
-    Menu_add_element(toolbar, " 📌 Paste", create_lambda(VTermTerminal_new_tab, 0));
+    //Menu_add_element(toolbar, " 🔪 Cut", create_lambda(VTermTerminal_new_tab, 0));
+    Menu_add_element(toolbar, " 📋 Copy", create_lambda(VTermTerminal_on_selected, 2, self, VTermTerminal_copy));
+    Menu_add_element(toolbar, " 📌 Paste", create_lambda(VTermTerminal_on_selected, 2, self, VTermTerminal_paste));
     Menu_add_element(toolbar, " 🧹 Clear", create_lambda(VTermTerminal_on_selected, 2, self, VTermTerminal_clear));
 
     toolbar->top = 1;
