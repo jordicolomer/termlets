@@ -10,6 +10,7 @@ typedef struct LineEditorWindow {
     int cursor;
     Lambda *on_modify;
     Lambda *on_exit;
+    int all_selected;
 } LineEditorWindow;
 
 LineEditorWindow *LineEditorWindow_new(char *c, char *empty_label);
@@ -17,5 +18,6 @@ LineEditorWindow *LineEditorWindow_new(char *c, char *empty_label);
 void insert_char(char *buffer, size_t pos, char c, size_t current_len, size_t capacity);
 void delete_char(char *buffer, size_t pos, size_t len);
 void LineEditorWindow_reset(LineEditorWindow *self);
+void LineEditorWindow_select_all(LineEditorWindow *self);
 
 #endif

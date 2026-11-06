@@ -115,6 +115,10 @@ void LineEditorWindow_send_key(Window *win, char c) {
         invoke_lambda(self->on_exit);
         return;
     }
+    if (self->all_selected){
+        LineEditorWindow_reset(self);
+        self->all_selected = 0;
+    }
     if (c == 22) { // Ctrl+V
         char *cb = clipboard_paste();
         insert_string(self->buffer, self->cursor, cb, len, sizeof(self->buffer));
@@ -141,6 +145,7 @@ void LineEditorWindow_draw(struct Window *current, int hasFocus) {
         fg = 7;
     }
     Buffer_print(&main_buf, geo.y, geo.x, geo.width, label, fg, bg);
+    if (fg != 7 && self->all_selected)  Buffer_set_bg(&main_buf, geo.y, geo.x, strlen(label), 81);
 	if (Window_is_focused(current))
 	  Buffer_set_bg(&main_buf, geo.y, geo.x + self->cursor, 1, 73);
 }
@@ -166,6 +171,7 @@ LineEditorWindow *LineEditorWindow_new(char *c, char *empty_label) {
         snprintf(self->buffer, sizeof(self->buffer), "%s", c);
     self->cursor = strlen(self->buffer);
     self->empty_label = empty_label;
+    self->all_selected = 0;
 
     return self;
 }
@@ -174,3 +180,8 @@ void LineEditorWindow_reset(LineEditorWindow *self) {
     self->buffer[0] = '\0';
     self->cursor = 0;
 }
+
+void LineEditorWindow_select_all(LineEditorWindow *self) {
+    self->all_selected = 1;
+}
+

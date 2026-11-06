@@ -1455,7 +1455,8 @@ void EditorWindow_action_search(EditorWindow *self) {
         search_mode = 0;
         self->selection.y = -1;
     } else {
-        LineEditorWindow_reset(self->search_window->search_box);
+        //LineEditorWindow_reset(self->search_window->search_box);
+        LineEditorWindow_select_all(self->search_window->search_box);
         Window_focus(self->search_window->search_box);
         search_mode = 1;
     }
