@@ -1254,7 +1254,7 @@ Window *VTermTerminal_menu(TerminalFrame *self) {
 
 Window *VTermTerminal_toolbar(TerminalFrame *self) {
     Window *toolbar = Menu_create_horizontal();
-    Menu_add_element(toolbar, " + New Tab ", create_lambda(VTermTerminal_new_tab, 0));
+    Menu_add_element(toolbar, " + New Tab ", create_lambda(VTermTerminal_new_tab, 1, self));
     Menu_add_element(toolbar, " 🔪 Cut", create_lambda(VTermTerminal_new_tab, 0));
     Menu_add_element(toolbar, " 📋 Copy", create_lambda(VTermTerminal_new_tab, 0));
     Menu_add_element(toolbar, " 📌 Paste", create_lambda(VTermTerminal_new_tab, 0));
