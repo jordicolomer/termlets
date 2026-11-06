@@ -1094,7 +1094,10 @@ void EditorWindow_insert(EditorWindow *self, char c) {
     EditorPointer_undo_insert(self, &self->cursor, buf);
 }
 
-void EditorWindow_newline(EditorWindow *self) { EditorWindow_insert(self, '\n'); }
+void EditorWindow_newline(EditorWindow *self) {
+    EditorWindow_insert(self, '\n');
+    EditorWindow_make_cursor_visible(self);
+}
 
 void _EditorWindow_copy(EditorWindow *self) {
     char *buffer = EditorPointer_copy_region_to_memory(&self->cursor, &self->selection);
