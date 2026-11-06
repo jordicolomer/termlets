@@ -928,6 +928,21 @@ void TerminalWindow_prev_word(TerminalWindow *self) {
     make_cursor_visible(self);
 }
 
+void TerminalWindow_last_line(TerminalWindow *terminal) {
+            terminal->cursor.x = terminal->term_cursor.x;
+            terminal->cursor.y = terminal->term_cursor.y;
+            if (VTermTerminal_cursors_same_y(terminal))
+                terminal->cursor.y = -1;
+            make_cursor_visible(terminal);
+}
+
+void TerminalWindow_first_line(TerminalWindow *terminal) {
+            terminal->cursor.y = 0;
+            if (VTermTerminal_cursors_same_y(terminal))
+                terminal->cursor.y = -1;
+            make_cursor_visible(terminal);
+}
+
 void vterm_send_key(struct Window *wg, char c) {
     TerminalWindow *terminal = wg;
     Action action = get_action(c, WT_TERMINAL);
@@ -1045,18 +1060,20 @@ void vterm_send_key(struct Window *wg, char c) {
             return;
         }
         if (action == ACTION_LAST_LINE) {
-            terminal->cursor.x = terminal->term_cursor.x;
+TerminalWindow_last_line(terminal);
+            /*terminal->cursor.x = terminal->term_cursor.x;
             terminal->cursor.y = terminal->term_cursor.y;
             if (VTermTerminal_cursors_same_y(terminal))
                 terminal->cursor.y = -1;
-            make_cursor_visible(terminal);
+            make_cursor_visible(terminal);*/
             return;
         }
         if (action == ACTION_FIRST_LINE) {
-            terminal->cursor.y = 0;
+TerminalWindow_first_line(terminal);
+            /*terminal->cursor.y = 0;
             if (VTermTerminal_cursors_same_y(terminal))
                 terminal->cursor.y = -1;
-            make_cursor_visible(terminal);
+            make_cursor_visible(terminal);*/
             return;
         }
     }
@@ -1252,12 +1269,33 @@ Window *VTermTerminal_menu(TerminalFrame *self) {
     return menu;
 }
 
+void VTermTerminal_clear(TerminalWindow *terminal) {
+    //LOG_INFO("VTermTerminalWindow_clear: %s", terminal->win.id);
+    //LOG_INFO("VTermTerminalWindow_clear: %s", terminal->win.head->id);
+    //TerminalWindow_left(terminal);
+    terminal->scrollback.head = NULL;
+    terminal->scrollback.tail = NULL;
+    terminal->scrollback.count = 0;
+    terminal->last_line = NULL;
+    terminal->last_line_idx = -1;
+TerminalWindow_first_line(terminal);
+//TerminalWindow_last_line(terminal);
+}
+
+/*void VTermTerminalFrame_clear(TerminalFrame *self) {
+    Tabs *tabs = self->tabs;
+    Tab *tab = tabs->selected_tab;
+    VTermTerminalWindow_clear(tab->child);
+}*/
+void VTermTerminal_on_selected(TerminalFrame *self, void fn()) { fn(self->tabs->focused->head); }
+
 Window *VTermTerminal_toolbar(TerminalFrame *self) {
     Window *toolbar = Menu_create_horizontal();
     Menu_add_element(toolbar, " + New Tab ", create_lambda(VTermTerminal_new_tab, 1, self));
     Menu_add_element(toolbar, " 🔪 Cut", create_lambda(VTermTerminal_new_tab, 0));
     Menu_add_element(toolbar, " 📋 Copy", create_lambda(VTermTerminal_new_tab, 0));
     Menu_add_element(toolbar, " 📌 Paste", create_lambda(VTermTerminal_new_tab, 0));
+    Menu_add_element(toolbar, " 🧹 Clear", create_lambda(VTermTerminal_on_selected, 2, self, VTermTerminal_clear));
 
     toolbar->top = 1;
 
