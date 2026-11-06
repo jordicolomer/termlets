@@ -7,6 +7,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <errno.h>
+#include <limits.h>
 
 int copy_file(const char *src, const char *dst) {
     FILE *in = fopen(src, "rb");
@@ -98,4 +99,46 @@ int remove_recursive(const char *path) {
 
     // Directory should now be empty.
     return rmdir(path);
+}
+
+
+int copy_recursive(const char *src, const char *dst) {
+    struct stat st;
+
+    if (stat(src, &st) != 0) return 1;
+
+    if (S_ISREG(st.st_mode)) {
+        return copy_file(src, dst);
+    }
+
+    if (!S_ISDIR(st.st_mode)) return 1;
+
+    if (mkdir(dst, 0755) != 0) return 1;
+
+    DIR *dir = opendir(src);
+    if (!dir) return 1;
+
+    struct dirent *entry;
+    int error = 0;
+
+    while ((entry = readdir(dir)) != NULL) {
+        if (strcmp(entry->d_name, ".") == 0 ||
+            strcmp(entry->d_name, "..") == 0) {
+            continue;
+        }
+
+        char src_path[PATH_MAX];
+        char dst_path[PATH_MAX];
+
+        snprintf(src_path, sizeof(src_path), "%s/%s", src, entry->d_name);
+        snprintf(dst_path, sizeof(dst_path), "%s/%s", dst, entry->d_name);
+
+        if (copy_recursive(src_path, dst_path) != 0) {
+            error = 1;
+            break;
+        }
+    }
+
+    closedir(dir);
+    return error;
 }

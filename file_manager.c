@@ -1206,6 +1206,7 @@ Window *FileExplorer_menu_copy(ExplorerFrame *self) {
     paste_operation = 2;
 }
 
+/*
 Window *_FileExplorer_menu_paste(ExplorerFrame *self) {
     if (paste_source == NULL)
         return NULL;
@@ -1232,6 +1233,7 @@ Window *_FileExplorer_menu_paste(ExplorerFrame *self) {
     FileExplorer_refresh(ew);
     FileExplorer_refresh(paste_source);
 }
+*/
 
 Window *FileExplorer_menu_paste(ExplorerFrame *self) {
 	char *start = clipboard_paste();
@@ -1249,11 +1251,14 @@ Window *FileExplorer_menu_paste(ExplorerFrame *self) {
 
 		// Process path
 		snprintf(dst, sizeof(dst), "%s/%s", destination, get_filename(start));
-		LOG_INFO("op %s %s", start, dst);
-		if (paste_operation == 1)
-			rename(start, dst);
-		if (paste_operation == 2)
-			copy_file(start, dst);
+		if (!file_exists(dst)) {
+			LOG_INFO("op %s %s", start, dst);
+			if (paste_operation == 1)
+				rename(start, dst);
+			if (paste_operation == 2)
+				//copy_file(start, dst);
+				copy_recursive(start, dst);
+		}
 
 		if (end == NULL) {
 			break;
