@@ -1159,19 +1159,54 @@ void string_set(char **target, const char *origin) {
     *target = strdup(origin);
 }
 
+void FileExplorer_copy_paths(ExplorerFrame *self) {
+    ExplorerWindow *paste_source = self->tabs->focused;
+    int size = 0;
+    FileItemWindow *current = (FileItemWindow *)paste_source->fm->head;
+    while (current != NULL) {
+        if (current->is_selected == 1) {
+            size += strlen(current->path)+1;
+        }
+        current = (FileItemWindow *)current->win.next;
+    }
+
+    if (size == 0) return;
+
+    char buf[size + 1];
+    char *ptr = buf;
+
+    // Fill buffer
+    current = (FileItemWindow *)paste_source->fm->head;
+
+    while (current != NULL) {
+        if (current->is_selected == 1) {
+            int len = strlen(current->path);
+            memcpy(ptr, current->path, len);
+            ptr += len;
+            *ptr++ = '\n';
+        }
+        current = (FileItemWindow *)current->win.next;
+    }
+
+    *ptr = '\0';
+    clipboard_copy(buf);
+}
+
 Window *FileExplorer_menu_cut(ExplorerFrame *self) {
     ExplorerWindow *ew = self->tabs->focused;
     paste_source = ew;
+    FileExplorer_copy_paths(self);
     paste_operation = 1;
 }
 
 Window *FileExplorer_menu_copy(ExplorerFrame *self) {
     ExplorerWindow *ew = self->tabs->focused;
     paste_source = ew;
+    FileExplorer_copy_paths(self);
     paste_operation = 2;
 }
 
-Window *FileExplorer_menu_paste(ExplorerFrame *self) {
+Window *_FileExplorer_menu_paste(ExplorerFrame *self) {
     if (paste_source == NULL)
         return NULL;
     if (paste_source->fm == NULL)
@@ -1196,6 +1231,37 @@ Window *FileExplorer_menu_paste(ExplorerFrame *self) {
 
     FileExplorer_refresh(ew);
     FileExplorer_refresh(paste_source);
+}
+
+Window *FileExplorer_menu_paste(ExplorerFrame *self) {
+	char *start = clipboard_paste();
+	char *end;
+	char dst[PATH_MAX];
+    ExplorerWindow *ew = self->tabs->focused;
+    char *destination = ew->path;
+
+	while (*start != '\0') {
+		end = strchr(start, '\n');
+
+		if (end != NULL) {
+			*end = '\0';
+		}
+
+		// Process path
+		snprintf(dst, sizeof(dst), "%s/%s", destination, get_filename(start));
+		LOG_INFO("op %s %s", start, dst);
+		if (paste_operation == 1)
+			rename(start, dst);
+		if (paste_operation == 2)
+			copy_file(start, dst);
+
+		if (end == NULL) {
+			break;
+		}
+
+		start = end + 1;
+	}
+    FileExplorer_refresh(ew);
 }
 
 Window *FileExplorer_menu_new(ExplorerFrame *self) { LOG_INFO("FileExplorer_menu_new %p", self); }
