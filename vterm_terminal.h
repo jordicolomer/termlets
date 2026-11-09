@@ -4,6 +4,7 @@
 #include "window.h"
 #include "mini_edit.h"
 #include "tabs.h"
+#include "mystr.h"
 
 #ifdef _WIN32
 /* Windows: Include sys/types.h for pid_t, define dummy VTerm types */
@@ -45,6 +46,8 @@ typedef struct ScrollbackList {
 typedef struct TerminalPointer {
     int y;
     int x;
+    //struct ScrollbackLine *node;
+    //MyStr str_ite;
     // int ptr;
 } TerminalPointer;
 
@@ -64,8 +67,9 @@ typedef struct TerminalWindow {
     struct TerminalPointer cursor;
     struct TerminalPointer selection;
     struct TerminalPointer term_cursor;
-    struct TerminalPointer highlight_start;
-    struct TerminalPointer highlight_end;
+    int selecting;
+    //struct TerminalPointer highlight_start;
+    //struct TerminalPointer highlight_end;
 
     ScrollbackLine *last_line;
     int last_line_idx;

@@ -710,7 +710,7 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus) {
     }
 
     // highlight search results
-    draw_pointers(terminal, terminal->highlight_start, terminal->highlight_end, 227);
+    //draw_pointers(terminal, terminal->highlight_start, terminal->highlight_end, 227);
 
     update_tab_label(wg);
 }
@@ -770,7 +770,7 @@ int VTermTerminal_cursor_y(TerminalWindow *terminal) {
 // start of search
 
 void TerminalWindow_search(TerminalWindow *self, char *query) {
-    TerminalPointer ptr = self->highlight_end;
+    TerminalPointer ptr = self->selection;
 
     if (ptr.y == -1) {
         ptr = self->cursor;
@@ -787,17 +787,17 @@ void TerminalWindow_search(TerminalWindow *self, char *query) {
         p = strstr(line, query);
     }
     if (p != NULL) {
-        self->highlight_start.y = n;
+        self->cursor.y = n;
         // self->highlight_start.x = calculate_width_n(line, p - line);
         // self->highlight_start.ptr = p - node->line;
-        self->highlight_start.x = p - line;
+        self->cursor.x = p - line;
 
-        self->highlight_end.y = n;
-        self->highlight_end.x = self->highlight_start.x + strlen(query);
+        self->selection.y = n;
+        self->selection.x = self->cursor.x + strlen(query);
         // self->highlight_end.ptr = self->highlight_start.x + calculate_width(query);
 
         // TerminalWindow_show_line(self, self->highlight_end.n);
-        make_line_visible(self, self->highlight_end.y);
+        make_line_visible(self, self->selection.y);
     }
 }
 
@@ -805,11 +805,11 @@ void TerminalWindow_searchbox_exit(TerminalWindow *self) {
     self->search_box->win.hidden = 1;
     search_mode = 0;
     self->win.focused = NULL;
-    self->highlight_start.y = -1;
+    //self->highlight_start.y = -1;
 }
 
 void TerminalWindow_searchbox_on_modify(TerminalWindow *self) {
-    self->highlight_end.y = -1;
+    self->selection.y = -1;
     TerminalWindow_search(self, self->search_box->buffer);
 }
 
@@ -817,8 +817,8 @@ void TerminalWindow_searchbox_on_enter(TerminalWindow *self) {
     self->search_box->win.hidden = 1;
     search_mode = 0;
     self->win.focused = NULL;
-    self->cursor = self->highlight_end;
-    self->highlight_start.y = -1;
+    self->cursor = self->selection;
+    self->selection.y = -1;
 }
 
 Window *TerminalWindow_searchbox(TerminalWindow *self) {
@@ -1067,20 +1067,11 @@ void vterm_send_key(struct Window *wg, char c) {
             return;
         }
         if (action == ACTION_LAST_LINE) {
-TerminalWindow_last_line(terminal);
-            /*terminal->cursor.x = terminal->term_cursor.x;
-            terminal->cursor.y = terminal->term_cursor.y;
-            if (VTermTerminal_cursors_same_y(terminal))
-                terminal->cursor.y = -1;
-            make_cursor_visible(terminal);*/
+            TerminalWindow_last_line(terminal);
             return;
         }
         if (action == ACTION_FIRST_LINE) {
-TerminalWindow_first_line(terminal);
-            /*terminal->cursor.y = 0;
-            if (VTermTerminal_cursors_same_y(terminal))
-                terminal->cursor.y = -1;
-            make_cursor_visible(terminal);*/
+            TerminalWindow_first_line(terminal);
             return;
         }
     }
@@ -1161,6 +1152,57 @@ static int cb_sb_pushline(int cols, const VTermScreenCell *cells, void *user) {
     return 1;
 }
 
+void VTermTerminal_on_mouse_down(Window *win, int x, int y) {
+    TerminalWindow *self = win;
+    int n_lines = self->scrollback.count + self->rows;
+    int target_y = y - win->shift - win->calculated.y;
+    target_y = min(target_y, n_lines - 1);
+    target_y = max(target_y, 0);
+    int target_x = x - win->calculated.x;
+    target_x = max(target_x, 0);
+    self->cursor.y = target_y;
+    self->cursor.x = target_x;
+    self->selection = self->cursor;
+    self->selecting = 1;
+}
+
+int VTermTerminal_cmp(TerminalPointer *ep1, TerminalPointer *ep2) {
+    if (ep1->y < ep2->y)
+        return -1;
+    if (ep1->y > ep2->y)
+        return 1;
+    return 0;
+}
+
+void VTermTerminal_on_hover(Window *win, int x, int y) {
+    TerminalWindow *self = win;
+    int n_lines = self->scrollback.count + self->rows;
+
+    if (self->selecting == 0)
+        return;
+
+    // Calculate target line
+    int target_y = y - win->shift - win->calculated.y;
+    target_y = min(target_y, n_lines - 1);
+    target_y = max(target_y, 0);
+
+    // Calculate target column
+    int target_x = x - win->calculated.x;
+    target_x = max(target_x, 0);
+
+    // Update cursor position
+    self->cursor.y = target_y;
+    self->cursor.x = target_x;
+}
+
+void VTermTerminal_on_mouse_up(Window *win) {
+    TerminalWindow *self = win;
+    self->selecting = 0;
+    //if (VTermTerminal_cmp(&self->cursor, &self->selection) == 0)
+    //    self->selection.y = -1;
+}
+
+
 TerminalWindow *VTermTerminal_window(int initial_rows, int initial_cols, char *cwd) {
     TerminalWindow *terminal = my_malloc(sizeof *terminal);
     memset(terminal, 0, sizeof *terminal); // Zero-initialize to prevent garbage values
@@ -1176,6 +1218,9 @@ TerminalWindow *VTermTerminal_window(int initial_rows, int initial_cols, char *c
     terminal->win.draw = VTermTerminal_draw;
     terminal->win.scroll_wheel_up = VTermTerminal_scroll_wheel_up;
     terminal->win.scroll_wheel_down = VTermTerminal_scroll_wheel_down;
+    terminal->win.on_mouse_down = VTermTerminal_on_mouse_down;
+    terminal->win.on_hover = VTermTerminal_on_hover;
+    terminal->win.on_mouse_up = VTermTerminal_on_mouse_up;
 
     /* initialize libvterm */
     terminal->rows = initial_rows;
