@@ -42,7 +42,6 @@ int file_exists(const char *path) {
     return stat(path, &st) == 0;
 }
 
-
 int remove_recursive(const char *path) {
     struct stat st;
 
@@ -65,8 +64,7 @@ int remove_recursive(const char *path) {
     int result = 0;
 
     while ((entry = readdir(dir)) != NULL) {
-        if (strcmp(entry->d_name, ".") == 0 ||
-            strcmp(entry->d_name, "..") == 0) {
+        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
             continue;
         }
 
@@ -101,29 +99,31 @@ int remove_recursive(const char *path) {
     return rmdir(path);
 }
 
-
 int copy_recursive(const char *src, const char *dst) {
     struct stat st;
 
-    if (stat(src, &st) != 0) return 1;
+    if (stat(src, &st) != 0)
+        return 1;
 
     if (S_ISREG(st.st_mode)) {
         return copy_file(src, dst);
     }
 
-    if (!S_ISDIR(st.st_mode)) return 1;
+    if (!S_ISDIR(st.st_mode))
+        return 1;
 
-    if (mkdir(dst, 0755) != 0) return 1;
+    if (mkdir(dst, 0755) != 0)
+        return 1;
 
     DIR *dir = opendir(src);
-    if (!dir) return 1;
+    if (!dir)
+        return 1;
 
     struct dirent *entry;
     int error = 0;
 
     while ((entry = readdir(dir)) != NULL) {
-        if (strcmp(entry->d_name, ".") == 0 ||
-            strcmp(entry->d_name, "..") == 0) {
+        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
             continue;
         }
 

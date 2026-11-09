@@ -158,7 +158,7 @@ void on_mouse_up() {
     }
 }
 
-char * log_file = "app.log";
+char *log_file = "app.log";
 
 int start() {
 #ifdef _WIN32
@@ -349,12 +349,12 @@ int start() {
             } else {
                 /* not a mouse event, probably arrow keys or other keyboard sequence */
                 if (focused_cursor != NULL && focused_cursor->send_sequence != NULL) {
-				  LOG_INFO("calling send_sequence in %s", focused_cursor->id);
+                    LOG_INFO("calling send_sequence in %s", focused_cursor->id);
                     focused_cursor->send_sequence(focused_cursor, seq, i);
                     repaint();
                 } else {
-				  LOG_INFO("send_sequence not found");
-				}
+                    LOG_INFO("send_sequence not found");
+                }
             }
         }
     }
@@ -381,7 +381,7 @@ int start() {
 int parse_args(int argc, char **argv) {
 
     for (int i = 1; i < argc; i++) {
-fprintf(stderr, "%s\n", argv[i]);
+        fprintf(stderr, "%s\n", argv[i]);
         if (strcmp(argv[i], "--log") == 0) {
             if (i + 1 >= argc) {
                 fprintf(stderr, "--log requires a filename\n");

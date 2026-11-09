@@ -53,11 +53,11 @@ void EditorWindow_show_line(EditorWindow *self, int n) {
     int height = self->win.calculated.height;
     int margin = 10;
     int diff = n + self->win.shift;
-    if (diff < 0){
+    if (diff < 0) {
         self->win.shift = -(n) + margin;
         self->win.shift = min(self->win.shift, 0);
     }
-    if (diff > height - 1){
+    if (diff > height - 1) {
         self->win.shift = height - 1 - n - margin;
         self->win.shift = max(self->win.shift, -(self->n_lines - height));
     }
@@ -651,9 +651,9 @@ int EditorPointer_is_end(EditorPointer *cursor) {
 
 void EditorPointer_right(EditorPointer *cursor) {
     // if end of line
-    if (MyStr_is_end(&cursor->str_ite)) { 
+    if (MyStr_is_end(&cursor->str_ite)) {
         // not last line
-        if (cursor->node->next != NULL){
+        if (cursor->node->next != NULL) {
             EditorPointer_vertical_move(cursor, 0, 1, 0);
         }
         // EditorPointer_down(&self->cursor);
@@ -663,7 +663,7 @@ void EditorPointer_right(EditorPointer *cursor) {
 }
 
 void EditorPointer_left(EditorPointer *cursor) {
-     // if beginning of line
+    // if beginning of line
     if (cursor->str_ite.pos_cluster <= 0) {
         if (cursor->y != 0) { // not first line
             EditorPointer_vertical_move(cursor, 1, 1, 0);
@@ -1231,19 +1231,19 @@ void EditorWindow_delete(EditorWindow *self) {
 }
 
 void EditorWindow_send_sequence(Window *win, const char *seq, int len) {
-      LOG_INFO("EditorWindow_send_sequence");
+    LOG_INFO("EditorWindow_send_sequence");
     EditorWindow *self = win;
 
-	Window *focused_cursor = win->focused;
+    Window *focused_cursor = win->focused;
     if (focused_cursor != NULL)
         while (focused_cursor->send_sequence == NULL && focused_cursor->focused != NULL)
             focused_cursor = focused_cursor->focused;
 
     if (focused_cursor != NULL && focused_cursor->send_sequence != NULL) {
-	  focused_cursor->send_sequence(focused_cursor, seq, len);
+        focused_cursor->send_sequence(focused_cursor, seq, len);
         return;
     }
-	
+
     if (strlen(seq) == 0) {
         insert_mode = 0;
         return;
@@ -1458,7 +1458,7 @@ void EditorWindow_action_search(EditorWindow *self) {
         search_mode = 0;
         self->selection.y = -1;
     } else {
-        //LineEditorWindow_reset(self->search_window->search_box);
+        // LineEditorWindow_reset(self->search_window->search_box);
         LineEditorWindow_select_all(self->search_window->search_box);
         Window_focus(self->search_window->search_box);
         search_mode = 1;

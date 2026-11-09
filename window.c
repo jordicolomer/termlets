@@ -425,9 +425,9 @@ void Window_focus(struct Window *w) {
 
     current = w;
     while (current != NULL) {
-	  if (current->parent != NULL){
+        if (current->parent != NULL) {
             current->parent->focused = current;
-	  }
+        }
         current = current->parent;
     }
 }
@@ -435,9 +435,11 @@ void Window_focus(struct Window *w) {
 int Window_is_focused(struct Window *w) {
     Window *current = focused;
     while (current->focused != NULL) {
-	  if (w == current) return 1;
+        if (w == current)
+            return 1;
         current = current->focused;
     }
-	if (w == current) return 1;
-	return 0;
+    if (w == current)
+        return 1;
+    return 0;
 }

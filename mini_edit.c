@@ -25,7 +25,7 @@ void LineEditorWindow_right(LineEditorWindow *self) {
 }
 
 void LineEditorWindow_send_sequence(struct Window *win, const char *seq, int len) {
-      LOG_INFO("LineEditorWindow_send_sequence");
+    LOG_INFO("LineEditorWindow_send_sequence");
 
     LineEditorWindow *self = win;
     if (strcmp(seq, "[C") == 0) {
@@ -115,7 +115,7 @@ void LineEditorWindow_send_key(Window *win, char c) {
         invoke_lambda(self->on_exit);
         return;
     }
-    if (self->all_selected){
+    if (self->all_selected) {
         LineEditorWindow_reset(self);
         self->all_selected = 0;
     }
@@ -145,9 +145,10 @@ void LineEditorWindow_draw(struct Window *current, int hasFocus) {
         fg = 7;
     }
     Buffer_print(&main_buf, geo.y, geo.x, geo.width, label, fg, bg);
-    if (fg != 7 && self->all_selected)  Buffer_set_bg(&main_buf, geo.y, geo.x, strlen(label), 81);
-	if (Window_is_focused(current))
-	  Buffer_set_bg(&main_buf, geo.y, geo.x + self->cursor, 1, 73);
+    if (fg != 7 && self->all_selected)
+        Buffer_set_bg(&main_buf, geo.y, geo.x, strlen(label), 81);
+    if (Window_is_focused(current))
+        Buffer_set_bg(&main_buf, geo.y, geo.x + self->cursor, 1, 73);
 }
 
 LineEditorWindow *LineEditorWindow_new(char *c, char *empty_label) {
@@ -181,7 +182,4 @@ void LineEditorWindow_reset(LineEditorWindow *self) {
     self->cursor = 0;
 }
 
-void LineEditorWindow_select_all(LineEditorWindow *self) {
-    self->all_selected = 1;
-}
-
+void LineEditorWindow_select_all(LineEditorWindow *self) { self->all_selected = 1; }

@@ -490,7 +490,7 @@ VTermScreenCell VTermTerminal_get_cell(TerminalWindow *terminal, int virtual_lin
 }
 
 void VTermTerminal_copy(TerminalWindow *terminal) {
-    //LOG_INFO("VTermTerminal_copy: %s", terminal->win.id);
+    // LOG_INFO("VTermTerminal_copy: %s", terminal->win.id);
     if (terminal->selection.y == -1)
         return;
     Geometry geo = terminal->win.calculated;
@@ -533,15 +533,15 @@ void VTermTerminal_copy(TerminalWindow *terminal) {
         }
     }
     line_buf[buf_idx] = '\0';
-    //LOG_INFO("VTermTerminal_copy: %s", line_buf);
+    // LOG_INFO("VTermTerminal_copy: %s", line_buf);
     clipboard_copy(line_buf);
     free(line_buf);
     terminal->selection.y = -1;
 }
 
 void VTermTerminal_paste(TerminalWindow *terminal) {
-            char *cb = clipboard_paste();
-            write(terminal->master, cb, strlen(cb));
+    char *cb = clipboard_paste();
+    write(terminal->master, cb, strlen(cb));
 }
 
 void VTermTerminal_draw(struct Window *wg, int hasFocus) {
@@ -710,7 +710,7 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus) {
     }
 
     // highlight search results
-    //draw_pointers(terminal, terminal->highlight_start, terminal->highlight_end, 227);
+    // draw_pointers(terminal, terminal->highlight_start, terminal->highlight_end, 227);
 
     update_tab_label(wg);
 }
@@ -805,7 +805,7 @@ void TerminalWindow_searchbox_exit(TerminalWindow *self) {
     self->search_box->win.hidden = 1;
     search_mode = 0;
     self->win.focused = NULL;
-    //self->highlight_start.y = -1;
+    // self->highlight_start.y = -1;
 }
 
 void TerminalWindow_searchbox_on_modify(TerminalWindow *self) {
@@ -937,18 +937,18 @@ void TerminalWindow_prev_word(TerminalWindow *self) {
 }
 
 void TerminalWindow_last_line(TerminalWindow *terminal) {
-            terminal->cursor.x = terminal->term_cursor.x;
-            terminal->cursor.y = terminal->term_cursor.y;
-            if (VTermTerminal_cursors_same_y(terminal))
-                terminal->cursor.y = -1;
-            make_cursor_visible(terminal);
+    terminal->cursor.x = terminal->term_cursor.x;
+    terminal->cursor.y = terminal->term_cursor.y;
+    if (VTermTerminal_cursors_same_y(terminal))
+        terminal->cursor.y = -1;
+    make_cursor_visible(terminal);
 }
 
 void TerminalWindow_first_line(TerminalWindow *terminal) {
-            terminal->cursor.y = 0;
-            if (VTermTerminal_cursors_same_y(terminal))
-                terminal->cursor.y = -1;
-            make_cursor_visible(terminal);
+    terminal->cursor.y = 0;
+    if (VTermTerminal_cursors_same_y(terminal))
+        terminal->cursor.y = -1;
+    make_cursor_visible(terminal);
 }
 
 void vterm_send_key(struct Window *wg, char c) {
@@ -1059,7 +1059,7 @@ void vterm_send_key(struct Window *wg, char c) {
         }
         if (action == ACTION_COPY) {
             VTermTerminal_copy(terminal);
-            //terminal->selection.y = -1;
+            // terminal->selection.y = -1;
             return;
         }
         if (action == ACTION_PASTE) {
@@ -1198,10 +1198,9 @@ void VTermTerminal_on_hover(Window *win, int x, int y) {
 void VTermTerminal_on_mouse_up(Window *win) {
     TerminalWindow *self = win;
     self->selecting = 0;
-    //if (VTermTerminal_cmp(&self->cursor, &self->selection) == 0)
-    //    self->selection.y = -1;
+    // if (VTermTerminal_cmp(&self->cursor, &self->selection) == 0)
+    //     self->selection.y = -1;
 }
-
 
 TerminalWindow *VTermTerminal_window(int initial_rows, int initial_cols, char *cwd) {
     TerminalWindow *terminal = my_malloc(sizeof *terminal);
@@ -1321,11 +1320,11 @@ Window *VTermTerminal_menu(TerminalFrame *self) {
     Menu_add_submenu(menu, " File ", file);
 
     Window *edit = Menu_create_vertical(self);
-    //Menu_add_element(edit, " 🔪 Cut            Ctrl+X", create_lambda(VTermTerminal_new_tab, 0));
-    Menu_add_element(edit, " 📋 Copy           Ctrl+C", create_lambda(
-VTermTerminal_on_selected, 2, self, VTermTerminal_copy));
-    Menu_add_element(edit, " 📌 Paste          Ctrl+V", create_lambda(
-VTermTerminal_on_selected, 2, self, VTermTerminal_paste));
+    // Menu_add_element(edit, " 🔪 Cut            Ctrl+X", create_lambda(VTermTerminal_new_tab, 0));
+    Menu_add_element(edit, " 📋 Copy           Ctrl+C",
+                     create_lambda(VTermTerminal_on_selected, 2, self, VTermTerminal_copy));
+    Menu_add_element(edit, " 📌 Paste          Ctrl+V",
+                     create_lambda(VTermTerminal_on_selected, 2, self, VTermTerminal_paste));
     Menu_add_element(edit, " ❌ Delete         Backspace", create_lambda(VTermTerminal_new_tab, 0));
     Menu_add_element(edit, "", NULL);
     Menu_add_submenu(menu, " Edit ", edit);
@@ -1335,14 +1334,16 @@ VTermTerminal_on_selected, 2, self, VTermTerminal_paste));
     return menu;
 }
 
-
 Window *VTermTerminal_toolbar(TerminalFrame *self) {
     Window *toolbar = Menu_create_horizontal();
     Menu_add_element(toolbar, " + New Tab ", create_lambda(VTermTerminal_new_tab, 1, self));
-    //Menu_add_element(toolbar, " 🔪 Cut", create_lambda(VTermTerminal_new_tab, 0));
-    Menu_add_element(toolbar, " 📋 Copy", create_lambda(VTermTerminal_on_selected, 2, self, VTermTerminal_copy));
-    Menu_add_element(toolbar, " 📌 Paste", create_lambda(VTermTerminal_on_selected, 2, self, VTermTerminal_paste));
-    Menu_add_element(toolbar, " 🧹 Clear", create_lambda(VTermTerminal_on_selected, 2, self, VTermTerminal_clear));
+    // Menu_add_element(toolbar, " 🔪 Cut", create_lambda(VTermTerminal_new_tab, 0));
+    Menu_add_element(toolbar, " 📋 Copy",
+                     create_lambda(VTermTerminal_on_selected, 2, self, VTermTerminal_copy));
+    Menu_add_element(toolbar, " 📌 Paste",
+                     create_lambda(VTermTerminal_on_selected, 2, self, VTermTerminal_paste));
+    Menu_add_element(toolbar, " 🧹 Clear",
+                     create_lambda(VTermTerminal_on_selected, 2, self, VTermTerminal_clear));
 
     toolbar->top = 1;
 

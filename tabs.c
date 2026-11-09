@@ -155,8 +155,10 @@ void tabs_remove_tab(Tab *self) {
         self->prev->next = self->next;
     if (self->next)
         self->next->prev = self->prev;
-    if (self == self->parent->first) self->parent->first = self->next;
-    else if (self == self->parent->last) self->parent->last = self->prev;
+    if (self == self->parent->first)
+        self->parent->first = self->next;
+    else if (self == self->parent->last)
+        self->parent->last = self->prev;
 
     remove_from_all_tabs(self);
 

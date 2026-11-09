@@ -46,9 +46,9 @@ typedef struct ScrollbackList {
 typedef struct TerminalPointer {
     int y;
     int x;
-    //struct ScrollbackLine *node;
-    //MyStr str_ite;
-    // int ptr;
+    // struct ScrollbackLine *node;
+    // MyStr str_ite;
+    //  int ptr;
 } TerminalPointer;
 
 typedef struct TerminalWindow {
@@ -68,8 +68,8 @@ typedef struct TerminalWindow {
     struct TerminalPointer selection;
     struct TerminalPointer term_cursor;
     int selecting;
-    //struct TerminalPointer highlight_start;
-    //struct TerminalPointer highlight_end;
+    // struct TerminalPointer highlight_start;
+    // struct TerminalPointer highlight_end;
 
     ScrollbackLine *last_line;
     int last_line_idx;

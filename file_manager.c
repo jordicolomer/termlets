@@ -668,10 +668,9 @@ void FileExplorer_send_sequence(struct Window *win, const char *seq, int len) {
             focused_cursor = focused_cursor->focused;
 
     if (focused_cursor != NULL && focused_cursor->send_sequence != NULL) {
-	  focused_cursor->send_sequence(focused_cursor, seq, len);
+        focused_cursor->send_sequence(focused_cursor, seq, len);
         return;
     }
-	
 }
 
 void FileExplorer_scroll_wheel_down(struct Window *w) {
@@ -697,7 +696,7 @@ Window *ExplorerWindow_rename_complete(ExplorerWindow *self, LineEditorWindow *l
 
     Window_remove(line_edit);
     self->win.focused = NULL;
-    //Window_focus(self);
+    // Window_focus(self);
     FileExplorer_refresh(self);
     FileExplorer_select_file(self, line_edit->buffer);
 }
@@ -720,7 +719,7 @@ Window *ExplorerWindow_rename(ExplorerWindow *self) {
     line_edit->win.lambda =
         create_lambda(ExplorerWindow_rename_complete, 3, self, line_edit, selected->path);
 
-    //Window_focus(line_edit);
+    // Window_focus(line_edit);
 
     self->win.focused = line_edit;
     Window_append(self->fm, line_edit);
@@ -1130,8 +1129,8 @@ Window *FileExplorer_menu_delete_execute(ExplorerFrame *self, ExplorerWindow *ew
     FileItemWindow *current = (FileItemWindow *)ew->fm->head;
     while (current != NULL) {
         if (current->is_selected) {
-		  //remove(current->path);
-		  remove_recursive(current->path);
+            // remove(current->path);
+            remove_recursive(current->path);
         }
         current = (FileItemWindow *)current->win.next;
     }
@@ -1165,12 +1164,13 @@ void FileExplorer_copy_paths(ExplorerFrame *self) {
     FileItemWindow *current = (FileItemWindow *)paste_source->fm->head;
     while (current != NULL) {
         if (current->is_selected == 1) {
-            size += strlen(current->path)+1;
+            size += strlen(current->path) + 1;
         }
         current = (FileItemWindow *)current->win.next;
     }
 
-    if (size == 0) return;
+    if (size == 0)
+        return;
 
     char buf[size + 1];
     char *ptr = buf;
@@ -1236,36 +1236,36 @@ Window *_FileExplorer_menu_paste(ExplorerFrame *self) {
 */
 
 Window *FileExplorer_menu_paste(ExplorerFrame *self) {
-	char *start = clipboard_paste();
-	char *end;
-	char dst[PATH_MAX];
+    char *start = clipboard_paste();
+    char *end;
+    char dst[PATH_MAX];
     ExplorerWindow *ew = self->tabs->focused;
     char *destination = ew->path;
 
-	while (*start != '\0') {
-		end = strchr(start, '\n');
+    while (*start != '\0') {
+        end = strchr(start, '\n');
 
-		if (end != NULL) {
-			*end = '\0';
-		}
+        if (end != NULL) {
+            *end = '\0';
+        }
 
-		// Process path
-		snprintf(dst, sizeof(dst), "%s/%s", destination, get_filename(start));
-		if (!file_exists(dst)) {
-			LOG_INFO("op %s %s", start, dst);
-			if (paste_operation == 1)
-				rename(start, dst);
-			if (paste_operation == 2)
-				//copy_file(start, dst);
-				copy_recursive(start, dst);
-		}
+        // Process path
+        snprintf(dst, sizeof(dst), "%s/%s", destination, get_filename(start));
+        if (!file_exists(dst)) {
+            LOG_INFO("op %s %s", start, dst);
+            if (paste_operation == 1)
+                rename(start, dst);
+            if (paste_operation == 2)
+                // copy_file(start, dst);
+                copy_recursive(start, dst);
+        }
 
-		if (end == NULL) {
-			break;
-		}
+        if (end == NULL) {
+            break;
+        }
 
-		start = end + 1;
-	}
+        start = end + 1;
+    }
     FileExplorer_refresh(ew);
 }
 
