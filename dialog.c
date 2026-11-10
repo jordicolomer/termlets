@@ -2,6 +2,7 @@
 #include <string.h>
 #include "window.h"
 #include "dialog.h"
+#include "utils.h"
 
 void Dialog_change_color_hover(Window *w, int x, int y) {
     w->fg = 232;
@@ -30,7 +31,7 @@ Window *create_dialog(char *message, Lambda *lambda) {
     int bg = 250;
 
     // dialog
-    Window *self = malloc(sizeof *self);
+    Window *self = my_malloc(sizeof *self);
     Window_init(self, -1, -1, -1, -1, -1, -1);
     self->height = 5;
     self->width = 40;

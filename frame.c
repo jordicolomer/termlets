@@ -2,6 +2,7 @@
 #include "frame.h"
 #include "logger.h"
 #include "taskbar.h"
+#include "utils.h"
 
 void Frame_close(struct Window *w) {
     // todo: free stuff
@@ -50,7 +51,7 @@ Window *Frame_init(Window *w, int left, int right, int top, int bottom, int widt
     Window_add_window_bar(w);
 
     if (child == NULL) {
-        child = malloc(sizeof *child);
+        child = my_malloc(sizeof *child);
         Window_init(child, 0, 0, 1, 0, -1, -1);
         child->id = "child";
     }

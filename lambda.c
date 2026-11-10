@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "lambda.h"
 #include <stdarg.h>
+#include "utils.h"
 
 #define MAGIC_NUMBER 9281737
 
@@ -9,7 +10,7 @@ Lambda *create_lambda(void *func, int argc, ...) {
     va_list args;
     va_start(args, argc);
 
-    Lambda *l = malloc(sizeof(Lambda) + sizeof(void *) * argc);
+    Lambda *l = my_malloc(sizeof(Lambda) + sizeof(void *) * argc);
     if (!l)
         return NULL;
 

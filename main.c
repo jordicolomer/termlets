@@ -3,6 +3,7 @@
 #include <string.h>
 #include <locale.h>
 #include "ansi_term.h"
+#include "utils.h"
 
 #ifdef _WIN32
 #define NOMINMAX /* Prevent Windows from defining min/max macros */
@@ -42,7 +43,7 @@ void init() {
     Buffer_init(&main_buf, cols, rows);
 #endif
 
-    root = malloc(sizeof *root);
+    root = my_malloc(sizeof *root);
     Window_init(root, 0, -1, 0, -1, cols, rows + 1);
     root->id = "root";
 

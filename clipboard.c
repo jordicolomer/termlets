@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "utils.h"
 
 int clipboard_copy_apple(const char *text) {
     if (text == NULL)
@@ -42,7 +43,7 @@ char *clipboard_paste_apple(void) {
     size_t capacity = 4096;
     size_t length = 0;
 
-    char *buffer = malloc(capacity);
+    char *buffer = my_malloc(capacity);
     if (buffer == NULL) {
         pclose(pipe);
         return NULL;

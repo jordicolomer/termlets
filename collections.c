@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include "collections.h"
 #include "logger.h"
+#include "utils.h"
 
 void ArrayList_init(ArrayList *self, uint32_t elementSize, uint32_t arraySize) {
     self->elementSize = elementSize;
@@ -17,7 +18,7 @@ void ArrayList_init(ArrayList *self, uint32_t elementSize, uint32_t arraySize) {
 }
 
 void _ArrayList_add_node(ArrayList *self) {
-    ArrayListNode *node = malloc(sizeof(ArrayListNode) + self->elementSize * self->arraySize);
+    ArrayListNode *node = my_malloc(sizeof(ArrayListNode) + self->elementSize * self->arraySize);
     node->next = NULL;
 
     node->prev = self->last_node;
@@ -107,8 +108,8 @@ void ArrayList_reset(ArrayList *self) {
 Entry *map;
 
 Entry *hashmap_put(char *key, int key_size) {
-    Entry *e = malloc(sizeof(*e));
-    e->key = malloc(key_size);
+    Entry *e = my_malloc(sizeof(*e));
+    e->key = my_malloc(key_size);
     memcpy(e->key, key, key_size);
     e->key_len = key_size;
 

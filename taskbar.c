@@ -9,6 +9,7 @@
 #include "window_manager.h"
 #include "chess.h"
 #include "common.h"
+#include "utils.h"
 
 int window_x = 5;
 int window_y = 3;
@@ -202,7 +203,7 @@ void quit_mouse_down(struct Window *w, int x, int y) {
 }
 
 Window *TaskBar_new() {
-    taskBar = malloc(sizeof *taskBar);
+    taskBar = my_malloc(sizeof *taskBar);
     Window_init(taskBar, 0, -1, -1, 0, -1, 1);
     taskBar->id = "taskBar";
     Window_append(root, taskBar);
@@ -212,7 +213,7 @@ Window *TaskBar_new() {
     Window *start = Window_add_widget(taskBar, 0, -1, -1, 0, 9, 1, "💻 Start", 0, taskbar_color);
     start->on_mouse_down = start_mouse_down;
 
-    Window *startMenu = malloc(sizeof *startMenu);
+    Window *startMenu = my_malloc(sizeof *startMenu);
     Window_init(startMenu, 0, -1, -1, 1, 18, 5);
     startMenu->hidden = 1;
     Window_append(root, startMenu);

@@ -96,13 +96,13 @@ void Slider_draw(struct Window *current, int hasFocus) {
 }
 
 Window *slider_new(Window *fm) {
-    Window *fm_slider = malloc(sizeof *fm_slider);
+    Window *fm_slider = my_malloc(sizeof *fm_slider);
     Window_init(fm_slider, -1, -1, -1, -1, -1, -1);
     fm_slider->id = "fm_slider";
     fm_slider->window_type = 'sldr';
     Window_append(fm_slider, fm);
 
-    Window *slider = malloc(sizeof *slider);
+    Window *slider = my_malloc(sizeof *slider);
     Window_init(slider, -1, -1, -1, -1, -1, -1);
     slider->left = -1;
     slider->right = 0;
@@ -115,12 +115,12 @@ Window *slider_new(Window *fm) {
     slider->undo_on_hover = Slider_undo_hover;
     slider->draw = Slider_draw;
 
-    Slider_data *slider_data = (Slider_data *)malloc(sizeof(Slider_data));
+    Slider_data *slider_data = (Slider_data *)my_malloc(sizeof(Slider_data));
     memset(slider_data, 0, sizeof(Slider_data)); // Zero-initialize to prevent garbage values
     slider->data = slider_data;
     fm_slider->data = slider_data;
     slider_data->child = fm;
-    Window *slider_grip = malloc(sizeof *slider_grip);
+    Window *slider_grip = my_malloc(sizeof *slider_grip);
     Window_init(slider_grip, -1, -1, -1, -1, -1, -1);
     slider_grip->parent = slider;
     Window_append(slider, slider_grip);

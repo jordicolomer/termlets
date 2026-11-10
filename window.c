@@ -1,11 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include "window.h"
 #include "logger.h"
 #include "buffer.h"
 #include "utils.h"
 #include "lambda.h"
+#include "utils.h"
 
 void Window_set_top(struct Window *wg, int top) { wg->top = top; }
 
@@ -386,7 +388,7 @@ void Widget_draw(struct Window *current, int hasFocus) {
 
 Window *Window_add_widget(Window *w, int left, int right, int top, int bottom, int width,
                           int height, char *c, int fg, int bg) {
-    Window *wg = malloc(sizeof *wg);
+    Window *wg = my_malloc(sizeof *wg);
     Window_init(wg, left, right, top, bottom, width, height);
     wg->draw = Widget_draw;
     wg->parent = w;

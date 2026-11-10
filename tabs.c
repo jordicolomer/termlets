@@ -7,6 +7,7 @@
 #include "common.h"
 #include "taskbar.h"
 #include "config.h"
+#include "utils.h"
 
 // #define SELECTED_COLOR 33
 Tab *selected_tab;
@@ -307,7 +308,7 @@ void tabs_send_sequence(struct Window *wg, const char *seq, int len) {
 }
 
 Window *Tab_new(tab_create_callback callback, int new_tab) {
-    Tabs *mytab = malloc(sizeof *mytab);
+    Tabs *mytab = my_malloc(sizeof *mytab);
     memset(mytab, 0, sizeof *mytab); // Zero-initialize
 
     Window *tabs = (Window *)mytab;
@@ -319,7 +320,7 @@ Window *Tab_new(tab_create_callback callback, int new_tab) {
 
     tabs->id = "tabs";
 
-    Window *tabs_bar = malloc(sizeof *tabs_bar);
+    Window *tabs_bar = my_malloc(sizeof *tabs_bar);
     memset(tabs_bar, 0, sizeof *tabs_bar); // Zero-initialize
     tabs_bar->id = "tabs_bar";
     mytab->tabs_bar = tabs_bar;
@@ -352,7 +353,7 @@ Window *Tab_new(tab_create_callback callback, int new_tab) {
     plus_button->data = mytab;
     mytab->x_offset = 0;
 
-    Window *shiftable_tabs = malloc(sizeof *shiftable_tabs);
+    Window *shiftable_tabs = my_malloc(sizeof *shiftable_tabs);
     shiftable_tabs->fill = 1;
     shiftable_tabs->bg = 253;
     shiftable_tabs->id = "shiftable_tabs";

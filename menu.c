@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "utils.h"
 
 #ifdef _WIN32
 #include <stdarg.h>
@@ -19,7 +20,7 @@ static int asprintf(char **strp, const char *fmt, ...) {
         va_end(args);
         return -1;
     }
-    *strp = malloc(len + 1);
+    *strp = my_malloc(len + 1);
     if (!*strp) {
         va_end(args);
         return -1;
@@ -53,7 +54,7 @@ void Execute_lambda_and_close_parent(struct Window *w, int x, int y) {
 }
 
 Menu *Menu_create_vertical(Window *parent) {
-    Menu *menu = malloc(sizeof *menu);
+    Menu *menu = my_malloc(sizeof *menu);
     Window_init(menu, -1, -1, -1, -1, -1, -1);
     menu->offset = 0;
     menu->submenu = NULL;
@@ -75,7 +76,7 @@ Menu *Menu_create_vertical(Window *parent) {
 }
 
 Menu *Menu_create_horizontal() {
-    Menu *menu = malloc(sizeof *menu);
+    Menu *menu = my_malloc(sizeof *menu);
     menu->offset = 0;
     menu->submenu = NULL;
     menu->vertical = 0;
@@ -206,7 +207,7 @@ void Menu_draw(struct Window *current, int hasFocus) {
 
 Menu *Menu_add_menu(Window *w, int left, int right, int top, int bottom, int width, int height,
                     char *c, int fg, int bg) {
-    Menu *wg = malloc(sizeof *wg);
+    Menu *wg = my_malloc(sizeof *wg);
     // Window *wg = malloc(sizeof *wg);
     Window_init(wg, left, right, top, bottom, width, height);
     wg->win.draw = Menu_draw;

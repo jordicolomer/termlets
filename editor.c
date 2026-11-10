@@ -188,7 +188,7 @@ Node *create_node(const char *text) {
     if (text == NULL) {
         text = "";
     }
-    Node *new_node = malloc(sizeof(Node));
+    Node *new_node = my_malloc(sizeof(Node));
     if (!new_node) {
         perror("malloc failed");
         exit(1);
@@ -547,7 +547,7 @@ void EditorPointer_insert(EditorWindow *self, EditorPointer *cursor, char *cb) {
         if (i == 0) { // first line
             Node_append(current, line);
         } else {
-            Node *new_node = malloc(sizeof(Node));
+            Node *new_node = my_malloc(sizeof(Node));
             new_node->line = strdup(line);
             new_node->length = strlen(line);
             // new_node->width = calculate_width(line);
@@ -798,7 +798,7 @@ char *EditorPointer_copy_region_to_memory(EditorPointer *ep1, EditorPointer *ep2
     int size = EditorPointer_region_size(ep1, ep2);
     if (size == 0)
         return NULL;
-    char *buf = (char *)malloc(size);
+    char *buf = (char *)my_malloc(size);
 
     char *dst = buf;
     Node *node = ep1->node;
@@ -1479,7 +1479,7 @@ void EditorWindow_create_search_send_key(Window *win, char c) {
 // on EditorWindow init
 SearchWindow *EditorWindow_create_search_window(EditorWindow *self) {
     // return NULL;
-    SearchWindow *search_window = malloc(sizeof *search_window);
+    SearchWindow *search_window = my_malloc(sizeof *search_window);
     memset(search_window, 0, sizeof *search_window); // Zero-initialize to prevent garbage values
     Window_init(search_window, -1, -1, -1, -1, -1, -1);
     search_window->win.hidden = 1;
@@ -1527,7 +1527,7 @@ SearchWindow *EditorWindow_create_search_window(EditorWindow *self) {
 
 SearchWindow *EditorWindow_create_replace_window(EditorWindow *self) {
     // return NULL;
-    SearchWindow *search_window = malloc(sizeof *search_window);
+    SearchWindow *search_window = my_malloc(sizeof *search_window);
     memset(search_window, 0, sizeof *search_window); // Zero-initialize to prevent garbage values
     Window_init(search_window, -1, -1, -1, -1, -1, -1);
     search_window->win.hidden = 1;
@@ -2014,7 +2014,7 @@ void EditorWindow_on_mouse_up(Window *win) {
 
 EditorWindow *latestEditorWindow;
 EditorWindow *EditorWindow_new() {
-    EditorWindow *self = malloc(sizeof *self);
+    EditorWindow *self = my_malloc(sizeof *self);
     memset(self, 0, sizeof *self); // Zero-initialize to prevent garbage values
     Window_init(self, -1, -1, -1, -1, -1, -1);
     self->win.top = 0;
@@ -2083,7 +2083,7 @@ void status_bar_draw(Window *w, int hasFocus) {
 }
 
 StatusWindow *status_bar_create() {
-    StatusWindow *status = malloc(sizeof *status);
+    StatusWindow *status = my_malloc(sizeof *status);
     memset(status, 0, sizeof *status); // Zero-initialize to prevent garbage values
     Window_init(status, -1, -1, -1, -1, -1, -1);
     status->win.left = 0;
@@ -2095,7 +2095,7 @@ StatusWindow *status_bar_create() {
 }
 
 Window *EditorWindow_new_tab(Tabs *self) {
-    TabWindow *tab = malloc(sizeof *tab);
+    TabWindow *tab = my_malloc(sizeof *tab);
     memset(tab, 0, sizeof *tab); // Zero-initialize to prevent garbage values
     tab->tab.icon = "📄";
     Window_init(tab, -1, -1, -1, -1, -1, -1);
@@ -2304,7 +2304,7 @@ Window *_Editor_searchbox(EditorFrame *self) {
 }
 
 Window *Editor_new(int left, int right, int top, int bottom, int width, int height) {
-    EditorFrame *editor_frame = malloc(sizeof *editor_frame);
+    EditorFrame *editor_frame = my_malloc(sizeof *editor_frame);
     memset(editor_frame, 0, sizeof *editor_frame); // Zero-initialize
     Window *frame = editor_frame;
     Window *w = Frame_init(frame, left, right, top, bottom, width, height, NULL, 0);

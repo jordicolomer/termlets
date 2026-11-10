@@ -4,9 +4,10 @@
 #include <dirent.h>
 #include "window.h"
 #include "frame.h"
+#include "utils.h"
 
 Window *Chess_new(int window_x, int window_y) {
-    Window *frame = malloc(sizeof *frame);
+    Window *frame = my_malloc(sizeof *frame);
     Window *w = Frame_init(frame, window_x, -1, window_y, -1, 8 * 3, 9, NULL, 0);
 
     int brown_cells = 94;

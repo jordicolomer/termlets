@@ -10,6 +10,7 @@
 #include "logger.h"
 #include "buffer.h"
 #include "clipboard.h"
+#include "utils.h"
 
 void LineEditorWindow_left(LineEditorWindow *self) {
     if (self->cursor > 0) {
@@ -152,7 +153,7 @@ void LineEditorWindow_draw(struct Window *current, int hasFocus) {
 }
 
 LineEditorWindow *LineEditorWindow_new(char *c, char *empty_label) {
-    LineEditorWindow *self = malloc(sizeof *self);
+    LineEditorWindow *self = my_malloc(sizeof *self);
     memset(self, 0, sizeof *self); // Zero-initialize to prevent garbage values
     Window_init(self, -1, -1, -1, -1, -1, -1);
     self->win.draw = LineEditorWindow_draw;

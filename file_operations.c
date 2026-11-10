@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <limits.h>
+#include "utils.h"
 
 int copy_file(const char *src, const char *dst) {
     FILE *in = fopen(src, "rb");
@@ -69,7 +70,7 @@ int remove_recursive(const char *path) {
         }
 
         size_t len = strlen(path) + strlen(entry->d_name) + 2;
-        char *child = malloc(len);
+        char *child = my_malloc(len);
 
         if (!child) {
             result = -1;

@@ -10,6 +10,7 @@
 #include <time.h>
 #include <errno.h>
 #include <limits.h>
+#include "utils.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -25,7 +26,7 @@ static int asprintf(char **strp, const char *fmt, ...) {
         va_end(args);
         return -1;
     }
-    *strp = malloc(len + 1);
+    *strp = my_malloc(len + 1);
     if (!*strp) {
         va_end(args);
         return -1;
@@ -52,7 +53,7 @@ typedef struct {
 } DIR;
 
 static DIR *opendir(const char *name) {
-    DIR *dir = malloc(sizeof(DIR));
+    DIR *dir = my_malloc(sizeof(DIR));
     if (!dir)
         return NULL;
 
@@ -386,7 +387,7 @@ void FileExplorer_list_files(ExplorerWindow *self, char *dire) {
             len = asprintf(&full_path, "%s/%s", dire, entry->d_name);
 
         LOG_INFO("readdir: %s", entry->d_name);
-        FileItemWindow *file_item = malloc(sizeof *file_item);
+        FileItemWindow *file_item = my_malloc(sizeof *file_item);
         memset(file_item, 0, sizeof *file_item);
         file_item->is_dir = 0;
         char *icon = "📄";
@@ -431,8 +432,8 @@ void FileExplorer_list_files(ExplorerWindow *self, char *dire) {
         char *str = NULL;
         // memory leak here
 
-        char *date = malloc(32);
-        char *size = malloc(16);
+        char *date = my_malloc(32);
+        char *size = my_malloc(16);
         // Initialize with empty values in case stat fails
         strcpy(date, "");
         strcpy(size, "");
@@ -924,7 +925,7 @@ void FileExplorer_draw(Window *w, int hasFocus) {
 }
 
 ExplorerWindow *FileExplorer_file_list(Tabs *self) {
-    ExplorerWindow *w = malloc(sizeof *w);
+    ExplorerWindow *w = my_malloc(sizeof *w);
     memset(w, 0, sizeof *w); // Zero-initialize to prevent garbage values
     Window_init(w, -1, -1, -1, -1, -1, -1);
     w->tab.icon = "📁";
@@ -951,13 +952,13 @@ ExplorerWindow *FileExplorer_file_list(Tabs *self) {
 #endif
 
     // Build paths for shortcuts
-    char *home_path = malloc(PATH_MAX);
-    char *downloads_path = malloc(PATH_MAX);
-    char *documents_path = malloc(PATH_MAX);
-    char *pictures_path = malloc(PATH_MAX);
-    char *music_path = malloc(PATH_MAX);
-    char *movies_path = malloc(PATH_MAX);
-    char *dropbox_path = malloc(PATH_MAX);
+    char *home_path = my_malloc(PATH_MAX);
+    char *downloads_path = my_malloc(PATH_MAX);
+    char *documents_path = my_malloc(PATH_MAX);
+    char *pictures_path = my_malloc(PATH_MAX);
+    char *music_path = my_malloc(PATH_MAX);
+    char *movies_path = my_malloc(PATH_MAX);
+    char *dropbox_path = my_malloc(PATH_MAX);
 
     snprintf(home_path, PATH_MAX, "%s", home_dir);
     snprintf(downloads_path, PATH_MAX, "%s/Downloads", home_dir);
@@ -1086,7 +1087,7 @@ ExplorerWindow *FileExplorer_file_list(Tabs *self) {
     size_sort_marker_inv->hidden = 1;
     w->sort_marker[5] = size_sort_marker_inv;
 
-    Window *fm = malloc(sizeof *fm);
+    Window *fm = my_malloc(sizeof *fm);
     w->win.data = fm;
     w->fm = fm;
     Window_init(fm, 0, 0, 0, 0, -1, -1);
@@ -1363,7 +1364,7 @@ Window *FileExplorer_toolbar(ExplorerFrame *self) {
 }
 
 Window *FileExplorer_new(int left, int right, int top, int bottom, int width, int height) {
-    ExplorerFrame *explorer_frame = malloc(sizeof *explorer_frame);
+    ExplorerFrame *explorer_frame = my_malloc(sizeof *explorer_frame);
     memset(explorer_frame, 0, sizeof *explorer_frame); // Zero-initialize to prevent garbage values
     Window *frame = (Window *)explorer_frame;
     Window *w = Frame_init(frame, left, right, top, bottom, width, height, NULL, 0);

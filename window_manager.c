@@ -117,9 +117,9 @@ void wm_searchbox_exit(WM *self) {
 }
 
 Window *WM_create(int left, int right, int top, int bottom, int width, int height) {
-    Window *vm_frame = malloc(sizeof *vm_frame);
+    Window *vm_frame = my_malloc(sizeof *vm_frame);
     memset(vm_frame, 0, sizeof *vm_frame); // Zero-initialize to prevent garbage values
-    WM *child = malloc(sizeof *child);
+    WM *child = my_malloc(sizeof *child);
 
     LineEditorWindow *line_edit = LineEditorWindow_new(NULL, "Search");
     line_edit->win.top = 1;

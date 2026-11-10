@@ -11,6 +11,7 @@
 
 #include "common.h"
 #include "mystr.h"
+#include "utils.h"
 #include "collections.h"
 #include "ansi_term.h"
 
@@ -235,14 +236,14 @@ void Buffer_init(Buffer *buf, int width, int height) {
     buf0 = calloc(1, sizeof(Buffer2));
     buf0->width = width;
     buf0->height = height;
-    buf0->cells = malloc(sizeof(Cell) * width * height);
+    buf0->cells = my_malloc(sizeof(Cell) * width * height);
     buf1 = calloc(1, sizeof(Buffer2));
     buf1->width = width;
     buf1->height = height;
-    buf1->cells = malloc(sizeof(Cell) * width * height);
+    buf1->cells = my_malloc(sizeof(Cell) * width * height);
 
     // all versions
-    out = malloc(OUTBUF_SIZE);
+    out = my_malloc(OUTBUF_SIZE);
 }
 
 void Buffer_clear(Buffer *buf) {

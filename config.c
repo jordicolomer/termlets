@@ -6,6 +6,7 @@
 #include "config.h"
 #include "common.h"
 #include "logger.h"
+#include "utils.h"
 
 Action *mapping_global;
 Action *mapping;
@@ -218,7 +219,7 @@ char *load_config(const char *filename, size_t *size) {
         return NULL;
     }
 
-    char *data = malloc((size_t)file_size + 1);
+    char *data = my_malloc((size_t)file_size + 1);
     if (!data) {
         fclose(file);
         return NULL;
@@ -314,19 +315,19 @@ void load_edit_mode_mappings() {
 #include "vscode.conf.h"
 
 void load_mappings() {
-    mapping_global = malloc(sizeof(Action) * 256);
+    mapping_global = my_malloc(sizeof(Action) * 256);
     memset(mapping_global, 0, sizeof(Action) * 256);
 
-    mapping = malloc(sizeof(Action) * 256);
+    mapping = my_malloc(sizeof(Action) * 256);
     memset(mapping, 0, sizeof(Action) * 256);
 
-    mapping_edit = malloc(sizeof(Action) * 256);
+    mapping_edit = my_malloc(sizeof(Action) * 256);
     memset(mapping_edit, 0, sizeof(Action) * 256);
 
-    mapping_file_manager = malloc(sizeof(Action) * 256);
+    mapping_file_manager = my_malloc(sizeof(Action) * 256);
     memset(mapping_file_manager, 0, sizeof(Action) * 256);
 
-    mapping_tabs = malloc(sizeof(Action) * 256);
+    mapping_tabs = my_malloc(sizeof(Action) * 256);
     memset(mapping_tabs, 0, sizeof(Action) * 256);
 
     if (load_mappings_from_file()) {
