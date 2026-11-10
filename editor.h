@@ -56,8 +56,8 @@ typedef struct EditorWindow { // this is the scrollable part of the editor
 
     struct EditorPointer cursor;
     struct EditorPointer selection;
-    struct EditorPointer highlight_start;
-    struct EditorPointer highlight_end;
+    //struct EditorPointer highlight_start;
+    //struct EditorPointer highlight_end;
 
     int n_lines; // total number of lines
     char *file_path;

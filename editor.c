@@ -1360,12 +1360,12 @@ void EditorWindow_searchbox_exit(EditorWindow *self) {
     self->search_box->win.hidden = 1;
     search_mode = 0;
     self->win.focused = NULL;
-    self->highlight_start.y = -1;
+    //self->highlight_start.y = -1;
 }
 
 // when typing into the search input
 void EditorWindow_searchbox_on_modify(EditorWindow *self) {
-    self->highlight_end.y = -1;
+    //self->highlight_end.y = -1;
     if (self->reverse_search == 1) {
         EditorWindow_search_reverse(self, self->search_window->search_box->buffer, 0);
     } else {
@@ -1377,10 +1377,10 @@ void Editor_searchbox_on_enter(EditorWindow *self) {
     self->search_box->win.hidden = 1;
     search_mode = 0;
     self->win.focused = NULL;
-    if (self->highlight_end.y != -1) {
-        self->cursor = self->highlight_end;
-        self->highlight_start.y = -1;
-    }
+    //if (self->highlight_end.y != -1) {
+        //self->cursor = self->highlight_end;
+        //self->highlight_start.y = -1;
+    //}
     // EditorWindow_show_line(self, self->cursor.y);
     EditorWindow_make_cursor_visible(self);
 }
@@ -1920,7 +1920,7 @@ void EditorWindow_draw(struct Window *w, int hasFocus) {
     // LOG_INFO("draw self->cursor.str_ite.pos_column:%d", self->cursor.str_ite.pos_column);
     // LOG_INFO("draw self->selection.str_ite.pos_column:%d", self->selection.str_ite.pos_column);
     EditorWindow_draw_selection(w, self->cursor, self->selection, 117, x_margin);
-    EditorWindow_draw_selection(w, self->highlight_start, self->highlight_end, 227, x_margin);
+    //EditorWindow_draw_selection(w, self->highlight_start, self->highlight_end, 227, x_margin);
 
     // draw cursor
     int bg = 208;
@@ -2036,8 +2036,8 @@ EditorWindow *EditorWindow_new() {
     self->cursor.x = 0;
     self->selection.y = -1;
     self->selection.x = 0;
-    self->highlight_start.y = -1;
-    self->highlight_end.y = -1;
+    //self->highlight_start.y = -1;
+    //self->highlight_end.y = -1;
     self->language = LANG_NONE;
     self->selecting = 0;
 
