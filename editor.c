@@ -1087,24 +1087,44 @@ void EditorWindow_last_line(EditorWindow *self) {
     self->cursor.y = self->n_lines - 1;
 }
 
+void EditorWindow_save_column(EditorWindow *self){
+    self->target_x = self->cursor.str_ite.cluster_start;
+}
+
+void EditorWindow_restore_column(EditorWindow *self){
+    MyStr_get_grapheme_at_column(&self->cursor.str_ite, self->target_x);
+}
+
 void EditorWindow_action_start_of_line(EditorWindow *self) {
     MyStr_get_grapheme_at_column(&self->cursor.str_ite, 0);
+    EditorWindow_save_column(self);
 }
 
 void EditorWindow_action_end_of_line(EditorWindow *self) {
     MyStr_get_last_grapheme(&self->cursor.str_ite);
+    EditorWindow_save_column(self);
 }
 
-void _EditorWindow_up(EditorWindow *self) { EditorPointer_vertical_move(&self->cursor, 1, 1, 1); }
+void _EditorWindow_up(EditorWindow *self) { 
+    EditorPointer_vertical_move(&self->cursor, 1, 1, 1); 
+    EditorWindow_restore_column(self);
+}
 
 void _EditorWindow_down(EditorWindow *self) {
     int pos_column = self->cursor.str_ite.pos_column;
     EditorPointer_vertical_move(&self->cursor, 0, 1, 1);
+    EditorWindow_restore_column(self);
 }
 
-void _EditorWindow_right(EditorWindow *self) { EditorPointer_right(&self->cursor); }
+void _EditorWindow_right(EditorWindow *self) {
+    EditorPointer_right(&self->cursor);
+    EditorWindow_save_column(self);
+}
 
-void _EditorWindow_left(EditorWindow *self) { EditorPointer_left(&self->cursor); }
+void _EditorWindow_left(EditorWindow *self) { 
+    EditorPointer_left(&self->cursor);
+    EditorWindow_save_column(self);
+}
 
 void EditorWindow_up(EditorWindow *self) {
     _EditorWindow_up(self);
@@ -1146,10 +1166,12 @@ char *next_word_chars = " \t{}()";
 
 void EditorWindow_next_word(EditorWindow *self) {
     EditorPointer_next_char(&self->cursor, next_word_chars);
+    EditorWindow_save_column(self);
 }
 
 void EditorWindow_prev_word(EditorWindow *self) {
     EditorPointer_prev_char(&self->cursor, next_word_chars);
+    EditorWindow_save_column(self);
 }
 
 void EditorWindow_backspace(EditorWindow *self) {
@@ -1158,6 +1180,7 @@ void EditorWindow_backspace(EditorWindow *self) {
     pointer = self->cursor;
     EditorPointer_left(&pointer);
     EditorPointer_undo_delete_region(self, &self->cursor, &pointer);
+    EditorWindow_save_column(self);
 }
 
 void EditorWindow_delete_word(EditorWindow *self) {
@@ -1166,6 +1189,7 @@ void EditorWindow_delete_word(EditorWindow *self) {
     pointer = self->cursor;
     EditorPointer_prev_char(&pointer, next_word_chars);
     EditorPointer_undo_delete_region(self, &self->cursor, &pointer);
+    EditorWindow_save_column(self);
 }
 
 void EditorWindow_delete(EditorWindow *self) {
@@ -1174,6 +1198,7 @@ void EditorWindow_delete(EditorWindow *self) {
     pointer = self->cursor;
     EditorPointer_right(&pointer);
     EditorPointer_undo_delete_region(self, &self->cursor, &pointer);
+    EditorWindow_save_column(self);
 }
 
 void EditorWindow_send_sequence(Window *win, const char *seq, int len) {
