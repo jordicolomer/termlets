@@ -5,6 +5,10 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stddef.h>
+#include <limits.h>
+#include <ctype.h>
+
 #include "editor.h"
 #include "frame.h"
 #include "tabs.h"
@@ -24,7 +28,7 @@
 #include "mystr.h"
 #include "collections.h"
 
-// int restore_insert_mode;
+#define SCRATCH_STR "*scratch*"
 
 void set_modified(EditorWindow *self, int modified) {
     if (modified == self->tab_window->tab.modified)
@@ -145,57 +149,9 @@ void Node_append(Node *node, char *text) {
     node->line[node->length] = '\0';
 }
 
-/*
-void EditorWindow_delete_region(EditorWindow *self) {
-    if (self->selection.y == -1)
-        return;
-    // get range
-    int i1 = self->cursor.y;
-    int j1_width = self->cursor.x; // display width
-    int j1_ptr = self->cursor.ptr; // byte pointer
-    int i2 = self->selection.y;
-    int j2_width = self->selection.x; // display width
-    int j2_ptr = self->selection.ptr; // byte pointer
-
-    if (self->selection.y < self->cursor.y ||
-        (self->selection.y == self->cursor.y && self->selection.x < self->cursor.x)) {
-        i1 = self->selection.y;
-        j1_width = self->selection.x;
-        j1_ptr = self->selection.ptr;
-        i2 = self->cursor.y;
-        j2_width = self->cursor.x;
-        j2_ptr = self->cursor.ptr;
-    }
-
-    Node *node1 = EditorWindow_get_line_number(self, i1);
-    Node *node2 = EditorWindow_get_line_number(self, i2);
-
-    node1->line[j1_ptr] = 0;
-    node1->length = j1_ptr;  // byte length
-    node1->width = j1_width; // display width
-    Node_append(node1, node2->line + j2_ptr);
-
-    node1->next = node2->next;
-    if (node2->next == NULL) {
-        self->tail = node1;
-    } else {
-        node2->next->prev = node1;
-    }
-
-    self->cursor.y = i1;
-    self->cursor.x = j1_width;
-    self->cursor.ptr = j1_ptr;
-
-    self->selection.y = -1;
-    self->n_lines -= i2 - i1;
-    EditorWindow_update_height(self);
-
-    update_lexer_state(node1, 1, self->language);
-    set_modified(self, 1);
-}
-*/
-
 void EditorWindow_save(EditorWindow *self) {
+    if (strcmp(self->file_path, SCRATCH_STR) == 0) return;
+
     FILE *file = fopen(self->file_path, "w");
     if (file == NULL) {
         perror("fopen");
@@ -297,10 +253,6 @@ int file_is_utf8(const char *filename) {
     return 1;
 }
 
-#include <stdio.h>
-#include <stddef.h>
-#include <limits.h>
-#include <ctype.h>
 
 int hex_dump(char *dst, size_t dst_size, const char *src, size_t src_len) {
     const unsigned char *bytes = (const unsigned char *)src;
@@ -473,11 +425,42 @@ void EditorWindow_run_lexer(EditorWindow *self) {
     update_lexer_state(self->head, 0, self->language);
 }
 
+void EditorWindow_open_empty(EditorWindow *self){
+    append(self, "");
+    self->n_lines++;
+
+    EditorWindow_update_height(self);
+
+    self->cursor.ptr = 0;
+
+    // init cursor
+    if (self->head) {
+        MyStr_init(&self->cursor.str_ite, self->head->line);
+        LOG_INFO("self->head->line %s", self->head->line);
+        MyStr_next_cluster(&self->cursor.str_ite);
+    }
+    self->cursor.node = self->head;
+    self->cursor.y = 0;
+
+    ArrayList_init(&self->undo_stack, sizeof(UndoNode), 10);
+
+    // add sentinel
+    ArrayList_append(&self->undo_stack,
+                     (char *)&(UndoNode){.str = 0, .y = 0, .ptr = 0, .is_insert = 0});
+    self->undo_pointer = self->undo_stack.last;
+}
+
 void EditorWindow_open_file(EditorWindow *editor_window, char *file_path) {
     if (editor_window == NULL) {
         return;
     }
-    load_file(editor_window, file_path);
+    if (strcmp(file_path, SCRATCH_STR) != 0){
+        load_file(editor_window, file_path);
+    }
+    else{
+        Tab_set_title(editor_window->tab_window, file_path);
+        EditorWindow_open_empty(editor_window);
+    }
     if (editor_window->slider != NULL) {
         editor_window->slider->id = file_path;
     }
@@ -514,10 +497,6 @@ void EditorWindow_reload(EditorWindow *editor_window) {
 }
 
 void EditorWindow_start_selection(EditorWindow *self) {
-    // self->selection.y = self->cursor.y;
-    // self->selection.x = self->cursor.x;
-    // self->selection.ptr = self->cursor.ptr;
-    // memcpy(&b, &a, sizeof(a));
     self->selection = self->cursor;
 }
 
@@ -993,27 +972,7 @@ void EditorPointer_delete_region_bytes(EditorWindow *self, EditorPointer *ep1, i
 }
 
 void EditorWindow_undo(EditorWindow *self) {
-    /*LOG_INFO("EditorWindow_undo");
-    ArrayListIterator ite = stack->first;
-    while (ArrayListIteratorValid(stack, &ite)){
-          UndoNode * undo_node = ArrayListIteratorElement(stack, &ite);
-          if (undo_node != NULL){
-            LOG_INFO("EditorWindow_undo %s %d %d %d", undo_node->str, undo_node->y, undo_node->ptr,
-    undo_node->is_insert);
-          }
-          ArrayListIteratorNext(stack, &ite);
-    }
-    ite = stack->last;
-    UndoNode * undo_node = ArrayListIteratorElement(stack, &ite);
-    if (undo_node != NULL){
-          LOG_INFO("EditorWindow_undo (last) %s %d %d %d", undo_node->str, undo_node->y,
-    undo_node->ptr, undo_node->is_insert);
-          }*/
     ArrayList *stack = &self->undo_stack;
-    // if (!ArrayListIteratorValid (stack, &self->undo_pointer) && self->undo_pointer.ar != NULL) {
-    //   self->undo_pointer = stack->last;
-    // }
-    // if (ArrayListIteratorValid (stack, &self->undo_pointer)) {
     if (!ArrayListIteratorEquals(&stack->first, &self->undo_pointer)) {
         UndoNode *undo_node = ArrayListIteratorElement(stack, &self->undo_pointer);
         if (undo_node != NULL) {
@@ -1036,25 +995,15 @@ void EditorWindow_undo(EditorWindow *self) {
 void EditorWindow_redo(EditorWindow *self) {
     ArrayList *stack = &self->undo_stack;
 
-    // if before first, init to first
-    // if (self->undo_pointer.ar == NULL){
-    //  self->undo_pointer.ar = stack->first_node;
-    //  self->undo_pointer.idx = 0;
-    //}
-    // if (ArrayListIteratorValid (stack, &self->undo_pointer)) {
     if (!ArrayListIteratorEquals(&stack->last, &self->undo_pointer)) {
         ArrayListIteratorNext(stack, &self->undo_pointer);
         UndoNode *undo_node = ArrayListIteratorElement(stack, &self->undo_pointer);
         int n_bytes = strlen(undo_node->str);
-        // LOG_INFO("EditorWindow_redo %s %d %d %d %d", undo_node->str, n_bytes, undo_node->y,
-        // undo_node->ptr, undo_node->is_insert);
         if (undo_node != NULL) {
             EditorPointer cursor = get_cursor(self, undo_node->y, undo_node->ptr);
             if (undo_node->is_insert == 0) {
                 EditorPointer_insert(self, &cursor, undo_node->str);
             } else {
-                // LOG_INFO("cursor %.*s", cursor.str_ite.width_bytes,
-                // cursor.str_ite.current+cursor.str_ite.pos_bytes);
                 LOG_INFO("cursor %d", cursor.str_ite.width_column);
                 EditorPointer_delete_region_bytes(self, &cursor, n_bytes);
             }
@@ -1589,19 +1538,7 @@ SearchWindow *EditorWindow_create_replace_window(EditorWindow *self) {
     search_window->win.width = 30;
     search_window->win.height = 2;
     search_window->win.id = "";
-    // search_window->head = NULL; // Explicitly initialize linked list pointers
-    // search_window->tail = NULL;
 
-    /*LineEditorWindow * searchbox = EditorWindow_searchbox(self);
-    searchbox->win.hidden = 0;
-searchbox->win.top = 0;
-searchbox->win.bottom = -1;
-searchbox->win.left = 1;
-searchbox->win.right = -1;
-searchbox->win.width = 18;
-searchbox->win.height = 1;
-Window_append(search_window, searchbox);
-    search_window->search_box = searchbox;*/
     LineEditorWindow *line_edit = LineEditorWindow_new(NULL, "Replace");
     line_edit->win.top = 0;
     line_edit->win.bottom = -1;
@@ -2130,17 +2067,6 @@ void status_bar_draw(Window *w, int hasFocus) {
     int n_lines = self->editor->n_lines;
     int pct = (line * 100) / n_lines;
 
-    /*uint32_t cp = 0;
-    Node *node = EditorWindow_get_line_number(self->editor, self->editor->cursor.y);
-    LOG_INFO("status_bar_draw %p", node);
-    if (node != NULL) {
-        int width;
-        char *c = char_at(node->line, self->editor->cursor.x, &width);
-        if (c != NULL) {
-            cp = utf8_decode(&c);
-        }
-                }*/
-
     MyStr *str_ite = &self->editor->cursor.str_ite;
 
     char codepoints_str[256] = "";
@@ -2255,6 +2181,10 @@ int get_show_tabs() { return show_tabs; }
 
 void toggle_show_tabs() { show_tabs = 1 - show_tabs; }
 
+void EditorWindow_scratch(EditorFrame *self){
+    Editor_open_file(self, SCRATCH_STR);
+}
+
 Window *Editor_menu(EditorFrame *self) {
     Window *menu = Menu_create_horizontal();
 
@@ -2264,6 +2194,8 @@ Window *Editor_menu(EditorFrame *self) {
                      create_lambda(Editor_on_selected, 2, self, EditorWindow_reload));
     Menu_add_element(file, " 💾 Save   Ctrl+S",
                      create_lambda(Editor_on_selected, 2, self, EditorWindow_save));
+    Menu_add_element(file, " ✏️ Scratch Pad",
+                     create_lambda(EditorWindow_scratch, 1, self));
     Menu_add_element(file, " ❌ Close", create_lambda(EditorWindow_close, 1, self));
     Menu_add_element(file, "", NULL);
     Menu_add_submenu(menu, " File ", file);
@@ -2295,10 +2227,6 @@ Window *Editor_menu(EditorFrame *self) {
     Menu_add_submenu(menu, " Edit ", edit);
 
     Window *view = Menu_create_vertical(self);
-    // Menu_add_element(view, " ⤶ Word wrap", create_lambda(Editor_menu_new, 1, self));
-
-    // char *show_tabs_label = strdup("   Show Tabs");
-    // Editor_show_tabs(self, show_tabs_label); // init show_tabs_label
     Menu *show_tabs_menu = Menu_add_element(view, "Show Tabs", create_lambda(toggle_show_tabs, 0));
     show_tabs_menu->show_check_lambda = create_lambda(get_show_tabs, 0);
 
@@ -2336,8 +2264,6 @@ Window *Editor_menu(EditorFrame *self) {
     lang_menu->show_check_lambda = create_lambda(Editor_cmp_language, 2, self, LANG_PY);
     Menu_add_element(syntax, "", NULL);
     Menu_add_submenu(menu, " Sytnax ", syntax);
-    // syntax->lambda = create_lambda(Editor_get_current_tab_language, 1, self);
-
     Menu_add_windows(menu, " Window ", self->tabs->win.data, self);
 
     return menu;
