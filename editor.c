@@ -150,7 +150,8 @@ void Node_append(Node *node, char *text) {
 }
 
 void EditorWindow_save(EditorWindow *self) {
-    if (strcmp(self->file_path, SCRATCH_STR) == 0) return;
+    if (strcmp(self->file_path, SCRATCH_STR) == 0)
+        return;
 
     FILE *file = fopen(self->file_path, "w");
     if (file == NULL) {
@@ -252,7 +253,6 @@ int file_is_utf8(const char *filename) {
     fclose(file);
     return 1;
 }
-
 
 int hex_dump(char *dst, size_t dst_size, const char *src, size_t src_len) {
     const unsigned char *bytes = (const unsigned char *)src;
@@ -425,7 +425,7 @@ void EditorWindow_run_lexer(EditorWindow *self) {
     update_lexer_state(self->head, 0, self->language);
 }
 
-void EditorWindow_open_empty(EditorWindow *self){
+void EditorWindow_open_empty(EditorWindow *self) {
     append(self, "");
     self->n_lines++;
 
@@ -454,10 +454,9 @@ void EditorWindow_open_file(EditorWindow *editor_window, char *file_path) {
     if (editor_window == NULL) {
         return;
     }
-    if (strcmp(file_path, SCRATCH_STR) != 0){
+    if (strcmp(file_path, SCRATCH_STR) != 0) {
         load_file(editor_window, file_path);
-    }
-    else{
+    } else {
         Tab_set_title(editor_window->tab_window, file_path);
         EditorWindow_open_empty(editor_window);
     }
@@ -496,9 +495,7 @@ void EditorWindow_reload(EditorWindow *editor_window) {
     EditorWindow_open_file(editor_window, editor_window->file_path);
 }
 
-void EditorWindow_start_selection(EditorWindow *self) {
-    self->selection = self->cursor;
-}
+void EditorWindow_start_selection(EditorWindow *self) { self->selection = self->cursor; }
 
 int all_different(char *str, int size, char *query) {
     char *q = query;
@@ -1239,10 +1236,10 @@ void EditorWindow_send_sequence(Window *win, const char *seq, int len) {
     }
 }
 
-int count_tabs(EditorWindow *self, Node *node) {
+int count_leading(EditorWindow *self, Node *node, char chr) {
     int tabs = 0;
     while (tabs < node->length) {
-        if (node->line[tabs] != '\t')
+        if (node->line[tabs] != chr)
             break;
         tabs++;
     }
@@ -1281,13 +1278,15 @@ void EditorWindow_action_indent(EditorWindow *self) {
     int open_bracket = 0;
     int close_bracket = 0;
     int prev_tabs = 0;
+    int prev_spaces = 0;
     Node *current_node = self->cursor.node;
-    int current_tabs = count_tabs(self, current_node);
+    //int current_tabs = count_leading(self, current_node, '\t');
     close_bracket = current_node->line[strlen(current_node->line) - 1] == '}';
 
     Node *prev_node = get_previous_line(current_node);
     if (prev_node != NULL) {
-        prev_tabs = count_tabs(self, prev_node);
+        prev_tabs = count_leading(self, prev_node, '\t');
+        prev_spaces = count_leading(self, prev_node, ' ');
         open_bracket = prev_node->line[strlen(prev_node->line) - 1] == '{';
     }
 
@@ -1314,10 +1313,17 @@ void EditorWindow_action_indent(EditorWindow *self) {
         return;
 
     EditorWindow_action_start_of_line(self);
+    if (prev_tabs){
     int diff = prev_tabs + open_bracket - close_bracket;
     for (int i = 0; i < diff; i++) {
         EditorWindow_insert(self, '\t');
     }
+    } else {
+    int diff = prev_spaces + (open_bracket - close_bracket)*tab_width;
+    for (int i = 0; i < diff; i++) {
+        EditorWindow_insert(self, ' ');
+    }
+}
 }
 
 // begin search
@@ -2181,9 +2187,7 @@ int get_show_tabs() { return show_tabs; }
 
 void toggle_show_tabs() { show_tabs = 1 - show_tabs; }
 
-void EditorWindow_scratch(EditorFrame *self){
-    Editor_open_file(self, SCRATCH_STR);
-}
+void EditorWindow_scratch(EditorFrame *self) { Editor_open_file(self, SCRATCH_STR); }
 
 Window *Editor_menu(EditorFrame *self) {
     Window *menu = Menu_create_horizontal();
@@ -2194,8 +2198,7 @@ Window *Editor_menu(EditorFrame *self) {
                      create_lambda(Editor_on_selected, 2, self, EditorWindow_reload));
     Menu_add_element(file, " 💾 Save   Ctrl+S",
                      create_lambda(Editor_on_selected, 2, self, EditorWindow_save));
-    Menu_add_element(file, " ✏️ Scratch Pad",
-                     create_lambda(EditorWindow_scratch, 1, self));
+    Menu_add_element(file, " ✏️ Scratch Pad", create_lambda(EditorWindow_scratch, 1, self));
     Menu_add_element(file, " ❌ Close", create_lambda(EditorWindow_close, 1, self));
     Menu_add_element(file, "", NULL);
     Menu_add_submenu(menu, " File ", file);
