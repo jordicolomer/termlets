@@ -831,6 +831,8 @@ void Buffer_print_to_screen(Buffer *buf) {
                 terminal_x = x;
                 terminal_y = y;
             }
+            // fix overlapping wide characters bug
+            if (size > 1 && bg != buf0->cells[idx+1].bg) {size = 0;width=1;}
 
             // encode UTF-8
             if (size > 0) {
