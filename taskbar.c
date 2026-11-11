@@ -83,6 +83,10 @@ void TaskBar_switch_frame(Window *w) {
     focused = w;
 }
 
+void delete_frame(Window *w) {
+    Window_remove((Window *)(w->data));
+}
+
 void update_coords(int x, int y) {
     window_x += 10;
     window_y += 3;

@@ -7,6 +7,7 @@
 void Frame_close(struct Window *w) {
     // todo: free stuff
     Window_remove(w);
+    delete_frame(w);
 }
 
 void on_mouse_down_window_bar(Window *wg, int x, int y) {
@@ -21,7 +22,7 @@ void on_mouse_down_window_bar(Window *wg, int x, int y) {
 }
 
 void on_mouse_down_close(Window *wg, int x, int y) {
-    LOG_INFO("on_mouse_down_close");
+    //LOG_INFO("on_mouse_down_close");
     Frame_close(wg->parent);
     focused = NULL;
 }

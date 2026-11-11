@@ -9,3 +9,4 @@ void vterminal_new(char *cwd);
 void file_manager_new();
 void file_editor_new();
 void TaskBar_switch_frame(Window *w);
+void delete_frame(Window *w);
