@@ -36,6 +36,18 @@ void on_mouse_down_minimize(Window *wg, int x, int y) {
     focused = NULL;
 }
 
+void Frame_maximize(struct Window *w) {
+    w->left = 0;
+    w->height = root->height-2;
+    w->top = 1;
+    w->width = root->width;
+}
+
+void on_mouse_down_maximize(Window *wg, int x, int y) {
+    Frame_maximize(wg->parent);
+    focused = NULL;
+}
+
 void Window_add_window_bar(struct Window *w) {
     Window *wg = Window_add_widget(w, 0, 0, 0, -1, -1, 1, "", 255, WINDOW_BAR_COLOR);
     wg->id = "window bar";
@@ -45,6 +57,7 @@ void Window_add_window_bar(struct Window *w) {
     minimize->on_mouse_down = on_mouse_down_minimize;
 
     Window *maximize = Window_add_widget(w, -1, 3, 0, -1, 1, 1, "□", 255, WINDOW_BAR_COLOR);
+    maximize->on_mouse_down = on_mouse_down_maximize;
 
     Window *close = Window_add_widget(w, -1, 1, 0, -1, 1, 1, "X", 255, WINDOW_BAR_COLOR);
     close->on_mouse_down = on_mouse_down_close;
