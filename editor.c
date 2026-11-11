@@ -1334,8 +1334,8 @@ void EditorWindow_action_indent(EditorWindow *self) {
         self->cursor = start_ptr;
     }
 
-    if (is_empty(current_node))
-        return;
+    //if (is_empty(current_node))
+    //    return;
 
     EditorWindow_action_start_of_line(self);
     if (prev_tabs){
