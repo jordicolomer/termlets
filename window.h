@@ -57,6 +57,8 @@ typedef struct Window {
     int fill;
     Lambda *lambda;
     int window_type;
+    int minimised;
+    int maximised;
 } Window;
 
 void Window_set_top(struct Window *wg, int top);

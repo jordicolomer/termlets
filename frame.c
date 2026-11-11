@@ -26,13 +26,26 @@ void on_mouse_down_close(Window *wg, int x, int y) {
     focused = NULL;
 }
 
+void Frame_minimize(struct Window *w) {
+    w->minimised = 1;
+    Window_bring_to_top(w);
+}
+
+void on_mouse_down_minimize(Window *wg, int x, int y) {
+    Frame_minimize(wg->parent);
+    focused = NULL;
+}
+
 void Window_add_window_bar(struct Window *w) {
     Window *wg = Window_add_widget(w, 0, 0, 0, -1, -1, 1, "", 255, WINDOW_BAR_COLOR);
     wg->id = "window bar";
     wg->on_mouse_down = on_mouse_down_window_bar;
 
     Window *minimize = Window_add_widget(w, -1, 5, 0, -1, 1, 1, "-", 255, WINDOW_BAR_COLOR);
+    minimize->on_mouse_down = on_mouse_down_minimize;
+
     Window *maximize = Window_add_widget(w, -1, 3, 0, -1, 1, 1, "□", 255, WINDOW_BAR_COLOR);
+
     Window *close = Window_add_widget(w, -1, 1, 0, -1, 1, 1, "X", 255, WINDOW_BAR_COLOR);
     close->on_mouse_down = on_mouse_down_close;
 }

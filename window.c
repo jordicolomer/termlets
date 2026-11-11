@@ -106,7 +106,7 @@ void Window_draw(struct Window *w, int hasFocus) {
     if (w->fill == 1)
         Window_fill(w, hasFocus);
     Geometry geo = w->calculated;
-    if (w->hidden == 1) {
+    if (w->hidden == 1 || w->minimised == 1) {
         return;
     }
 
@@ -213,7 +213,7 @@ Window *Window_find_widget(struct Window *this, int x, int y) {
     Geometry geo = this->calculated;
     if (!this)
         return NULL;
-    if (this->hidden == 1) {
+    if (this->hidden == 1 || this->minimised == 1) {
         return NULL;
     }
 
@@ -355,10 +355,10 @@ void Widget_draw(struct Window *current, int hasFocus) {
     }
     cursor = cursor->next;
     while (cursor != NULL) {
-        if (cursor->left < geo.x && geo.x + geo.width < cursor->left + cursor->width &&
+        /*if (cursor->left < geo.x && geo.x + geo.width < cursor->left + cursor->width &&
             cursor->top < geo.y && geo.y + geo.height < cursor->top + cursor->height) {
             return;
-        }
+        }*/
         framesOverCount += 1;
         cursor = cursor->next;
     }

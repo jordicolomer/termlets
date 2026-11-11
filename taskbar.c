@@ -39,6 +39,8 @@ void task_on_mouse_down(struct Window *w, int x, int y) {
     focused = task;
     Window_bring_to_bottom(task);
 
+    task->minimised = 0;
+
     w->bg = selectedTaskColor;
     selectedTask = w;
 }
