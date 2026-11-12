@@ -54,6 +54,19 @@ void Slider_set_top(struct Window *w, int top) {
     child->shift = -w->top * (child->virtual_height - child->calculated.height) / height;
 }
 
+void Slider_set_left(struct Window *w, int left) {
+    w->left = left;
+    ScrollView * scroll = w->parent->parent;
+    Window *child = scroll->child;
+    // how much free room there is for the handle
+    int width = child->calculated.width - scroll->horizontal_bar->slider_grip->width;
+    if (width == 0) {
+        child->shift_x = 0;
+        return;
+    }
+    child->shift_x = -w->left * (child->virtual_width - child->calculated.width) / width;
+}
+
 Window * Slider_grip_new(int is_vertical) {
     ScrollGrip *slider_grip = my_malloc(sizeof *slider_grip);
     slider_grip->is_vertical = is_vertical;
@@ -78,6 +91,7 @@ Window * Slider_grip_new(int is_vertical) {
     slider_grip->win.on_hover = Slider_grip_hover;
     slider_grip->win.undo_on_hover = Slider_grip_undo_hover;
     slider_grip->win.set_top = Slider_set_top;
+    slider_grip->win.set_left = Slider_set_left;
     return slider_grip;
 }
 

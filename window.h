@@ -40,6 +40,7 @@ typedef struct Window {
     void (*on_hover)(struct Window *wg, int x, int y);
     void (*undo_on_hover)(struct Window *wg, int x, int y);
     void (*set_top)(struct Window *wg, int top);
+    void (*set_left)(struct Window *wg, int left);
     void (*send_key)(struct Window *wg, char c);
     void (*send_sequence)(struct Window *wg, const char *seq, int len);
     void (*scroll_wheel_down)(struct Window *wg);

@@ -10,6 +10,7 @@
 #include "utils.h"
 
 void Window_set_top(struct Window *wg, int top) { wg->top = top; }
+void Window_set_left(struct Window *wg, int left) { wg->left = left; }
 
 Window *root = NULL;
 
@@ -184,6 +185,7 @@ Window *Window_init(Window *w, int left, int right, int top, int bottom, int wid
     w->virtual_height = height;
     w->draw = Window_draw;
     w->set_top = Window_set_top;
+    w->set_left = Window_set_left;
     w->on_mouse_down = NULL;
     w->on_command_mouse_down = NULL;
     w->send_key = NULL;

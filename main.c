@@ -76,15 +76,21 @@ void repaint() {
 
 void on_drag(int x, int y) {
     x = x - 1;
-    if (draggingX != NULL) {
-        draggingX->left = min(max(0, x - dragging_offset_x), draggingX->parent->calculated.width - draggingX->width);
-        LOG_INFO("on_drag draggingX: %d", draggingX->left);
-        repaint();
-    } else if (draggingY != NULL) {
-        int parent_height = draggingY->parent->calculated.height;
-        int new_top = min(max(0, y - dragging_offset_y), parent_height - draggingY->height);
-        draggingY->set_top(draggingY, new_top);
-        repaint();
+    if (draggingX != NULL || draggingY != NULL) {
+        if (draggingX != NULL) {
+            int parent_width = draggingX->parent->calculated.width;
+            int new_left = min(max(0, x - dragging_offset_x), parent_width - draggingX->width);
+            //draggingX->left = new_left
+            draggingX->set_left(draggingX, new_left);
+            //LOG_INFO("on_drag draggingX: %d", draggingX->left);
+            repaint();
+        } 
+        if (draggingY != NULL) {
+            int parent_height = draggingY->parent->calculated.height;
+            int new_top = min(max(0, y - dragging_offset_y), parent_height - draggingY->height);
+            draggingY->set_top(draggingY, new_top);
+            repaint();
+        }
     } else if (resizing != NULL) {
         resizing->width = x - dragging_offset_x;
         resizing->height = y - dragging_offset_y;
