@@ -1956,7 +1956,7 @@ void EditorWindow_draw(struct Window *w, int hasFocus) {
                 int width = token.end_screen - token.start_screen;
                 int maxWidth = geo.width - x_margin - token.start;
                 width = min(width, maxWidth);
-                Buffer_set_fg(&main_buf, geo.y + i, geo.x + x_margin + token.start_screen, width,
+                Buffer_set_fg(&main_buf, geo.y + i, geo.x + x_margin +w->shift_x + token.start_screen, width,
                               token.color);
             }
         }
