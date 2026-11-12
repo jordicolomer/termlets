@@ -7,10 +7,8 @@
 #include "buffer.h"
 #include "utils.h"
 
-void Slider_reset(Window *wg) {
-    Window *slider_grip = ((Slider_data *)wg->data)->slider_grip;
-    // slider_grip->top = 0;
-    Slider_set_top(slider_grip, 0);
+void Slider_reset(ScrollView *self) {
+    Slider_set_top(self->slider_grip, 0);
 }
 
 void update_height(Window *slider_grip, Window *fm) {
@@ -28,10 +26,7 @@ void update_height(Window *slider_grip, Window *fm) {
 
 void Slider_hover(Window *w, int x, int y) {
     ScrollView * scroll = w->parent;
-
-    //Window *slider_grip = ((Slider_data *)wg->data)->slider_grip;
     scroll->slider_grip->hidden = 0;
-    //Window *fm = ((Slider_data *)wg->data)->child;
     update_height(scroll->slider_grip, scroll->child);
 }
 
@@ -41,15 +36,8 @@ void Slider_grip_undo_hover(Window *wg, int x, int y) { wg->hidden = 1; }
 
 void Slider_undo_hover(Window *w, int x, int y) {
     ScrollView * scroll = w->parent;
-    //Window *slider_grip = ((Slider_data *)wg->data)->slider_grip;
     scroll->slider_grip->hidden = 1;
 }
-
-/*void Slider_on_mouse_down(Window *wg, int x, int y) {
-    Slider_data *slider_data = (Slider_data *)wg->data;
-    Window *child = slider_data->child;
-    child->shift -= child->calculated.height;
-}*/
 
 void on_mouse_down_slider_grip(Window *wg, int x, int y) {
     draggingX = NULL;
@@ -117,12 +105,7 @@ Window *slider_new(Window *fm) {
     slider->undo_on_hover = Slider_undo_hover;
     slider->draw = Slider_draw;
 
-    //Slider_data *slider_data = (Slider_data *)my_malloc(sizeof(Slider_data));
-    //memset(slider_data, 0, sizeof(Slider_data)); // Zero-initialize to prevent garbage values
-    Slider_data *slider_data = &fm_slider->slider_grip;
-    //slider->data = slider_data;
-    //fm_slider->win.data = slider_data;
-    slider_data->child = fm;
+    fm_slider->child = fm;
     Window *slider_grip = my_malloc(sizeof *slider_grip);
     Window_init(slider_grip, -1, -1, -1, -1, -1, -1);
     slider_grip->parent = slider;
@@ -138,7 +121,7 @@ Window *slider_new(Window *fm) {
     slider_grip->on_hover = Slider_grip_hover;
     slider_grip->undo_on_hover = Slider_grip_undo_hover;
     slider_grip->set_top = Slider_set_top;
-    slider_data->slider_grip = slider_grip;
+    fm_slider->slider_grip = slider_grip;
 
     fm_slider->win.focused = fm;
 
@@ -148,8 +131,6 @@ Window *slider_new(Window *fm) {
 void Slider_make_visible(ScrollView *self, Window *wg) {
     if (self == NULL)
         return;
-    //Slider_data *slider_data = w->data;
-    //Window *child = slider_data->child;
     Window *child = self->child;
 
     int efective_top = wg->top + child->shift;
