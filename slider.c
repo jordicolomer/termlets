@@ -28,10 +28,16 @@ void Slider_grip_hover(Window *wg, int x, int y) { wg->hidden = 0; }
 void Slider_grip_undo_hover(Window *wg, int x, int y) { wg->hidden = 1; }
 
 void on_mouse_down_slider_grip(Window *wg, int x, int y) {
-    draggingX = NULL;
-    draggingY = wg;
-    dragging_offset_x = x - wg->parent->left;
-    dragging_offset_y = y - wg->parent->top - wg->top;
+    LOG_INFO("on_mouse_down_slider_grip");
+    ScrollGrip * self = wg;
+    if (self->is_vertical){
+        draggingY = wg;
+        dragging_offset_y = y - wg->parent->top - wg->top;
+    } else {
+        LOG_INFO("on_mouse_down_slider_grip else");
+        draggingX = wg;
+        dragging_offset_x = x - wg->parent->left - wg->left;
+    }
 }
 
 // update child shift based on grip position
@@ -48,27 +54,30 @@ void Slider_set_top(struct Window *w, int top) {
     child->shift = -w->top * (child->virtual_height - child->calculated.height) / height;
 }
 
-void slider_grip_draw(struct Window *w, int hasFocus) {
-    if (w->hidden == 1)
-        return;
-    Geometry geo = w->calculated;
-    for (int i = 0; i < w->height; i++)
-        Buffer_print(&main_buf, geo.y + i, geo.x, geo.width, "  ", 0, 250);
-}
-
-Window * Slider_grip_new() {
-    Window *slider_grip = my_malloc(sizeof *slider_grip);
+Window * Slider_grip_new(int is_vertical) {
+    ScrollGrip *slider_grip = my_malloc(sizeof *slider_grip);
+    slider_grip->is_vertical = is_vertical;
     Window_init(slider_grip, -1, -1, -1, -1, -1, -1);
-    slider_grip->draw = slider_grip_draw;
-    slider_grip->right = 0;
-    slider_grip->top = 0;
-    slider_grip->width = 2;
-    slider_grip->height = 1;
-    slider_grip->on_mouse_down = on_mouse_down_slider_grip;
-    slider_grip->hidden = 1;
-    slider_grip->on_hover = Slider_grip_hover;
-    slider_grip->undo_on_hover = Slider_grip_undo_hover;
-    slider_grip->set_top = Slider_set_top;
+    slider_grip->win.bg = 250;
+    slider_grip->win.fg = 0;
+    slider_grip->win.fill = 1;
+    slider_grip->win.id = "slider grip";
+    if (is_vertical) {
+        slider_grip->win.right = 0;
+        slider_grip->win.top = 0;
+        slider_grip->win.width = 2;
+        slider_grip->win.height = 1;
+    } else {
+        slider_grip->win.left = 0;
+        slider_grip->win.top = 0;
+        slider_grip->win.width = 4;
+        slider_grip->win.height = 1;
+    }
+    slider_grip->win.on_mouse_down = on_mouse_down_slider_grip;
+    slider_grip->win.hidden = 1;
+    slider_grip->win.on_hover = Slider_grip_hover;
+    slider_grip->win.undo_on_hover = Slider_grip_undo_hover;
+    slider_grip->win.set_top = Slider_set_top;
     return slider_grip;
 }
 
@@ -84,14 +93,17 @@ Window * Slider_grip_new() {
 void Slider_hover(Window *w, int x, int y) {
     ScrollView * scroll = w->parent;
     scroll->vertical_bar->slider_grip->hidden = 0;
+    scroll->horizontal_bar->slider_grip->hidden = 0;
     update_height(scroll->vertical_bar->slider_grip, scroll->child);
 }
 
 void Slider_undo_hover(Window *w, int x, int y) {
     ScrollView * scroll = w->parent;
     scroll->vertical_bar->slider_grip->hidden = 1;
+    scroll->horizontal_bar->slider_grip->hidden = 1;
 }
 
+// update grip position based on shift
 void Slider_update_top(struct Window *w) {
     ScrollView * scroll = w->parent;
     Window *child = scroll->child;
@@ -110,20 +122,26 @@ void Slider_draw(struct Window *current, int hasFocus) {
     Window_draw(current, hasFocus);
 }
 
-ScrollBar * Slider_new() {
+ScrollBar * Slider_new(int is_vertical) {
     ScrollBar *slider = my_malloc(sizeof *slider);
     Window_init(slider, -1, -1, -1, -1, -1, -1);
-    slider->win.left = -1;
-    slider->win.right = 0;
-    slider->win.top = 0;
-    slider->win.bottom = 0;
-    slider->win.width = 2;
+    if (is_vertical) {
+        slider->win.right = 0;
+        slider->win.top = 0;
+        slider->win.bottom = 0;
+        slider->win.width = 2;
+    } else {
+        slider->win.left = 0;
+        slider->win.right = 0;
+        slider->win.bottom = 0;
+        slider->win.height = 1;
+    }
     slider->win.id = "slider";
     slider->win.on_hover = Slider_hover;
     slider->win.undo_on_hover = Slider_undo_hover;
     slider->win.draw = Slider_draw;
 
-    Window *slider_grip = Slider_grip_new();
+    Window *slider_grip = Slider_grip_new(is_vertical);
     Window_append(slider, slider_grip);
     slider->slider_grip = slider_grip;
 
@@ -140,20 +158,22 @@ ScrollBar * Slider_new() {
 /* --- BEGIN: ScrollView --- */
 
 Window *ScrollView_new(Window *fm) {
-    ScrollView *fm_slider = my_malloc(sizeof *fm_slider);
-    Window_init(fm_slider, -1, -1, -1, -1, -1, -1);
-    fm_slider->child = fm;
-    fm_slider->win.id = "fm_slider";
-    fm_slider->win.window_type = 'sldr';
-    Window_append(fm_slider, fm);
+    ScrollView * scroll_view = my_malloc(sizeof *scroll_view);
+    Window_init(scroll_view, -1, -1, -1, -1, -1, -1);
+    scroll_view->child = fm;
+    scroll_view->win.id = "fm_slider";
+    scroll_view->win.window_type = 'sldr';
+    Window_append(scroll_view, fm);
 
-    ScrollBar *slider = Slider_new();
-    fm_slider->vertical_bar = slider;
-    Window_append(fm_slider, slider);
+    scroll_view->vertical_bar = Slider_new(1);
+    Window_append(scroll_view, scroll_view->vertical_bar);
 
-    fm_slider->win.focused = fm;
+    scroll_view->horizontal_bar = Slider_new(0);
+    Window_append(scroll_view, scroll_view->horizontal_bar);
 
-    return fm_slider;
+    scroll_view->win.focused = fm;
+
+    return scroll_view;
 }
 
 void Slider_make_visible(ScrollView *self, Window *wg) {

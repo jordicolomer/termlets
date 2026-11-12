@@ -1,6 +1,11 @@
 #ifndef SLIDER_H
 #define SLIDER_H
 
+typedef struct ScrollGrip {
+    Window win;
+    int is_vertical;
+} ScrollGrip;
+
 typedef struct ScrollBar {
     Window win;
     Window *slider_grip;
@@ -9,7 +14,7 @@ typedef struct ScrollBar {
 typedef struct ScrollView {
     Window win;
     ScrollBar *vertical_bar;
-    //Window *slider_grip;
+    ScrollBar *horizontal_bar;
     Window *child;
 } ScrollView;
 
