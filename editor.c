@@ -43,6 +43,17 @@ void EditorWindow_update_height(EditorWindow *self) {
     Slider_show_grip(self->slider);
 }
 
+void EditorWindow_update_width(EditorWindow *self) {
+    Node * node = self->head;
+    while (node){
+        MyStr mystr;
+        MyStr_init(&mystr, node->line);
+        MyStr_get_last_grapheme(&mystr);
+        self->win.virtual_width = max(self->win.virtual_width, mystr.pos_bytes);
+        node = node->next;
+    }
+}
+
 void EditorWindow_scroll_wheel_down(struct Window *w) {
     EditorWindow *self = w;
     Slider_scroll_down(self->slider);
@@ -419,6 +430,8 @@ void load_file(EditorWindow *self, const char *filename) {
     ArrayList_append(&self->undo_stack,
                      (char *)&(UndoNode){.str = 0, .y = 0, .ptr = 0, .is_insert = 0});
     self->undo_pointer = self->undo_stack.last;
+
+    EditorWindow_update_width(self);
 }
 
 void EditorWindow_run_lexer(EditorWindow *self) {

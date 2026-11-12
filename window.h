@@ -31,6 +31,7 @@ typedef struct Window {
     int width;
     int height;
     int virtual_height;
+    int virtual_width;
     Geometry calculated;
     // void (*draw)(struct Window*, int, int, int);
     void (*draw)(struct Window *, int);
