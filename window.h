@@ -97,4 +97,8 @@ Window *Window_get_frame(struct Window *w);
 void Window_focus(struct Window *w);
 int Window_is_focused(struct Window *w);
 
+void Window_print(struct Window *w, int y, int x, int width, char *s, int fg, int bg);
+void Window_set_fg(struct Window *w, int y, int x, int width, int fg);
+void Window_set_bg(struct Window *w, int y, int x, int width, int bg);
+
 #endif

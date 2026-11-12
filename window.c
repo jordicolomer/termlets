@@ -8,6 +8,7 @@
 #include "utils.h"
 #include "lambda.h"
 #include "utils.h"
+#include "mystr.h"
 
 void Window_set_top(struct Window *wg, int top) { wg->top = top; }
 void Window_set_left(struct Window *wg, int left) { wg->left = left; }
@@ -446,4 +447,37 @@ int Window_is_focused(struct Window *w) {
     if (w == current)
         return 1;
     return 0;
+}
+
+void Window_print(struct Window *w, int y, int x, int width, char *str, int fg, int bg){
+    Geometry geo = w->calculated;
+    int shift_carry;
+    char * shifted_str = shift_str(str,-w->shift_x, &shift_carry);
+    if (shift_carry){
+        Buffer_print(&main_buf, geo.y + y, geo.x + x, shift_carry, "", fg, bg);
+    }
+    Buffer_print(&main_buf, geo.y + y, geo.x + x + shift_carry, width - shift_carry, shifted_str, fg, bg);
+}
+
+void Window_set_fg(struct Window *w, int y, int x, int width, int fg){
+    Geometry geo = w->calculated;
+    int modified_x = x + w->shift_x;
+    if (modified_x >= 0){
+        Buffer_set_fg(&main_buf, geo.y + y, geo.x + modified_x, width, fg);
+    } else {
+	if ((width + modified_x) > 0)
+        Buffer_set_fg(&main_buf, geo.y + y, geo.x, width + modified_x, fg);
+    }
+}
+
+void Window_set_bg(struct Window *w, int y, int x, int width, int bg){
+    Geometry geo = w->calculated;
+    int shifted_x = x + w->shift_x;
+    if (width == -1) width = geo.width - x;
+    if (shifted_x >= 0){
+        Buffer_set_bg(&main_buf, geo.y + y, geo.x + shifted_x, width, bg);
+    } else {
+	if ((width + shifted_x) > 0)
+        Buffer_set_bg(&main_buf, geo.y + y, geo.x, width + shifted_x, bg);
+    }
 }
