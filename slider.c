@@ -9,6 +9,7 @@
 
 /* --- BEGIN: Slider grip --- */
 
+// update grip size based on child size
 void update_height(Window *slider_grip, Window *fm) {
     if (fm->virtual_height == 0) {
         slider_grip->height = 1;
@@ -33,6 +34,7 @@ void on_mouse_down_slider_grip(Window *wg, int x, int y) {
     dragging_offset_y = y - wg->parent->top - wg->top;
 }
 
+// update child shift based on grip position
 void Slider_set_top(struct Window *w, int top) {
     w->top = top;
     ScrollView * scroll = w->parent->parent;
@@ -120,6 +122,11 @@ ScrollBar * Slider_new() {
     slider->win.on_hover = Slider_hover;
     slider->win.undo_on_hover = Slider_undo_hover;
     slider->win.draw = Slider_draw;
+
+    Window *slider_grip = Slider_grip_new();
+    Window_append(slider, slider_grip);
+    slider->slider_grip = slider_grip;
+
     return slider;
 }
 
@@ -144,11 +151,6 @@ Window *ScrollView_new(Window *fm) {
     fm_slider->vertical_bar = slider;
     Window_append(fm_slider, slider);
 
-    Window *slider_grip = Slider_grip_new();
-    Window_append(slider, slider_grip);
-
-    //fm_slider->slider_grip = slider_grip;
-    slider->slider_grip = slider_grip;
     fm_slider->win.focused = fm;
 
     return fm_slider;
