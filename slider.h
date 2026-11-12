@@ -1,9 +1,15 @@
 #ifndef SLIDER_H
 #define SLIDER_H
 
-typedef struct ScrollView {
+typedef struct ScrollBar {
     Window win;
     Window *slider_grip;
+} ScrollBar;
+
+typedef struct ScrollView {
+    Window win;
+    ScrollBar *vertical_bar;
+    //Window *slider_grip;
     Window *child;
 } ScrollView;
 
@@ -16,7 +22,7 @@ void Slider_undo_hover(Window *wg, int x, int y);
 void on_mouse_down_slider_grip(Window *wg, int x, int y);
 void Slider_set_top(struct Window *w, int top);
 void Slider_update_top(struct Window *w);
-Window *slider_new(Window *fm);
+Window *ScrollView_new(Window *fm);
 void Slider_reset(ScrollView *wg);
 void Slider_make_visible(ScrollView *w, Window *wg);
 void Slider_show_grip(ScrollView *self);

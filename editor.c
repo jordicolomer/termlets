@@ -2150,7 +2150,7 @@ Window *EditorWindow_new_tab(Tabs *self) {
 
     EditorWindow *editor = EditorWindow_new();
     editor->tab_window = tab;
-    Window *slider = slider_new(editor);
+    Window *slider = ScrollView_new(editor);
     slider->left = 0;
     slider->right = 0;
     slider->top = 0;
