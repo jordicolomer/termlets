@@ -1956,8 +1956,12 @@ void EditorWindow_draw(struct Window *w, int hasFocus) {
                 int width = token.end_screen - token.start_screen;
                 int maxWidth = geo.width - x_margin - token.start;
                 width = min(width, maxWidth);
-                Buffer_set_fg(&main_buf, geo.y + i, geo.x + x_margin +w->shift_x + token.start_screen, width,
-                              token.color);
+                int x = x_margin + w->shift_x + token.start_screen;
+                if (x >= 0){
+                    Buffer_set_fg(&main_buf, geo.y + i, geo.x + x, width, token.color);
+                } else {
+                    Buffer_set_fg(&main_buf, geo.y + i, geo.x, width - x, token.color);
+                }
             }
         }
 
@@ -1967,7 +1971,7 @@ void EditorWindow_draw(struct Window *w, int hasFocus) {
     }
     // LOG_INFO("draw self->cursor.str_ite.pos_column:%d", self->cursor.str_ite.pos_column);
     // LOG_INFO("draw self->selection.str_ite.pos_column:%d", self->selection.str_ite.pos_column);
-    EditorWindow_draw_selection(w, self->cursor, self->selection, 117, x_margin);
+    EditorWindow_draw_selection(w, self->cursor, self->selection, 117, x_margin + w->shift_x);
     //EditorWindow_draw_selection(w, self->highlight_start, self->highlight_end, 227, x_margin);
 
     // draw cursor
@@ -1977,9 +1981,10 @@ void EditorWindow_draw(struct Window *w, int hasFocus) {
     if (hasFocus == 0)
         bg = 248;
     i = self->cursor.y + self->win.shift;
-    if (0 <= i && i < geo.height)
-        Buffer_set_bg(&main_buf, geo.y + i, geo.x + x_margin + self->cursor.str_ite.pos_column, 1,
-                      bg);
+    if (0 <= i && i < geo.height){
+        int x = x_margin + w->shift_x + self->cursor.str_ite.pos_column;
+        if (x >= 0) Buffer_set_bg(&main_buf, geo.y + i, geo.x + x, 1, bg);
+    }
 }
 
 void EditorWindow_on_mouse_down(Window *win, int x, int y) {
