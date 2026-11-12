@@ -724,10 +724,23 @@ int MyStr_reset(MyStr *mystr) {
     MyStr_get_grapheme_at_index(mystr, pos_cluster);
 }
 
-char * shift_str(char * str, int shift) {
+char * shift_str(char * str, int shift, int * shift_carry) {
+    *shift_carry = 0;
     if (shift == 0) return str;
+    if (*str == 0) return str;
     MyStr mystr;
     MyStr_init(&mystr, str);
-    MyStr_get_grapheme_at_column(&mystr, shift);
-    return str+mystr.cluster_start;
+    //MyStr_get_grapheme_at_column(&mystr, shift);
+    //return str+mystr.cluster_start;
+    
+    char * ret = str;
+    while (shift > mystr.pos_column) {
+        if (!MyStr_next_cluster(&mystr)) {
+            return "";
+        }
+    }
+    *shift_carry = mystr.pos_column - shift;
+    ret = str + mystr.cluster_start;
+    return ret;
+
 }
