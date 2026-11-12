@@ -1931,7 +1931,7 @@ void EditorWindow_draw(struct Window *w, int hasFocus) {
             snprintf(str, sizeof(str), "%d", num);
             Buffer_print(&main_buf, geo.y + i, geo.x, x_margin, str, 16, bg - 5);
         }
-        Buffer_print(&main_buf, geo.y + i, geo.x + x_margin, geo.width - x_margin, str, 16, bg);
+        Buffer_print(&main_buf, geo.y + i, geo.x + x_margin, geo.width - x_margin, shift_str(str,-w->shift_x), 16, bg);
 
         // syntax highlighter
 

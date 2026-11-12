@@ -723,3 +723,11 @@ int MyStr_reset(MyStr *mystr) {
     MyStr_init(mystr, mystr->utf8);
     MyStr_get_grapheme_at_index(mystr, pos_cluster);
 }
+
+char * shift_str(char * str, int shift) {
+    if (shift == 0) return str;
+    MyStr mystr;
+    MyStr_init(&mystr, str);
+    MyStr_get_grapheme_at_column(&mystr, shift);
+    return str+mystr.cluster_start;
+}
