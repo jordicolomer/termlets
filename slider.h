@@ -9,6 +9,7 @@ typedef struct ScrollGrip {
 typedef struct ScrollBar {
     Window win;
     Window *slider_grip;
+    int is_vertical;
 } ScrollBar;
 
 typedef struct ScrollView {

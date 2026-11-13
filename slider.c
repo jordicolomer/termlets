@@ -7,7 +7,7 @@
 #include "buffer.h"
 #include "utils.h"
 
-/* --- BEGIN: Slider grip --- */
+/* --- Class ScrollGrip --- */
 
 // update grip size based on child size
 void update_height(Window *slider_grip, Window *fm) {
@@ -21,6 +21,19 @@ void update_height(Window *slider_grip, Window *fm) {
         slider_grip->hidden = 1;
     slider_grip->height = min(slider_grip->height, fm->calculated.height);
     slider_grip->height = max(slider_grip->height, 1);
+}
+
+void update_width(Window *slider_grip, Window *fm) {
+    if (fm->virtual_height == 0) {
+        slider_grip->width = 1;
+        slider_grip->hidden = 1;
+        return;
+    }
+    slider_grip->width = fm->calculated.width * fm->calculated.width / fm->virtual_width;
+    if (slider_grip->width >= fm->calculated.width)
+        slider_grip->hidden = 1;
+    slider_grip->width = min(slider_grip->width, fm->calculated.width);
+    slider_grip->width = max(slider_grip->width, 1);
 }
 
 void Slider_grip_hover(Window *wg, int x, int y) { wg->hidden = 0; }
@@ -95,20 +108,21 @@ Window * Slider_grip_new(int is_vertical) {
     return slider_grip;
 }
 
-/* --- END: Slider grip --- */
 
 
 
 
 
-
-/* --- BEGIN: Slider --- */
+/* --- Class ScrollBar --- */
 
 void Slider_hover(Window *w, int x, int y) {
+    ScrollBar * scrollBar = w;
     ScrollView * scroll = w->parent;
     scroll->vertical_bar->slider_grip->hidden = 0;
     scroll->horizontal_bar->slider_grip->hidden = 0;
-    update_height(scroll->vertical_bar->slider_grip, scroll->child);
+
+    if (scrollBar->is_vertical) update_height(scroll->vertical_bar->slider_grip, scroll->child);
+    else update_width(scroll->horizontal_bar->slider_grip, scroll->child);
 }
 
 void Slider_undo_hover(Window *w, int x, int y) {
@@ -138,6 +152,7 @@ void Slider_draw(struct Window *current, int hasFocus) {
 
 ScrollBar * Slider_new(int is_vertical) {
     ScrollBar *slider = my_malloc(sizeof *slider);
+    slider->is_vertical = is_vertical;
     Window_init(slider, -1, -1, -1, -1, -1, -1);
     if (is_vertical) {
         slider->win.right = 0;
@@ -163,13 +178,10 @@ ScrollBar * Slider_new(int is_vertical) {
 }
 
 
-/* --- END: Slider --- */
 
 
 
-
-
-/* --- BEGIN: ScrollView --- */
+/* --- Class ScrollView --- */
 
 Window *ScrollView_new(Window *fm) {
     ScrollView * scroll_view = my_malloc(sizeof *scroll_view);
