@@ -663,6 +663,8 @@ void Buffer_set_fg(Buffer *buf, int y, int x, int width, int fg) {
 void Buffer_set_bg(Buffer *buf, int y, int x, int width, int bg) {
     y -= 1;
     for (int i = 0; i < width; i++) {
+        int current = buf0->cells[y * buf->width + x + i].bg;
+        if (current != 208 && current != 27 && current != 248)
         buf0->cells[y * buf->width + x + i].bg = (char)bg;
     }
 }

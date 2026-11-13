@@ -1775,6 +1775,7 @@ void EditorWindow_send_key(Window *win, char c) {
     }
     if (action == ACTION_LAST_LINE) {
         EditorWindow_last_line(self);
+        EditorWindow_action_end_of_line(self);
         // self->cursor.y = 0;
         // EditorWindow_fix_cursor_x(self);
         EditorWindow_make_cursor_visible(self);
