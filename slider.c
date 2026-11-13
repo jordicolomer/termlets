@@ -88,7 +88,7 @@ Window * Slider_grip_new(int is_vertical) {
     Window_init(slider_grip, -1, -1, -1, -1, -1, -1);
     slider_grip->win.bg = 250;
     slider_grip->win.fg = 0;
-    slider_grip->win.fill = 1;
+    slider_grip->win.fill = 2;
     slider_grip->win.id = "slider grip";
     if (is_vertical) {
         slider_grip->win.right = 0;

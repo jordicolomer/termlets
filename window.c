@@ -104,9 +104,19 @@ void Window_fill(struct Window *w, int hasFocus) {
         Buffer_print(&main_buf, geo.y + i, geo.x, geo.width, "", fg, bg);
 }
 
+void Window_fill_transparent(struct Window *w, int hasFocus) {
+    Geometry geo = w->calculated;
+    int bg = w->bg;
+
+    for (int i = 0; i < geo.height; i++)
+        Buffer_set_bg(&main_buf, geo.y + i, geo.x, geo.width, bg);
+}
+
 void Window_draw(struct Window *w, int hasFocus) {
     if (w->fill == 1)
         Window_fill(w, hasFocus);
+    if (w->fill == 2)
+        Window_fill_transparent(w, hasFocus);
     Geometry geo = w->calculated;
     if (w->hidden == 1 || w->minimised == 1) {
         return;
