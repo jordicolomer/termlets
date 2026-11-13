@@ -1857,12 +1857,14 @@ void EditorWindow_draw_selection(struct Window *w, EditorPointer p1, EditorPoint
     int i = 0;
     int top_line = -self->win.shift;
     while (i < geo.height) {
+        Node * node = EditorWindow_get_line_number(self, top_line+i);
+        int line_width = str_width(node->line);
         if (p2.y != -1) {
             if ((p1.y < top_line + i && top_line + i < p2.y) ||
                 (p2.y < top_line + i && top_line + i < p1.y)) {
                 //Buffer_set_bg(&main_buf, geo.y + i, geo.x + x_margin + 0, geo.width - x_margin, color);
                 //Window_set_bg(w, i, x_margin + 0, geo.width - x_margin, color);
-                Window_set_bg(w, i, x_margin + 0, -1, color);
+                Window_set_bg(w, i, x_margin + 0, line_width, color);
             }
             if (p2.y == top_line + i) { // line with selection
                 // generic case (both markers in same line)
@@ -1871,7 +1873,7 @@ void EditorWindow_draw_selection(struct Window *w, EditorPointer p1, EditorPoint
                 // if selection marker above
                 if (p2.y < p1.y) {
                     idx1 = p2.str_ite.pos_column;
-                    idx2 = geo.width - x_margin;
+                    idx2 = line_width - x_margin;
                 }
                 // if selection marker below
                 if (p1.y < p2.y) {
@@ -1894,7 +1896,7 @@ void EditorWindow_draw_selection(struct Window *w, EditorPointer p1, EditorPoint
                 // if cursor below
                 if (p1.y < p2.y) {
                     idx1 = p1.str_ite.pos_column;
-                    idx2 = geo.width - x_margin;
+                    idx2 = line_width - x_margin;
                 }
                 int diff = idx2 - idx1;
                 //Buffer_set_bg(&main_buf, geo.y + i, geo.x + x_margin + idx1, diff, color);

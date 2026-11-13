@@ -742,5 +742,12 @@ char * shift_str(char * str, int shift, int * shift_carry) {
     *shift_carry = mystr.pos_column - shift;
     ret = str + mystr.cluster_start;
     return ret;
-
 }
+
+int str_width(char * str) {
+    MyStr mystr;
+    MyStr_init(&mystr, str);
+    MyStr_get_last_grapheme(&mystr);
+    return mystr.pos_column;
+}
+

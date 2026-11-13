@@ -461,23 +461,24 @@ void Window_print(struct Window *w, int y, int x, int width, char *str, int fg, 
 
 void Window_set_fg(struct Window *w, int y, int x, int width, int fg){
     Geometry geo = w->calculated;
-    int modified_x = x + w->shift_x;
-    if (modified_x >= 0){
-        Buffer_set_fg(&main_buf, geo.y + y, geo.x + modified_x, width, fg);
-    } else {
-	if ((width + modified_x) > 0)
-        Buffer_set_fg(&main_buf, geo.y + y, geo.x, width + modified_x, fg);
+    int shifted_x = x + w->shift_x;
+    int shifted_width = width;
+    if (shifted_x < 0){
+        shifted_width += shifted_x;
+        shifted_x = 0;
     }
+    shifted_width = min(shifted_width, geo.width - shifted_x);
+    Buffer_set_fg(&main_buf, geo.y + y, geo.x + shifted_x, shifted_width, fg);
 }
 
 void Window_set_bg(struct Window *w, int y, int x, int width, int bg){
     Geometry geo = w->calculated;
     int shifted_x = x + w->shift_x;
-    if (width == -1) width = geo.width - x;
-    if (shifted_x >= 0){
-        Buffer_set_bg(&main_buf, geo.y + y, geo.x + shifted_x, width, bg);
-    } else {
-	if ((width + shifted_x) > 0)
-        Buffer_set_bg(&main_buf, geo.y + y, geo.x, width + shifted_x, bg);
+    int shifted_width = width;
+    if (shifted_x < 0){
+        shifted_width += shifted_x;
+        shifted_x = 0;
     }
+    shifted_width = min(shifted_width, geo.width - shifted_x);
+    Buffer_set_bg(&main_buf, geo.y + y, geo.x + shifted_x, shifted_width, bg);
 }
