@@ -28,7 +28,7 @@ void Slider_undo_hover(Window *wg, int x, int y);
 void on_mouse_down_slider_grip(Window *wg, int x, int y);
 void Slider_set_top(struct Window *w, int top);
 void Slider_update_top(struct Window *w);
-Window *ScrollView_new(Window *fm);
+Window *ScrollView_new(Window *fm, int horizontal);
 void Slider_reset(ScrollView *wg);
 void Slider_make_visible(ScrollView *w, Window *wg);
 void Slider_show_grip(ScrollView *self);

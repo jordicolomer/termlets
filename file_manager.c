@@ -1094,7 +1094,7 @@ ExplorerWindow *FileExplorer_file_list(Tabs *self) {
 
     FileExplorer_list_files(w, home_path);
 
-    Window *fm_slider = ScrollView_new(fm);
+    Window *fm_slider = ScrollView_new(fm, 0);
     fm_slider->left = fav_width;
     fm_slider->right = 0;
     fm_slider->top = 2;

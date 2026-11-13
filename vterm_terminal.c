@@ -1274,7 +1274,7 @@ Window *VTermTerminal_callback(Tabs *self) {
     TerminalFrame *frame = Window_get_frame(self->tabs);
 
     TerminalWindow *terminal = VTermTerminal_window(24, 80, frame->cwd);
-    Window *slider = ScrollView_new(terminal);
+    Window *slider = ScrollView_new(terminal, 0);
     terminal->slider = slider;
     slider->id = my_malloc(1024);
     update_tab_label(terminal);

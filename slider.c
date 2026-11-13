@@ -17,10 +17,10 @@ void update_height(Window *slider_grip, Window *fm) {
         return;
     }
     slider_grip->height = fm->calculated.height * fm->calculated.height / fm->virtual_height;
-    if (slider_grip->height >= fm->calculated.height)
-        slider_grip->hidden = 1;
     slider_grip->height = min(slider_grip->height, fm->calculated.height);
     slider_grip->height = max(slider_grip->height, 1);
+    if (slider_grip->height >= fm->calculated.height)
+        slider_grip->height = 0;
 }
 
 void update_width(Window *slider_grip, Window *fm) {
@@ -30,10 +30,12 @@ void update_width(Window *slider_grip, Window *fm) {
         return;
     }
     slider_grip->width = fm->calculated.width * fm->calculated.width / fm->virtual_width;
-    if (slider_grip->width >= fm->calculated.width)
-        slider_grip->hidden = 1;
     slider_grip->width = min(slider_grip->width, fm->calculated.width);
     slider_grip->width = max(slider_grip->width, 1);
+    if (slider_grip->width >= fm->calculated.width)
+        //slider_grip->hidden = 1;
+        slider_grip->width = 0;
+    //LOG_INFO("update_width %d %d %d", slider_grip->width, fm->calculated.width, slider_grip->hidden);
 }
 
 void Slider_grip_hover(Window *wg, int x, int y) { wg->hidden = 0; }
@@ -136,6 +138,7 @@ void Slider_update_top(struct Window *w) {
     ScrollView * scroll = w->parent;
     Window *child = scroll->child;
     update_height(scroll->vertical_bar->slider_grip, child);
+    if (scroll->horizontal_bar) update_width(scroll->horizontal_bar->slider_grip, child);
     int height = child->calculated.height - scroll->vertical_bar->slider_grip->height;
     int denominator = child->virtual_height - child->calculated.height;
     if (denominator == 0) {
@@ -183,7 +186,7 @@ ScrollBar * Slider_new(int is_vertical) {
 
 /* --- Class ScrollView --- */
 
-Window *ScrollView_new(Window *fm) {
+Window *ScrollView_new(Window *fm, int horizontal) {
     ScrollView * scroll_view = my_malloc(sizeof *scroll_view);
     Window_init(scroll_view, -1, -1, -1, -1, -1, -1);
     scroll_view->child = fm;
@@ -194,8 +197,10 @@ Window *ScrollView_new(Window *fm) {
     scroll_view->vertical_bar = Slider_new(1);
     Window_append(scroll_view, scroll_view->vertical_bar);
 
-    scroll_view->horizontal_bar = Slider_new(0);
-    Window_append(scroll_view, scroll_view->horizontal_bar);
+    if (horizontal){
+        scroll_view->horizontal_bar = Slider_new(0);
+        Window_append(scroll_view, scroll_view->horizontal_bar);
+    }
 
     scroll_view->win.focused = fm;
 
