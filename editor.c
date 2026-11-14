@@ -30,13 +30,6 @@
 
 #define SCRATCH_STR "*scratch*"
 
-void set_modified(EditorWindow *self, int modified) {
-    if (modified == self->tab_window->tab.modified)
-        return;
-    self->tab_window->tab.modified = modified;
-    Tab_set_title(self->tab_window, self->file_path);
-}
-
 // Editor Window
 void EditorWindow_update_height(EditorWindow *self) {
     self->win.virtual_height = self->n_lines;
@@ -52,6 +45,14 @@ void EditorWindow_update_width(EditorWindow *self) {
         self->win.virtual_width = max(self->win.virtual_width, mystr.pos_bytes);
         node = node->next;
     }
+}
+
+void set_modified(EditorWindow *self, int modified) {
+    EditorWindow_update_width(self);
+    if (modified == self->tab_window->tab.modified)
+        return;
+    self->tab_window->tab.modified = modified;
+    Tab_set_title(self->tab_window, self->file_path);
 }
 
 void EditorWindow_scroll_wheel_down(struct Window *w) {
