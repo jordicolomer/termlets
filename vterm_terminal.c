@@ -166,6 +166,8 @@ void scrollback_add_line_utf8(ScrollbackLine *line, int cols, const VTermScreenC
     //char *line_buf = my_malloc(cols * 4 + 20);
     line->fg = my_malloc(cols);
     line->bg = my_malloc(cols);
+    int all_default_fg = 1;
+    int all_default_bg = 1;
     char line_buf[cols * 4 + 20];
     int buf_idx = 0;
     for (int col = 0; col < cols; col++) {
@@ -174,8 +176,11 @@ void scrollback_add_line_utf8(ScrollbackLine *line, int cols, const VTermScreenC
 
         char fg = vterm_color_to_256(cell_ptr->fg);
         line->fg[col] = fg;
+        if (fg != -1) all_default_fg = 0;
         char bg = vterm_color_to_256(cell_ptr->bg);
         line->bg[col] = bg;
+        if (bg != 16) all_default_bg = 0;
+//LOG_INFO("scrollback_add_line_utf8: %d %d", fg, bg);
     }
     line_buf[buf_idx] = '\0';
     rtrim_spaces(line_buf);
@@ -183,8 +188,14 @@ void scrollback_add_line_utf8(ScrollbackLine *line, int cols, const VTermScreenC
     line->utf8 = strdup(line_buf);
     //free(line_buf);
 
-    // add colors
-
+    if (all_default_fg) {
+        free(line->fg);
+        line->fg = NULL;
+    }
+    if (all_default_bg) {
+        free(line->bg);
+        line->bg = NULL;
+    }
 }
 
 void scrollback_add_line(ScrollbackList *sb, int cols, const VTermScreenCell *cells) {
