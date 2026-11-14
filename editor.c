@@ -2153,7 +2153,8 @@ StatusWindow *status_bar_create() {
 
 Window *EditorWindow_new_tab(Tabs *self) {
     TabWindow *tab = my_malloc(sizeof *tab);
-    memset(tab, 0, sizeof *tab); // Zero-initialize to prevent garbage values
+    tab->win.id = "TabWindow";
+    //memset(tab, 0, sizeof *tab); // Zero-initialize to prevent garbage values
     tab->tab.icon = "📄";
     Window_init(tab, -1, -1, -1, -1, -1, -1);
     tab->win.left = 0;

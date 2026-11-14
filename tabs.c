@@ -164,6 +164,8 @@ void tabs_remove_tab(Tab *self) {
     remove_from_all_tabs(self);
 
     Window_remove(self->tab_label);
+    Window_remove(self->child);
+    hovering = NULL;
 
     Tabs *tabs = self->parent;
     recalculate_xoffset(tabs);
