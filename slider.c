@@ -119,18 +119,16 @@ Window * Slider_grip_new(int is_vertical) {
 
 void Slider_hover(Window *w, int x, int y) {
     ScrollBar * scrollBar = w;
-    ScrollView * scroll = w->parent;
-    if (scroll->vertical_bar) scroll->vertical_bar->slider_grip->hidden = 0;
-    if (scroll->horizontal_bar) scroll->horizontal_bar->slider_grip->hidden = 0;
+    scrollBar->slider_grip->hidden = 0;
 
+    ScrollView * scroll = w->parent;
     if (scrollBar->is_vertical) update_height(scroll->vertical_bar->slider_grip, scroll->child);
     else update_width(scroll->horizontal_bar->slider_grip, scroll->child);
 }
 
 void Slider_undo_hover(Window *w, int x, int y) {
-    ScrollView * scroll = w->parent;
-    if (scroll->vertical_bar) scroll->vertical_bar->slider_grip->hidden = 1;
-    if (scroll->horizontal_bar) scroll->horizontal_bar->slider_grip->hidden = 1;
+    ScrollBar * scrollBar = w;
+    scrollBar->slider_grip->hidden = 1;
 }
 
 // update grip position based on shift
