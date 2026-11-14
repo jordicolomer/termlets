@@ -163,17 +163,28 @@ void rtrim_spaces(char *str) {
 }
 
 void scrollback_add_line_utf8(ScrollbackLine *line, int cols, const VTermScreenCell *cells) {
-    char *line_buf = my_malloc(cols * 4 + 20);
+    //char *line_buf = my_malloc(cols * 4 + 20);
+    line->fg = my_malloc(cols);
+    line->bg = my_malloc(cols);
+    char line_buf[cols * 4 + 20];
     int buf_idx = 0;
     for (int col = 0; col < cols; col++) {
         VTermScreenCell *cell_ptr = &cells[col];
         buf_idx += encode_utf8(cell_ptr->chars[0], &line_buf[buf_idx]);
+
+        char fg = vterm_color_to_256(cell_ptr->fg);
+        line->fg[col] = fg;
+        char bg = vterm_color_to_256(cell_ptr->bg);
+        line->bg[col] = bg;
     }
     line_buf[buf_idx] = '\0';
     rtrim_spaces(line_buf);
     // LOG_INFO("scrollback_add_line_utf8: %s", line_buf);
     line->utf8 = strdup(line_buf);
-    free(line_buf);
+    //free(line_buf);
+
+    // add colors
+
 }
 
 void scrollback_add_line(ScrollbackList *sb, int cols, const VTermScreenCell *cells) {
@@ -463,9 +474,13 @@ VTermScreenCell VTermTerminal_get_cell(TerminalWindow *terminal, int virtual_lin
 
                 cell.fg.type = VTERM_COLOR_INDEXED;
                 cell.fg.indexed.idx = 15;
+                if (line->fg)
+                    cell.fg.indexed.idx = line->fg[col];
 
                 cell.bg.type = VTERM_COLOR_INDEXED;
                 cell.bg.indexed.idx = 16;
+                if (line->bg)
+                    cell.bg.indexed.idx = line->bg[col];
 
                 return cell;
             }

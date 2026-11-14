@@ -29,6 +29,8 @@ typedef struct {
 
 typedef struct ScrollbackLine {
     char *utf8;
+    char *fg;
+    char *bg;
     int utf8_size;
     //VTermScreenCell *cells;
     int cols;
