@@ -400,7 +400,8 @@ void Tab_set_title(TabWindow *self, char *path) {
     char *icon = self->tab.icon;
     if (self->tab.modified)
         icon = "📝";
-    snprintf(self->tab.str, sizeof(self->tab.str), "%s %s", icon, path);
+   snprintf(self->tab.str, sizeof(self->tab.str), "%s %s", icon, path);
     snprintf(self->tab.short_str, sizeof(self->tab.short_str), "%s %s", icon,
              filename_from_path(path));
+//LOG_INFO("Tab_set_title %s %s %s %s", filename_from_path(path), path, self->tab.short_str, self->tab.str);
 }
