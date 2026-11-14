@@ -1859,6 +1859,7 @@ void EditorWindow_draw_selection(struct Window *w, EditorPointer p1, EditorPoint
     int top_line = -self->win.shift;
     while (i < geo.height) {
         Node * node = EditorWindow_get_line_number(self, top_line+i);
+		if (node){
         int line_width = str_width(node->line);
         if (p2.y != -1) {
             if ((p1.y < top_line + i && top_line + i < p2.y) ||
@@ -1903,6 +1904,7 @@ void EditorWindow_draw_selection(struct Window *w, EditorPointer p1, EditorPoint
                 //Buffer_set_bg(&main_buf, geo.y + i, geo.x + x_margin + idx1, diff, color);
                 Window_set_bg(w, i, x_margin + idx1, diff, color);
             }
+        }
         }
         i++;
     }
