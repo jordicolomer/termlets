@@ -1202,9 +1202,20 @@ void VTermTerminal_on_mouse_up(Window *win) {
     //     self->selection.y = -1;
 }
 
+void VTermTerminal_on_remove(Window * w){
+    TerminalWindow * self = w;
+    ScrollbackLine * current = self->scrollback.head;
+    while (current){
+        ScrollbackLine * next = current->next;
+        free(current);
+        current = next;
+    }
+}
+
 TerminalWindow *VTermTerminal_window(int initial_rows, int initial_cols, char *cwd) {
     TerminalWindow *terminal = my_malloc(sizeof *terminal);
-    memset(terminal, 0, sizeof *terminal); // Zero-initialize to prevent garbage values
+    terminal->win.on_remove = VTermTerminal_on_remove;
+    //memset(terminal, 0, sizeof *terminal); // Zero-initialize to prevent garbage values
     terminal->selection.y = -1;
     terminal->last_line_idx = -1;
     terminal->last_line = NULL;
