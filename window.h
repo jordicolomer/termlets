@@ -46,6 +46,7 @@ typedef struct Window {
     void (*scroll_wheel_down)(struct Window *wg);
     void (*scroll_wheel_up)(struct Window *wg);
     void (*on_mouse_up)(struct Window *wg);
+    void (*on_remove)(struct Window *wg);
     void *data;
     void *data2;
     void *data3;

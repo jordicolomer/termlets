@@ -67,6 +67,8 @@ void Window_remove(Window *w) {
     w->next = NULL;
     w->prev = NULL;
 
+    if (w->on_remove) w->on_remove(w);
+
     // recurse
     Window *current = w->head;
     while (current){
@@ -218,6 +220,7 @@ Window *Window_init(Window *w, int left, int right, int top, int bottom, int wid
     w->c = NULL;
 
     w->on_mouse_up = NULL;
+    w->on_remove = NULL;
     w->focused = NULL;
 
     return w;

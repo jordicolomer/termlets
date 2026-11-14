@@ -2154,6 +2154,16 @@ StatusWindow *status_bar_create() {
     return status;
 }
 
+void EditorWindow_on_remove(Window * w){
+    EditorWindow * self = w;
+    Node * current = self->head;
+    while (current){
+        Node * next = current->next;
+        free(current);
+        current = next;
+    }
+}
+
 Window *EditorWindow_new_tab(Tabs *self) {
     TabWindow *tab = my_malloc(sizeof *tab);
     tab->win.id = "TabWindow";
@@ -2166,6 +2176,7 @@ Window *EditorWindow_new_tab(Tabs *self) {
     tab->win.bottom = 0;
 
     EditorWindow *editor = EditorWindow_new();
+    editor->win.on_remove = EditorWindow_on_remove;
     editor->tab_window = tab;
     Window *slider = ScrollView_new(editor, 1);
     slider->left = 0;
