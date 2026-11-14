@@ -149,10 +149,10 @@ void update_tab_label(TerminalWindow *self) {
 /* Forward declarations */
 int VTermTerminal_get_virtual_height(struct Window *wg);
 
-void scrollback_add_line_cells(ScrollbackLine *line, int cols, const VTermScreenCell *cells) {
+/*void scrollback_add_line_cells(ScrollbackLine *line, int cols, const VTermScreenCell *cells) {
     line->cells = my_malloc(cols * sizeof(VTermScreenCell));
     memcpy(line->cells, cells, cols * sizeof(VTermScreenCell));
-}
+}*/
 
 void rtrim_spaces(char *str) {
     size_t len = strlen(str);
@@ -206,7 +206,7 @@ void scrollback_add_line(ScrollbackList *sb, int cols, const VTermScreenCell *ce
         } else {
             sb->tail = NULL;
         }
-        free(old->cells);
+        //free(old->cells);
         free(old);
         sb->count--;
     }

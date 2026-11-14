@@ -30,7 +30,7 @@ typedef struct {
 typedef struct ScrollbackLine {
     char *utf8;
     int utf8_size;
-    VTermScreenCell *cells;
+    //VTermScreenCell *cells;
     int cols;
     struct ScrollbackLine *prev;
     struct ScrollbackLine *next;
