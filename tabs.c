@@ -49,13 +49,15 @@ void make_visible(Tab *tab) {
 }
 
 void tab_select(Tab *tab) {
-    Window *prev = tab->parent->selected_tab->tab_label;
     tab->parent->tabs->focused = tab->child;
     Window_bring_to_bottom(tab->child);
     tab->parent->selected_tab = tab;
     make_visible(tab);
 
-    change_color_normal(prev, 0, 0);
+    if (tab->parent->selected_tab){
+        Window *prev = tab->parent->selected_tab->tab_label;
+        change_color_normal(prev, 0, 0);
+    }
     change_color_normal(tab->tab_label, 0, 0);
     selected_tab = tab;
 }
@@ -166,6 +168,8 @@ void tabs_remove_tab(Tab *self) {
     Window_remove(self->tab_label);
     Window_remove(self->child);
     hovering = NULL;
+    if (self->parent->selected_tab == self) 
+        self->parent->selected_tab = NULL;
 
     Tabs *tabs = self->parent;
     recalculate_xoffset(tabs);

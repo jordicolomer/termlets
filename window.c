@@ -66,6 +66,14 @@ void Window_remove(Window *w) {
     w->parent = NULL;
     w->next = NULL;
     w->prev = NULL;
+
+    // recurse
+    /*Window *current = w->head;
+    while (current){
+       Window_remove(current);
+       current = current->next;
+    }*/
+    free(w);
 }
 
 int get_bg(struct Window *current, int hasFocus) {
