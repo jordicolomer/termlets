@@ -68,11 +68,11 @@ void Window_remove(Window *w) {
     w->prev = NULL;
 
     // recurse
-    /*Window *current = w->head;
+    Window *current = w->head;
     while (current){
        Window_remove(current);
        current = current->next;
-    }*/
+    }
     free(w);
 }
 
