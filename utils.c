@@ -25,7 +25,7 @@ int ends_with_ignore_case(const char *str, const char *suffix) {
 
 void *my_malloc(size_t size) {
     void *ptr = malloc(size);
-    LOG_INFO("my_malloc %d %d %p", size, malloc_size(ptr), ptr);
+    //LOG_INFO("my_malloc %d %d %p", size, malloc_size(ptr), ptr);
     memset(ptr, 0, size); // Zero-initialize to prevent garbage values
     allocated_memory += malloc_size(ptr);
     return ptr;
@@ -33,7 +33,7 @@ void *my_malloc(size_t size) {
 
 void my_free(void * ptr) {
     size_t size = malloc_size(ptr);
-    LOG_INFO("my_free %d %p", size, ptr);
+    //LOG_INFO("my_free %d %p", size, ptr);
     allocated_memory -= size;
     free(ptr);
 }
