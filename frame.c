@@ -5,9 +5,8 @@
 #include "utils.h"
 
 void Frame_close(struct Window *w) {
-    // todo: free stuff
-    Window_remove(w);
     delete_frame(w);
+    Window_remove(w);
 }
 
 void on_mouse_down_window_bar(Window *wg, int x, int y) {

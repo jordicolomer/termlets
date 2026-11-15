@@ -40,6 +40,7 @@ void Window_append(Window *w, Window *new_w) {
 }
 
 void Window_remove(Window *w) {
+    LOG_INFO("Window_remove: %s", w->id);
     if (w == NULL || w->parent == NULL) {
         return;
     }
@@ -72,8 +73,9 @@ void Window_remove(Window *w) {
     // recurse
     Window *current = w->head;
     while (current){
-       Window_remove(current);
-       current = current->next;
+        Window *next = current->next;
+        Window_remove(current);
+        current = next;
     }
     my_free(w);
 }
