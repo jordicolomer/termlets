@@ -1232,10 +1232,8 @@ void VTermTerminal_on_mouse_up(Window *win) {
     //     self->selection.y = -1;
 }
 
-void VTermTerminal_on_remove(Window * w){
-LOG_INFO("VTermTerminal_on_remove: %p", w);
-    TerminalWindow * self = w;
-    ScrollbackLine * current = self->scrollback.head;
+void ScrollbackList_free(ScrollbackList * self){
+    ScrollbackLine * current = self->head;
     while (current){
         ScrollbackLine * next = current->next;
         if (current->utf8) my_free(current->utf8);
@@ -1244,6 +1242,24 @@ LOG_INFO("VTermTerminal_on_remove: %p", w);
         my_free(current);
         current = next;
     }
+    self->head = NULL;
+    self->tail = NULL;
+    self->count = 0;
+}
+
+void VTermTerminal_on_remove(Window * w){
+//LOG_INFO("VTermTerminal_on_remove: %p", w);
+    TerminalWindow * self = w;
+    ScrollbackList_free(&self->scrollback);
+    /*ScrollbackLine * current = self->scrollback.head;
+    while (current){
+        ScrollbackLine * next = current->next;
+        if (current->utf8) my_free(current->utf8);
+        if (current->fg) my_free(current->fg);
+        if (current->bg) my_free(current->bg);
+        my_free(current);
+        current = next;
+    }*/
 }
 
 TerminalWindow *VTermTerminal_window(int initial_rows, int initial_cols, char *cwd) {
@@ -1342,13 +1358,14 @@ void VTermTerminal_close(TerminalFrame *self) {
 }
 
 void VTermTerminal_clear(TerminalWindow *terminal) {
-    terminal->scrollback.head = NULL;
+    /*terminal->scrollback.head = NULL;
     terminal->scrollback.tail = NULL;
     terminal->scrollback.count = 0;
     terminal->last_line = NULL;
     terminal->last_line_idx = -1;
     // todo free mem
-    TerminalWindow_first_line(terminal);
+    TerminalWindow_first_line(terminal);*/
+    ScrollbackList_free(&terminal->scrollback);
 }
 
 void VTermTerminal_on_selected(TerminalFrame *self, void fn()) { fn(self->tabs->focused->head); }
