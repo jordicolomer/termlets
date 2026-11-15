@@ -32,6 +32,36 @@
 #include "common.h"
 
 // TERMINAL
+#include <malloc/malloc.h>
+
+void Window_root_draw(struct Window *w, int hasFocus) {
+    malloc_statistics_t stats;
+    malloc_zone_statistics(NULL, &stats);   // NULL = sum of all zones    
+
+    char str_human[250];
+    char str_buffer[250];
+
+    human_size(allocated_memory, str_human, sizeof(str_human));
+    snprintf(str_buffer, sizeof(str_buffer), "Allocated: %s", str_human);
+    Window_print(w, 1, 0, strlen(str_buffer), str_buffer, 15, 0);
+
+    snprintf(str_buffer, sizeof(str_buffer), "blocks in use : %u", stats.blocks_in_use);
+    Window_print(w, 2, 0, strlen(str_buffer), str_buffer, 15, 0);
+
+    human_size(stats.size_in_use, str_human, sizeof(str_human));
+    snprintf(str_buffer, sizeof(str_buffer), "size in use   : %s", str_human);
+    Window_print(w, 3, 0, strlen(str_buffer), str_buffer, 15, 0);
+
+    human_size(stats.max_size_in_use, str_human, sizeof(str_human));
+    snprintf(str_buffer, sizeof(str_buffer), "max size in use: %s", str_human);
+    Window_print(w, 4, 0, strlen(str_buffer), str_buffer, 15, 0);
+
+    human_size(stats.size_allocated, str_human, sizeof(str_human));
+    snprintf(str_buffer, sizeof(str_buffer), "size allocated: %s", str_human);
+    Window_print(w, 5, 0, strlen(str_buffer), str_buffer, 15, 0);
+
+    Window_draw(w, hasFocus);
+}
 
 void init() {
     load_mappings();
@@ -46,6 +76,7 @@ void init() {
     root = my_malloc(sizeof *root);
     Window_init(root, 0, -1, 0, -1, cols, rows + 1);
     root->id = "root";
+    root->draw = Window_root_draw;
 
     TaskBar_new();
 }

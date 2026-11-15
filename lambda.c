@@ -84,5 +84,5 @@ void free_lambda(Lambda *l) {
     if (!l)
         return;
 
-    free(l);
+    my_free(l);
 }

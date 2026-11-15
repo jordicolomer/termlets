@@ -75,7 +75,7 @@ void Window_remove(Window *w) {
        Window_remove(current);
        current = current->next;
     }
-    free(w);
+    my_free(w);
 }
 
 int get_bg(struct Window *current, int hasFocus) {

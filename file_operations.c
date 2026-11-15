@@ -83,7 +83,7 @@ int remove_recursive(const char *path) {
             result = -1;
         }
 
-        free(child);
+        my_free(child);
 
         if (result != 0) {
             break;

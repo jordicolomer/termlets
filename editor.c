@@ -586,7 +586,7 @@ void EditorPointer_insert(EditorWindow *self, EditorPointer *cursor, char *cb) {
     size_t pos_before_tail = current->length;
 
     Node_append(current, tail);
-    free(tail);
+    my_free(tail);
 
     // Update cursor position and iterator
     cursor->node = current;
@@ -1035,7 +1035,7 @@ void EditorWindow_paste(EditorWindow *self) {
     // Check if clipboard is empty
     if (cb == NULL || *cb == '\0') {
         if (cb)
-            free(cb);
+            my_free(cb);
         return;
     }
     set_modified(self, 1);
@@ -1043,7 +1043,7 @@ void EditorWindow_paste(EditorWindow *self) {
     EditorWindow_update_height(self);
     EditorWindow_make_cursor_visible(self);
 
-    free(cb);
+    my_free(cb);
 }
 
 void EditorWindow_insert(EditorWindow *self, char c) {
@@ -1063,7 +1063,7 @@ void _EditorWindow_copy(EditorWindow *self) {
     char *buffer = EditorPointer_copy_region_to_memory(&self->cursor, &self->selection);
     if (buffer != NULL) {
         clipboard_copy(buffer);
-        free(buffer);
+        my_free(buffer);
     }
 }
 
@@ -2159,7 +2159,7 @@ void EditorWindow_on_remove(Window * w){
     Node * current = self->head;
     while (current){
         Node * next = current->next;
-        free(current);
+        my_free(current);
         current = next;
     }
 }

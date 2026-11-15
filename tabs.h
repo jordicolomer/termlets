@@ -18,7 +18,7 @@ typedef struct Tab {
     Window *child;
     char *icon;
     char str[1024];
-    char short_str[50];
+    char short_str[30];
     int modified;
     Tab *next;
     Tab *prev;

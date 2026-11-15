@@ -20,11 +20,22 @@ int ends_with_ignore_case(const char *str, const char *suffix) {
     return strcasecmp(str + str_len - suffix_len, suffix) == 0;
 }
 
+#include "common.h"
+#include <malloc/malloc.h>
+
 void *my_malloc(size_t size) {
-    LOG_INFO("my_malloc %d", size);
     void *ptr = malloc(size);
+    LOG_INFO("my_malloc %d %d %p", size, malloc_size(ptr), ptr);
     memset(ptr, 0, size); // Zero-initialize to prevent garbage values
+    allocated_memory += malloc_size(ptr);
     return ptr;
+}
+
+void my_free(void * ptr) {
+    size_t size = malloc_size(ptr);
+    LOG_INFO("my_free %d %p", size, ptr);
+    allocated_memory -= size;
+    free(ptr);
 }
 
 /* Helper function to encode a unicode codepoint to UTF-8 */
@@ -128,4 +139,20 @@ char *strrstr(const char *str, const char *start, const char *sub) {
     }
 
     return NULL;
+}
+
+void human_size(off_t size, char *buf, size_t buflen) {
+    const char *units[] = {"Bytes", "KB", "MB", "GB", "TB"};
+    int unit = 0;
+    double s = (double)size;
+
+    while (s >= 1024 && unit < 4) {
+        s /= 1024;
+        unit++;
+    }
+
+    if (unit == 0)
+        snprintf(buf, buflen, "%.0f %s", s, units[unit]);
+    else
+        snprintf(buf, buflen, "%.1f %s", s, units[unit]);
 }

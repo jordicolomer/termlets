@@ -229,7 +229,7 @@ char *load_config(const char *filename, size_t *size) {
     fclose(file);
 
     if (bytes_read != (size_t)file_size) {
-        free(data);
+        my_free(data);
         return NULL;
     }
 
@@ -257,7 +257,7 @@ int load_mappings_from_file(void) {
     if (buf == NULL)
         return 1;
     load_mappings_from_buffer(buf, size);
-    free(buf);
+    my_free(buf);
     return 0;
 }
 void load_default_mappings() {

@@ -189,11 +189,11 @@ void scrollback_add_line_utf8(ScrollbackLine *line, int cols, const VTermScreenC
     //free(line_buf);
 
     if (all_default_fg) {
-        free(line->fg);
+        my_free(line->fg);
         line->fg = NULL;
     }
     if (all_default_bg) {
-        free(line->bg);
+        my_free(line->bg);
         line->bg = NULL;
     }
 }
@@ -229,7 +229,10 @@ void scrollback_add_line(ScrollbackList *sb, int cols, const VTermScreenCell *ce
             sb->tail = NULL;
         }
         //free(old->cells);
-        free(old);
+        if (old->utf8) my_free(old->utf8);
+        if (old->fg) my_free(old->fg);
+        if (old->bg) my_free(old->bg);
+        my_free(old);
         sb->count--;
     }
 }
@@ -561,7 +564,7 @@ void VTermTerminal_copy(TerminalWindow *terminal) {
     line_buf[buf_idx] = '\0';
     // LOG_INFO("VTermTerminal_copy: %s", line_buf);
     clipboard_copy(line_buf);
-    free(line_buf);
+    my_free(line_buf);
     terminal->selection.y = -1;
 }
 
@@ -1066,7 +1069,7 @@ void vterm_send_key(struct Window *wg, char c) {
                 write(terminal->master, "\x05", 1);
             } else {
                 char *line = VTermTerminal_get_line(terminal, terminal->cursor.y);
-                terminal->cursor.x = strlen(line);
+                terminal->cursor.x = strlen(line) - 1;
             }
             return;
         }
@@ -1229,24 +1232,27 @@ void VTermTerminal_on_mouse_up(Window *win) {
 }
 
 void VTermTerminal_on_remove(Window * w){
+LOG_INFO("VTermTerminal_on_remove: %p", w);
     TerminalWindow * self = w;
     ScrollbackLine * current = self->scrollback.head;
     while (current){
         ScrollbackLine * next = current->next;
-        free(current);
+        if (current->fg) my_free(current->fg);
+        if (current->bg) my_free(current->bg);
+        my_free(current);
         current = next;
     }
 }
 
 TerminalWindow *VTermTerminal_window(int initial_rows, int initial_cols, char *cwd) {
     TerminalWindow *terminal = my_malloc(sizeof *terminal);
-    terminal->win.on_remove = VTermTerminal_on_remove;
     //memset(terminal, 0, sizeof *terminal); // Zero-initialize to prevent garbage values
     terminal->selection.y = -1;
     terminal->last_line_idx = -1;
     terminal->last_line = NULL;
     terminal->cursor.y = -1; // no cursor
     Window_init(terminal, 0, 0, 0, 0, -1, -1);
+    terminal->win.on_remove = VTermTerminal_on_remove;
     terminal->win.id = "vterm terminal window";
     terminal->win.send_key = vterm_send_key;
     terminal->win.send_sequence = vterm_send_sequence;
@@ -1267,6 +1273,7 @@ TerminalWindow *VTermTerminal_window(int initial_rows, int initial_cols, char *c
     terminal->scrollback.tail = NULL;
     terminal->scrollback.count = 0;
     terminal->scrollback.max_size = 1000000;
+    //terminal->scrollback.max_size = 100;
 
     terminal->vt = vterm_new(terminal->rows, terminal->cols);
     terminal->vts = vterm_obtain_screen(terminal->vt);

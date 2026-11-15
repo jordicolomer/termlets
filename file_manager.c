@@ -62,7 +62,7 @@ static DIR *opendir(const char *name) {
 
     dir->handle = FindFirstFileA(search_path, &dir->find_data);
     if (dir->handle == INVALID_HANDLE_VALUE) {
-        free(dir);
+        my_free(dir);
         return NULL;
     }
     dir->first = 1;
@@ -90,7 +90,7 @@ static int closedir(DIR *dir) {
     if (!dir)
         return -1;
     FindClose(dir->handle);
-    free(dir);
+    my_free(dir);
     return 0;
 }
 #else
@@ -287,21 +287,6 @@ void remove_newlines(char *str) {
     return copy;
         }*/
 
-void human_size(off_t size, char *buf, size_t buflen) {
-    const char *units[] = {"Bytes", "KB", "MB", "GB", "TB"};
-    int unit = 0;
-    double s = (double)size;
-
-    while (s >= 1024 && unit < 4) {
-        s /= 1024;
-        unit++;
-    }
-
-    if (unit == 0)
-        snprintf(buf, buflen, "%.0f %s", s, units[unit]);
-    else
-        snprintf(buf, buflen, "%.1f %s", s, units[unit]);
-}
 
 // sort
 #include "sort.h"
@@ -569,7 +554,7 @@ void FileExplorer_up_one_level(ExplorerWindow *self) {
         fi = fi->win.next;
     }*/
 
-    free(s);
+    my_free(s);
 }
 
 void find_free_filename(char *cwd, char *path, char *name_pre, char *name_post) {
@@ -691,9 +676,9 @@ Window *ExplorerWindow_rename_complete(ExplorerWindow *self, LineEditorWindow *l
     char *parent = strdup(origin);
     get_parent(parent);
     asprintf(&target, "%s/%s", parent, line_edit->buffer);
-    free(parent);
+    my_free(parent);
     rename(origin, target);
-    free(target);
+    my_free(target);
 
     Window_remove(line_edit);
     self->win.focused = NULL;
@@ -985,7 +970,7 @@ ExplorerWindow *FileExplorer_file_list(Tabs *self) {
         shortcut = Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, " 📥 Downloads", 232, 254);
         FileExplorer_shortcut_set_target(w, shortcut, downloads_path);
     } else {
-        free(downloads_path);
+        my_free(downloads_path);
     }
 
     // Documents
@@ -993,7 +978,7 @@ ExplorerWindow *FileExplorer_file_list(Tabs *self) {
         shortcut = Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, " 📄 Documents", 232, 254);
         FileExplorer_shortcut_set_target(w, shortcut, documents_path);
     } else {
-        free(documents_path);
+        my_free(documents_path);
     }
 
     // Pictures
@@ -1001,7 +986,7 @@ ExplorerWindow *FileExplorer_file_list(Tabs *self) {
         shortcut = Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, " 📷 Pictures", 232, 254);
         FileExplorer_shortcut_set_target(w, shortcut, pictures_path);
     } else {
-        free(pictures_path);
+        my_free(pictures_path);
     }
 
     // Music
@@ -1009,7 +994,7 @@ ExplorerWindow *FileExplorer_file_list(Tabs *self) {
         shortcut = Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, " 🎵 Music", 232, 254);
         FileExplorer_shortcut_set_target(w, shortcut, music_path);
     } else {
-        free(music_path);
+        my_free(music_path);
     }
 
     // Movies
@@ -1017,7 +1002,7 @@ ExplorerWindow *FileExplorer_file_list(Tabs *self) {
         shortcut = Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, " 🎬 Movies", 232, 254);
         FileExplorer_shortcut_set_target(w, shortcut, movies_path);
     } else {
-        free(movies_path);
+        my_free(movies_path);
     }
 
     // Dropbox
@@ -1025,7 +1010,7 @@ ExplorerWindow *FileExplorer_file_list(Tabs *self) {
         shortcut = Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, " 📦 Dropbox", 232, 254);
         FileExplorer_shortcut_set_target(w, shortcut, dropbox_path);
     } else {
-        free(dropbox_path);
+        my_free(dropbox_path);
     }
 
     Window_add_widget(w, 0, -1, j++, -1, fav_width, 1, "", 232, 254);
@@ -1155,7 +1140,7 @@ void string_set(char **target, const char *origin) {
     if (*target == origin)
         return;
 
-    free(*target); // free(NULL) is safe
+    my_free(*target); // free(NULL) is safe
     *target = strdup(origin);
 }
 

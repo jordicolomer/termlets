@@ -60,7 +60,7 @@ char *clipboard_paste_apple(void) {
 
                 char *new_buffer = realloc(buffer, capacity);
                 if (new_buffer == NULL) {
-                    free(buffer);
+                    my_free(buffer);
                     pclose(pipe);
                     return NULL;
                 }
@@ -81,7 +81,7 @@ char *clipboard_paste_apple(void) {
     int status = pclose(pipe);
 
     if (status != 0) {
-        free(buffer);
+        my_free(buffer);
         return NULL;
     }
 
