@@ -116,7 +116,7 @@ char *get_shell_cwd(pid_t pid) {
 
     // pvi_cdir is the current working directory
     if (vpi.pvi_cdir.vip_path[0] != '\0') {
-        return strdup(vpi.pvi_cdir.vip_path);
+        return my_strdup(vpi.pvi_cdir.vip_path);
     }
 
     return NULL;
@@ -135,7 +135,7 @@ char *get_shell_cwd(pid_t pid) {
 
     cwd[len] = '\0';
 
-    return strdup(cwd);
+    return my_strdup(cwd);
 }
 #endif
 
@@ -185,7 +185,7 @@ void scrollback_add_line_utf8(ScrollbackLine *line, int cols, const VTermScreenC
     line_buf[buf_idx] = '\0';
     rtrim_spaces(line_buf);
     // LOG_INFO("scrollback_add_line_utf8: %s", line_buf);
-    line->utf8 = strdup(line_buf);
+    line->utf8 = my_strdup(line_buf);
     //free(line_buf);
 
     if (all_default_fg) {
@@ -652,7 +652,7 @@ void VTermTerminal_draw(struct Window *wg, int hasFocus) {
             line_buf[buf_idx] = '\0';
             int batch_width = col - batch_start;
 
-            Buffer_print(&main_buf, y, geo.x + batch_start, batch_width, strdup(line_buf), fg, bg);
+            Buffer_print(&main_buf, y, geo.x + batch_start, batch_width, my_strdup(line_buf), fg, bg);
         }
     }
 

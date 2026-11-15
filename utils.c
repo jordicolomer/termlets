@@ -38,6 +38,24 @@ void my_free(void * ptr) {
     free(ptr);
 }
 
+#include <string.h>   // strlen, memcpy
+#include <stdlib.h>   // for size_t, NULL
+
+char *my_strdup(const char *s) {
+    if (s == NULL) {
+        return NULL;
+    }
+
+    size_t len = strlen(s) + 1;          // +1 for the terminating '\0'
+    char *dup = my_malloc(len);          // uses your tracked allocator
+
+    if (dup != NULL) {
+        memcpy(dup, s, len);             // or strcpy(dup, s);
+    }
+
+    return dup;
+}
+
 /* Helper function to encode a unicode codepoint to UTF-8 */
 int encode_utf8(uint32_t c, char *buf) {
     if (c == 0) {

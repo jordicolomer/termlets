@@ -328,7 +328,7 @@ void FileExplorer_list_files(ExplorerWindow *self, char *dire) {
     if (self->path != dire) {
         // if (self->path != NULL) free(self->path);
         // self->path = make_string(dire);
-        self->path = strdup(dire);
+        self->path = my_strdup(dire);
     }
 
     LOG_INFO("FileExplorer_list_files: %p %s filename:%s", self, dire, self->win.id);
@@ -425,7 +425,7 @@ void FileExplorer_list_files(ExplorerWindow *self, char *dire) {
         struct stat st;
         file_item->path = full_path;
         // file_item->name = make_string(entry->d_name);
-        file_item->name = strdup(entry->d_name);
+        file_item->name = my_strdup(entry->d_name);
         if (stat(full_path, &st) == 0) {
             struct tm *tm = localtime(&st.st_mtime);
             strftime(date, 32, "%Y-%m-%d %H:%M:%S", tm);
@@ -540,7 +540,7 @@ void FileExplorer_select_file(ExplorerWindow *self, char *filename) {
 
 void FileExplorer_up_one_level(ExplorerWindow *self) {
     // char *s = make_string(self->path);
-    char *s = strdup(self->path);
+    char *s = my_strdup(self->path);
     char *filename = get_filename(s);
     get_parent(s);
     FileExplorer_list_files(self, s);
@@ -673,7 +673,7 @@ Window *ExplorerWindow_rename_complete(ExplorerWindow *self, LineEditorWindow *l
                                        char *origin) {
     char *target = NULL;
 
-    char *parent = strdup(origin);
+    char *parent = my_strdup(origin);
     get_parent(parent);
     asprintf(&target, "%s/%s", parent, line_edit->buffer);
     my_free(parent);
@@ -1141,7 +1141,7 @@ void string_set(char **target, const char *origin) {
         return;
 
     my_free(*target); // free(NULL) is safe
-    *target = strdup(origin);
+    *target = my_strdup(origin);
 }
 
 void FileExplorer_copy_paths(ExplorerFrame *self) {

@@ -206,7 +206,7 @@ Node *create_node(const char *text) {
         perror("malloc failed");
         exit(1);
     }
-    new_node->line = strdup(text); // copy string
+    new_node->line = my_strdup(text); // copy string
     new_node->length = strlen(text);
     // new_node->width = calculate_width(text);
     new_node->capacity = new_node->length + 1;
@@ -477,7 +477,7 @@ void EditorWindow_open_file(EditorWindow *editor_window, char *file_path) {
     if (editor_window->slider != NULL) {
         editor_window->slider->id = file_path;
     }
-    editor_window->file_path = strdup(file_path);
+    editor_window->file_path = my_strdup(file_path);
     editor_window->language = LANG_NONE;
     if (ends_with_ignore_case(file_path, ".c"))
         editor_window->language = LANG_C;
@@ -541,7 +541,7 @@ void EditorPointer_insert(EditorWindow *self, EditorPointer *cursor, char *cb) {
     // Get the byte position for splitting the line
     size_t byte_pos = cursor->str_ite.cluster_start;
 
-    char *tail = strdup(current->line + byte_pos);
+    char *tail = my_strdup(current->line + byte_pos);
     current->line[byte_pos] = '\0';
     current->length = byte_pos;                  // byte length
     current->width = cursor->str_ite.pos_column; // display width
@@ -559,7 +559,7 @@ void EditorPointer_insert(EditorWindow *self, EditorPointer *cursor, char *cb) {
             Node_append(current, line);
         } else {
             Node *new_node = my_malloc(sizeof(Node));
-            new_node->line = strdup(line);
+            new_node->line = my_strdup(line);
             new_node->length = strlen(line);
             // new_node->width = calculate_width(line);
             new_node->capacity = new_node->length + 1;
@@ -921,7 +921,7 @@ void EditorPointer_delete_region(EditorWindow *self, EditorPointer *ep1, EditorP
 void EditorPointer_undo_insert(EditorWindow *self, EditorPointer *cursor, char *cb) {
     ArrayList *stack = &self->undo_stack;
     stack->last = self->undo_pointer;
-    ArrayList_append(stack, (char *)&(UndoNode){.str = strdup(cb),
+    ArrayList_append(stack, (char *)&(UndoNode){.str = my_strdup(cb),
                                                 .y = cursor->y,
                                                 .ptr = cursor->str_ite.cluster_start,
                                                 .is_insert = 0});
@@ -2310,25 +2310,25 @@ Window *Editor_menu(EditorFrame *self) {
 
     Window *syntax = Menu_create_vertical(self);
     Menu *lang_menu = NULL;
-    lang_menu = Menu_add_element(syntax, strdup("None"),
+    lang_menu = Menu_add_element(syntax, my_strdup("None"),
                                  create_lambda(Editor_set_language, 2, self, LANG_NONE));
     lang_menu->show_check_lambda = create_lambda(Editor_cmp_language, 2, self, LANG_NONE);
-    lang_menu = Menu_add_element(syntax, strdup("🔧 C"),
+    lang_menu = Menu_add_element(syntax, my_strdup("🔧 C"),
                                  create_lambda(Editor_set_language, 2, self, LANG_C));
     lang_menu->show_check_lambda = create_lambda(Editor_cmp_language, 2, self, LANG_C);
-    lang_menu = Menu_add_element(syntax, strdup("💠 C++"),
+    lang_menu = Menu_add_element(syntax, my_strdup("💠 C++"),
                                  create_lambda(Editor_set_language, 2, self, LANG_CPP));
     lang_menu->show_check_lambda = create_lambda(Editor_cmp_language, 2, self, LANG_CPP);
-    lang_menu = Menu_add_element(syntax, strdup("☕ Java"),
+    lang_menu = Menu_add_element(syntax, my_strdup("☕ Java"),
                                  create_lambda(Editor_set_language, 2, self, LANG_JAVA));
     lang_menu->show_check_lambda = create_lambda(Editor_cmp_language, 2, self, LANG_JAVA);
-    lang_menu = Menu_add_element(syntax, strdup("📜 JavaScript"),
+    lang_menu = Menu_add_element(syntax, my_strdup("📜 JavaScript"),
                                  create_lambda(Editor_set_language, 2, self, LANG_JS));
     lang_menu->show_check_lambda = create_lambda(Editor_cmp_language, 2, self, LANG_JS);
-    lang_menu = Menu_add_element(syntax, strdup("📝 TypeScript"),
+    lang_menu = Menu_add_element(syntax, my_strdup("📝 TypeScript"),
                                  create_lambda(Editor_set_language, 2, self, LANG_TS));
     lang_menu->show_check_lambda = create_lambda(Editor_cmp_language, 2, self, LANG_TS);
-    lang_menu = Menu_add_element(syntax, strdup("🐍 Python"),
+    lang_menu = Menu_add_element(syntax, my_strdup("🐍 Python"),
                                  create_lambda(Editor_set_language, 2, self, LANG_PY));
     lang_menu->show_check_lambda = create_lambda(Editor_cmp_language, 2, self, LANG_PY);
     Menu_add_element(syntax, "", NULL);
