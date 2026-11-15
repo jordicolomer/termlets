@@ -2372,6 +2372,11 @@ Window *_Editor_searchbox(EditorFrame *self) {
     return search_box;
 }
 
+void Editor_on_remove(Window * w){
+    last_frame = NULL;
+}
+
+
 Window *Editor_new(int left, int right, int top, int bottom, int width, int height) {
     EditorFrame *editor_frame = my_malloc(sizeof *editor_frame);
     memset(editor_frame, 0, sizeof *editor_frame); // Zero-initialize
@@ -2386,6 +2391,7 @@ Window *Editor_new(int left, int right, int top, int bottom, int width, int heig
     tabs->right = 0;
     Window_append(w, tabs);
     frame->focused = tabs;
+    frame->on_remove = Editor_on_remove;
 
     Window *toolbar = Editor_toolbar(editor_frame);
     Window_append(w, toolbar);
