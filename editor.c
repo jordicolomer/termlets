@@ -27,6 +27,7 @@
 #include "config.h"
 #include "mystr.h"
 #include "collections.h"
+#include "dialog.h"
 
 #define SCRATCH_STR "*scratch*"
 
@@ -1911,8 +1912,27 @@ void EditorWindow_draw_selection(struct Window *w, EditorPointer p1, EditorPoint
     }
 }
 
+#include <sys/stat.h>
+#include <stdio.h>
+
+void EditorWindow_check_file_changes(EditorWindow *self) {
+    struct stat st;
+
+    if (stat(self->file_path, &st) == 0) {
+        //LOG_INFO("EditorWindow_check_file_changes: %lld", (long long)st.st_mtime);
+        if (self->file_modified != 0 && self->file_modified != st.st_mtime){
+            //LOG_INFO("EditorWindow_check_file_changes modified. reload?");
+            Lambda *lambda = create_lambda(EditorWindow_reload, 1, self);
+            EditorFrame * frame = Window_get_frame(self);
+            open_dialog(frame, "File has been modified. reload?", lambda);
+        }
+        self->file_modified = st.st_mtime;
+    }
+}
+
 void EditorWindow_draw(struct Window *w, int hasFocus) {
     EditorWindow *self = w;
+    EditorWindow_check_file_changes(self);
 
     Geometry geo = w->calculated;
     int i = 0;
@@ -2075,7 +2095,7 @@ void EditorWindow_on_mouse_up(Window *win) {
 EditorWindow *latestEditorWindow;
 EditorWindow *EditorWindow_new() {
     EditorWindow *self = my_malloc(sizeof *self);
-    memset(self, 0, sizeof *self); // Zero-initialize to prevent garbage values
+    //memset(self, 0, sizeof *self); // Zero-initialize to prevent garbage values
     Window_init(self, -1, -1, -1, -1, -1, -1);
     self->win.top = 0;
     self->win.bottom = 0;

@@ -62,6 +62,7 @@ typedef struct EditorWindow { // this is the scrollable part of the editor
 
     int n_lines; // total number of lines
     char *file_path;
+    long long file_modified;
     int language; // specifies the syntax highlighting language
     int selecting;
     LineEditorWindow *search_box;
