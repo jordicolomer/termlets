@@ -198,7 +198,7 @@ void scrollback_add_line_utf8(ScrollbackLine *line, int cols, const VTermScreenC
     }
 }
 
-void scrollback_add_line(ScrollbackList *sb, int cols, const VTermScreenCell *cells) {
+void scrollback_add_line(TerminalWindow *terminal, ScrollbackList *sb, int cols, const VTermScreenCell *cells) {
     ScrollbackLine *line = my_malloc(sizeof(ScrollbackLine));
     line->cols = cols;
     // LOG_INFO("cols:%d * sizeof(VTermScreenCell:%d)", cols, sizeof(VTermScreenCell));
@@ -220,7 +220,11 @@ void scrollback_add_line(ScrollbackList *sb, int cols, const VTermScreenCell *ce
     sb->count++;
 
     /* remove oldest line if we exceed max size */
-    /*while (sb->count > sb->max_size && sb->head) {
+    while (sb->head && sb->count > sb->max_size) {
+        // clear last_line as it might point to deleted line
+        terminal->last_line = NULL;
+        terminal->last_line_idx = -1;
+        
         ScrollbackLine *old = sb->head;
         sb->head = old->next;
         if (sb->head) {
@@ -234,7 +238,8 @@ void scrollback_add_line(ScrollbackList *sb, int cols, const VTermScreenCell *ce
         if (old->bg) my_free(old->bg);
         my_free(old);
         sb->count--;
-    }*/
+        //terminal->win.shift += 1;
+    }
 }
 
 void VTermTerminal_update(TerminalWindow *terminal) {
@@ -1177,7 +1182,7 @@ static int cb_sb_pushline(int cols, const VTermScreenCell *cells, void *user) {
     // vterm_terminal_data *vtd = user;
     TerminalWindow *terminal = user;
 
-    scrollback_add_line(&terminal->scrollback, cols, cells);
+    scrollback_add_line(terminal, &terminal->scrollback, cols, cells);
 
     return 1;
 }

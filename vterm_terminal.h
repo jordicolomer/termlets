@@ -74,6 +74,7 @@ typedef struct TerminalWindow {
     // struct TerminalPointer highlight_end;
 
     // this allows moving around the current line efficiently
+    // is like a cache. can be set to NULL and -1 without changing behaviour
     ScrollbackLine *last_line; 
     int last_line_idx;
 
