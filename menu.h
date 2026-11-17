@@ -2,6 +2,7 @@
 #define MENU_H
 #include "window.h"
 #include "tabs.h"
+#include "config.h"
 
 typedef struct Menu {
     Window win;
@@ -12,6 +13,8 @@ typedef struct Menu {
     int auto_expand;
     struct Menu *submenu;
     Lambda *show_check_lambda;
+    WindowType window_type;
+    Action action;
 } Menu;
 
 Menu *Menu_create_horizontal();

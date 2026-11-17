@@ -180,10 +180,10 @@ void Menu_change_color_selected(Window *w, int x, int y) {
 
 void Menu_draw(struct Window *current, int hasFocus) {
     Menu *self = current;
-    if (self->show_check_lambda == NULL) {
+    /*if (self->show_check_lambda == NULL) {
         Widget_draw(current, hasFocus);
         return;
-    }
+    }*/
     if (current->hidden == 1) {
         return;
     }
@@ -195,7 +195,19 @@ void Menu_draw(struct Window *current, int hasFocus) {
         x_shift = 3;
     Buffer_print(&main_buf, geo.y, geo.x, x_shift, "", fg, bg);
     // Buffer_print(&main_buf, geo.y, geo.x+x_shift, geo.width-x_shift, current->c, fg, bg);
-    Buffer_print_dots(&main_buf, geo.y, geo.x + x_shift, geo.width - x_shift, current->c, fg, bg);
+
+    char * label = current->c;
+    char buf[256];
+    if (self->action){
+        char * shortcut = get_shortcut(self->action, self->window_type);
+        LOG_INFO("Menu_draw: %s", shortcut);
+        if (shortcut){
+            snprintf(buf, sizeof(buf), "%s %s", label, shortcut);
+            label = buf;
+        }
+    }
+
+    Buffer_print_dots(&main_buf, geo.y, geo.x + x_shift, geo.width - x_shift, label, fg, bg);
     // LOG_INFO("Menu_draw %s", current->c);
 
     if (self->show_check_lambda != NULL && invoke_lambda(self->show_check_lambda)) {

@@ -2282,14 +2282,16 @@ int get_show_tabs() { return show_tabs; }
 void toggle_show_tabs() { show_tabs = 1 - show_tabs; }
 
 void EditorWindow_menu_add_element(Menu *self, Action action, char *name, Lambda *lambda){
-    char buf[256];
+    /*char buf[256];
     char * shortcut = get_shortcut(action, WT_EDITOR);
     //LOG_INFO("EditorWindow_menu_add_element %s %s", name, shortcut);
     if (shortcut){
         snprintf(buf, sizeof(buf), "%s %s", name, shortcut);
         name = buf;
-    }
-    Menu_add_element(self, my_strdup(name), lambda);
+    }*/
+    Menu * menu = Menu_add_element(self, name, lambda);
+    menu->window_type = WT_EDITOR;
+    menu->action = action;
 }
 
 void EditorWindow_scratch(EditorFrame *self) { Editor_open_file(self, SCRATCH_STR); }
