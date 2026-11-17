@@ -8,6 +8,8 @@
 #include <stddef.h>
 #include <limits.h>
 #include <ctype.h>
+#include <sys/stat.h>
+#include <stdio.h>
 
 #include "editor.h"
 #include "frame.h"
@@ -181,6 +183,12 @@ void EditorWindow_save(EditorWindow *self) {
     }
     fclose(file);
     set_modified(self, 0);
+
+    // load ts
+    struct stat st;
+    if (stat(self->file_path, &st) == 0) {
+        self->file_modified = st.st_mtime;
+    }
 }
 
 void EditorWindow_fix_cursor_x(EditorWindow *self) {
@@ -412,7 +420,7 @@ void load_file(EditorWindow *self, const char *filename) {
     }
 
     fclose(file);
-
+    
     EditorWindow_update_height(self);
 
     self->cursor.ptr = 0;
@@ -1912,8 +1920,6 @@ void EditorWindow_draw_selection(struct Window *w, EditorPointer p1, EditorPoint
     }
 }
 
-#include <sys/stat.h>
-#include <stdio.h>
 
 void EditorWindow_check_file_changes(EditorWindow *self) {
     struct stat st;
@@ -2274,6 +2280,9 @@ void EditorWindow_close(EditorFrame *self) {
 int get_show_tabs() { return show_tabs; }
 
 void toggle_show_tabs() { show_tabs = 1 - show_tabs; }
+
+void EditorWindow_menu_add_element(){
+}
 
 void EditorWindow_scratch(EditorFrame *self) { Editor_open_file(self, SCRATCH_STR); }
 
