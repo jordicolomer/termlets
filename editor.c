@@ -2155,7 +2155,7 @@ StatusWindow *status_bar_create() {
 }
 
 void EditorWindow_on_remove(Window * w){
-    LOG_INFO("EditorWindow_on_remove");
+    //LOG_INFO("EditorWindow_on_remove");
     EditorWindow * self = w;
     Node * current = self->head;
     while (current){

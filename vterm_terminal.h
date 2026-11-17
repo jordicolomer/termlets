@@ -73,7 +73,8 @@ typedef struct TerminalWindow {
     // struct TerminalPointer highlight_start;
     // struct TerminalPointer highlight_end;
 
-    ScrollbackLine *last_line;
+    // this allows moving around the current line efficiently
+    ScrollbackLine *last_line; 
     int last_line_idx;
 
     /* data formerly in vterm_terminal_data */

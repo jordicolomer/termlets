@@ -1366,6 +1366,9 @@ void VTermTerminal_clear(TerminalWindow *terminal) {
     // todo free mem
     TerminalWindow_first_line(terminal);*/
     ScrollbackList_free(&terminal->scrollback);
+    terminal->last_line = NULL;
+    terminal->last_line_idx = -1;
+    terminal->win.shift = 0;
 }
 
 void VTermTerminal_on_selected(TerminalFrame *self, void fn()) { fn(self->tabs->focused->head); }
