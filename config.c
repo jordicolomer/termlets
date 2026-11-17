@@ -13,6 +13,13 @@ Action *mapping;
 Action *mapping_edit;
 Action *mapping_file_manager;
 Action *mapping_tabs;
+
+char **shortcuts_global;
+char **shortcuts;
+char **shortcuts_edit;
+char **shortcuts_file_manager;
+char **shortcuts_tabs;
+
 char *config_file = NULL;
 
 Action *get_mapping(void) {
@@ -35,6 +42,22 @@ Action get_action(char c, WindowType window_type) {
     if (insert_mode == 1)
         return mapping[c];
     return mapping_edit[c];
+}
+
+char * get_shortcut(Action act, WindowType window_type) {
+    if (shortcuts_global[act] != ACTION_NONE)
+        return shortcuts_global[act];
+    if (window_type == WT_FILE_MANAGER) {
+        if (shortcuts_file_manager[act] != ACTION_NONE)
+            return shortcuts_file_manager[act];
+        return shortcuts_edit[act];
+    }
+    if (window_type == WT_TABS) {
+        return shortcuts_tabs[act];
+    }
+    if (insert_mode == 1)
+        return shortcuts[act];
+    return shortcuts_edit[act];
 }
 
 Action action_from_string(const char *name) {
@@ -88,6 +111,7 @@ int load_mappings_from_buffer(const char *data, size_t len) {
     size_t pos = 0;
 
     Action *map = mapping_edit;
+    char ** shortcts = shortcuts_edit;
 
     while (pos < len) {
         /*
@@ -134,26 +158,31 @@ int load_mappings_from_buffer(const char *data, size_t len) {
          */
         if (strcmp(line, "[global]") == 0) {
             map = mapping_global;
+            shortcts = shortcuts_global;
             continue;
         }
 
         if (strcmp(line, "[edit-mode]") == 0) {
             map = mapping_edit;
+            shortcts = shortcuts_edit;
             continue;
         }
 
         if (strcmp(line, "[insert-mode]") == 0) {
             map = mapping;
+            shortcts = shortcuts;
             continue;
         }
 
         if (strcmp(line, "[file-manager]") == 0) {
             map = mapping_file_manager;
+            shortcts = shortcuts_file_manager;
             continue;
         }
 
         if (strcmp(line, "[tabs]") == 0) {
             map = mapping_tabs;
+            shortcts = shortcuts_tabs;
             continue;
         }
 
@@ -199,7 +228,9 @@ int load_mappings_from_buffer(const char *data, size_t len) {
          * Convert the action name to an Action and
          * install it in the current mapping.
          */
-        map[(unsigned char)key] = action_from_string(action);
+        Action act = action_from_string(action);
+        map[(unsigned char)key] = act;
+        shortcts[act] = my_strdup(value);
     }
 
     return 0;
@@ -316,23 +347,18 @@ void load_edit_mode_mappings() {
 
 void load_mappings() {
     mapping_global = my_malloc(sizeof(Action) * 256);
-    memset(mapping_global, 0, sizeof(Action) * 256);
-
     mapping = my_malloc(sizeof(Action) * 256);
-    memset(mapping, 0, sizeof(Action) * 256);
-
     mapping_edit = my_malloc(sizeof(Action) * 256);
-    memset(mapping_edit, 0, sizeof(Action) * 256);
-
     mapping_file_manager = my_malloc(sizeof(Action) * 256);
-    memset(mapping_file_manager, 0, sizeof(Action) * 256);
-
     mapping_tabs = my_malloc(sizeof(Action) * 256);
-    memset(mapping_tabs, 0, sizeof(Action) * 256);
+
+    shortcuts_global = my_malloc(sizeof(char *) * 256);
+    shortcuts = my_malloc(sizeof(char *) * 256);
+    shortcuts_edit = my_malloc(sizeof(char *) * 256);
+    shortcuts_file_manager = my_malloc(sizeof(char *) * 256);
+    shortcuts_tabs = my_malloc(sizeof(char *) * 256);
 
     if (load_mappings_from_file()) {
-        // load_default_mappings();
-        // load_edit_mode_mappings();
         load_mappings_from_buffer((const char *)vscode_conf, vscode_conf_len);
     }
 }

@@ -72,5 +72,6 @@ extern char *config_file;
 void load_mappings();
 Action *get_mapping();
 Action get_action(char c, WindowType window_type);
+char * get_shortcut(Action act, WindowType window_type);
 
 #endif
