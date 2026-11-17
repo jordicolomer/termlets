@@ -1075,7 +1075,7 @@ void vterm_send_key(struct Window *wg, char c) {
                 write(terminal->master, "\x05", 1);
             } else {
                 char *line = VTermTerminal_get_line(terminal, terminal->cursor.y);
-                terminal->cursor.x = strlen(line) - 1;
+                terminal->cursor.x = min(strlen(line), terminal->cols-1);
             }
             return;
         }
