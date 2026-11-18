@@ -242,7 +242,7 @@ Menu *Menu_add_element(Menu *self, char *name, Lambda *lambda) {
     Menu *win = NULL;
     if (self->vertical == 1) {
         win = Menu_add_menu(self, 0, 0, self->offset, -1, -1, 1, name, 232, 248);
-        self->win.width = max(self->win.width, len + 3);
+        self->win.width = max(self->win.width, len + 5); // add space for the shortcut
         self->win.height += 1;
         self->offset += 1;
         if (lambda != NULL) {

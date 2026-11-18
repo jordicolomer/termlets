@@ -2305,7 +2305,7 @@ Window *Editor_menu(EditorFrame *self) {
                      create_lambda(Editor_on_selected, 2, self, EditorWindow_reload));
     EditorWindow_menu_add_element(file, ACTION_SAVE, " 💾 Save   ",
                      create_lambda(Editor_on_selected, 2, self, EditorWindow_save));
-    EditorWindow_menu_add_element(file, ACTION_NONE, " ✏️ Scratch Pad", create_lambda(EditorWindow_scratch, 1, self));
+    EditorWindow_menu_add_element(file, ACTION_NONE, " ✏️ Scratch", create_lambda(EditorWindow_scratch, 1, self));
     EditorWindow_menu_add_element(file, ACTION_NONE, " ❌ Close", create_lambda(EditorWindow_close, 1, self));
     Menu_add_element(file, "", NULL);
     Menu_add_submenu(menu, " File ", file);
@@ -2316,7 +2316,7 @@ Window *Editor_menu(EditorFrame *self) {
     EditorWindow_menu_add_element(edit, ACTION_REDO, " ↪️ Redo   ",
                      create_lambda(Editor_on_selected, 2, self, EditorWindow_redo));
     Menu_add_element(edit, "", NULL);
-    EditorWindow_menu_add_element(edit, ACTION_NONE, " ❌ Delete Backspace",
+    EditorWindow_menu_add_element(edit, ACTION_NONE, " ❌ Delete",
                      create_lambda(Editor_on_selected, 2, self, EditorWindow_backspace));
     EditorWindow_menu_add_element(edit, ACTION_CUT, " 🔪 Cut    ",
                      create_lambda(Editor_on_selected, 2, self, EditorWindow_cut));
@@ -2327,7 +2327,7 @@ Window *Editor_menu(EditorFrame *self) {
     Menu_add_element(edit, "", NULL);
     EditorWindow_menu_add_element(edit, ACTION_SEARCH, " 🔍 Search ",
                      create_lambda(Editor_on_selected, 2, self, EditorWindow_action_search));
-    EditorWindow_menu_add_element(edit, ACTION_REPLACE, " 🔄 Replace ",
+    EditorWindow_menu_add_element(edit, ACTION_REPLACE, " 🔄 Replace",
                      create_lambda(Editor_on_selected, 2, self, EditorWindow_action_replace));
     EditorWindow_menu_add_element(edit, ACTION_NONE, "", NULL);
     EditorWindow_menu_add_element(edit, ACTION_NONE, " a→A Uppercase",
